@@ -1,0 +1,137 @@
+{
+  "recurringDelete": {
+    "title": "Wiederkehrende Aufgabe löschen",
+    "description": "Diese Aufgabe gehört zu einer wiederkehrenden Serie. Was möchten Sie löschen?",
+    "single": "Dieses Vorkommen",
+    "after": "Dieses und folgende",
+    "all": "Gesamte Serie"
+  },
+  "location": {
+    "title": "Standort",
+    "projectSite": "Baustelle des Projekts „{name}“",
+    "noProjectAddress": "Für dieses Projekt ist keine Adresse hinterlegt — geben Sie unten einen Ort ein"
+  },
+  "history": {
+    "unnamed": "Ohne Namen",
+    "empty": "Kein Verlauf",
+    "restoreConfirm": "Wiederherstellen?"
+  },
+  "recurrence": {
+    "enable": "Diese Aufgabe wiederholen",
+    "type": {
+      "label": "Typ",
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "monthly": "Monatlich"
+    },
+    "frequency": "Alle",
+    "unit": {
+      "days": "{count, plural, one {Tag} other {Tage}}",
+      "weeks": "{count, plural, one {Woche} other {Wochen}}",
+      "months": "{count, plural, one {Monat} other {Monate}}"
+    },
+    "dayOfWeek": "Wochentag",
+    "endDate": {
+      "label": "Enddatum",
+      "placeholder": "Enddatum auswählen"
+    },
+    "exception": {
+      "label": "Feiertage / Wochenenden",
+      "skip": "Überspringen (nicht erstellen)",
+      "shift": "Auf den nächsten Werktag verschieben",
+      "include": "Trotzdem erstellen"
+    }
+  },
+  "contextMenu": {
+    "permissionDenied": "Unzureichende Berechtigung",
+    "cut": "Ausschneiden",
+    "lock": "Sperren",
+    "unlock": "Entsperren",
+    "confirmDelete": "Bestätigen?",
+    "newTask": "Neue Aufgabe",
+    "paste": "Einfügen"
+  },
+  "dropMenu": {
+    "addUser": "Diesen Benutzer hinzufügen",
+    "moveThisUser": "Verschieben (dieser Benutzer)",
+    "moveAll": "Verschieben (alle)",
+    "move": "Verschieben"
+  },
+  "dialog": {
+    "title": {
+      "create": "Neue Aufgabe",
+      "edit": "Aufgabe bearbeiten"
+    },
+    "description": {
+      "create": "Formular zum Erstellen einer Aufgabe",
+      "edit": "Formular zum Bearbeiten einer Aufgabe"
+    },
+    "lock": {
+      "willLock": "Die Aufgabe wird beim Speichern gesperrt",
+      "willUnlock": "Die Aufgabe wird beim Speichern entsperrt",
+      "locked": "Diese Aufgabe ist gesperrt",
+      "lockTask": "Aufgabe sperren",
+      "unlockTask": "Aufgabe entsperren"
+    },
+    "fields": {
+      "title": {
+        "label": "Titel",
+        "placeholder": "Titel der Aufgabe"
+      },
+      "project": {
+        "label": "Projekt *",
+        "required": "Das Projekt ist erforderlich",
+        "searchPlaceholder": "Projekt suchen...",
+        "empty": "Kein Projekt gefunden"
+      },
+      "users": {
+        "label": "Benutzer *",
+        "required": "Mindestens ein Benutzer erforderlich",
+        "count": "{count, plural, one {# Benutzer} other {# Benutzer}}"
+      },
+      "status": {
+        "label": "Status *"
+      },
+      "startDate": {
+        "label": "Startdatum *",
+        "required": "Das Startdatum ist erforderlich"
+      },
+      "endDate": {
+        "label": "Enddatum",
+        "durationLabel": "Dauer (Tage)",
+        "daysPlaceholder": "Anzahl Tage"
+      },
+      "startTime": {
+        "label": "Startzeit"
+      },
+      "endTime": {
+        "label": "Endzeit"
+      },
+      "notes": {
+        "label": "Notizen",
+        "placeholder": "Notizen..."
+      }
+    },
+    "morning": "Vormittag",
+    "afternoon": "Nachmittag",
+    "recurringOccurrence": "Vorkommen einer wiederkehrenden Aufgabe",
+    "files": {
+      "title": "Angehängte Dateien",
+      "add": "Datei hinzufügen",
+      "uploading": "Wird hochgeladen…",
+      "uploadingShort": "Hochladen…"
+    },
+    "confirmDelete": "Bestätigen?",
+    "permissionDenied": "Unzureichende Berechtigung",
+    "history": {
+      "tooltip": "Verlauf",
+      "permissionRequired": "Berechtigung „Audit & Verlauf“ erforderlich"
+    },
+    "multiDelete": {
+      "title": "Aufgabe mehreren Benutzern zugewiesen",
+      "description": "{count, plural, one {Diese Aufgabe ist # Benutzer zugewiesen.} other {Diese Aufgabe ist # Benutzern zugewiesen.}}",
+      "confirm": "Für alle löschen",
+      "removeUser": "Diesen Benutzer entfernen"
+    }
+  }
+}

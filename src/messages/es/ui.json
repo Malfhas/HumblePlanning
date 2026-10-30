@@ -1,0 +1,151 @@
+{
+  "search": {
+    "close": "Cerrar la búsqueda"
+  },
+  "dataTable": {
+    "perPage": "Por página",
+    "count": "{count, plural, one {# elemento} other {# elementos}}",
+    "selectedOf": "{selected} de {count, plural, one {# elemento} other {# elementos}}"
+  },
+  "deleteConfirm": {
+    "description": "Esta acción es irreversible. ¿Desea continuar?"
+  },
+  "dateRange": {
+    "previousPeriod": "Periodo anterior",
+    "nextPeriod": "Periodo siguiente",
+    "todayShort": "Hoy",
+    "shortcuts": "Accesos directos — periodo desde hoy",
+    "upcoming": "Próximos",
+    "past": "Pasados",
+    "presets": {
+      "weeks": "{count, plural, one {# sem.} other {# sem.}}",
+      "months": "{count, plural, one {# mes} other {# meses}}"
+    },
+    "startPicked": "Inicio: <b>{date}</b> — seleccione ahora la fecha de fin",
+    "hint": "Seleccione la fecha de inicio y luego la fecha de fin para definir el periodo"
+  },
+  "errorState": {
+    "forbidden": {
+      "title": "Acceso denegado",
+      "description": "No tiene los permisos necesarios para acceder a esta página. Póngase en contacto con su administrador si cree que se trata de un error."
+    },
+    "unauthenticated": {
+      "title": "No autenticado",
+      "description": "Debe iniciar sesión para acceder a esta página."
+    },
+    "unavailable": {
+      "title": "Servicio no disponible",
+      "description": "Este servicio no está disponible temporalmente. Vuelva a intentarlo dentro de unos instantes."
+    },
+    "badGateway": {
+      "title": "Error de pasarela",
+      "description": "El servidor ha encontrado un error temporal. Vuelva a intentarlo dentro de unos instantes."
+    },
+    "rateLimited": {
+      "title": "Demasiadas solicitudes",
+      "description": "Ha realizado demasiadas solicitudes. Espere unos instantes antes de volver a intentarlo."
+    },
+    "unknown": {
+      "code": "Error",
+      "title": "Se ha producido un error",
+      "description": "Se ha producido un error inesperado. Vuelva a intentarlo o regrese al inicio."
+    }
+  },
+  "fileUpload": {
+    "dropzone": "Arrastre sus archivos aquí o haga clic",
+    "limits": "{extensions} — máx. {maxSize, number} MB/archivo, {maxTotal, number} MB en total",
+    "errors": {
+      "extension": "{name}: extensión .{ext} no autorizada",
+      "tooLarge": "{name}: demasiado grande ({size}, máx. {max, number} MB)",
+      "maxFiles": "{name}: se ha alcanzado el número máximo de archivos ({max, number})",
+      "totalSize": "{name}: tamaño total superado (máx. {max, number} MB)"
+    },
+    "pending": "Pendiente",
+    "preview": "Vista previa del archivo",
+    "counter": "{count, number}/{max, number} archivos — {size}/{maxTotal, number} MB",
+    "size": {
+      "bytes": "{n, number} B",
+      "kb": "{n, number} KB",
+      "mb": "{n, number} MB"
+    }
+  },
+  "filter": {
+    "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+    "clear": "Borrar el filtro"
+  },
+  "maintenance": {
+    "title": "Mantenimiento en curso",
+    "description": "La planificación no está disponible temporalmente por mantenimiento. Estamos trabajando para mejorar su experiencia.",
+    "retryLater": "Vuelva a intentarlo más tarde"
+  },
+  "permission": {
+    "denied": "Permiso insuficiente"
+  },
+  "phone": {
+    "searchCountry": "Buscar un país…",
+    "noCountry": "Ningún país"
+  },
+  "richText": {
+    "placeholder": "Empiece a escribir…",
+    "linkPrompt": "URL del enlace",
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "underline": "Subrayado",
+    "heading1": "Título 1",
+    "heading2": "Título 2",
+    "heading3": "Título 3",
+    "bulletList": "Lista con viñetas",
+    "orderedList": "Lista numerada",
+    "link": "Enlace",
+    "divider": "Separador",
+    "alignLeft": "Alinear a la izquierda",
+    "alignCenter": "Centrar",
+    "alignRight": "Alinear a la derecha",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "expand": "Ampliar"
+  },
+  "timePicker": {
+    "hour": "Hora",
+    "minutes": "Min"
+  },
+  "addressMap": {
+    "loading": "Inicializando…",
+    "label": "Dirección",
+    "searchPlaceholder": "Buscar una dirección, un lugar, una empresa…",
+    "satelliteView": "Vista satélite",
+    "mapView": "Vista de mapa",
+    "coordinates": "Lat: {lat}, Lng: {lng} — Mueva el mapa para ajustar la posición"
+  },
+  "iconPicker": {
+    "searchPlaceholder": "Buscar un icono…",
+    "categories": {
+      "general": "General",
+      "technical": "Técnico",
+      "transport": "Transporte",
+      "health": "Salud",
+      "training": "Formación",
+      "team": "Equipo",
+      "security": "Seguridad",
+      "communication": "Comunicación",
+      "environment": "Medio ambiente",
+      "creative": "Creativo",
+      "development": "Desarrollo",
+      "finance": "Finanzas",
+      "time": "Tiempo",
+      "location": "Ubicación",
+      "organisation": "Organización",
+      "food": "Alimentación",
+      "construction": "Obra / Construcción",
+      "sport": "Deporte",
+      "daily": "Vida cotidiana"
+    }
+  },
+  "moduleGuard": {
+    "title": {
+      "resources": "Módulo Recursos desactivado",
+      "vehicles": "Módulo Vehículos desactivado"
+    },
+    "description": "El administrador ha desactivado este módulo en la configuración de la aplicación."
+  }
+}

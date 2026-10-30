@@ -1,0 +1,36 @@
+{
+  "greeting": "Hallo {name}!",
+  "weekBadge": "Kalenderwoche {week}",
+  "weekPill": "KW {week} · {range}",
+  "collaborators": {
+    "label": "Mitarbeiter",
+    "show": "Mitarbeiter anzeigen",
+    "hide": "Mitarbeiter ausblenden"
+  },
+  "today": {
+    "title": "Heute",
+    "taskCount": "{count, plural, one {# Aufgabe} other {# Aufgaben}}",
+    "empty": "Heute keine Aufgaben"
+  },
+  "holiday": {
+    "fallback": "Feiertag",
+    "wish": "Feiertag — Einen schönen Tag!"
+  },
+  "week": {
+    "title": "Wochenplanung",
+    "empty": "Keine Aufgaben",
+    "previous": "Vorherige Woche",
+    "next": "Nächste Woche"
+  },
+  "duration": {
+    "hours": "{hours} h",
+    "hoursMinutes": "{hours} h {minutes} min"
+  },
+  "viewFullPlanning": "Vollständige Planung anzeigen",
+  "notifications": {
+    "title": "Benachrichtigungen"
+  },
+  "errors": {
+    "dateRangeRequired": "startDate und endDate sind erforderlich"
+  }
+}

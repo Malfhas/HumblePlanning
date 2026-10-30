@@ -1,0 +1,96 @@
+{
+  "permissionDenied": "Insufficient permissions",
+  "list": {
+    "title": "Tasks",
+    "columns": {
+      "project": "Project",
+      "title": "Title",
+      "users": "Users",
+      "dates": "Dates",
+      "times": "Times",
+      "status": "Status",
+      "place": "Location"
+    },
+    "defaultHoursTooltip": "Default working hours (settings)",
+    "actions": {
+      "viewDetails": "View details"
+    },
+    "filters": {
+      "project": "Project",
+      "status": "Status",
+      "user": "User",
+      "team": "Team"
+    },
+    "searchPlaceholder": "Search for a task...",
+    "count": "{count, plural, one {# task} other {# tasks}}",
+    "limited": "(limited to {limit, number})",
+    "notLoaded": "{count, plural, one {# more task not loaded} other {# more tasks not loaded}} — increase the limit to see them all."
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Delete task"
+    },
+    "multiDelete": {
+      "title": "Task assigned to several users",
+      "description": "{count, plural, one {This task is assigned to # user: {names}.} other {This task is assigned to # users: {names}.}}",
+      "confirm": "Delete for everyone",
+      "removeUser": "Remove a user"
+    },
+    "removeUser": {
+      "title": "Remove a user",
+      "description": "Select the user to remove from this task."
+    }
+  },
+  "detail": {
+    "untitled": "Untitled",
+    "srDescription": "Task details",
+    "preview": "Preview",
+    "recurrence": {
+      "occurrence": "Occurrence of a recurring task",
+      "rule": "{type, select, daily {Daily — {freq, plural, one {every day} other {every # days}}} weekly {Weekly — {freq, plural, one {every week} other {every # weeks}}} monthly {Monthly — {freq, plural, one {every month} other {every # months}}} other {{type}}}"
+    },
+    "fields": {
+      "project": "Project",
+      "status": "Status",
+      "dates": "Dates",
+      "times": "Times",
+      "users": "{count, plural, one {User} other {Users (#)}}",
+      "place": "Location",
+      "resource": "Resource",
+      "vehicles": "Vehicles",
+      "linkedResources": "Linked resources",
+      "sameSite": "On the same site ({count, number})",
+      "siteAddress": "Site address",
+      "recurrence": "Recurrence",
+      "notes": "Notes",
+      "files": "Files ({count, number})",
+      "createdBy": "Created by",
+      "modifiedBy": "Modified by"
+    }
+  },
+  "errors": {
+    "notFound": "Task not found",
+    "projectNotFound": "Project not found",
+    "notAllowed": "You are not allowed to modify this task",
+    "deleteNotAllowed": "You are not allowed to delete this task",
+    "locked": "This task is locked",
+    "assignForbidden": "You do not have permission to assign users",
+    "updateOutOfScope": "The requested changes are outside your permitted scope",
+    "moveOutOfScope": "The requested move is outside your permitted scope",
+    "createForUsersForbidden": "You do not have permission to create tasks for these users",
+    "copyForbidden": "Insufficient permissions to copy this task",
+    "insufficientPermission": "Insufficient permissions",
+    "repeatChildOccurrence": "A child occurrence cannot be repeated",
+    "recurrenceEndBeforeStart": "The recurrence end date must be after the start date",
+    "dailyLimitReached": "Limit reached: maximum {limit, plural, one {# task} other {# tasks}} per user per day (conflict on {day})",
+    "addFilesForbidden": "Insufficient permissions to add files",
+    "deleteFilesForbidden": "Insufficient permissions to delete files",
+    "filesDisabled": "File management is disabled",
+    "maxFilesReached": "{max, plural, one {Maximum of # file per task reached} other {Maximum of # files per task reached}}",
+    "extensionNotAllowed": "The .{ext} extension is not allowed. Allowed extensions: {allowed}",
+    "fileTooLarge": "File too large. Maximum: {max, number} MB",
+    "totalSizeExceeded": "Total size exceeded. Maximum: {max, number} MB per task",
+    "fileIdRequired": "fileId is required",
+    "fileNotFound": "File not found"
+  }
+}

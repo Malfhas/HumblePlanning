@@ -1,0 +1,1271 @@
+{
+  "categories": {
+    "general": "General",
+    "communication": "Communication",
+    "security": "Security",
+    "system": "System",
+    "ai": "AI",
+    "backup-import": "Back up / Import",
+    "version": "Version"
+  },
+  "nav": {
+    "application": "Application",
+    "appearance": "Appearance",
+    "workDurations": "Working hours",
+    "announcement": "Announcement",
+    "email": "Email",
+    "sms": "SMS / WhatsApp",
+    "emailNotifications": "Email notifications",
+    "weeklySummary": "Weekly summary",
+    "pushNotifications": "Push notifications",
+    "smsNotifications": "SMS / WhatsApp notifications",
+    "passwords": "Passwords",
+    "forgotPassword": "Forgotten password",
+    "twoFactor": "2FA",
+    "sessions": "Sessions",
+    "captcha": "Captcha",
+    "gdpr": "GDPR",
+    "files": "Files",
+    "audit": "Audit",
+    "logs": "Logs",
+    "apiAccess": "API access",
+    "cache": "Cache",
+    "purge": "Purge",
+    "mcp": "MCP",
+    "aiChat": "AI chat",
+    "aiChatQuotas": "AI chat quotas",
+    "backup": "Back up",
+    "import": "Import",
+    "migration": "Migration",
+    "version": "Version"
+  },
+  "sections": {
+    "application": "Application",
+    "maintenance": "Maintenance",
+    "newUserDefaults": "Default settings for new users",
+    "appearance": "Appearance",
+    "planningDisplay": "Planning display",
+    "workDurations": "Working hours",
+    "announcement": "Announcement",
+    "email": "Email",
+    "smsSentDm": "SMS / WhatsApp (Sent.dm)",
+    "emailNotifications": "Email notifications",
+    "weeklySummary": "Weekly summary",
+    "pushNotifications": "Push notifications",
+    "smsNotifications": "SMS / WhatsApp notifications",
+    "passwordPolicy": "Password policy",
+    "passwordGenerator": "Password generator",
+    "passwordBlacklist": "Banned passwords",
+    "forgotPassword": "Forgotten password",
+    "bruteforce": "Brute-force protection",
+    "twoFactor": "Two-factor authentication",
+    "sessions": "Sessions",
+    "captcha": "Captcha",
+    "cookieBanner": "Cookie banner",
+    "privacyPolicy": "Privacy policy",
+    "legalInfo": "Legal information",
+    "footer": "Footer",
+    "files": "Files",
+    "audit": "Audit",
+    "logs": "Logs",
+    "apiAccess": "API access",
+    "cache": "Cache",
+    "purge": "Purge",
+    "mcp": "MCP",
+    "aiChat": "AI chat",
+    "aiChatQuotas": "AI chat quotas",
+    "backup": "Back up",
+    "import": "Import",
+    "migration": "Migration",
+    "updateCheck": "Update check"
+  },
+  "page": {
+    "title": "Settings"
+  },
+  "badges": {
+    "recommended": "Recommended"
+  },
+  "field": {
+    "envManaged": "Managed in .env",
+    "envManagedTooltip": "This value is set in the server's .env file. To change it, edit .env and restart the application.",
+    "configured": "Configured",
+    "keepSecretPlaceholder": "•••••••••••• (leave empty to keep the current value)",
+    "translatedDefaultHelp": "Leave blank to show the example text, translated into the visitor's language."
+  },
+  "tagList": {
+    "placeholder": "Add a password…",
+    "help": "Press Enter or comma to add. Paste a comma-separated list to add several at once.",
+    "count": "{count, plural, one {# password in the list} other {# passwords in the list}}",
+    "filterPlaceholder": "Filter…"
+  },
+  "image": {
+    "uploading": "Uploading…",
+    "chooseFile": "Choose a file",
+    "choose": "Choose",
+    "formats": "Accepted formats: PNG, JPG, WebP, GIF, AVIF — 10 MB max",
+    "themedFormats": "Formats: PNG, JPG, WebP, GIF, AVIF, SVG — 10 MB max. The light theme image is used by default. If a dark theme image is uploaded, it replaces the image in dark mode.",
+    "noImage": "No image"
+  },
+  "dateTime": {
+    "selectDate": "Select a date",
+    "timePlaceholder": "Time"
+  },
+  "richText": {
+    "variables": "Available variables:",
+    "announcementPlaceholder": "Write your announcement…",
+    "privacyPlaceholder": "Write your privacy policy…",
+    "pageUrl": "Page URL:"
+  },
+  "alerts": {
+    "emailDisabled": {
+      "title": "Email sending disabled",
+      "description": "The <b>{provider}</b> provider is selected but the following credentials are missing: <code>{keys}</code>. Enter them below or in the server's <code>.env</code> file."
+    },
+    "altchaMissing": {
+      "title": "ALTCHA not configured",
+      "description": "The ALTCHA HMAC secrets are missing from the server's <code>.env</code> file. The captcha is silently skipped until the <code>ALTCHA_HMAC_SECRET</code> and <code>ALTCHA_HMAC_KEY_SECRET</code> variables are set. Run <code>install.sh</code> again to generate them automatically."
+    }
+  },
+  "purge": {
+    "files": {
+      "title": "Purge files",
+      "description": "Permanently delete every file uploaded before the selected date. This action cannot be undone."
+    },
+    "tasks": {
+      "title": "Purge tasks",
+      "description": "Permanently delete every task whose start date is before the selected date (along with their attached files). This action cannot be undone."
+    },
+    "dateLabel": "Cut-off date (strictly “before”)",
+    "confirm": "Purge",
+    "pending": "Purging…",
+    "result": "{count, plural, one {# item deleted.} other {# items deleted.}}"
+  },
+  "actionButton": {
+    "done": "Done!",
+    "purgeNotifications": {
+      "title": "Purge notifications",
+      "description": "All push notifications for all users will be permanently deleted. This action cannot be undone."
+    }
+  },
+  "test": {
+    "sendError": "Sending failed",
+    "connectionError": "Connection error",
+    "sms": {
+      "title": "Test SMS / WhatsApp sending",
+      "phoneRequired": "Phone number required",
+      "success": "Test SMS / WhatsApp message sent successfully",
+      "help": "Sends a test message through Sent.dm to check the configuration. Number in E.164 format (+33…). Remember to save your changes before testing."
+    },
+    "weeklySummary": {
+      "title": "Test the weekly summary email",
+      "send": "Send the summary now",
+      "success": "Weekly summary sent successfully",
+      "help": "Immediately sends next week's summary to your email address. Remember to save your changes before testing."
+    },
+    "email": {
+      "title": "Test the email connection",
+      "placeholder": "Test email address (optional)",
+      "success": "Test email sent successfully",
+      "help": "Sends a test email to check the configuration. Remember to save your changes before testing."
+    }
+  },
+  "sentDm": {
+    "title": "Sent.dm templates to create on their dashboard",
+    "intro": "Sign in to <link>app.sent.dm</link> and create the template below, then copy its UUID into the “Sent.dm template ID” field.",
+    "templateName": "“Task notification” template",
+    "variablesBadge": "{count, plural, one {# variable} other {# variables}}",
+    "createWith": "Create a Sent.dm template with five variables:",
+    "vars": {
+      "appName": "<code>{variable}</code>: application name (white label, from the <b>Application title</b> setting)",
+      "eventType": "<code>{variable}</code>: event type (e.g. “Task created”, “Task updated”)",
+      "projectName": "<code>{variable}</code>: project name",
+      "taskTitle": "<code>{variable}</code>: task title",
+      "appUrl": "<code>{variable}</code>: application URL (from the <b>Application URL</b> setting)"
+    },
+    "suggestedContent": "Suggested content:",
+    "template": "You have a new notification from the {v1} planning.\n\n{v2}\nProject: {v3}\nTask: {v4}\n\nSign in to see the details: {v5}",
+    "outro": "Once it has been created and approved by Sent.dm (and WhatsApp if enabled), copy the template UUID from the Sent.dm dashboard and paste it into the <b>Sent.dm template ID</b> field above."
+  },
+  "keys": {
+    "columns": {
+      "name": "Name",
+      "key": "Key",
+      "user": "User",
+      "createdAt": "Created",
+      "lastUsed": "Last used"
+    }
+  },
+  "panels": {
+    "apiKeys": {
+      "intro": "API keys let external tools (automations, scripts, integrations) communicate with the planning through the REST API. Each request must include the <code>Authorization: Bearer your_key</code> header. The secret key is shown only once, when it is created.",
+      "apiUrl": "API URL",
+      "docsLink": "View the API documentation",
+      "created": "Key created — copy it now, it will not be shown again",
+      "copiedClose": "I have copied my key, close",
+      "createTitle": "Create an API key",
+      "namePlaceholder": "Key name (e.g. Import script, Zapier…)",
+      "activeKeys": "Active keys",
+      "empty": "No API keys created",
+      "confirmDelete": {
+        "title": "Delete the API key",
+        "description": "Are you sure you want to delete the “{name}” key? External tools using this key will be disconnected immediately."
+      }
+    },
+    "cache": {
+      "cleared": "Cache cleared successfully",
+      "howItWorks": {
+        "title": "How the cache works",
+        "description": "The server cache keeps frequently read data in memory (application settings, user permissions) so that the database is not queried on every request. The data is refreshed automatically after the configured lifetime. The cache is also invalidated immediately when an administrator changes the settings or the roles."
+      },
+      "state": "Cache status",
+      "entries": "Active entries",
+      "ttl": "Lifetime",
+      "status": "Status",
+      "clear": "Clear the cache",
+      "refreshStats": "Refresh statistics"
+    },
+    "mcpKeys": {
+      "title": "Active MCP keys ({count})",
+      "empty": "No active MCP keys",
+      "unnamed": "Unnamed",
+      "refresh": "Refresh",
+      "confirmRevoke": {
+        "title": "Revoke the MCP key",
+        "description": "Are you sure you want to revoke the “{name}” key belonging to {user}? The AI assistant connected with this key will be disconnected immediately.",
+        "confirm": "Revoke"
+      }
+    },
+    "mcpGuide": {
+      "title": "Connect an AI assistant",
+      "intro": "The MCP server lets AI assistants interact with your planning: view tasks, create tasks, see projects and more. Actions are carried out with the permissions of the signed-in user.",
+      "oauthInfo": "<b>Claude, ChatGPT and OAuth clients:</b> add a custom connector with the URL below, without a key. The user is redirected to the sign-in page, then grants access.",
+      "manualInfo": "<b>Manually configured clients:</b> the user generates an MCP key from <b>My account > AI</b> and passes it in the <code>Authorization</code> header.",
+      "serverUrl": "MCP server URL",
+      "integrations": "Integrations by client",
+      "keyPlaceholder": "YOUR_MCP_KEY",
+      "clients": {
+        "claude": {
+          "step": "<b>Settings > Connectors > Add custom connector.</b> URL:",
+          "note": "Leave the OAuth fields empty. Claude opens the application's sign-in page: username, password (and 2FA if enabled), then “Allow”."
+        },
+        "claudeCode": {
+          "run": "Run this command:",
+          "withKey": "Or, with an MCP key (without OAuth), passed in the <code>Authorization</code> header:"
+        },
+        "chatgpt": {
+          "devMode": "Requires Developer mode to be enabled in ChatGPT.",
+          "createApp": "Create an MCP app with this URL:",
+          "oauth": "Choose OAuth authentication: ChatGPT opens the application's sign-in page, then the authorisation screen."
+        },
+        "cursor": {
+          "remote": "<b>Remote:</b> add to <code>.cursor/mcp.json</code>:"
+        },
+        "vscode": {
+          "add": "Add to the VS Code MCP settings:"
+        },
+        "jetbrains": {
+          "path": "Settings > Tools > AI Assistant > MCP. HTTP tab:"
+        },
+        "other": {
+          "title": "Other MCP clients",
+          "remote": "<b>Remote (HTTP):</b> use the server URL. OAuth-compatible clients connect automatically through the authorisation page.",
+          "bearer": "<b>Bearer token:</b> for clients that support headers, pass your MCP key:",
+          "noQueryToken": "A key passed in the URL (<code>?token=</code>) is not accepted: the MCP specification forbids it because it would end up in logs. If the client does not allow headers, use the OAuth connection."
+        }
+      },
+      "prerequisite": "<b>Prerequisite:</b> the user must have the <code>mcp:use</code> permission in their role (granted by default to the Manager and Administrator roles). Active keys are managed in <b>My account > AI</b>."
+    },
+    "backup": {
+      "keyConfigured": "Encryption key configured",
+      "keyMissing": "Encryption key missing",
+      "creating": "Backup in progress…",
+      "create": "Create a backup",
+      "keyHelp": "Add <code>BACKUP_ENCRYPTION_KEY</code> to your <code>.env</code> file to enable backups. Use a string of 32 or more characters.",
+      "warning": "<b>Warning:</b> downloaded files (.dump) are not encrypted and contain all of your data (users, hashed passwords, projects, tasks…). Keep them somewhere safe and do not share them.",
+      "history": "History",
+      "empty": "No backups",
+      "columns": {
+        "date": "Date",
+        "size": "Size",
+        "duration": "Duration",
+        "type": "Type",
+        "status": "Status"
+      },
+      "trigger": {
+        "manual": "Manual",
+        "scheduled": "Automatic"
+      },
+      "status": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "inProgress": "In progress"
+      },
+      "confirmDelete": {
+        "title": "Delete the backup",
+        "description": "Permanently delete {filename}? The encrypted file will be removed from the server."
+      }
+    },
+    "backupStep": {
+      "done": "Backup downloaded",
+      "todo": "Back up the database",
+      "creating": "Creating…",
+      "downloading": "Downloading…",
+      "createAndDownload": "Create and download the backup",
+      "downloaded": "The backup has been downloaded.",
+      "redownload": "Download again",
+      "unencrypted": "This file is not encrypted and contains all of your data. Keep it somewhere safe.",
+      "downloadFirst": "Download the backup first.",
+      "error": "Unable to create or download the backup."
+    },
+    "socket": {
+      "title": "Socket.io — Real time",
+      "connected": "Connected",
+      "connecting": "Connecting…",
+      "disconnected": "Disconnected",
+      "uptime": "Uptime: {value}",
+      "clients": "Connected clients: {count}",
+      "unreachable": "Server unreachable",
+      "notResponding": "{error} — The Socket.io server (port 3001) is not responding. Check that <code>bun --hot server.ts</code> is running.",
+      "description": "The Socket.io server provides real-time planning updates, the presence bar and session notifications between all connected users.",
+      "uptimeDays": "{d}d {h}h {m}min",
+      "uptimeHours": "{h}h {m}min",
+      "uptimeMinutes": "{m}min"
+    },
+    "import": {
+      "title": "Import a database",
+      "intro": "This tool restores data from a backup file (<code>.dump</code>) generated by Humble Planning.",
+      "mergeMode": {
+        "title": "Merge mode",
+        "description": "Adds the new data from the file without touching existing data. Conflicting records are skipped."
+      },
+      "replaceMode": {
+        "title": "Replace mode",
+        "description": "Replaces the whole database with the content of the file. A safety backup will be required before the operation."
+      },
+      "analysisNote": "The file is analysed before any change: you will see a summary of its content and of any conflicts, then choose the import mode.",
+      "dropTitle": "Drop a .dump file here",
+      "dropHint": "or click to select a Humble Planning backup file",
+      "dumpOnly": "Only .dump files are accepted",
+      "analyzing": "Analysing the file…",
+      "analyzingDetail": "Validation, temporary restore and data analysis",
+      "content": "File content",
+      "columns": {
+        "entity": "Entity",
+        "inDump": "In the dump",
+        "live": "Current database",
+        "new": "New",
+        "conflicts": "Conflicts"
+      },
+      "conflicts": "{count, plural, one {# conflict detected} other {# conflicts detected}} — some identifiers already exist in the current database.",
+      "merge": {
+        "title": "Merge without overwriting",
+        "nothing": "No new data to import. Every entry in the dump already exists.",
+        "description": "Adds only the new data. Existing records are kept unchanged."
+      },
+      "replace": {
+        "title": "Replace the whole database",
+        "description": "Deletes all current data and replaces it. A backup will be required first."
+      },
+      "cancel": "Cancel the import",
+      "executing": "Import in progress…",
+      "executingDetail": "Do not close this page. The operation may take several minutes.",
+      "success": "Import successful ({mode, select, merge {merge} other {full replacement}})",
+      "added": "{count, plural, one {# added} other {# added}}",
+      "sessionsInvalidated": "All sessions have been invalidated. Redirecting to the sign-in page…",
+      "failed": "Import failed",
+      "replaceDialog": {
+        "title": "Full database replacement",
+        "description": "All current data will be deleted and replaced. You must back up your data first.",
+        "confirmStep": "Confirm the replacement"
+      },
+      "tables": {
+        "users": "Users",
+        "teams": "Teams",
+        "roles": "Roles",
+        "role_permissions": "Role permissions",
+        "projects": "Projects",
+        "project_groups": "Project groups",
+        "tasks": "Tasks",
+        "task_users": "Task assignments",
+        "statuses": "Statuses",
+        "places": "Places",
+        "qualifications": "Qualifications",
+        "user_qualifications": "User qualifications",
+        "holidays": "Public holidays",
+        "vehicles": "Vehicles",
+        "vehicle_types": "Vehicle types",
+        "vehicle_assignments": "Vehicle assignments",
+        "resources": "Resources",
+        "resource_types": "Resource types",
+        "resource_assignments": "Resource assignments",
+        "business_units": "Business units",
+        "labor_types": "Labour types",
+        "project_labor_budgets": "Project labour budgets"
+      }
+    },
+    "migration": {
+      "title": "Migration from an external tool",
+      "intro": "Select the planning software you want to migrate your data from into Humble Planning.",
+      "source": "Migration source",
+      "sourcePlaceholder": "Choose a tool…",
+      "soplanning": {
+        "title": "SoPlanning migration",
+        "intro": "This tool imports the data of a SoPlanning export (versions 1.55, 1.56 and 1.57, including patch releases) into Humble Planning. The import will replace all existing data.",
+        "important": "Important information",
+        "notes": {
+          "passwords": "Passwords cannot be transferred — a single password will be generated for all imported users",
+          "changePassword": "All users will have to change their password the first time they sign in",
+          "roles": "SoPlanning rights will be converted into Humble Planning roles",
+          "superAdmin": "A super administrator account “{login}” will be created automatically",
+          "backup": "A backup of the current database will be required before the migration"
+        },
+        "dropTitle": "Drop a SoPlanning .zip file here",
+        "dropHint": "or click to select the SoPlanning export archive",
+        "zipOnly": "Only .zip files are accepted.",
+        "analyzing": "Analysing the SoPlanning file…",
+        "analyzingDetail": "Extracting the archive, checking the version and analysing the CSV data",
+        "analysisTitle": "Analysis of the SoPlanning v{version} export",
+        "columns": {
+          "entity": "Entity",
+          "count": "Count"
+        },
+        "start": "Start the migration",
+        "executing": "Migration in progress…",
+        "executingDetail": "Replacing the database and importing the SoPlanning data",
+        "failed": "The migration failed",
+        "restart": "Start again",
+        "success": "Migration completed successfully",
+        "credentials": {
+          "title": "Sign-in credentials",
+          "warning": "Write this information down before continuing. It will not be shown again.",
+          "usersPassword": "Password of the imported users",
+          "usersPasswordHelp": "All users will have to change this password the next time they sign in.",
+          "superAdmin": "Super administrator account",
+          "login": "Username:",
+          "password": "Password:"
+        },
+        "reviewRoles": {
+          "title": "Review roles and permissions",
+          "description": "SoPlanning's rights system has been converted automatically into HumblePlanning's roles and permissions, but the mapping is not perfect. We recommend reviewing each user and the roles created so that permissions match the real needs of your organisation. Go to <b>Roles</b> and then <b>Users</b> to complete this configuration."
+        },
+        "finalize": "Finalise the migration",
+        "finalizeDialog": {
+          "title": "Have you saved the credentials?",
+          "credentialsHidden": "The password of the imported users and the super administrator credentials will <b>never be shown again</b>.",
+          "logout": "When you finalise the migration, <b>all users will be signed out</b>, including you. You will then have to sign in again with the super administrator account.",
+          "back": "Back to the credentials",
+          "confirm": "I have written down the credentials, finalise"
+        },
+        "replaceDialog": {
+          "title": "SoPlanning migration — Full replacement",
+          "description": "This operation will <b>permanently delete</b> all current Humble Planning data and replace it with the SoPlanning data.",
+          "step1": "Step 1: create a safety backup (required)",
+          "confirmStep": "Confirm the migration"
+        }
+      },
+      "entities": {
+        "users": "Users",
+        "teams": "Teams",
+        "defaultStatuses": "Statuses (recreated)",
+        "projectGroups": "Project groups",
+        "projects": "Projects",
+        "tasks": "Tasks",
+        "statuses": "Statuses",
+        "holidays": "Public holidays",
+        "taskUsers": "Assignments"
+      },
+      "warnings": {
+        "duplicateEmails": "{count, plural, one {# duplicate email detected} other {# duplicate emails detected}} — these emails will be removed from the users concerned: {emails}",
+        "inactiveUsers": "{count, plural, one {# inactive user will be imported as disabled.} other {# inactive users will be imported as disabled.}}",
+        "skillsNotExported": "SoPlanning skills (module added in 1.57) are not part of the SoPlanning export: they will not be migrated and will have to be recreated as qualifications.",
+        "orphanTasks": "{count, plural, one {# task without a valid project will be skipped.} other {# tasks without a valid project will be skipped.}}"
+      }
+    }
+  },
+  "stats": {
+    "loading": "Loading statistics…",
+    "successRate": "Success rate",
+    "thisMonth": "This month",
+    "lastMonth": "Previous month",
+    "successTitle": "Successful: {count}",
+    "errorTitle": "Failed: {count}",
+    "successLegend": "Successful ({count})",
+    "errorLegend": "Failed ({count})",
+    "resetTitle": "Reset statistics"
+  },
+  "emailStats": {
+    "title": "Sending statistics",
+    "monthTotal": "Emails this month",
+    "sent": "{count, plural, one {# sent} other {# sent}}",
+    "failed": "{count, plural, one {# failed} other {# failed}}",
+    "empty": "No emails sent yet.",
+    "resetDescription": "This action deletes the sending logs of previous months. The current month's counter is kept."
+  },
+  "smsStats": {
+    "title": "SMS / WhatsApp sending statistics",
+    "empty": "No SMS / WhatsApp messages sent yet.",
+    "resetDescription": "This action permanently deletes all SMS / WhatsApp sending logs. The counters will be reset to zero."
+  },
+  "storage": {
+    "title": "Storage",
+    "filesOnTasks": "{files, plural, one {file} other {files}} across {tasks, plural, one {# task} other {# tasks}}",
+    "attachments": "attachments",
+    "perUser": "Storage per user",
+    "empty": "No files",
+    "userFiles": "{size} · {count, plural, one {# file} other {# files}}"
+  },
+  "blocklist": {
+    "title": "Blocked emails",
+    "searchPlaceholder": "Search email, user, reason…",
+    "inactive": "Blocklist inactive — the email provider is not Nuntly. The emails below can be used for the time being.",
+    "empty": "No blocked emails",
+    "columns": {
+      "email": "Email",
+      "user": "User",
+      "reason": "Reason",
+      "date": "Date",
+      "source": "Source",
+      "action": "Action"
+    },
+    "reasons": {
+      "bounce": "Bounce",
+      "complaint": "Spam complaint"
+    },
+    "unblock": "Unblock",
+    "confirm": {
+      "title": "Unblock this email?",
+      "description": "The email address {email} can be used again. If Nuntly detects another bounce or complaint, it will be blocked again automatically."
+    }
+  },
+  "webhookLogs": {
+    "title": "Nuntly webhook logs",
+    "total": "{count} total",
+    "searchPlaceholder": "Search type, recipient, status…",
+    "empty": "No events received yet",
+    "columns": {
+      "dateTime": "Date / time",
+      "type": "Type",
+      "recipient": "Recipient",
+      "status": "Status",
+      "error": "Error"
+    },
+    "pageOf": "Page {page} / {total}"
+  },
+  "webhookStatus": {
+    "loading": "Loading webhook status…",
+    "title": "Nuntly webhook",
+    "healthy": "Operational",
+    "secretMissing": "Secret not configured",
+    "waiting": "Waiting for events",
+    "errors": "Errors detected",
+    "urlLabel": "Webhook URL (to configure in Nuntly)",
+    "urlMissing": "Set APP_BASE_URL under Application",
+    "copied": "Copied",
+    "lastEvent": "Last event",
+    "events24h": "Events (24 h)",
+    "errors24h": "Errors (24 h)",
+    "help": "Configure this webhook in your Nuntly dashboard to enable automatic blocking of bounces and spam complaints."
+  },
+  "fields": {
+    "APP_TITLE": {
+      "label": "Application title"
+    },
+    "APP_BASE_URL": {
+      "label": "Application URL",
+      "description": "Used in emails (password reset links, notifications)"
+    },
+    "TIMEZONE": {
+      "label": "Time zone",
+      "description": "Determines how dates and times are displayed in the application"
+    },
+    "APP_LOCALE": {
+      "label": "Default language",
+      "description": "Language used when users have not chosen a language in their browser. Also used for emails sent to users who have never signed in.",
+      "options": {
+        "auto": "Automatic (browser language)",
+        "fr": "Français",
+        "en": "English",
+        "es": "Español",
+        "de": "Deutsch"
+      }
+    },
+    "PLANNING_DATE_FORMAT": {
+      "label": "Date format"
+    },
+    "TIME_FORMAT": {
+      "label": "Time format",
+      "options": {
+        "24h": "24-hour (14:30)",
+        "12h": "12-hour (2:30 PM)"
+      }
+    },
+    "MODULE_VEHICLES": {
+      "label": "Enable the Vehicles module",
+      "description": "When disabled, the Vehicles button in the planning and the /vehicles and /vehicle-types pages become unavailable."
+    },
+    "MODULE_RESOURCES": {
+      "label": "Enable the Resources module",
+      "description": "When disabled, the Resources button in the planning and the /resources and /resource-types pages become unavailable."
+    },
+    "MAINTENANCE_MODE": {
+      "label": "Maintenance mode",
+      "description": "Turns on maintenance mode for the planning. Users without the 'maintenance:bypass' permission will no longer be able to access the planning."
+    },
+    "DEFAULT_HOME_PAGE": {
+      "label": "Default home page",
+      "description": "These settings are applied when an account is created. Each user can then change them in their profile.",
+      "options": {
+        "home": "Home",
+        "planning": "Schedule",
+        "tasks": "Tasks",
+        "projects": "Projects",
+        "users": "Users",
+        "teams": "Teams",
+        "resources": "Resources",
+        "vehicles": "Vehicles",
+        "audit": "Audit",
+        "settings": "Settings"
+      }
+    },
+    "DEFAULT_PLANNING_VIEW": {
+      "label": "Default planning view",
+      "options": {
+        "users": "Users",
+        "projects": "Projects",
+        "resources": "Resources",
+        "vehicles": "Vehicles"
+      }
+    },
+    "DEFAULT_COLUMN_VIEW": {
+      "label": "Default column mode",
+      "options": {
+        "days": "Days",
+        "hours": "Hours"
+      }
+    },
+    "DEFAULT_THEME": {
+      "label": "Default theme",
+      "options": {
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      }
+    },
+    "DEFAULT_NOTIFICATIONS": {
+      "label": "Email notifications enabled by default"
+    },
+    "DEFAULT_PUSH_NOTIFICATIONS": {
+      "label": "Push notifications enabled by default"
+    },
+    "DEFAULT_SMS_NOTIFICATIONS": {
+      "label": "SMS / WhatsApp notifications enabled by default"
+    },
+    "APP_LOGO": {
+      "label": "Site logo"
+    },
+    "APP_FAVICON": {
+      "label": "Favicon"
+    },
+    "LOGIN_BACKGROUND": {
+      "label": "Sign-in page background image"
+    },
+    "PLANNING_MIN_CELL_WIDTH": {
+      "label": "Minimum cell width (px)",
+      "description": "Lower bound of the width slider in the planning."
+    },
+    "PLANNING_MAX_CELL_WIDTH": {
+      "label": "Maximum cell width (px)",
+      "description": "Upper bound of the slider. Must be greater than the minimum width."
+    },
+    "PLANNING_DEFAULT_CELL_WIDTH": {
+      "label": "Default cell width (px)",
+      "description": "Width applied the first time a user signs in (before they touch the slider). Must be between the minimum and maximum widths."
+    },
+    "PLANNING_MAX_CELL_WIDTH_MOBILE": {
+      "label": "Maximum cell width on mobile (px)",
+      "description": "Cap applied automatically on screens narrower than 768 px, even if the user has set a wider value with the slider."
+    },
+    "PLANNING_SIDEBAR_WIDTH": {
+      "label": "Width of the names / projects column",
+      "description": "\"auto\" to fit the content, or a value in pixels (e.g. 200). In auto mode, the column widens to show the longest name."
+    },
+    "PLANNING_SIDEBAR_WIDTH_MOBILE": {
+      "label": "Maximum names / projects width (mobile)",
+      "description": "Maximum width in pixels on mobile (< 768 px). Limits the column in auto mode to keep it readable."
+    },
+    "PLANNING_LINE_HEIGHT": {
+      "label": "Task bar height (px)"
+    },
+    "PLANNING_CELL_FONTSIZE": {
+      "label": "Cell font size (px)"
+    },
+    "PLANNING_FONT_FAMILY": {
+      "label": "Task font",
+      "description": "Fonts hosted locally (loaded at build time). No calls to an external server.",
+      "options": {
+        "geist": "Geist Sans (default)",
+        "inter": "Inter",
+        "roboto": "Roboto",
+        "ibm-plex-sans": "IBM Plex Sans",
+        "source-sans": "Source Sans 3"
+      }
+    },
+    "PLANNING_FONT_BOLD": {
+      "label": "Bold task text",
+      "description": "Applies a semi-bold weight (600) instead of normal (400)."
+    },
+    "DEFAULT_NB_MONTHS_DISPLAYED": {
+      "label": "Number of months displayed by default"
+    },
+    "PLANNING_MAX_TASKS_PER_DAY": {
+      "label": "Maximum number of tasks per user per day",
+      "description": "0 = no limit. Shared by the day and hour views: prevents creating an extra task if the user has already reached this limit on the target day."
+    },
+    "AM_START": {
+      "label": "Morning start"
+    },
+    "AM_END": {
+      "label": "Morning end"
+    },
+    "PM_START": {
+      "label": "Afternoon start"
+    },
+    "PM_END": {
+      "label": "Afternoon end"
+    },
+    "DURATION_DAY": {
+      "label": "Working day length (calculated automatically)",
+      "description": "Calculated from the morning and afternoon hours"
+    },
+    "INCLUDE_WEEKENDS": {
+      "label": "Include Saturdays and Sundays in calculations",
+      "description": "When enabled, weekends count as working days for the occupancy calculation"
+    },
+    "INCLUDE_HOLIDAYS": {
+      "label": "Include public holidays in calculations",
+      "description": "When enabled, public holidays count as working days for the occupancy calculation"
+    },
+    "ANNOUNCEMENT_ENABLED": {
+      "label": "Show an announcement",
+      "description": "Displays a floating banner on every planning page"
+    },
+    "ANNOUNCEMENT_CONTENT": {
+      "label": "Announcement content"
+    },
+    "ANNOUNCEMENT_COLOR": {
+      "label": "Background colour"
+    },
+    "ANNOUNCEMENT_ICON": {
+      "label": "Icon"
+    },
+    "ANNOUNCEMENT_EXPIRES_AT": {
+      "label": "Show until",
+      "description": "Leave empty to display it permanently"
+    },
+    "ANNOUNCEMENT_REPEAT": {
+      "label": "Announcement repetition",
+      "description": "Shows the announcement again automatically to users who closed it",
+      "options": {
+        "never": "Never",
+        "day": "Every day",
+        "week": "Every week",
+        "month": "Every month"
+      }
+    },
+    "EMAIL_PROVIDER": {
+      "label": "Email provider",
+      "options": {
+        "nuntly": "Nuntly",
+        "smtp": "SMTP",
+        "mailgun": "Mailgun"
+      }
+    },
+    "SMTP_FROM": {
+      "label": "Sender address"
+    },
+    "NUNTLY_API_KEY": {
+      "label": "Nuntly API key",
+      "description": "API key available at https://app.nuntly.com"
+    },
+    "NUNTLY_WEBHOOK_SECRET": {
+      "label": "Nuntly webhook secret",
+      "description": "Signing secret used to verify webhooks (prefixed with whsec_)"
+    },
+    "SMTP_HOST": {
+      "label": "SMTP server"
+    },
+    "SMTP_PORT": {
+      "label": "SMTP port"
+    },
+    "SMTP_LOGIN": {
+      "label": "SMTP username"
+    },
+    "SMTP_PASSWORD": {
+      "label": "SMTP password"
+    },
+    "SMTP_SECURE": {
+      "label": "Secure connection (TLS)"
+    },
+    "MAILGUN_API_KEY": {
+      "label": "Mailgun API key"
+    },
+    "MAILGUN_DOMAIN": {
+      "label": "Mailgun domain"
+    },
+    "MAILGUN_REGION": {
+      "label": "Mailgun region",
+      "options": {
+        "eu": "Europe (EU)",
+        "us": "United States (US)"
+      }
+    },
+    "SENT_API_KEY": {
+      "label": "Sent.dm API key",
+      "description": "Get your API key and sender ID at https://app.sent.dm. The user's mobile phone number is used to send notifications."
+    },
+    "SENT_SENDER_ID": {
+      "label": "Sent.dm sender ID",
+      "description": "GUID identifying your Sent.dm account"
+    },
+    "SENT_TEMPLATE_ID": {
+      "label": "Sent.dm template ID",
+      "description": "UUID of the template to use. The template must be created at https://app.sent.dm with five variables: {v1} (application name), {v2} (event type), {v3} (project name), {v4} (task title) and {v5} (application URL)"
+    },
+    "SENT_DEFAULT_COUNTRY": {
+      "label": "Default country",
+      "description": "Two-letter ISO country code (e.g. FR, BE, CH) used for the flag selector in phone fields"
+    },
+    "NOTIFICATION_EMAIL_COCHE": {
+      "label": "Email notifications enabled"
+    },
+    "EMAIL_SEND_DELAY": {
+      "label": "Delay before sending (seconds)",
+      "description": "Waiting time before sending, to group quick successive changes"
+    },
+    "EMAIL_THROTTLE_DELAY": {
+      "label": "Delay between emails (seconds)",
+      "description": "Pause between each send to limit throughput (0 = no delay)"
+    },
+    "EMAIL_NOTIFICATION_TRIGGERS": {
+      "label": "Trigger events",
+      "description": "Select the events that trigger a notification email"
+    },
+    "WEEKLY_SUMMARY_ENABLED": {
+      "label": "Enable the weekly summary email",
+      "description": "Automatically sends a summary email of the coming week's tasks (Monday → next Sunday) to every user with email notifications enabled. If a user has no scheduled task, no email is sent."
+    },
+    "WEEKLY_SUMMARY_DAY": {
+      "label": "Sending day",
+      "options": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday",
+        "7": "Sunday"
+      }
+    },
+    "WEEKLY_SUMMARY_TIME": {
+      "label": "Sending time"
+    },
+    "NOTIFICATION_PUSH_ENABLED": {
+      "label": "Push notifications enabled"
+    },
+    "PUSH_NOTIFICATION_TRIGGERS": {
+      "label": "Trigger events (push)",
+      "description": "Select the events that trigger an in-app push notification"
+    },
+    "PUSH_RETENTION_DAYS": {
+      "label": "Notification retention (days)",
+      "description": "Automatically deletes older notifications. 0 = unlimited"
+    },
+    "__purge_notifications": {
+      "actionLabel": "Purge all notifications",
+      "description": "Deletes every push notification for every user. This action cannot be undone."
+    },
+    "NOTIFICATION_SMS_ENABLED": {
+      "label": "SMS / WhatsApp notifications enabled",
+      "description": "The user's mobile phone number is used for sending. Messages are routed automatically by Sent.dm to WhatsApp when available, otherwise by SMS."
+    },
+    "SMS_THROTTLE_DELAY": {
+      "label": "Delay between SMS messages (seconds)",
+      "description": "Pause between each send to limit throughput (0 = no delay)"
+    },
+    "SMS_NOTIFICATION_TRIGGERS": {
+      "label": "Trigger events (SMS / WhatsApp)",
+      "description": "Select the events that trigger an SMS / WhatsApp message"
+    },
+    "PWD_MIN_LENGTH": {
+      "label": "Minimum password length"
+    },
+    "PWD_MAX_LENGTH": {
+      "label": "Maximum password length"
+    },
+    "PWD_REQUIRE_UPPERCASE": {
+      "label": "Require an uppercase letter"
+    },
+    "PWD_REQUIRE_LOWERCASE": {
+      "label": "Require a lowercase letter"
+    },
+    "PWD_REQUIRE_DIGIT": {
+      "label": "Require a digit"
+    },
+    "PWD_REQUIRE_SPECIAL": {
+      "label": "Require a special character"
+    },
+    "PWD_HISTORY_COUNT": {
+      "label": "Prevent reuse of the last X passwords",
+      "description": "0 = no restriction"
+    },
+    "PWD_GEN_LENGTH": {
+      "label": "Default length of generated passwords"
+    },
+    "PWD_GEN_INCLUDE_SPECIAL": {
+      "label": "Include special characters in generated passwords"
+    },
+    "PWD_BLACKLIST_ENABLED": {
+      "label": "Enable the banned password list",
+      "description": "Prevents the use of the passwords in the list below"
+    },
+    "PWD_BLACKLIST": {
+      "label": "Banned passwords"
+    },
+    "FORGOT_PASSWORD_ENABLED": {
+      "label": "Enable the “Forgotten password” feature",
+      "description": "Shows a link on the sign-in page that lets users reset their password by email. Requires the email settings (SMTP or Mailgun) to be configured."
+    },
+    "BRUTEFORCE_MAX_ATTEMPTS": {
+      "label": "Number of attempts before lockout",
+      "description": "0 = no protection"
+    },
+    "BRUTEFORCE_LOCKOUT_SECONDS": {
+      "label": "Lockout duration (seconds)",
+      "description": "Waiting time imposed after the number of failed attempts (e.g. 300 = 5 minutes)"
+    },
+    "TWOFACTOR_REQUIRED": {
+      "label": "Require 2FA for all users",
+      "description": "When enabled, every user will have to set up two-factor authentication to sign in"
+    },
+    "SESSION_DURATION_DAYS": {
+      "label": "Session duration (days)",
+      "description": "How long a user session remains valid. The session is renewed automatically on each visit."
+    },
+    "SESSION_REMEMBER_DAYS": {
+      "label": "“Stay signed in” duration (days)",
+      "description": "Session duration when the user ticks “Stay signed in” on the sign-in page"
+    },
+    "CAPTCHA_ENABLED": {
+      "label": "Enable captcha",
+      "description": "Adds a captcha check to the sign-in and password reset pages"
+    },
+    "CAPTCHA_PROVIDER": {
+      "label": "Provider",
+      "options": {
+        "altcha": "ALTCHA (self-hosted)",
+        "turnstile": "Cloudflare Turnstile",
+        "recaptcha": "Google reCAPTCHA v3"
+      }
+    },
+    "CAPTCHA_SITE_KEY": {
+      "label": "Site key",
+      "description": "Public key supplied by the captcha provider"
+    },
+    "CAPTCHA_SECRET_KEY": {
+      "label": "Secret key",
+      "description": "Private key used for server-side verification"
+    },
+    "COOKIE_BANNER_ENABLED": {
+      "label": "Enable the cookie consent banner"
+    },
+    "COOKIE_BANNER_TITLE": {
+      "label": "Banner title"
+    },
+    "COOKIE_BANNER_DESCRIPTION": {
+      "label": "Banner description"
+    },
+    "COOKIE_BANNER_POSITION": {
+      "label": "Banner position",
+      "options": {
+        "bottom_center": "Bottom (centred)",
+        "bottom_left": "Bottom left",
+        "bottom_right": "Bottom right",
+        "top_center": "Top (centred)"
+      }
+    },
+    "COOKIE_ANALYTICS_ENABLED": {
+      "label": "Offer analytics cookies"
+    },
+    "COOKIE_ANALYTICS_LABEL": {
+      "label": "Analytics cookies label"
+    },
+    "COOKIE_FUNCTIONAL_ENABLED": {
+      "label": "Offer functional cookies"
+    },
+    "COOKIE_FUNCTIONAL_LABEL": {
+      "label": "Functional cookies label"
+    },
+    "PRIVACY_POLICY_ENABLED": {
+      "label": "Enable the privacy policy page"
+    },
+    "PRIVACY_POLICY_TITLE": {
+      "label": "Page title"
+    },
+    "LEGAL_COMPANY_NAME": {
+      "label": "Company / controller name",
+      "description": "Variable: {variable} — Insert this variable in the policy content to display this name automatically."
+    },
+    "LEGAL_CONTACT_EMAIL": {
+      "label": "DPO / GDPR contact email",
+      "description": "Variable: {variable} — Insert this variable in the policy content to display this email address automatically."
+    },
+    "LEGAL_DATA_RETENTION_DAYS": {
+      "label": "Data retention period (days)",
+      "description": "Variable: {variable} — Insert this variable in the policy content. Displayed in days."
+    },
+    "PRIVACY_POLICY_CONTENT": {
+      "label": "Policy content"
+    },
+    "FOOTER_COPYRIGHT_TEXT": {
+      "label": "Copyright text",
+      "description": "E.g. © 2026 MyCompany. Displayed at the bottom of the side menu."
+    },
+    "FOOTER_SHOW_PRIVACY_LINK": {
+      "label": "Show the Privacy link in the menu"
+    },
+    "FOOTER_SHOW_VERSION": {
+      "label": "Show the version number"
+    },
+    "ENABLE_FILE_UPLOAD": {
+      "label": "Enable file management"
+    },
+    "WHITELIST_UPLOAD": {
+      "label": "Allowed extensions (comma-separated)"
+    },
+    "MAX_UPLOAD_SIZE_MB": {
+      "label": "Maximum size per file (MB)"
+    },
+    "MAX_TOTAL_SIZE_MB": {
+      "label": "Maximum total size per task (MB)"
+    },
+    "MAX_FILES_PER_TASK": {
+      "label": "Maximum number of files per task"
+    },
+    "FILE_RETENTION": {
+      "label": "File retention period"
+    },
+    "MODULE_AUDIT": {
+      "label": "Enable the audit module"
+    },
+    "AUDIT_TASKS": {
+      "label": "Audit tasks"
+    },
+    "AUDIT_PROJECTS": {
+      "label": "Audit projects"
+    },
+    "AUDIT_USERS": {
+      "label": "Audit users"
+    },
+    "AUDIT_LOGINS": {
+      "label": "Audit sign-ins"
+    },
+    "AUDIT_RETENTION": {
+      "label": "Audit retention period"
+    },
+    "LOGS_ENABLED": {
+      "label": "Enable system logs",
+      "description": "Records system events (errors, actions, sign-ins) in an in-memory buffer that can be viewed on the Logs page"
+    },
+    "LOGS_LEVEL": {
+      "label": "Minimum level",
+      "options": {
+        "ERROR": "Errors only",
+        "WARN": "Warnings and errors",
+        "INFO": "Information (recommended)",
+        "DEBUG": "Debug (verbose)"
+      }
+    },
+    "LOGS_MAX_ENTRIES": {
+      "label": "Maximum number of entries",
+      "description": "Size of the in-memory circular buffer (the oldest entries are replaced)"
+    },
+    "API_ENABLED": {
+      "label": "Enable API access",
+      "description": "Lets external tools communicate with the planning using API keys"
+    },
+    "API_RATE_LIMIT_MINUTE": {
+      "label": "Requests per minute",
+      "description": "Maximum number of API requests per key per minute"
+    },
+    "API_RATE_LIMIT_HOUR": {
+      "label": "Requests per hour",
+      "description": "Maximum number of API requests per key per hour"
+    },
+    "API_RATE_LIMIT_EXPORT": {
+      "label": "Exports per minute",
+      "description": "Maximum number of exports (CSV, Excel, PDF, iCal) per key per minute"
+    },
+    "CACHE_ENABLED": {
+      "label": "Enable the server cache",
+      "description": "Caches settings and permissions in memory to reduce database queries"
+    },
+    "CACHE_TTL": {
+      "label": "Cache lifetime (seconds)",
+      "description": "Time before cached data is refreshed automatically. 300 = 5 minutes."
+    },
+    "_purge_files": {
+      "actionLabel": "Purge files…",
+      "description": "Permanently deletes every file uploaded before the selected date. This action cannot be undone."
+    },
+    "_purge_tasks": {
+      "actionLabel": "Purge tasks…",
+      "description": "Permanently deletes every task whose start date is before the selected date (including their attached files). This action cannot be undone."
+    },
+    "MCP_ENABLED": {
+      "label": "Enable the MCP server",
+      "description": "Lets AI assistants (Claude, ChatGPT) interact with the planning through the MCP protocol"
+    },
+    "MCP_MAX_KEYS_PER_USER": {
+      "label": "Maximum number of MCP keys per user",
+      "description": "Each user can generate this number of keys from their profile"
+    },
+    "BACKUP_ENABLED": {
+      "label": "Automatic backups",
+      "description": "Turns on automatic database backups at the configured frequency"
+    },
+    "BACKUP_SCHEDULE": {
+      "label": "Frequency",
+      "options": {
+        "6h": "Every 6 hours",
+        "12h": "Every 12 hours",
+        "daily": "Daily",
+        "weekly": "Weekly"
+      }
+    },
+    "BACKUP_TIME": {
+      "label": "Target time",
+      "description": "Time at which the automatic backup starts"
+    },
+    "BACKUP_RETENTION_DAYS": {
+      "label": "Retention",
+      "options": {
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days",
+        "365": "1 year"
+      }
+    },
+    "BACKUP_MAX_COUNT": {
+      "label": "Maximum number of backups kept"
+    },
+    "UPDATE_CHECK_ENABLED": {
+      "label": "Check for updates",
+      "description": "The server queries the public GitHub Releases API (api.github.com) at most once every 24 hours, or when you click “Check now”. Only this read request is sent: no data about the instance or its users. When disabled, no request is made, neither automatic nor manual."
+    }
+  },
+  "timezones": {
+    "auto": "Automatic (browser time zone)",
+    "Europe_Paris": "France (GMT+1)",
+    "Europe_London": "United Kingdom (GMT+0)",
+    "Europe_Berlin": "Germany (GMT+1)",
+    "Europe_Madrid": "Spain (GMT+1)",
+    "Europe_Rome": "Italy (GMT+1)",
+    "Europe_Brussels": "Belgium (GMT+1)",
+    "Europe_Zurich": "Switzerland (GMT+1)",
+    "Europe_Luxembourg": "Luxembourg (GMT+1)",
+    "Europe_Amsterdam": "Netherlands (GMT+1)",
+    "Europe_Lisbon": "Portugal (GMT+0)",
+    "Europe_Vienna": "Austria (GMT+1)",
+    "Europe_Warsaw": "Poland (GMT+1)",
+    "Europe_Prague": "Czechia (GMT+1)",
+    "Europe_Bucharest": "Romania (GMT+2)",
+    "Europe_Athens": "Greece (GMT+2)",
+    "Europe_Helsinki": "Finland (GMT+2)",
+    "Europe_Stockholm": "Sweden (GMT+1)",
+    "Europe_Oslo": "Norway (GMT+1)",
+    "Europe_Copenhagen": "Denmark (GMT+1)",
+    "Europe_Dublin": "Ireland (GMT+0)",
+    "Europe_Moscow": "Russia — Moscow (GMT+3)",
+    "Europe_Istanbul": "Turkey (GMT+3)",
+    "America_New_York": "USA — Eastern (GMT-5)",
+    "America_Chicago": "USA — Central (GMT-6)",
+    "America_Denver": "USA — Mountain (GMT-7)",
+    "America_Los_Angeles": "USA — Pacific (GMT-8)",
+    "America_Toronto": "Canada — Toronto (GMT-5)",
+    "America_Montreal": "Canada — Quebec (GMT-5)",
+    "America_Sao_Paulo": "Brazil (GMT-3)",
+    "America_Mexico_City": "Mexico (GMT-6)",
+    "America_Martinique": "Martinique (GMT-4)",
+    "America_Guadeloupe": "Guadeloupe (GMT-4)",
+    "America_Cayenne": "French Guiana (GMT-3)",
+    "Indian_Reunion": "Réunion (GMT+4)",
+    "Indian_Mayotte": "Mayotte (GMT+3)",
+    "Pacific_Tahiti": "French Polynesia (GMT-10)",
+    "Pacific_Noumea": "New Caledonia (GMT+11)",
+    "Asia_Tokyo": "Japan (GMT+9)",
+    "Asia_Shanghai": "China (GMT+8)",
+    "Asia_Dubai": "United Arab Emirates (GMT+4)",
+    "Asia_Singapore": "Singapore (GMT+8)",
+    "Asia_Kolkata": "India (GMT+5:30)",
+    "Australia_Sydney": "Australia — Sydney (GMT+10)",
+    "Africa_Casablanca": "Morocco (GMT+1)",
+    "Africa_Tunis": "Tunisia (GMT+1)",
+    "Africa_Algiers": "Algeria (GMT+1)",
+    "Africa_Dakar": "Senegal (GMT+0)",
+    "Africa_Abidjan": "Ivory Coast (GMT+0)",
+    "UTC": "UTC (GMT+0)"
+  },
+  "options": {
+    "triggers": {
+      "task_created": "Task created",
+      "task_deleted": "Task deleted",
+      "task_title_changed": "Title changed",
+      "task_dates_changed": "Dates changed",
+      "task_times_changed": "Times changed",
+      "task_status_changed": "Status changed",
+      "task_project_changed": "Project changed",
+      "task_notes_changed": "Notes changed",
+      "task_user_added": "User added",
+      "task_user_removed": "User removed",
+      "task_file_added": "File added",
+      "task_file_deleted": "File deleted"
+    },
+    "retention": {
+      "0": "Unlimited (no automatic purge)",
+      "7": "1 week",
+      "30": "1 month",
+      "90": "3 months",
+      "180": "6 months",
+      "365": "1 year"
+    }
+  },
+  "errors": {
+    "captchaKeysRequired": "The {provider} captcha requires a site key and a secret key. Enter both or disable the captcha.",
+    "cellWidthsNotPositive": "Cell widths must be strictly positive.",
+    "cellMinAboveMax": "The minimum width must be less than or equal to the maximum width.",
+    "cellDefaultOutOfRange": "The default width must be between the minimum and maximum widths.",
+    "cellMobileBelowMin": "The mobile cap must be greater than or equal to the minimum width.",
+    "brandingInvalidType": "Invalid type (logo, favicon or login-bg)",
+    "brandingInvalidVariant": "Invalid variant (light or dark)",
+    "fileTooLargeMb": "File too large. Maximum: {max, number} MB",
+    "extensionNotAllowed": "Extension .{ext} is not allowed. Allowed extensions: {allowed}",
+    "backupKeyMissing": "Encryption key not configured (BACKUP_ENCRYPTION_KEY in .env)",
+    "backupUnsupportedEncryption": "Unsupported encryption version: {version}",
+    "backupInProgress": "A backup is already in progress",
+    "backupFileNotFound": "Backup file not found",
+    "backupNotFound": "Backup not found",
+    "backupNotReady": "Backup not available",
+    "importEmptyBody": "The request has no body",
+    "importEmptyFile": "Empty file",
+    "importNoFileOnDisk": "No import file on disk.",
+    "importInvalidDump": "The file provided is not a valid PostgreSQL dump. Only .dump files generated by Humble Planning are accepted.",
+    "importAnalysisFailed": "Analysis failed: {detail}",
+    "importNoPending": "No import file is pending. Please analyse a file first.",
+    "importFailed": "Import failed: {detail}",
+    "migrationZipRequired": "Invalid format. Only .zip files are accepted.",
+    "migrationVersionInfoMissing": "Invalid SoPlanning archive: version.info file not found.",
+    "migrationUnsupportedVersion": "Unsupported SoPlanning version: {version}. Supported versions: {supported}.",
+    "migrationNoPending": "No migration is pending. Please analyse a file first.",
+    "migrationFailed": "Migration failed: {detail}"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "page": {
+    "title": "My account",
+    "demoLocked": "Shared demo account: the profile, password, two-factor authentication and sessions cannot be changed. Preferences remain available.",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "preferences": "Preferences",
+      "ai": "AI"
+    }
+  },
+  "profileTab": {
+    "sections": {
+      "info": "Information",
+      "avatar": "Avatar",
+      "edit": "Edit my profile"
+    },
+    "fields": {
+      "login": "Username",
+      "email": "Email",
+      "role": "Role",
+      "team": "Team",
+      "lastLogin": "Last sign-in",
+      "name": "Name *",
+      "firstName": "First name",
+      "phone": "Landline",
+      "mobile": "Mobile",
+      "address": "Address",
+      "job": "Occupation / Job title",
+      "color": "Planning colour"
+    },
+    "avatar": {
+      "uploading": "Uploading...",
+      "change": "Change avatar"
+    },
+    "saved": "Profile updated"
+  },
+  "preferences": {
+    "sections": {
+      "display": "Display",
+      "notifications": "Notifications"
+    },
+    "homePage": "Default home page",
+    "homePages": {
+      "home": "Home",
+      "planning": "Schedule",
+      "tasks": "Tasks",
+      "projects": "Projects",
+      "users": "Users",
+      "teams": "Teams",
+      "resources": "Resources",
+      "vehicles": "Vehicles",
+      "audit": "Audit",
+      "settings": "Settings"
+    },
+    "defaultView": "Default planning view",
+    "views": {
+      "users": "Users",
+      "projects": "Projects",
+      "resources": "Resources",
+      "vehicles": "Vehicles"
+    },
+    "columnView": "Column mode",
+    "columns": {
+      "days": "Days",
+      "hours": "Hours"
+    },
+    "theme": "Theme",
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "emailNotifications": "Email notifications",
+    "pushNotifications": "Push notifications",
+    "smsNotifications": "SMS / WhatsApp notifications",
+    "disabledByAdmin": "Disabled by the administrator",
+    "saved": "Preferences saved"
+  },
+  "security": {
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "generate": "Generate a password",
+      "copied": "Password copied to the clipboard",
+      "confirm": "Confirm the new password",
+      "mismatch": "Passwords do not match",
+      "success": "Password changed",
+      "submitting": "Changing...",
+      "submit": "Change password"
+    },
+    "twoFactor": {
+      "title": "Two-factor authentication (2FA)",
+      "enabledDescription": "Two-factor authentication is enabled on your account.",
+      "disable": "Disable 2FA",
+      "mandatoryTooltip": "2FA is mandatory for your account",
+      "mandatoryNotice": "2FA is mandatory for your account and cannot be disabled.",
+      "disableDescription": "Enter your password to confirm disabling two-factor authentication.",
+      "currentPasswordPlaceholder": "Current password",
+      "confirmDisable": "Confirm disabling",
+      "notEnabled": "2FA is not enabled",
+      "mandatoryEnable": "2FA is mandatory for your account. Please enable it.",
+      "pitch": "Add an extra layer of security with an authenticator app (Google Authenticator, Authy, etc.)",
+      "enable": "Enable 2FA",
+      "passwordPrompt": "Enter your password to continue:",
+      "scanQr": "Scan this QR code with your authenticator app:",
+      "manualEntry": "Or enter this code manually:",
+      "codeLabel": "Verification code (6 digits)",
+      "verifying": "Verifying...",
+      "enabledSuccess": "2FA enabled!",
+      "backupHelp": "Store these codes in a safe place. Each one can be used only once to sign in if you lose access to your authenticator app."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "otherBrowser": "Other",
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "current": "Current session",
+      "meta": "IP: {ip} · Created on {date}",
+      "unknownIp": "Unknown",
+      "revoke": "Revoke",
+      "empty": "No active sessions"
+    }
+  },
+  "errors": {
+    "wrongPassword": "Incorrect current password",
+    "noPassword": "No password set",
+    "sessionNotFound": "Session not found",
+    "invalidSessionId": "Invalid session ID",
+    "incorrectPassword": "Incorrect password",
+    "twoFactorMandatory": "2FA is mandatory for your account and cannot be disabled.",
+    "twoFactorAlreadyEnabled": "2FA is already enabled",
+    "codeRequired": "Code required",
+    "noTwoFactorSetup": "No 2FA setup in progress",
+    "invalidTotpCode": "Invalid code. Check your authenticator app.",
+    "avatarTooLarge": "File too large. Maximum: {max} MB",
+    "extensionNotAllowed": "Extension .{ext} is not allowed"
+  }
+}

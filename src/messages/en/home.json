@@ -1,0 +1,36 @@
+{
+  "greeting": "Hello {name}!",
+  "weekBadge": "Week {week}",
+  "weekPill": "W{week} · {range}",
+  "collaborators": {
+    "label": "Colleagues",
+    "show": "Show colleagues",
+    "hide": "Hide colleagues"
+  },
+  "today": {
+    "title": "Today",
+    "taskCount": "{count, plural, one {# task} other {# tasks}}",
+    "empty": "No tasks today"
+  },
+  "holiday": {
+    "fallback": "Public holiday",
+    "wish": "Public holiday — enjoy your day!"
+  },
+  "week": {
+    "title": "This week's schedule",
+    "empty": "No tasks",
+    "previous": "Previous week",
+    "next": "Next week"
+  },
+  "duration": {
+    "hours": "{hours}h",
+    "hoursMinutes": "{hours}h {minutes}m"
+  },
+  "viewFullPlanning": "View the full schedule",
+  "notifications": {
+    "title": "Notifications"
+  },
+  "errors": {
+    "dateRangeRequired": "startDate and endDate are required"
+  }
+}

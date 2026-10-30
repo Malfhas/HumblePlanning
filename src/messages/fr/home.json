@@ -1,0 +1,36 @@
+{
+  "greeting": "Bonjour {name} !",
+  "weekBadge": "Semaine {week}",
+  "weekPill": "S{week} · {range}",
+  "collaborators": {
+    "label": "Collaborateurs",
+    "show": "Afficher les collaborateurs",
+    "hide": "Masquer les collaborateurs"
+  },
+  "today": {
+    "title": "Aujourd'hui",
+    "taskCount": "{count, plural, one {# tâche} other {# tâches}}",
+    "empty": "Aucune tâche aujourd'hui"
+  },
+  "holiday": {
+    "fallback": "Jour férié",
+    "wish": "Jour férié — Bonne journée !"
+  },
+  "week": {
+    "title": "Planning de la semaine",
+    "empty": "Aucune tâche",
+    "previous": "Semaine précédente",
+    "next": "Semaine suivante"
+  },
+  "duration": {
+    "hours": "{hours}h",
+    "hoursMinutes": "{hours}h{minutes}"
+  },
+  "viewFullPlanning": "Voir le planning complet",
+  "notifications": {
+    "title": "Notifications"
+  },
+  "errors": {
+    "dateRangeRequired": "startDate et endDate sont requis"
+  }
+}

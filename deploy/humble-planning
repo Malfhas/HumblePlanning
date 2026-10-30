@@ -1,0 +1,754 @@
+#!/usr/bin/env bash
+#
+# humble-planning — manage a Humble Planning installation (Docker Compose).
+# Installed by install.sh as /usr/local/bin/humble-planning; the installation
+# directory is read from /etc/default/humble-planning (HUMBLE_INSTALL_DIR).
+#
+# Run `humble-planning help` for the list of commands.
+#
+# Updates: the releases come from the GitHub API (HUMBLE_UPDATE_REPO in .env,
+# or HUMBLE_UPDATE_SOURCE: any URL returning a GitHub-style JSON array of
+# releases, e.g. file:///srv/releases.json for tests). The installed version
+# lives in .env (HUMBLE_VERSION) and is only changed once an update succeeded:
+# on failure, the previous version is started again and the database is
+# restored from the backup taken just before the update.
+
+set -Eeuo pipefail
+
+CONFIG_FILE=/etc/default/humble-planning
+if [ -r "$CONFIG_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$CONFIG_FILE"
+fi
+INSTALL_DIR=${HUMBLE_INSTALL_DIR:-/opt/humble-planning}
+ENV_FILE="$INSTALL_DIR/.env"
+BACKUP_DIR="$INSTALL_DIR/backups"
+STATE_FILE="$INSTALL_DIR/.update-state"
+UPDATE_LOG=/var/log/humble-planning-update.log
+LOCK_FILE=/run/lock/humble-planning.lock
+KEEP_PRE_UPDATE_BACKUPS=5
+DEFAULT_UPDATE_REPO=Malfhas/HumblePlanning
+UNIT=humble-planning-update
+SYSTEMD_DIR=/etc/systemd/system
+CRON_FILE=/etc/cron.d/humble-planning-update
+SELF=$(readlink -f "${BASH_SOURCE[0]}")
+TMP_DIR=""
+SPINNER_PID=""
+AUTO=0
+
+# ─── Output ──────────────────────────────────────────────────────────────────
+
+setup_colors() {
+  if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != dumb ] && [ "$AUTO" = 0 ]; then
+    IS_TTY=1
+    RESET=$'\033[0m' BOLD=$'\033[1m' DIM=$'\033[2m'
+    RED=$'\033[38;5;203m' GREEN=$'\033[38;5;41m' YELLOW=$'\033[38;5;220m' ACCENT=$'\033[38;5;135m'
+  else
+    IS_TTY=0
+    RESET="" BOLD="" DIM="" RED="" GREEN="" YELLOW="" ACCENT=""
+  fi
+}
+setup_colors
+
+strip_ansi() { printf '%s' "$1" | sed -E $'s/\033\\[[0-9;?]*[A-Za-z]//g'; }
+log() {
+  { [ -d "$(dirname "$UPDATE_LOG")" ] && printf '%s %s\n' "$(date '+%F %T')" "$(strip_ansi "$*")" >>"$UPDATE_LOG"; } 2>/dev/null || true
+}
+say()  { printf '%s\n' "$*"; [ "$AUTO" = 1 ] || log "$*"; }
+ok()   { say "  ${GREEN}✔${RESET} $*"; }
+warn() { say "  ${YELLOW}⚠${RESET} $*"; }
+bad()  { say "  ${RED}✖${RESET} $*"; }
+info() { say "  ${DIM}•${RESET} $*"; }
+title() { say ""; say "${BOLD}${ACCENT}$*${RESET}"; }
+
+die() {
+  trap - ERR
+  spinner_stop
+  bad "$1"
+  exit "${2:-1}"
+}
+
+quit() { info "$1"; exit 0; }
+
+spinner_stop() {
+  if [ -n "$SPINNER_PID" ]; then
+    kill "$SPINNER_PID" 2>/dev/null || true
+    wait "$SPINNER_PID" 2>/dev/null || true
+    SPINNER_PID=""
+    printf '\033[?25h'
+  fi
+  return 0
+}
+
+fmt_duration() {
+  if [ "$1" -ge 60 ]; then printf '%dm%02ds' $(($1 / 60)) $(($1 % 60)); else printf '%ds' "$1"; fi
+}
+
+# spin "Message" command… — output of the command → update log; ✔/✖; returns its code
+spin() {
+  local msg=$1; shift
+  local start=$SECONDS rc=0 pid
+  log "RUN   $msg :: $*"
+  ( trap - ERR; "$@" ) >>"$UPDATE_LOG" 2>&1 </dev/null &
+  pid=$!
+  if [ "$IS_TTY" = 1 ]; then
+    (
+      trap - ERR
+      frames=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏); i=0
+      printf '\033[?25l'
+      while :; do
+        printf '\r  %s%s%s %s %s%s%s\033[K' "$ACCENT" "${frames[i % 10]}" "$RESET" "$msg" "$DIM" "$(fmt_duration $((SECONDS - start)))" "$RESET"
+        i=$((i + 1)); sleep 0.1
+      done
+    ) &
+    SPINNER_PID=$!
+  fi
+  wait "$pid" || rc=$?
+  spinner_stop
+  [ "$IS_TTY" = 1 ] && printf '\r\033[K'
+  if [ "$rc" -eq 0 ]; then ok "$msg ${DIM}($(fmt_duration $((SECONDS - start))))${RESET}"; else bad "$msg"; fi
+  return "$rc"
+}
+
+confirm() { # confirm "Question" y|n
+  local ans hint=y/N
+  [ "$2" = y ] && hint=Y/n
+  { : </dev/tty; } 2>/dev/null || { [ "$2" = y ]; return; }
+  printf '  %s?%s %s %s[%s]%s ' "$ACCENT" "$RESET" "$1" "$DIM" "$hint" "$RESET"
+  IFS= read -r ans </dev/tty || return 1
+  ans=${ans:-$2}
+  case "${ans,,}" in y|yes) return 0 ;; *) return 1 ;; esac
+}
+
+# excerpt FILE LINES TITLE — last lines of a log, cut to the terminal width
+excerpt() {
+  [ -s "$1" ] || return 0
+  local width=$(( ${COLUMNS:-$(tput cols 2>/dev/null || echo 100)} - 8 ))
+  say ""
+  say "  ${DIM}$3${RESET}"
+  tail -n "$2" "$1" | sed -E $'s/\033\\[[0-9;?]*[A-Za-z]//g' | cut -c "1-$width" | sed "s/^/    ${DIM}│${RESET} /"
+}
+
+last_log_lines() { excerpt "$UPDATE_LOG" "${1:-20}" "Last lines of $UPDATE_LOG:"; }
+
+# ─── Environment and Compose ─────────────────────────────────────────────────
+
+env_get() {
+  local line val=""
+  [ -r "$ENV_FILE" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [[ $line =~ ^[[:space:]]*$1=(.*)$ ]]; then val=${BASH_REMATCH[1]}; fi
+  done <"$ENV_FILE"
+  val=${val%$'\r'}
+  if [[ $val =~ ^\"(.*)\"$ ]] || [[ $val =~ ^\'(.*)\'$ ]]; then val=${BASH_REMATCH[1]}; fi
+  printf '%s' "$val"
+}
+
+# env_set KEY VALUE… — atomic update of .env (mode 600)
+env_set() {
+  local tmp line key
+  declare -A new=()
+  while [ $# -ge 2 ]; do new[$1]=$2; shift 2; done
+  tmp=$(mktemp "$ENV_FILE.XXXXXX")
+  chmod 600 "$tmp"
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [[ $line =~ ^([A-Z_][A-Z0-9_]*)= ]] && [ -n "${new[${BASH_REMATCH[1]}]+x}" ]; then
+      key=${BASH_REMATCH[1]}
+      printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"
+      unset "new[$key]"
+    else
+      printf '%s\n' "$line" >>"$tmp"
+    fi
+  done <"$ENV_FILE"
+  for key in "${!new[@]}"; do printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"; done
+  mv -f "$tmp" "$ENV_FILE"
+}
+
+compose() { docker compose --project-directory "$INSTALL_DIR" -f "$INSTALL_DIR/docker-compose.yml" "$@"; }
+# compose_at VERSION … — Compose with another image version (the .env is untouched)
+compose_at() { local v=$1; shift; HUMBLE_VERSION=$v compose "$@"; }
+
+caddy_enabled() { [[ ",$(env_get COMPOSE_PROFILES)," == *,caddy,* ]]; }
+db_builtin() { [[ ",$(env_get COMPOSE_PROFILES)," == *,db,* ]]; }
+image_repo() { local r; r=$(env_get HUMBLE_IMAGE); printf '%s' "${r:-ghcr.io/malfhas/humble-planning}"; }
+caddy_repo() { local r; r=$(env_get HUMBLE_CADDY_IMAGE); printf '%s' "${r:-ghcr.io/malfhas/humble-planning-caddy}"; }
+
+state_set() { # state_set "result text"
+  printf 'last_check=%s\nlast_result=%s\n' "$(date '+%F %T')" "$1" >"$STATE_FILE.tmp" && mv -f "$STATE_FILE.tmp" "$STATE_FILE"
+}
+state_get() { [ -r "$STATE_FILE" ] && sed -n "s/^$1=//p" "$STATE_FILE" | sed -n 1p; return 0; }
+
+require_install() {
+  [ "$(id -u)" -eq 0 ] || die "Run this command as root: sudo humble-planning $*"
+  [ -f "$ENV_FILE" ] && [ -f "$INSTALL_DIR/docker-compose.yml" ] ||
+    die "No installation found in $INSTALL_DIR (set HUMBLE_INSTALL_DIR in $CONFIG_FILE)."
+  install -d -m 0755 "$(dirname "$UPDATE_LOG")" 2>/dev/null || true
+  touch "$UPDATE_LOG" 2>/dev/null && chmod 600 "$UPDATE_LOG" 2>/dev/null || true
+}
+
+take_lock() {
+  install -d -m 0755 "$(dirname "$LOCK_FILE")" 2>/dev/null || true
+  exec 9>"$LOCK_FILE"
+  flock -n 9 || die "Another humble-planning operation is already running."
+}
+
+wait_http() {
+  local url=$1 timeout=$2 i code=""
+  for ((i = 0; i < timeout; i += 2)); do
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$url" || true)
+    [ "$code" = 200 ] && return 0
+    sleep 2
+  done
+  echo "No HTTP 200 from $url after ${timeout}s (last status: ${code:-none})."
+  return 1
+}
+
+# ─── Backups ─────────────────────────────────────────────────────────────────
+
+# make_backup NAME → path of the new dump on stdout (pg_dump through the app image)
+backup_to() {
+  local file=$1
+  ( umask 077; compose run --rm -T --no-deps app provision backup >"$file.part" )
+  [ "$(head -c 5 "$file.part" 2>/dev/null)" = "PGDMP" ] || { echo "The backup is empty or invalid."; return 1; }
+  mv -f "$file.part" "$file"
+  chmod 600 "$file"
+}
+
+rotate_backups() {
+  find "$BACKUP_DIR" -maxdepth 1 -name 'pre-update-*.dump' -printf '%T@ %p\n' 2>/dev/null |
+    sort -rn | awk -v keep="$KEEP_PRE_UPDATE_BACKUPS" 'NR > keep { print $2 }' | xargs -r rm -f
+}
+
+restore_from() {
+  compose run --rm -T --no-deps app provision restore <"$1"
+}
+
+cmd_backup() {
+  require_install backup
+  take_lock
+  install -d -m 0700 "$BACKUP_DIR"
+  local file
+  file="$BACKUP_DIR/manual-$(env_get HUMBLE_VERSION)-$(date +%Y%m%d-%H%M%S).dump"
+  db_builtin && { compose up -d --wait db >>"$UPDATE_LOG" 2>&1 || true; }
+  spin "Backing up the database" backup_to "$file" || { last_log_lines 10; die "Backup failed."; }
+  info "Backup: $file ($(du -h "$file" | cut -f1))"
+}
+
+# ─── Releases ────────────────────────────────────────────────────────────────
+
+# Parses the GitHub releases JSON (stdin) with Bun inside the app image: no jq
+# needed on the host. Prints LATEST / TARGET / NOTE* lines, or ERR.
+read -r -d '' RELEASES_JS <<'JS' || true
+const say = (...f) => console.log(f.join("\t"));
+let data;
+try { data = JSON.parse(await Bun.stdin.text()); } catch { say("ERR", "The release information is not valid JSON."); process.exit(1); }
+if (!Array.isArray(data)) { say("ERR", data && data.message ? `Release server: ${data.message}` : "Unexpected release information."); process.exit(1); }
+const parse = (t) => { const m = /^v?(\d+)\.(\d+)\.(\d+)$/.exec(String(t ?? "").trim()); return m ? m.slice(1, 4).map(Number) : null; };
+const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+const str = (v) => v.join(".");
+const env = process.env;
+const cur = parse(env.CURRENT);
+if (!cur) { say("ERR", `The installed version "${env.CURRENT}" is not a release number.`); process.exit(1); }
+const rel = data.filter((r) => r && !r.draft && !r.prerelease)
+  .map((r) => ({ v: parse(r.tag_name), r })).filter((x) => x.v).sort((a, b) => cmp(b.v, a.v));
+if (rel.length === 0) { say("ERR", "No published release found."); process.exit(1); }
+const latest = rel[0];
+const kind = cmp(latest.v, cur) <= 0 ? "none" : latest.v[0] !== cur[0] ? "major" : latest.v[1] !== cur[1] ? "minor" : "patch";
+say("LATEST", str(latest.v), kind);
+let target = latest;
+if (env.MODE === "version") {
+  const want = parse(env.WANT);
+  if (!want) { say("ERR", `"${env.WANT}" is not a version number (expected X.Y.Z).`); process.exit(1); }
+  target = rel.find((x) => cmp(x.v, want) === 0);
+  if (!target) { say("ERR", `Release v${str(want)} was not found.`); process.exit(1); }
+  if (cmp(target.v, cur) < 0) { say("ERR", `v${str(want)} is older than the installed version v${str(cur)}: use "humble-planning rollback".`); process.exit(1); }
+} else if (env.MODE === "auto") {
+  target = rel.find((x) => x.v[0] === cur[0] && x.v[1] === cur[1]);
+}
+if (!target || cmp(target.v, cur) <= 0) process.exit(0);
+const day = (r) => String(r.published_at ?? "").slice(0, 10);
+say("TARGET", str(target.v), target.r.tag_name, day(target.r), target.r.html_url ?? "");
+
+// Release notes of every version after the installed one, Markdown → text.
+const width = Math.max(48, Math.min(Number(env.COLS) || 80, 100) - 8);
+const inline = (s) => s.replace(/<!--[\s\S]*?-->/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+  .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (_, a, b) => a ?? b)
+  .replace(/`([^`]+)`/g, "$1").replace(/<\/?[a-z][^>]*>/gi, "").trim();
+const wrap = (text, first, next) => {
+  const out = []; let line = first;
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    if (line.trim() && (line + word).length > width) { out.push(line.trimEnd()); line = next; }
+    line += word + " ";
+  }
+  if (line.trim()) out.push(line.trimEnd());
+  return out;
+};
+const MAX = 30; let count = 0; let truncated = false;
+const emit = (tag, text) => { if (count >= MAX) { truncated = true; return; } say(tag, text); count++; };
+for (const x of rel.filter((x) => cmp(x.v, cur) > 0 && cmp(x.v, target.v) <= 0)) {
+  const name = x.r.name && x.r.name !== x.r.tag_name ? ` — ${inline(x.r.name)}` : "";
+  emit("NOTEH", `v${str(x.v)}${day(x.r) ? " (" + day(x.r) + ")" : ""}${name}`);
+  let blank = false;
+  for (const raw of String(x.r.body ?? "").replace(/\r/g, "").split("\n")) {
+    const heading = /^#{1,6}\s+(.*)$/.exec(raw);
+    const bullet = /^(\s*)[-*+]\s+(.*)$/.exec(raw);
+    if (!raw.trim()) { if (!blank && count) emit("NOTE", ""); blank = true; continue; }
+    blank = false;
+    if (heading) emit("NOTES", inline(heading[1]));
+    else if (bullet) {
+      const pad = "  ".repeat(Math.min(3, Math.floor(bullet[1].length / 2)));
+      for (const l of wrap(inline(bullet[2]), `${pad}• `, `${pad}  `)) emit("NOTE", l);
+    } else for (const l of wrap(inline(raw), "", "")) emit("NOTE", l);
+  }
+}
+if (truncated) say("NOTE", `… Full release notes: ${target.r.html_url ?? latest.r.html_url ?? ""}`);
+JS
+
+fetch_releases() {
+  local src repo
+  src=${HUMBLE_UPDATE_SOURCE:-$(env_get HUMBLE_UPDATE_SOURCE)}
+  repo=$(env_get HUMBLE_UPDATE_REPO)
+  [ -n "$src" ] || src="https://api.github.com/repos/${repo:-$DEFAULT_UPDATE_REPO}/releases?per_page=100"
+  log "FETCH $src"
+  curl -fsSL --max-time 30 -H 'Accept: application/vnd.github+json' -H 'User-Agent: humble-planning-updater' "$src"
+}
+
+# fetch_and_parse MODE WANT → $TMP_DIR/releases.out (runs in a subshell under spin)
+fetch_and_parse() {
+  local mode=$1 want=${2:-} current json out
+  current=$(env_get HUMBLE_VERSION)
+  json="$TMP_DIR/releases.json" out="$TMP_DIR/releases.out"
+  if ! fetch_releases >"$json" 2>>"$UPDATE_LOG"; then
+    echo "Could not download the release list (network, GitHub API rate limit or HUMBLE_UPDATE_SOURCE)." >"$out"
+    return 1
+  fi
+  docker run --rm -i --network none --entrypoint bun \
+    --env "CURRENT=$current" --env "MODE=$mode" --env "WANT=$want" --env "COLS=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}" \
+    "$(image_repo):$current" -e "$RELEASES_JS" <"$json" >"$out" 2>>"$UPDATE_LOG" || true
+  if grep -q $'^ERR\t' "$out"; then sed -n $'s/^ERR\t//p' "$out" | sed -n 1p >"$out.err"; mv "$out.err" "$out"; return 1; fi
+  if ! grep -q $'^LATEST\t' "$out"; then echo "Could not read the release list (see $UPDATE_LOG)." >"$out"; return 1; fi
+}
+
+# load_release_vars → LATEST, LATEST_KIND, TARGET, TARGET_DATE, TARGET_URL, NOTES
+load_release_vars() {
+  local out="$TMP_DIR/releases.out"
+  IFS=$'\t' read -r _ LATEST LATEST_KIND < <(grep $'^LATEST\t' "$out")
+  TARGET="" TARGET_DATE="" TARGET_URL=""
+  if grep -q $'^TARGET\t' "$out"; then
+    IFS=$'\t' read -r _ TARGET _ TARGET_DATE TARGET_URL < <(grep $'^TARGET\t' "$out")
+  fi
+  NOTES="$out"
+}
+
+print_notes() {
+  local tag text
+  say ""
+  say "  ${BOLD}Release notes${RESET}"
+  while IFS=$'\t' read -r tag text; do
+    case "$tag" in
+      NOTEH) say ""; say "  ${ACCENT}${BOLD}$text${RESET}" ;;
+      NOTES) say "    ${BOLD}$text${RESET}" ;;
+      NOTE) say "    $text" ;;
+    esac
+  done <"$NOTES"
+  if [ -n "$TARGET_URL" ]; then say ""; say "  ${DIM}Release page: $TARGET_URL${RESET}"; fi
+}
+
+# ─── Update ──────────────────────────────────────────────────────────────────
+
+pull_or_build() { # pull_or_build VERSION
+  local v=$1 src services=(app socket)
+  caddy_enabled && services+=(caddy)
+  src=$(env_get HUMBLE_BUILD_SOURCE)
+  if [ -n "$src" ]; then
+    local ref=$src
+    [ -d "$src" ] || ref="${src%%#*}#v$v"
+    docker build --pull -t "$(image_repo):$v" --build-arg "APP_VERSION=$v" "$ref"
+    if caddy_enabled; then
+      if [ -d "$src" ]; then docker build -t "$(caddy_repo):$v" "$src/deploy/caddy"; else docker build -t "$(caddy_repo):$v" "$ref:deploy/caddy"; fi
+    fi
+  elif [ "$(env_get HUMBLE_PULL)" = 0 ]; then
+    local s
+    docker image inspect "$(image_repo):$v" >/dev/null
+    if caddy_enabled; then docker image inspect "$(caddy_repo):$v" >/dev/null; fi
+    for s in "${services[@]}"; do echo "Using the local image for $s (HUMBLE_PULL=0)"; done
+  else
+    compose_at "$v" pull "${services[@]}"
+  fi
+}
+
+# Automatic rollback after a failed update: previous version + database restore.
+auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
+  local from=$1 to=$2 stage=$3 backup=$4 migrated=$5 failure="$TMP_DIR/failure.log"
+  # What went wrong: output of the failed step, then the logs of v$to.
+  tail -n 6 "$UPDATE_LOG" | grep -v '^[0-9-]* [0-9:]* ' >"$failure" || true
+  compose_at "$to" ps -a --format '{{.Service}}: {{.Status}}' app socket >>"$failure" 2>/dev/null || true
+  compose_at "$to" logs --no-color --no-log-prefix --tail 6 app >>"$failure" 2>&1 || true
+  cat "$failure" >>"$UPDATE_LOG"
+  title "Rolling back to v$from"
+  spin "Stopping v$to" compose stop app socket || true
+  local restored=1
+  if [ "$migrated" = 1 ]; then
+    if spin "Restoring the database from the pre-update backup" restore_from "$backup"; then restored=1; else restored=0; fi
+  fi
+  if ! spin "Starting v$from again" compose up -d --wait --wait-timeout 180; then
+    last_log_lines 20
+    die "The rollback could not restart v$from: check 'humble-planning logs'. Backup: $backup"
+  fi
+  state_set "Update to v$to failed ($stage); rolled back to v$from"
+  say ""
+  bad "${BOLD}The update to v$to failed while $stage.${RESET}"
+  ok "Humble Planning is running v$from again."
+  if [ "$migrated" = 1 ] && [ "$restored" = 1 ]; then ok "The database was restored from the backup taken before the update."; fi
+  if [ "$restored" = 0 ]; then bad "The database could not be restored automatically: restore it with 'humble-planning rollback'."; fi
+  info "Backup: $backup"
+  excerpt "$failure" 14 "What went wrong (full log: $UPDATE_LOG):"
+  exit 1
+}
+
+do_update() { # do_update FROM TO
+  local from=$1 to=$2 backup migrated=0
+  local app_port
+  app_port=$(env_get HP_APP_PORT)
+
+  title "Updating Humble Planning v$from → v$to"
+  if ! spin "Downloading v$to" pull_or_build "$to"; then
+    state_set "Update to v$to failed (download); nothing changed"
+    last_log_lines 15
+    die "Could not get the images of v$to: nothing was changed, v$from is still running."
+  fi
+
+  spin "Stopping the application for the update" compose stop app socket || true
+  install -d -m 0700 "$BACKUP_DIR"
+  backup="$BACKUP_DIR/pre-update-$from-to-$to-$(date +%Y%m%d-%H%M%S).dump"
+  if ! spin "Backing up the database" backup_to "$backup"; then
+    rm -f "$backup.part"
+    compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
+    state_set "Update to v$to cancelled: backup failed"
+    last_log_lines 15
+    die "The database backup failed: update cancelled, v$from restarted."
+  fi
+  info "Backup: $backup ($(du -h "$backup" | cut -f1))"
+  rotate_backups
+
+  migrated=1
+  if ! spin "Applying the database migrations of v$to" compose_at "$to" run --rm -T --no-deps app provision migrate; then
+    auto_rollback "$from" "$to" "applying the database migrations" "$backup" "$migrated"
+  fi
+  if ! spin "Starting v$to" compose_at "$to" up -d --wait --wait-timeout 180; then
+    auto_rollback "$from" "$to" "starting the new version (health check)" "$backup" "$migrated"
+  fi
+  if ! spin "Checking the web application" wait_http "http://127.0.0.1:${app_port:-3000}/login" 90; then
+    auto_rollback "$from" "$to" "checking the web application" "$backup" "$migrated"
+  fi
+
+  env_set HUMBLE_PREVIOUS_VERSION "$from" HUMBLE_VERSION "$to"
+  state_set "Updated v$from → v$to"
+  say ""
+  ok "${BOLD}Humble Planning v$to is up and running.${RESET}"
+  info "Previous version v$from kept for 'humble-planning rollback'."
+  info "Pre-update backup: $backup"
+}
+
+cmd_update() {
+  local want="" yes=0 mode=latest current
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --version) want=${2:-}; shift ;;
+      --version=*) want=${1#*=} ;;
+      -y|--yes) yes=1 ;;
+      --auto) AUTO=1; yes=1 ;;
+      *) die "Unknown option for update: $1" 2 ;;
+    esac
+    shift
+  done
+  [ -n "$want" ] && mode=version
+  [ "$AUTO" = 1 ] && mode=auto
+  if [ "$AUTO" = 1 ]; then
+    setup_colors
+    exec >>"$UPDATE_LOG" 2>&1
+    printf '\n===== %s automatic update check\n' "$(date '+%F %T')"
+  fi
+  require_install update
+  take_lock
+  current=$(env_get HUMBLE_VERSION)
+  [ -n "$current" ] || die "HUMBLE_VERSION is missing from $ENV_FILE."
+
+  if ! spin "Checking for updates (installed: v$current)" fetch_and_parse "$mode" "$want"; then
+    state_set "Update check failed: $(cat "$TMP_DIR/releases.out" 2>/dev/null)"
+    die "$(cat "$TMP_DIR/releases.out" 2>/dev/null || echo "Update check failed (see $UPDATE_LOG).")"
+  fi
+  load_release_vars
+
+  if [ -z "$TARGET" ]; then
+    if [ "$AUTO" = 1 ] && [ "$LATEST_KIND" != none ]; then
+      info "v$LATEST is available ($LATEST_KIND update): not applied automatically. Run: humble-planning update"
+      state_set "Up to date in the v${current%.*}.x series; v$LATEST available ($LATEST_KIND, manual update)"
+    else
+      state_set "Already up to date (v$current)"
+    fi
+    ok "Already up to date (v$current)"
+    return 0
+  fi
+
+  ok "New version available: ${BOLD}v$TARGET${RESET}${TARGET_DATE:+ (released $TARGET_DATE)}"
+  print_notes
+  [ "$yes" = 1 ] || say ""
+  if [ "$yes" = 0 ] && ! confirm "Update Humble Planning from v$current to v$TARGET? A database backup is taken first." y; then
+    quit "Update cancelled: nothing was changed."
+  fi
+  do_update "$current" "$TARGET"
+}
+
+# ─── Rollback ────────────────────────────────────────────────────────────────
+
+cmd_rollback() {
+  local yes=0 restore="" current previous backup=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -y|--yes) yes=1 ;;
+      --restore) restore=1 ;;
+      --no-restore) restore=0 ;;
+      *) die "Unknown option for rollback: $1" 2 ;;
+    esac
+    shift
+  done
+  require_install rollback
+  take_lock
+  current=$(env_get HUMBLE_VERSION)
+  previous=$(env_get HUMBLE_PREVIOUS_VERSION)
+  [ -n "$previous" ] || die "No previous version recorded: nothing to roll back to."
+  backup=$(find "$BACKUP_DIR" -maxdepth 1 -name "pre-update-$previous-to-$current-*.dump" -printf '%T@ %p\n' 2>/dev/null | sort -rn | awk 'NR == 1 { print $2 }')
+
+  title "Rolling back Humble Planning v$current → v$previous"
+  if [ "$yes" = 0 ] && ! confirm "Roll back to v$previous?" y; then quit "Rollback cancelled: nothing was changed."; fi
+
+  if [ -n "$backup" ] && [ -z "$restore" ]; then
+    say ""
+    warn "${BOLD}Database:${RESET} a backup was taken just before the update to v$current:"
+    say "      $backup"
+    warn "Restoring it brings the data back to $(date -r "$backup" '+%F %T'): ${BOLD}everything entered since then will be lost.${RESET}"
+    say "      Without it, v$previous runs on the database as migrated by v$current."
+    restore=0
+    if [ "$yes" = 0 ] && confirm "Restore this backup?" n; then restore=1; fi
+  elif [ "$restore" = 1 ] && [ -z "$backup" ]; then
+    die "No pre-update backup found for v$previous → v$current."
+  fi
+
+  if [ "$(env_get HUMBLE_PULL)" != 0 ] && [ -z "$(env_get HUMBLE_BUILD_SOURCE)" ]; then
+    spin "Downloading v$previous" pull_or_build "$previous" || die "Could not get the images of v$previous."
+  fi
+  spin "Stopping v$current" compose stop app socket || true
+  if [ "${restore:-0}" = 1 ]; then
+    if ! spin "Restoring the database from the pre-update backup" restore_from "$backup"; then
+      compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
+      last_log_lines 15
+      die "The database restore failed: v$current restarted, nothing changed."
+    fi
+  fi
+  if ! spin "Starting v$previous" compose_at "$previous" up -d --wait --wait-timeout 180; then
+    last_log_lines 20
+    die "v$previous did not start: check 'humble-planning logs'."
+  fi
+  env_set HUMBLE_VERSION "$previous" HUMBLE_PREVIOUS_VERSION "$current"
+  state_set "Rolled back v$current → v$previous$([ "${restore:-0}" = 1 ] && echo ' (database restored)')"
+  say ""
+  ok "${BOLD}Humble Planning v$previous is running.${RESET}"
+  info "Run 'humble-planning update' to go back to the latest version."
+}
+
+# ─── Automatic updates ───────────────────────────────────────────────────────
+
+auto_update_state() {
+  if [ -f "$SYSTEMD_DIR/$UNIT.timer" ]; then echo systemd
+  elif [ -f "$CRON_FILE" ]; then echo cron
+  else echo off
+  fi
+}
+
+cmd_auto_update() {
+  require_install auto-update
+  case "${1:-status}" in
+    on|enable)
+      if [ -d /run/systemd/system ]; then
+        cat >"$SYSTEMD_DIR/$UNIT.service" <<EOF
+[Unit]
+Description=Humble Planning automatic update (patch releases only)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=$SELF update --auto --yes
+EOF
+        cat >"$SYSTEMD_DIR/$UNIT.timer" <<EOF
+[Unit]
+Description=Nightly Humble Planning update check
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+RandomizedDelaySec=3h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+        systemctl daemon-reload
+        systemctl enable --now "$UNIT.timer" >/dev/null
+        ok "Automatic updates enabled (systemd timer $UNIT.timer, every night between 02:00 and 05:00)"
+      else
+        local minute=$((RANDOM % 60)) hour=$((2 + RANDOM % 3))
+        cat >"$CRON_FILE" <<EOF
+# Humble Planning — nightly automatic update (patch releases only).
+# Managed by: humble-planning auto-update on|off
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+$minute $hour * * * root $SELF update --auto --yes >/dev/null 2>&1
+EOF
+        chmod 644 "$CRON_FILE"
+        ok "Automatic updates enabled (cron, every night at $(printf '%02d:%02d' "$hour" "$minute"))"
+        if ! command -v cron >/dev/null 2>&1 && ! command -v crond >/dev/null 2>&1; then
+          warn "No cron daemon is installed: install cron (apt-get install cron) for the schedule to run."
+        fi
+      fi
+      info "Only patch releases (x.y.Z) are installed automatically; log: $UPDATE_LOG" ;;
+    off|disable)
+      if [ -f "$SYSTEMD_DIR/$UNIT.timer" ]; then
+        systemctl disable --now "$UNIT.timer" >/dev/null 2>&1 || true
+        rm -f "$SYSTEMD_DIR/$UNIT.timer" "$SYSTEMD_DIR/$UNIT.service"
+        systemctl daemon-reload 2>/dev/null || true
+      fi
+      rm -f "$CRON_FILE"
+      ok "Automatic updates disabled" ;;
+    status)
+      case "$(auto_update_state)" in
+        systemd)
+          ok "Automatic updates: enabled (systemd timer, patch releases only)"
+          local next
+          next=$(systemctl list-timers "$UNIT.timer" --no-legend 2>/dev/null | awk '{print $1, $2, $3}' | sed -n 1p)
+          [ -n "$next" ] && info "Next run: $next" ;;
+        cron) ok "Automatic updates: enabled (cron: $(grep -E '^[0-9]' "$CRON_FILE" | awk '{printf "%02d:%02d", $2, $1}'), patch releases only)" ;;
+        *) info "Automatic updates: disabled — enable with: humble-planning auto-update on" ;;
+      esac ;;
+    *) die "Usage: humble-planning auto-update on|off|status" 2 ;;
+  esac
+  return 0
+}
+
+# ─── Demo instance ───────────────────────────────────────────────────────────
+
+# print_prov FILE — protocol lines of `provision` (OK/INFO/WARN/ERR, tab, message)
+print_prov() {
+  local tag msg
+  while IFS=$'\t' read -r tag msg; do
+    case "$tag" in
+      OK) say "    ${DIM}✔ $msg${RESET}" ;;
+      INFO) say "    ${DIM}• $msg${RESET}" ;;
+      WARN) say "    ${YELLOW}⚠${RESET} $msg" ;;
+      ERR) say "    ${RED}✖${RESET} $msg" ;;
+    esac
+  done <"$1"
+}
+
+demo_reset_run() { compose run --rm -T --no-deps app provision demo-reset "$@" >"$TMP_DIR/demo-reset.out"; }
+
+cmd_demo_reset() {
+  local args=() rc=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --force) args=(--force) ;;
+      *) die "Unknown option for demo-reset: $1" 2 ;;
+    esac
+    shift
+  done
+  require_install demo-reset
+  [ "$(env_get DEMO_MODE)" = true ] ||
+    die "This is not a demo instance (DEMO_MODE=true is missing from $ENV_FILE): demo-reset would erase all the data."
+  take_lock
+  db_builtin && { compose up -d --wait db >>"$UPDATE_LOG" 2>&1 || true; }
+  spin "Erasing the data and loading the demo dataset" demo_reset_run "${args[@]}" || rc=$?
+  print_prov "$TMP_DIR/demo-reset.out"
+  if [ "$rc" = 3 ]; then
+    die "Nothing was changed. To erase this data anyway: humble-planning demo-reset --force"
+  elif [ "$rc" != 0 ]; then
+    last_log_lines 15
+    die "Could not load the demo data."
+  fi
+  # A new container: the application starts with empty caches (and the current .env).
+  if [ -n "$(compose ps -q app 2>/dev/null || true)" ]; then
+    if ! spin "Restarting the application" compose up -d --wait --wait-timeout 180 --no-deps --force-recreate app; then
+      last_log_lines 15
+      die "The application did not restart: check 'humble-planning logs app'."
+    fi
+  else
+    info "The application is not running: start it with 'humble-planning start'."
+  fi
+}
+
+# ─── Other commands ──────────────────────────────────────────────────────────
+
+cmd_status() {
+  require_install status
+  local version previous last
+  version=$(env_get HUMBLE_VERSION) previous=$(env_get HUMBLE_PREVIOUS_VERSION)
+  say ""
+  say "  ${BOLD}Humble Planning v${version:-?}${RESET}  ${DIM}$(image_repo):${version:-?}${RESET}"
+  say "  ${DIM}Installation     ${RESET} $INSTALL_DIR"
+  if [ -n "$previous" ]; then say "  ${DIM}Previous version ${RESET} v$previous (humble-planning rollback)"; fi
+  case "$(auto_update_state)" in
+    off) say "  ${DIM}Automatic updates${RESET} disabled (humble-planning auto-update on)" ;;
+    *) say "  ${DIM}Automatic updates${RESET} enabled, patch releases only" ;;
+  esac
+  last=$(state_get last_check)
+  say "  ${DIM}Last update check${RESET} ${last:-never}${last:+ — $(state_get last_result)}"
+  say ""
+  compose ps "$@"
+}
+
+usage() {
+  cat <<EOF
+Usage: humble-planning <command> [options]
+
+  status                      Version, update status and state of the containers
+  logs [service]              Follow the logs (app, socket, db, caddy)
+  start | stop | restart      Start, stop or restart Humble Planning
+  update [--version X.Y.Z]    Update to the latest (or given) release: release notes,
+         [--yes] [--auto]     database backup, migrations, automatic rollback on failure.
+                              --auto: patch releases of the same series only, no questions
+  rollback [--yes]            Go back to the previous version
+           [--restore|--no-restore]  restore (or not) the pre-update database backup
+  backup                      Back up the database into $BACKUP_DIR
+  demo-reset [--force]        Demo instance: erase all the data and load the demo dataset now.
+                              --force: also when the database holds data not created by the demo
+  auto-update on|off|status   Nightly automatic updates (patch releases only)
+  version                     Print the installed version
+  help                        Show this help
+
+Installation directory: $INSTALL_DIR (from $CONFIG_FILE)
+EOF
+}
+
+main() {
+  TMP_DIR=$(mktemp -d)
+  trap 'spinner_stop; rm -rf "$TMP_DIR"' EXIT
+  trap 'die "Unexpected error on line $LINENO: $BASH_COMMAND"' ERR
+  local cmd=${1:-help}
+  [ $# -gt 0 ] && shift
+  case "$cmd" in
+    status) cmd_status "$@" ;;
+    logs) require_install logs; compose logs -f --tail=200 "$@" ;;
+    start) require_install start; compose up -d --wait ;;
+    stop) require_install stop; compose stop ;;
+    restart) require_install restart; compose restart "$@" ;;
+    update) cmd_update "$@" ;;
+    rollback) cmd_rollback "$@" ;;
+    backup) cmd_backup ;;
+    demo-reset) cmd_demo_reset "$@" ;;
+    auto-update) cmd_auto_update "$@" ;;
+    version) require_install version; env_get HUMBLE_VERSION; echo ;;
+    help|-h|--help) usage ;;
+    *) usage; exit 2 ;;
+  esac
+}
+
+main "$@"

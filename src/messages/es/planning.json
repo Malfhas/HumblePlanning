@@ -1,0 +1,198 @@
+{
+  "canvas": {
+    "weekAbbr": "Sem.",
+    "weekPrefix": "S",
+    "weekLabel": "S{week}",
+    "untitled": "Sin título",
+    "loadError": "Error de carga: {message}",
+    "multiDelete": {
+      "title": "Tarea asignada a varios usuarios",
+      "description": "{count, plural, =0 {Esta tarea no está asignada a ningún usuario.} one {Esta tarea está asignada a # usuario.} other {Esta tarea está asignada a # usuarios.}}",
+      "confirm": "Eliminar para todos",
+      "archive": "Quitar a este usuario"
+    }
+  },
+  "data": {
+    "assignmentTypes": {
+      "task": "Tarea",
+      "reservation": "Reserva",
+      "maintenance": "Mantenimiento"
+    },
+    "vehicleFallback": "Vehículo",
+    "resourceFallback": "Recurso",
+    "holidayFallback": "Festivo"
+  },
+  "rows": {
+    "noTeam": "Sin equipo",
+    "noGroup": "Sin grupo",
+    "noType": "Sin tipo",
+    "noBu": "Sin BU"
+  },
+  "clipboard": {
+    "copied": "Copiado",
+    "cut": "Cortado",
+    "pasted": "Pegado"
+  },
+  "grid": {
+    "taskFallback": "Tarea",
+    "clipboard": {
+      "copied": "Copiado: {title}",
+      "cut": "Cortado: {title}",
+      "pastedCopy": "Pegado (copia)",
+      "pastedMove": "Pegado (movido)"
+    },
+    "noVisibleUsers": "Ningún usuario visible. Compruebe los filtros o el modo de vista.",
+    "allDay": "Todo el día"
+  },
+  "a11y": {
+    "gridLabel": "Cuadrícula de planificación",
+    "dateRange": "del {start} al {end}",
+    "dateSingle": "el {date}",
+    "timeRange": "de {start} a {end}",
+    "timeSingle": "a las {time}",
+    "project": "proyecto {name}",
+    "assignedTo": "asignada a {names}",
+    "locked": "bloqueada"
+  },
+  "skeleton": {
+    "loading": "Cargando la planificación…"
+  },
+  "summary": {
+    "tasks": "<b>{count, number}</b> {count, plural, one {tarea} other {tareas}}",
+    "days": "<b>{count, number}</b> {count, plural, one {día} other {días}}",
+    "hoursTotal": "Total: {count, plural, one {# tarea} other {# tareas}}"
+  },
+  "liveStatus": {
+    "live": {
+      "label": "En directo",
+      "ariaLabel": "Conexión en tiempo real activa",
+      "tooltip": "La planificación se sincroniza en tiempo real. Los cambios realizados por otros usuarios aparecen inmediatamente."
+    },
+    "offline": {
+      "label": "Sin conexión",
+      "ariaLabel": "Conexión en tiempo real perdida",
+      "tooltip": "Conexión en tiempo real interrumpida. La planificación se actualiza automáticamente cada 2 minutos hasta que se restablezca la conexión. Puede seguir trabajando con normalidad."
+    }
+  },
+  "tooltips": {
+    "untitled": "Sin título",
+    "task": {
+      "resourceConflict": "Conflicto — este recurso ya está reservado en este periodo",
+      "vehicleConflict": "Conflicto — este vehículo ya está reservado en este periodo"
+    },
+    "user": {
+      "fallbackName": "Usuario"
+    },
+    "project": {
+      "fallbackName": "Proyecto",
+      "status": {
+        "todo": "Por hacer",
+        "in_progress": "En curso",
+        "done": "Terminado",
+        "archived": "Archivado"
+      }
+    },
+    "vehicle": {
+      "fallbackName": "Vehículo",
+      "status": {
+        "available": "Disponible",
+        "maintenance": "En mantenimiento",
+        "out_of_service": "Fuera de servicio"
+      }
+    }
+  },
+  "filters": {
+    "title": "Filtros",
+    "activeCount": "{count, plural, one {# activo} other {# activos}}",
+    "description": "Filtros avanzados de la planificación",
+    "search": {
+      "label": "Búsqueda de texto",
+      "placeholder": "Buscar en las tareas..."
+    },
+    "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+    "clearFilter": "Borrar este filtro",
+    "selectPlaceholder": "Seleccionar...",
+    "empty": "No se ha encontrado ningún elemento",
+    "noTeam": "Sin equipo",
+    "noGroup": "Sin grupo",
+    "projectGroups": "Grupos de proyectos",
+    "siteAddresses": "Direcciones de obra",
+    "saved": {
+      "title": "Filtros guardados",
+      "saveCurrent": "Guardar el filtro actual",
+      "namePlaceholder": "Nombre del filtro",
+      "saveAriaLabel": "Guardar el filtro",
+      "deleteTitle": "Eliminar el filtro",
+      "deleteDescription": "¿Eliminar el filtro «{name}»? Esta acción es irreversible."
+    }
+  },
+  "toolbar": {
+    "viewModes": {
+      "users": "Usuarios",
+      "projects": "Proyectos"
+    },
+    "calendarModes": {
+      "planning": "Planificación",
+      "personal": "Mi calendario",
+      "teamDay": "Equipo/día"
+    },
+    "sort": {
+      "nameAsc": "Nombre A → Z",
+      "nameDesc": "Nombre Z → A",
+      "custom": "Orden manual (equipos y miembros)",
+      "teamAlphaCustom": "Equipos A → Z, orden manual de los miembros",
+      "teamNameAsc": "Equipos A → Z, miembros A → Z",
+      "teamNameDesc": "Equipos Z → A, miembros A → Z",
+      "customBu": "BU A → Z, miembros A → Z",
+      "customBuTeam": "BU A → Z, equipos A → Z, orden manual de los miembros",
+      "customBuUser": "BU A → Z, orden manual (equipos y miembros)",
+      "customGroup": "Orden manual (grupos y proyectos)",
+      "groupAlphaCustom": "Grupos A → Z, orden manual de los proyectos",
+      "groupNameAsc": "Grupos A → Z, proyectos A → Z",
+      "groupNameDesc": "Grupos Z → A, proyectos A → Z",
+      "customBuGroup": "BU A → Z, orden manual (grupos y proyectos)",
+      "customBuGroupAlpha": "BU A → Z, grupos A → Z, proyectos A → Z",
+      "typeNameAsc": "Por tipo, nombre A → Z",
+      "typeNameDesc": "Por tipo, nombre Z → A"
+    },
+    "cellWidth": {
+      "label": "Ancho de las columnas",
+      "mobileCap": "Limitado a {max}px en móvil (su preferencia de {width}px se restablecerá en pantalla ancha).",
+      "compact": "Compacto",
+      "wide": "Ancho"
+    },
+    "previousDay": "Día anterior",
+    "nextDay": "Día siguiente",
+    "todayShort": "Hoy",
+    "permissionDenied": "Permiso insuficiente",
+    "calendar": {
+      "selectUser": "Seleccionar...",
+      "noUser": "Ningún usuario",
+      "hoursView": "Vista por horas",
+      "daysView": "Vista por días",
+      "daysShort": "{count} d",
+      "showWorkingHours": "Mostrar el horario laboral",
+      "show24h": "Mostrar 24 horas"
+    },
+    "filters": "Filtros",
+    "showMenu": "Mostrar el menú",
+    "hideMenu": "Ocultar el menú",
+    "newTask": "Nueva tarea",
+    "columnMode": {
+      "hours": "Horas",
+      "days": "Días",
+      "switchToDays": "Vista por días",
+      "switchToHours": "Vista por horas"
+    },
+    "sortLabel": "Ordenar",
+    "export": "Exportar",
+    "display": {
+      "label": "Visualización",
+      "tooltip": "Opciones de visualización",
+      "showSummary": "Mostrar el total en la parte inferior de la planificación",
+      "userCountIcon": "Icono de varios usuarios",
+      "fileIcon": "Icono de archivo adjunto",
+      "rowAvatar": "Foto de perfil"
+    }
+  }
+}

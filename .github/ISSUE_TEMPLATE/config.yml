@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or help
+    url: https://github.com/Malfhas/HumblePlanning/discussions/categories/q-a
+    about: Ask how to install, configure or use Humble Planning.
+  - name: Security vulnerability
+    url: https://github.com/Malfhas/HumblePlanning/security/advisories/new
+    about: Report a vulnerability privately. Never in a public issue.
+  - name: Installation guide
+    url: https://github.com/Malfhas/HumblePlanning/blob/main/docs/installation.md
+    about: Installing, updating and running Humble Planning.

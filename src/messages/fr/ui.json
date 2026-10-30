@@ -1,0 +1,151 @@
+{
+  "search": {
+    "close": "Fermer la recherche"
+  },
+  "dataTable": {
+    "perPage": "Par page",
+    "count": "{count, plural, one {# élément} other {# éléments}}",
+    "selectedOf": "{selected} sur {count, plural, one {# élément} other {# éléments}}"
+  },
+  "deleteConfirm": {
+    "description": "Cette action est irréversible. Voulez-vous continuer ?"
+  },
+  "dateRange": {
+    "previousPeriod": "Période précédente",
+    "nextPeriod": "Période suivante",
+    "todayShort": "Auj.",
+    "shortcuts": "Raccourcis — période depuis aujourd'hui",
+    "upcoming": "À venir",
+    "past": "Passé",
+    "presets": {
+      "weeks": "{count, plural, one {# sem.} other {# sem.}}",
+      "months": "{count, plural, one {# mois} other {# mois}}"
+    },
+    "startPicked": "Début : <b>{date}</b> — sélectionnez maintenant la date de fin",
+    "hint": "Sélectionnez la date de début puis la date de fin pour définir la période"
+  },
+  "errorState": {
+    "forbidden": {
+      "title": "Accès refusé",
+      "description": "Vous n'avez pas les permissions nécessaires pour accéder à cette page. Contactez votre administrateur si vous pensez que c'est une erreur."
+    },
+    "unauthenticated": {
+      "title": "Non authentifié",
+      "description": "Vous devez être connecté pour accéder à cette page."
+    },
+    "unavailable": {
+      "title": "Service indisponible",
+      "description": "Ce service est temporairement indisponible. Réessayez dans quelques instants."
+    },
+    "badGateway": {
+      "title": "Erreur de passerelle",
+      "description": "Le serveur a rencontré une erreur temporaire. Réessayez dans quelques instants."
+    },
+    "rateLimited": {
+      "title": "Trop de requêtes",
+      "description": "Vous avez effectué trop de requêtes. Patientez quelques instants avant de réessayer."
+    },
+    "unknown": {
+      "code": "Erreur",
+      "title": "Une erreur est survenue",
+      "description": "Une erreur inattendue s'est produite. Réessayez ou revenez à l'accueil."
+    }
+  },
+  "fileUpload": {
+    "dropzone": "Glissez vos fichiers ici ou cliquez",
+    "limits": "{extensions} — max {maxSize, number} Mo/fichier, {maxTotal, number} Mo total",
+    "errors": {
+      "extension": "{name} : extension .{ext} non autorisée",
+      "tooLarge": "{name} : trop volumineux ({size}, max {max, number} Mo)",
+      "maxFiles": "{name} : nombre max de fichiers atteint ({max, number})",
+      "totalSize": "{name} : taille totale dépassée (max {max, number} Mo)"
+    },
+    "pending": "En attente",
+    "preview": "Aperçu du fichier",
+    "counter": "{count, number}/{max, number} fichiers — {size}/{maxTotal, number} Mo",
+    "size": {
+      "bytes": "{n, number} o",
+      "kb": "{n, number} Ko",
+      "mb": "{n, number} Mo"
+    }
+  },
+  "filter": {
+    "selectedCount": "{count, plural, one {# sélectionné} other {# sélectionnés}}",
+    "clear": "Effacer le filtre"
+  },
+  "maintenance": {
+    "title": "Maintenance en cours",
+    "description": "Le planning est temporairement indisponible pour cause de maintenance. Nous travaillons à améliorer votre expérience.",
+    "retryLater": "Veuillez réessayer ultérieurement"
+  },
+  "permission": {
+    "denied": "Permission insuffisante"
+  },
+  "phone": {
+    "searchCountry": "Rechercher un pays…",
+    "noCountry": "Aucun pays"
+  },
+  "richText": {
+    "placeholder": "Commencez à rédiger…",
+    "linkPrompt": "URL du lien",
+    "bold": "Gras",
+    "italic": "Italique",
+    "underline": "Souligné",
+    "heading1": "Titre 1",
+    "heading2": "Titre 2",
+    "heading3": "Titre 3",
+    "bulletList": "Liste à puces",
+    "orderedList": "Liste numérotée",
+    "link": "Lien",
+    "divider": "Séparateur",
+    "alignLeft": "Aligner à gauche",
+    "alignCenter": "Centrer",
+    "alignRight": "Aligner à droite",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "expand": "Agrandir"
+  },
+  "timePicker": {
+    "hour": "Heure",
+    "minutes": "Min"
+  },
+  "addressMap": {
+    "loading": "Initialisation…",
+    "label": "Adresse",
+    "searchPlaceholder": "Rechercher une adresse, un lieu, une entreprise…",
+    "satelliteView": "Vue satellite",
+    "mapView": "Vue plan",
+    "coordinates": "Lat: {lat}, Lng: {lng} — Déplacez la carte pour ajuster la position"
+  },
+  "iconPicker": {
+    "searchPlaceholder": "Rechercher une icône…",
+    "categories": {
+      "general": "Général",
+      "technical": "Technique",
+      "transport": "Transport",
+      "health": "Santé",
+      "training": "Formation",
+      "team": "Équipe",
+      "security": "Sécurité",
+      "communication": "Communication",
+      "environment": "Environnement",
+      "creative": "Créatif",
+      "development": "Développement",
+      "finance": "Finance",
+      "time": "Temps",
+      "location": "Localisation",
+      "organisation": "Organisation",
+      "food": "Alimentation",
+      "construction": "Chantier / BTP",
+      "sport": "Sport",
+      "daily": "Quotidien"
+    }
+  },
+  "moduleGuard": {
+    "title": {
+      "resources": "Module Ressources désactivé",
+      "vehicles": "Module Véhicules désactivé"
+    },
+    "description": "Ce module a été désactivé par l'administrateur dans les paramètres de l'application."
+  }
+}

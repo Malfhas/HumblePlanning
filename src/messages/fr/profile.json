@@ -1,0 +1,140 @@
+{
+  "page": {
+    "title": "Mon compte",
+    "demoLocked": "Compte de démonstration partagé : le profil, le mot de passe, la double authentification et les sessions ne sont pas modifiables. Les préférences restent libres.",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "preferences": "Préférences",
+      "ai": "IA"
+    }
+  },
+  "profileTab": {
+    "sections": {
+      "info": "Informations",
+      "avatar": "Avatar",
+      "edit": "Modifier mon profil"
+    },
+    "fields": {
+      "login": "Login",
+      "email": "Email",
+      "role": "Rôle",
+      "team": "Équipe",
+      "lastLogin": "Dernière connexion",
+      "name": "Nom *",
+      "firstName": "Prénom",
+      "phone": "Téléphone fixe",
+      "mobile": "Mobile",
+      "address": "Adresse",
+      "job": "Métier / Poste",
+      "color": "Couleur planning"
+    },
+    "avatar": {
+      "uploading": "Upload...",
+      "change": "Changer l'avatar"
+    },
+    "saved": "Profil mis à jour avec succès"
+  },
+  "preferences": {
+    "sections": {
+      "display": "Affichage",
+      "notifications": "Notifications"
+    },
+    "homePage": "Page d'accueil par défaut",
+    "homePages": {
+      "home": "Accueil",
+      "planning": "Planning",
+      "tasks": "Tâches",
+      "projects": "Projets",
+      "users": "Utilisateurs",
+      "teams": "Équipes",
+      "resources": "Ressources",
+      "vehicles": "Véhicules",
+      "audit": "Audit",
+      "settings": "Paramètres"
+    },
+    "defaultView": "Vue planning par défaut",
+    "views": {
+      "users": "Utilisateurs",
+      "projects": "Projets",
+      "resources": "Ressources",
+      "vehicles": "Véhicules"
+    },
+    "columnView": "Mode colonnes",
+    "columns": {
+      "days": "Jours",
+      "hours": "Heures"
+    },
+    "theme": "Thème",
+    "themes": {
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "emailNotifications": "Notifications email",
+    "pushNotifications": "Notifications push",
+    "smsNotifications": "Notifications SMS / WhatsApp",
+    "disabledByAdmin": "Désactivé par l'administrateur",
+    "saved": "Préférences enregistrées"
+  },
+  "security": {
+    "password": {
+      "title": "Changer le mot de passe",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "generate": "Générer un mot de passe",
+      "copied": "Mot de passe copié dans le presse-papier",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "success": "Mot de passe modifié avec succès",
+      "submitting": "Modification...",
+      "submit": "Changer le mot de passe"
+    },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs (2FA)",
+      "enabledDescription": "L'authentification à deux facteurs est activée sur votre compte.",
+      "disable": "Désactiver le 2FA",
+      "mandatoryTooltip": "Le 2FA est obligatoire pour votre compte",
+      "mandatoryNotice": "Le 2FA est obligatoire pour votre compte et ne peut pas être désactivé.",
+      "disableDescription": "Entrez votre mot de passe pour confirmer la désactivation de l'authentification à deux facteurs.",
+      "currentPasswordPlaceholder": "Mot de passe actuel",
+      "confirmDisable": "Confirmer la désactivation",
+      "notEnabled": "Le 2FA n'est pas activé",
+      "mandatoryEnable": "Le 2FA est obligatoire pour votre compte. Veuillez l'activer.",
+      "pitch": "Ajoutez une couche de sécurité supplémentaire avec une application d'authentification (Google Authenticator, Authy, etc.)",
+      "enable": "Activer le 2FA",
+      "passwordPrompt": "Entrez votre mot de passe pour continuer :",
+      "scanQr": "Scannez ce QR code avec votre application d'authentification :",
+      "manualEntry": "Ou entrez ce code manuellement :",
+      "codeLabel": "Code de vérification (6 chiffres)",
+      "verifying": "Vérification...",
+      "enabledSuccess": "2FA activé avec succès !",
+      "backupHelp": "Conservez ces codes en lieu sûr. Chacun ne peut être utilisé qu'une seule fois pour vous connecter si vous perdez l'accès à votre application d'authentification."
+    },
+    "sessions": {
+      "title": "Sessions actives",
+      "otherBrowser": "Autre",
+      "mobile": "Mobile",
+      "desktop": "Ordinateur",
+      "current": "Session actuelle",
+      "meta": "IP : {ip} · Créée le {date}",
+      "unknownIp": "Inconnue",
+      "revoke": "Révoquer",
+      "empty": "Aucune session active"
+    }
+  },
+  "errors": {
+    "wrongPassword": "Mot de passe actuel incorrect",
+    "noPassword": "Aucun mot de passe configuré",
+    "sessionNotFound": "Session introuvable",
+    "invalidSessionId": "ID de session invalide",
+    "incorrectPassword": "Mot de passe incorrect",
+    "twoFactorMandatory": "Le 2FA est obligatoire pour votre compte et ne peut pas être désactivé.",
+    "twoFactorAlreadyEnabled": "Le 2FA est déjà activé",
+    "codeRequired": "Code requis",
+    "noTwoFactorSetup": "Aucune configuration 2FA en cours",
+    "invalidTotpCode": "Code invalide. Vérifiez votre application d'authentification.",
+    "avatarTooLarge": "Fichier trop volumineux. Maximum : {max} Mo",
+    "extensionNotAllowed": "Extension .{ext} non autorisée"
+  }
+}

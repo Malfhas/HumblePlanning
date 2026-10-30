@@ -1,0 +1,178 @@
+{
+  "permissionDenied": "Insufficient permissions",
+  "fields": {
+    "businessNumber": "Job number",
+    "businessNumberShort": "Job no.",
+    "name": "Name",
+    "status": "Status",
+    "group": "Group",
+    "businessUnit": "Business unit",
+    "owner": "Manager",
+    "color": "Colour",
+    "description": "Description",
+    "initials": "Initials",
+    "displayMode": "Display mode",
+    "style": "Style",
+    "sortOrder": "Order"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "businessUnitRequired": "Business unit is required",
+    "ownerRequired": "Manager is required",
+    "initialsRequired": "Initials are required"
+  },
+  "status": {
+    "todo": "To do",
+    "in_progress": "In progress",
+    "done": "Done",
+    "archived": "Archived"
+  },
+  "list": {
+    "searchPlaceholder": "Search for a project...",
+    "archivedToggle": "Archived",
+    "count": "{count, plural, one {# project} other {# projects}}",
+    "actions": {
+      "laborBudgets": "Labour budgets"
+    }
+  },
+  "dialog": {
+    "createTitle": "New project",
+    "editTitle": "Edit project",
+    "duplicateTitle": "Duplicate a project",
+    "createDescription": "Fill in the details to create a project.",
+    "editDescription": "Update the project details.",
+    "duplicateDescription": "The general fields have been pre-filled (group, manager, BU, colour, labour budgets). Enter the name and job number to create the project."
+  },
+  "archiveDialog": {
+    "archiveTitle": "Archive project",
+    "unarchiveTitle": "Unarchive project",
+    "archiveDescription": "The project will be hidden by default. Its existing tasks are kept and remain accessible.",
+    "unarchiveDescription": "The project will be visible again in the active list and can receive tasks."
+  },
+  "confirmDelete": {
+    "title": "Delete project",
+    "noTasks": "This action cannot be undone. Do you want to continue?",
+    "withTasks": "{count, plural, one {This project contains # task.} other {This project contains # tasks.}} Deleting it will destroy all associated tasks. You can archive the project to hide it while keeping its tasks."
+  },
+  "form": {
+    "createdOn": "Created on {date}",
+    "group": {
+      "none": "No group",
+      "searchPlaceholder": "Search for a group...",
+      "empty": "No group found",
+      "applyColor": "Apply the group colour"
+    },
+    "businessUnit": {
+      "placeholder": "Select a business unit",
+      "searchPlaceholder": "Search for a business unit...",
+      "empty": "No business unit found"
+    },
+    "owner": {
+      "placeholder": "Select a manager",
+      "searchPlaceholder": "Search for a user...",
+      "empty": "No user found"
+    },
+    "addressNotLocated": "Please select an address from the list to place the pin on the map, or clear the address field"
+  },
+  "laborBudget": {
+    "title": "Labour budgets",
+    "dialogTitle": "Labour budgets — {name}",
+    "projectFallback": "Project",
+    "empty": "No labour budget defined for this project.",
+    "columns": {
+      "type": "Type",
+      "planned": "Planned",
+      "consumed": "Used",
+      "upcoming": "Upcoming",
+      "remaining": "Remaining",
+      "actualProgress": "Actual progress",
+      "forecastProgress": "Forecast progress"
+    },
+    "hours": "{value}h",
+    "legend": {
+      "actualLow": "Actual (<80%)",
+      "actualHigh": "Actual (80-100%)",
+      "overrun": "Overrun",
+      "forecast": "Forecast"
+    },
+    "noTypes": "No labour type defined. Configure them in Team > Labour types.",
+    "selectType": "Select a type",
+    "noTypeAvailable": "No type available",
+    "hoursPlaceholder": "0.0",
+    "hoursUnit": "h",
+    "addType": "Add a type",
+    "removeLine": "Remove line",
+    "incomplete": "Please complete or remove the incomplete lines"
+  },
+  "groups": {
+    "noBu": "No BU",
+    "empty": "No groups.",
+    "noProjects": "No projects",
+    "reorderAriaLabel": "Reorder group",
+    "reorderProjectAriaLabel": "Reorder project",
+    "dialog": {
+      "createTitle": "Add a group",
+      "editTitle": "Edit group",
+      "createDescription": "Create a new project group.",
+      "editDescription": "Edit the group details."
+    },
+    "confirmDelete": {
+      "title": "Delete project group",
+      "description": "This action cannot be undone. Projects linked to this group will be unlinked but kept."
+    },
+    "form": {
+      "buPlaceholder": "Select a BU",
+      "buEmpty": "No Business unit"
+    }
+  },
+  "statuses": {
+    "searchPlaceholder": "Search for a status...",
+    "displayModes": {
+      "tp": "Title + %",
+      "t": "Title",
+      "p": "%"
+    },
+    "dialog": {
+      "createTitle": "New status",
+      "editTitle": "Edit status",
+      "createDescription": "Fill in the details to create a new status.",
+      "editDescription": "Update the status details."
+    },
+    "confirmDelete": {
+      "title": "Delete status"
+    },
+    "form": {
+      "namePlaceholder": "Status name",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underlined",
+      "strikethrough": "Strikethrough",
+      "percentage": "Percentage",
+      "isDefault": "Default"
+    }
+  },
+  "laborTypes": {
+    "searchPlaceholder": "Search for a type...",
+    "dialog": {
+      "createTitle": "New labour type",
+      "editTitle": "Edit type",
+      "createDescription": "Define a new labour type.",
+      "editDescription": "Update the details."
+    },
+    "confirmDelete": {
+      "title": "Delete labour type",
+      "cascadeWarning": "Budgets linked to this type will also be deleted."
+    },
+    "form": {
+      "namePlaceholder": "E.g. Account manager",
+      "initialsPlaceholder": "E.g. AM"
+    }
+  },
+  "errors": {
+    "notFound": "Project not found",
+    "notAllowed": "Modification not authorised",
+    "groupNotFound": "Group not found",
+    "statusNotFound": "Status not found",
+    "laborTypeNotFound": "Labour type not found"
+  }
+}

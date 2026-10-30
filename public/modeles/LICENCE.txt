@@ -1,0 +1,11 @@
+Icônes des fournisseurs de modèles d'IA, copiées du jeu « lobe-icons »
+(https://github.com/lobehub/lobe-icons), publié sous licence MIT par LobeHub.
+
+Copyright (c) LobeHub. Autorisation accordée, gratuitement, d'utiliser, copier et
+distribuer ces fichiers, sous réserve de conserver cette mention (licence MIT).
+
+Les logos représentés restent les marques de leurs propriétaires respectifs
+(Anthropic, Google, OpenAI, DeepSeek, xAI, Meta, Moonshot AI, Perplexity,
+Alibaba, Zhipu AI, Mistral AI, Microsoft, Cohere, NVIDIA, Amazon, MiniMax, Baidu,
+Inception, Nous Research, AI21, StepFun, Tencent, ByteDance, Liquid AI, 01.AI,
+Arcee AI, OpenRouter). Ils ne servent ici qu'à identifier le modèle choisi.

@@ -1,0 +1,108 @@
+{
+  "page": {
+    "title": "Exports",
+    "description": "Export your schedule in different formats",
+    "files": {
+      "title": "PDF, Excel, CSV",
+      "description": "PDF, Excel and CSV exports are available directly from the schedule, using the “Export” button in the toolbar.",
+      "goToPlanning": "Go to the schedule"
+    },
+    "ical": {
+      "title": "iCal",
+      "description": "iCal feed (.ics) to subscribe from Google Calendar, Outlook or Apple Calendar. The link is personal and updates automatically with the tasks assigned to you.",
+      "copyAriaLabel": "Copy the iCal link",
+      "regenerate": "Regenerate",
+      "help": "Regenerating the token invalidates the previous link. Deleting the token disables the iCal feed completely.",
+      "generate": "Generate the iCal link"
+    }
+  },
+  "panel": {
+    "title": "Export the schedule",
+    "format": "Format",
+    "liveSettingsHint": "The settings below update the schedule in real time.",
+    "calendar": {
+      "personal": "{name}’s calendar",
+      "teamDay": "Day of {date}",
+      "hint": "The export reflects the active calendar mode."
+    },
+    "view": "View",
+    "views": {
+      "users": "Users",
+      "projects": "Projects",
+      "places": "Locations",
+      "resources": "Resources",
+      "vehicles": "Vehicles"
+    },
+    "sort": "Sort",
+    "sortModes": {
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A",
+      "custom": "Manual order (teams and members)",
+      "teamAlphaCustom": "Teams A → Z, manual member order",
+      "teamNameAsc": "Teams A → Z, members A → Z",
+      "teamNameDesc": "Teams Z → A, members A → Z",
+      "customBu": "BU A → Z, members A → Z",
+      "customBuTeam": "BU A → Z, teams A → Z, manual member order",
+      "customBuUser": "BU A → Z, manual order (teams and members)",
+      "customGroup": "Manual order (groups and projects)",
+      "groupAlphaCustom": "Groups A → Z, manual project order",
+      "groupNameAsc": "Groups A → Z, projects A → Z",
+      "groupNameDesc": "Groups Z → A, projects A → Z",
+      "customBuGroup": "BU A → Z, manual order (groups and projects)",
+      "customBuGroupAlpha": "BU A → Z, groups A → Z, projects A → Z",
+      "typeNameAsc": "By type, name A → Z",
+      "typeNameDesc": "By type, name Z → A"
+    },
+    "cellContent": {
+      "label": "Cell content",
+      "userName": "Name",
+      "userLogin": "Login",
+      "projectOrType": "Project / Type",
+      "title": "Title",
+      "projectName": "Project name",
+      "taskTitle": "Task title",
+      "assigneeName": "User name"
+    },
+    "excludeWeekends": "Exclude Saturday / Sunday",
+    "stats": {
+      "label": "Project / user statistics",
+      "helpExcel": "Adds a sheet with hours used, user time and remaining budgets.",
+      "helpPdf": "Adds pages with hours used, user time and remaining budgets."
+    },
+    "summary": {
+      "day": "Day",
+      "period": "Period",
+      "periodHint": "Change the period from the schedule toolbar."
+    },
+    "filters": {
+      "title": "Active filters",
+      "count": "{count, plural, one {# category} other {# categories}}",
+      "hint": "Change the filters from the schedule toolbar.",
+      "categories": {
+        "teams": "Teams",
+        "users": "Users",
+        "projects": "Projects",
+        "statuses": "Statuses",
+        "businessUnits": "Business units",
+        "resources": "Resources"
+      }
+    },
+    "pdf": {
+      "title": "PDF options",
+      "paperSize": "Paper size",
+      "orientation": "Orientation",
+      "orientations": {
+        "landscape": "Landscape",
+        "portrait": "Portrait"
+      },
+      "viewType": "View type",
+      "viewTypes": {
+        "calendar": "Calendar",
+        "gantt": "Schedule (grid)",
+        "list": "List (table)"
+      },
+      "fitOnePage": "Fit on 1 page"
+    },
+    "generating": "Generating…"
+  }
+}

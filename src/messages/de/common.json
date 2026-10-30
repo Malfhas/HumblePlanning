@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "description": "Tool zur Ressourcenplanung"
+  },
+  "actions": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "create": "Erstellen",
+    "creating": "Wird erstellt…",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "confirm": "Bestätigen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "finish": "Abschließen",
+    "search": "Suchen",
+    "reset": "Zurücksetzen",
+    "clear": "Leeren",
+    "refresh": "Aktualisieren",
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "download": "Herunterladen",
+    "import": "Importieren",
+    "export": "Exportieren",
+    "send": "Senden",
+    "select": "Auswählen",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Alle abwählen",
+    "collapse": "Einklappen",
+    "disable": "Deaktivieren",
+    "archive": "Archivieren",
+    "unarchive": "Dearchivieren",
+    "restore": "Wiederherstellen",
+    "test": "Testen",
+    "logIn": "Anmelden",
+    "searchPlaceholder": "Suchen…"
+  },
+  "states": {
+    "loading": "Wird geladen…",
+    "saving": "Wird gespeichert…",
+    "noResults": "Keine Ergebnisse",
+    "none": "Keine",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "enabled": "Aktiviert",
+    "unknown": "Unbekannt",
+    "comingSoon": "Demnächst verfügbar",
+    "noResultsFor": "Keine Ergebnisse für „{search}“",
+    "sending": "Wird gesendet…"
+  },
+  "status": {
+    "error": "Fehler"
+  },
+  "boolean": {
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "pagination": {
+    "previous": "Zurück",
+    "next": "Weiter",
+    "pageOf": "Seite {page} von {total}"
+  },
+  "table": {
+    "noResults": "Keine Ergebnisse.",
+    "actions": "Aktionen",
+    "selectedRows": "{count, plural, =0 {Keine Zeile ausgewählt} one {# Zeile ausgewählt} other {# Zeilen ausgewählt}}",
+    "total": "Gesamt"
+  },
+  "confirm": {
+    "title": "Sind Sie sicher?",
+    "deleteTitle": "Löschen bestätigen"
+  },
+  "toast": {
+    "error": "Ein Fehler ist aufgetreten"
+  },
+  "time": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "hours": "{count, plural, one {# Stunde} other {# Stunden}}",
+    "days": "{count, plural, one {# Tag} other {# Tage}}",
+    "weeks": "{count, plural, one {# Woche} other {# Wochen}}",
+    "months": "{count, plural, one {# Monat} other {# Monate}}",
+    "never": "Nie"
+  },
+  "entities": {
+    "projects": "Projekte",
+    "projectGroups": "Projektgruppen",
+    "statuses": "Status",
+    "users": "Benutzer",
+    "teams": "Teams",
+    "businessUnits": "Business Units",
+    "qualifications": "Qualifikationen",
+    "laborTypes": "Arbeitskräftetypen",
+    "resources": "Ressourcen",
+    "resourceTypes": "Ressourcentypen",
+    "vehicles": "Fahrzeuge",
+    "vehicleTypes": "Fahrzeugtypen"
+  },
+  "locale": {
+    "label": "Sprache",
+    "auto": "Automatisch",
+    "autoWithLanguage": "Automatisch ({language})",
+    "changeError": "Sprache konnte nicht geändert werden"
+  },
+  "theme": {
+    "light": "Helles Design",
+    "dark": "Dunkles Design",
+    "system": "Automatisches Design"
+  },
+  "a11y": {
+    "close": "Schließen",
+    "openMenu": "Menü öffnen",
+    "loading": "Wird geladen"
+  }
+}

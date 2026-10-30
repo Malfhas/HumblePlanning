@@ -1,0 +1,72 @@
+{
+  "errors": {
+    "permissionRequired": "Permiso requerido: {permission}",
+    "aiChatReadOnly": "Asistente de IA en solo lectura: se requiere el permiso «Permitir modificaciones por el asistente de IA». Póngase en contacto con un administrador.",
+    "mcpReadOnly": "Acceso MCP en solo lectura — se requiere el permiso «Permitir escrituras MCP» para realizar modificaciones. Póngase en contacto con un administrador.",
+    "taskNotFound": "Tarea no encontrada",
+    "projectNotFound": "Proyecto no encontrado",
+    "userNotFound": "Usuario no encontrado",
+    "teamNotFound": "Equipo no encontrado",
+    "createForUsersForbidden": "Permiso insuficiente para crear tareas para estos usuarios",
+    "updateNotAllowed": "Modificación no autorizada en esta tarea",
+    "deleteNotAllowed": "Eliminación no autorizada en esta tarea",
+    "moveNotAllowed": "Desplazamiento no autorizado en esta tarea",
+    "taskLocked": "Esta tarea está bloqueada",
+    "assignPermissionRequired": "Se requiere el permiso «Asignar usuarios»",
+    "assigneesOutOfScope": "Las personas asignadas solicitadas quedan fuera de su ámbito autorizado",
+    "moveOutOfScope": "El desplazamiento solicitado queda fuera de su ámbito autorizado",
+    "copyForbidden": "Permiso insuficiente para copiar tareas",
+    "copyTaskForbidden": "Permiso insuficiente para copiar esta tarea",
+    "copyFailed": "Error al copiar",
+    "businessUnitsPermissionRequired": "Permiso requerido: business_units:view o business_units:view_own"
+  },
+  "results": {
+    "taskDeleted": "Tarea eliminada"
+  },
+  "labels": {
+    "noProject": "Sin proyecto",
+    "noStatus": "Sin estado"
+  },
+  "transport": {
+    "disabled": "MCP desactivado en esta instancia",
+    "originNotAllowed": "Origen no autorizado",
+    "authMissing": "Se requiere autenticación: conecte el conector (OAuth) o proporcione una clave MCP en la cabecera Authorization.",
+    "authInvalid": "Error de autenticación: token o clave MCP no válidos, caducados o revocados, o cuenta de usuario desactivada. Vuelva a conectar el conector.",
+    "authQuery": "El token en la URL (?token=) ya no se acepta: quítelo de la dirección y envíe la clave MCP en la cabecera «Authorization: Bearer …».",
+    "permissionDenied": "Permiso denegado: su cuenta no tiene el permiso «Usar el conector MCP». Póngase en contacto con su administrador.",
+    "sessionNotFound": "Sesión no encontrada o caducada: restablezca la conexión MCP",
+    "internal": "Error interno"
+  },
+  "oauth": {
+    "disabled": "MCP desactivado",
+    "registerRateLimited": "Demasiados registros, vuelva a intentarlo más tarde",
+    "tokenRateLimited": "Demasiadas solicitudes, vuelva a intentarlo más tarde",
+    "jsonBodyExpected": "Se esperaba un cuerpo JSON",
+    "redirectUrisCount": "redirect_uris debe contener entre 1 y 10 URI",
+    "redirectUriRejected": "URI de redirección rechazada (se requiere HTTPS, HTTP solo en loopback, sin fragmento)",
+    "grantTypesMissingCode": "grant_types debe incluir authorization_code",
+    "responseTypesMissingCode": "response_types debe incluir code",
+    "unsupportedResponseType": "Solo se admite response_type=code",
+    "codeChallengeRequired": "Se requiere code_challenge (PKCE)",
+    "codeChallengeMethodRequired": "Se requiere code_challenge_method=S256",
+    "codeChallengeInvalid": "code_challenge no válido",
+    "unknownResource": "Recurso desconocido",
+    "clientIdRequired": "Se requiere client_id",
+    "unknownClient": "Cliente desconocido",
+    "unsupportedGrantType": "grant_type no admitido",
+    "codeRequired": "Se requiere code",
+    "codeVerifierRequired": "Se requiere code_verifier (PKCE)",
+    "invalidCode": "Código no válido",
+    "codeAlreadyUsed": "Código ya utilizado",
+    "codeExpired": "Código caducado",
+    "redirectUriMismatch": "redirect_uri distinta de la de la solicitud de autorización",
+    "pkceFailed": "Error en la verificación PKCE",
+    "accountIneligible": "Cuenta desactivada o sin permiso MCP",
+    "refreshTokenRequired": "Se requiere refresh_token",
+    "invalidRefreshToken": "Refresh token no válido",
+    "refreshTokenRevoked": "Refresh token revocado",
+    "refreshTokenExpired": "Refresh token caducado",
+    "accessDenied": "Acceso denegado por el usuario",
+    "accountNotAllowed": "Esta cuenta no está autorizada a usar el conector MCP"
+  }
+}

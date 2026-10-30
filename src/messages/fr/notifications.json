@@ -1,0 +1,78 @@
+{
+  "bell": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "deleteAll": "Tout supprimer",
+    "empty": "Aucune notification",
+    "ariaLabel": "Notifications"
+  },
+  "types": {
+    "task_created": "Assignation",
+    "task_deleted": "Suppression",
+    "task_updated": "Modification",
+    "task_title_changed": "Modification",
+    "task_dates_changed": "Dates modifiées",
+    "task_times_changed": "Horaires modifiés",
+    "task_status_changed": "Statut modifié",
+    "task_project_changed": "Projet modifié",
+    "task_notes_changed": "Notes modifiées",
+    "task_user_added": "Utilisateur ajouté",
+    "task_user_removed": "Utilisateur retiré",
+    "task_file_added": "Fichier ajouté",
+    "task_file_deleted": "Fichier supprimé"
+  },
+  "task": {
+    "untitled": "Tâche",
+    "assigned": "Tâche assignée par {actor} pour le {date}",
+    "assignedNoActor": "Tâche assignée pour le {date}",
+    "changed": {
+      "title": "Titre modifié par {actor} · {date}",
+      "titleNoActor": "Titre modifié · {date}",
+      "dates": "Dates modifiées par {actor} · {date}",
+      "datesNoActor": "Dates modifiées · {date}",
+      "times": "Horaires modifiés par {actor} · {date}",
+      "timesNoActor": "Horaires modifiés · {date}",
+      "status": "Statut modifié par {actor} · {date}",
+      "statusNoActor": "Statut modifié · {date}",
+      "project": "Projet modifié par {actor} · {date}",
+      "projectNoActor": "Projet modifié · {date}",
+      "notes": "Notes modifiées par {actor} · {date}",
+      "notesNoActor": "Notes modifiées · {date}",
+      "other": "Tâche modifiée par {actor} · {date}",
+      "otherNoActor": "Tâche modifiée · {date}"
+    },
+    "deleted": "Tâche supprimée par {actor} · {date}",
+    "deletedNoActor": "Tâche supprimée · {date}",
+    "removedFromTask": "Vous avez été retiré par {actor} de cette tâche",
+    "removedFromTaskNoActor": "Vous avez été retiré de cette tâche",
+    "fileAdded": "Fichier « {fileName} » ajouté par {actor}",
+    "fileAddedNoActor": "Fichier « {fileName} » ajouté",
+    "fileDeleted": "Fichier « {fileName} » supprimé par {actor}",
+    "fileDeletedNoActor": "Fichier « {fileName} » supprimé"
+  },
+  "sms": {
+    "events": {
+      "created": "Tâche créée",
+      "updated": "Tâche modifiée",
+      "deleted": "Tâche supprimée"
+    },
+    "test": {
+      "event": "Test",
+      "project": "Configuration",
+      "message": "Connexion Sent.dm réussie"
+    }
+  },
+  "errors": {
+    "weeklyNoTasks": "Aucune tâche prévue pour la semaine prochaine, l'email n'a pas été envoyé",
+    "phoneRequired": "Numéro de téléphone destinataire requis",
+    "sendFailed": "Échec de l'envoi : {reason}",
+    "sms": {
+      "disabled": "La fonction SMS / WhatsApp est désactivée — disponible prochainement",
+      "notConfigured": "Sent.dm n'est pas configuré (API key, sender ID ou template ID manquant)"
+    },
+    "email": {
+      "blocked": "Cet email est bloqué (bounce ou plainte spam). Débloquez-le dans Paramètres > Email.",
+      "disabled": "Envoi email désactivé : credentials manquantes pour le provider « {provider} » ({keys}). Renseignez-les dans Paramètres > Email ou dans le fichier .env."
+    }
+  }
+}

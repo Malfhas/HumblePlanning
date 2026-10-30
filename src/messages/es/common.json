@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "description": "Herramienta de planificación de recursos"
+  },
+  "actions": {
+    "ok": "Aceptar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "create": "Crear",
+    "creating": "Creando…",
+    "add": "Añadir",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "remove": "Quitar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "continue": "Continuar",
+    "finish": "Finalizar",
+    "search": "Buscar",
+    "reset": "Restablecer",
+    "clear": "Borrar",
+    "refresh": "Actualizar",
+    "copy": "Copiar",
+    "duplicate": "Duplicar",
+    "download": "Descargar",
+    "import": "Importar",
+    "export": "Exportar",
+    "send": "Enviar",
+    "select": "Seleccionar",
+    "selectAll": "Seleccionar todo",
+    "deselectAll": "Deseleccionar todo",
+    "collapse": "Contraer",
+    "disable": "Desactivar",
+    "archive": "Archivar",
+    "unarchive": "Desarchivar",
+    "restore": "Restaurar",
+    "test": "Probar",
+    "logIn": "Iniciar sesión",
+    "searchPlaceholder": "Buscar…"
+  },
+  "states": {
+    "loading": "Cargando…",
+    "saving": "Guardando…",
+    "noResults": "Sin resultados",
+    "none": "Ninguno",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "enabled": "Activado",
+    "unknown": "Desconocido",
+    "comingSoon": "Función disponible próximamente",
+    "noResultsFor": "Sin resultados para «{search}»",
+    "sending": "Enviando…"
+  },
+  "status": {
+    "error": "Error"
+  },
+  "boolean": {
+    "yes": "Sí",
+    "no": "No"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {page} de {total}"
+  },
+  "table": {
+    "noResults": "Sin resultados.",
+    "actions": "Acciones",
+    "selectedRows": "{count, plural, =0 {Ninguna fila seleccionada} one {# fila seleccionada} other {# filas seleccionadas}}",
+    "total": "Total"
+  },
+  "confirm": {
+    "title": "¿Está seguro?",
+    "deleteTitle": "Confirmar la eliminación"
+  },
+  "toast": {
+    "error": "Se ha producido un error"
+  },
+  "time": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "hours": "{count, plural, one {# hora} other {# horas}}",
+    "days": "{count, plural, one {# día} other {# días}}",
+    "weeks": "{count, plural, one {# semana} other {# semanas}}",
+    "months": "{count, plural, one {# mes} other {# meses}}",
+    "never": "Nunca"
+  },
+  "entities": {
+    "projects": "Proyectos",
+    "projectGroups": "Grupos de proyectos",
+    "statuses": "Estados",
+    "users": "Usuarios",
+    "teams": "Equipos",
+    "businessUnits": "Business Units",
+    "qualifications": "Habilitaciones",
+    "laborTypes": "Tipos de mano de obra",
+    "resources": "Recursos",
+    "resourceTypes": "Tipos de recursos",
+    "vehicles": "Vehículos",
+    "vehicleTypes": "Tipos de vehículos"
+  },
+  "locale": {
+    "label": "Idioma",
+    "auto": "Automático",
+    "autoWithLanguage": "Automático ({language})",
+    "changeError": "No se ha podido cambiar el idioma"
+  },
+  "theme": {
+    "light": "Tema claro",
+    "dark": "Tema oscuro",
+    "system": "Tema automático"
+  },
+  "a11y": {
+    "close": "Cerrar",
+    "openMenu": "Abrir el menú",
+    "loading": "Cargando"
+  }
+}

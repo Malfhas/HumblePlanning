@@ -1,0 +1,137 @@
+{
+  "recurringDelete": {
+    "title": "Supprimer une tâche récurrente",
+    "description": "Cette tâche fait partie d'une série récurrente. Que souhaitez-vous supprimer ?",
+    "single": "Cet événement",
+    "after": "Celui-ci et suivants",
+    "all": "Toute la série"
+  },
+  "location": {
+    "title": "Localisation",
+    "projectSite": "Chantier du projet « {name} »",
+    "noProjectAddress": "Aucune adresse enregistrée pour ce projet — saisissez un lieu ci-dessous"
+  },
+  "history": {
+    "unnamed": "Sans nom",
+    "empty": "Aucun historique",
+    "restoreConfirm": "Restaurer ?"
+  },
+  "recurrence": {
+    "enable": "Répéter cette tâche",
+    "type": {
+      "label": "Type",
+      "daily": "Tous les jours",
+      "weekly": "Toutes les semaines",
+      "monthly": "Tous les mois"
+    },
+    "frequency": "Tous les",
+    "unit": {
+      "days": "{count, plural, one {jour} other {jours}}",
+      "weeks": "{count, plural, one {semaine} other {semaines}}",
+      "months": "{count, plural, other {mois}}"
+    },
+    "dayOfWeek": "Jour de la semaine",
+    "endDate": {
+      "label": "Date de fin",
+      "placeholder": "Sélectionner une date de fin"
+    },
+    "exception": {
+      "label": "Jours fériés / weekends",
+      "skip": "Ignorer (ne pas créer)",
+      "shift": "Décaler au prochain jour ouvrable",
+      "include": "Créer quand même"
+    }
+  },
+  "contextMenu": {
+    "permissionDenied": "Permission insuffisante",
+    "cut": "Couper",
+    "lock": "Verrouiller",
+    "unlock": "Déverrouiller",
+    "confirmDelete": "Confirmer ?",
+    "newTask": "Nouvelle tâche",
+    "paste": "Coller"
+  },
+  "dropMenu": {
+    "addUser": "Ajouter cet utilisateur",
+    "moveThisUser": "Déplacer (cet utilisateur)",
+    "moveAll": "Déplacer (tous)",
+    "move": "Déplacer"
+  },
+  "dialog": {
+    "title": {
+      "create": "Nouvelle tâche",
+      "edit": "Modifier la tâche"
+    },
+    "description": {
+      "create": "Formulaire de création d'une tâche",
+      "edit": "Formulaire de modification d'une tâche"
+    },
+    "lock": {
+      "willLock": "La tâche sera verrouillée à l'enregistrement",
+      "willUnlock": "La tâche sera déverrouillée à l'enregistrement",
+      "locked": "Cette tâche est verrouillée",
+      "lockTask": "Verrouiller la tâche",
+      "unlockTask": "Déverrouiller la tâche"
+    },
+    "fields": {
+      "title": {
+        "label": "Titre",
+        "placeholder": "Titre de la tâche"
+      },
+      "project": {
+        "label": "Projet *",
+        "required": "Le projet est obligatoire",
+        "searchPlaceholder": "Rechercher un projet...",
+        "empty": "Aucun projet trouvé"
+      },
+      "users": {
+        "label": "Utilisateurs *",
+        "required": "Au moins un utilisateur requis",
+        "count": "{count, plural, one {# utilisateur} other {# utilisateurs}}"
+      },
+      "status": {
+        "label": "Statut *"
+      },
+      "startDate": {
+        "label": "Date début *",
+        "required": "La date de début est obligatoire"
+      },
+      "endDate": {
+        "label": "Date fin",
+        "durationLabel": "Durée (jours)",
+        "daysPlaceholder": "Nombre de jours"
+      },
+      "startTime": {
+        "label": "Heure début"
+      },
+      "endTime": {
+        "label": "Heure fin"
+      },
+      "notes": {
+        "label": "Notes",
+        "placeholder": "Notes..."
+      }
+    },
+    "morning": "Matin",
+    "afternoon": "Après-midi",
+    "recurringOccurrence": "Occurrence d'une tâche récurrente",
+    "files": {
+      "title": "Fichiers joints",
+      "add": "Ajouter un fichier",
+      "uploading": "Upload en cours…",
+      "uploadingShort": "Upload…"
+    },
+    "confirmDelete": "Confirmer ?",
+    "permissionDenied": "Permission insuffisante",
+    "history": {
+      "tooltip": "Historiques",
+      "permissionRequired": "Permission « Audit & historiques » requise"
+    },
+    "multiDelete": {
+      "title": "Tâche assignée à plusieurs utilisateurs",
+      "description": "{count, plural, one {Cette tâche est assignée à # utilisateur.} other {Cette tâche est assignée à # utilisateurs.}}",
+      "confirm": "Supprimer pour tous",
+      "removeUser": "Retirer cet utilisateur"
+    }
+  }
+}

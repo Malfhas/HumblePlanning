@@ -1,0 +1,82 @@
+{
+  "layout": {
+    "viewPlanning": "View the schedule"
+  },
+  "common": {
+    "greeting": "Hello <b>{name}</b>,"
+  },
+  "actor": {
+    "system": "System",
+    "unknown": "Unknown"
+  },
+  "task": {
+    "project": "Project",
+    "dates": "Dates",
+    "notes": "Notes"
+  },
+  "taskCreated": {
+    "subject": "[{appTitle}] New task: {title}",
+    "heading": "New task",
+    "intro": "<b>{actor}</b> assigned you to the task <b>{title}</b>."
+  },
+  "taskUpdated": {
+    "subject": "[{appTitle}] Task updated: {title}",
+    "heading": "Task updated",
+    "intro": "<b>{actor}</b> updated the task <b>{title}</b>.",
+    "changesLabel": "Changes:"
+  },
+  "taskDeleted": {
+    "subject": "[{appTitle}] Task deleted: {title}",
+    "heading": "Task deleted",
+    "intro": "<b>{actor}</b> deleted the task <b>{title}</b>."
+  },
+  "changes": {
+    "field": "{label}: {before} → {after}",
+    "empty": "(empty)",
+    "fields": {
+      "title": "Title",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "statusId": "Status",
+      "projectId": "Project",
+      "notes": "Notes"
+    },
+    "usersAdded": "{count, plural, one {User added: #} other {Users added: #}}",
+    "usersRemoved": "{count, plural, one {User removed: #} other {Users removed: #}}",
+    "fileAdded": "File added: {fileName}",
+    "fileDeleted": "File deleted: {fileName}"
+  },
+  "randomPassword": {
+    "subject": "[{appTitle}] Your password",
+    "heading": "Your sign-in details",
+    "intro": "Here are your sign-in details:",
+    "username": "Username",
+    "password": "Password",
+    "changeNotice": "You will be asked to change your password the next time you sign in."
+  },
+  "passwordReset": {
+    "subject": "[{appTitle}] Password change",
+    "heading": "Password change request",
+    "intro": "A password change was requested for your account. Click the button below to set a new password:",
+    "button": "Change my password",
+    "linkFallback": "If the button does not work, copy and paste this link into your browser:",
+    "expiry": "This link expires in <b>{minutes, plural, one {# minute} other {# minutes}}</b>. After that, you will need to make a new request.",
+    "ignore": "If you did not make this request, you can ignore this email."
+  },
+  "weeklySummary": {
+    "subject": "[{appTitle}] Your week from {start} to {end}",
+    "heading": "Weekly summary",
+    "greeting": "Hello {name},",
+    "intro": "Here is your schedule from <b>{start}</b> to <b>{end}</b>.",
+    "noTasks": "No tasks",
+    "attachments": "{count, plural, one {# attachment} other {# attachments}}"
+  },
+  "test": {
+    "subject": "[{appTitle}] Email connection test",
+    "heading": "Email connection test",
+    "body": "If you are reading this email, the email configuration of <b>{appTitle}</b> is working correctly.",
+    "sentAt": "Sent on {date}"
+  }
+}

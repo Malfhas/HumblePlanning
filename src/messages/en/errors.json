@@ -1,0 +1,21 @@
+{
+  "unauthenticated": "Not authenticated",
+  "sessionExpired": "Your session has expired, please sign in again",
+  "forbidden": "Access denied",
+  "demoRestricted": "This action is not available on the demo instance.",
+  "demoAccountLocked": "The demo account cannot be changed.",
+  "notFound": "Item not found",
+  "invalidData": "Invalid data",
+  "invalidId": "Invalid identifier",
+  "invalidRequest": "Invalid request",
+  "invalidOrigin": "Request origin rejected",
+  "rateLimited": "Too many requests, please try again in a minute",
+  "internal": "Internal server error",
+  "network": "Network error",
+  "unknown": "Unknown error",
+  "conflict": "This value is already in use",
+  "apiDisabled": "API access is disabled",
+  "invalidApiKey": "Invalid API key",
+  "fileTooLargeMax": "File too large. Maximum: {max}",
+  "noFile": "No file provided"
+}

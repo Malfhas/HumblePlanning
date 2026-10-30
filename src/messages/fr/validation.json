@@ -1,0 +1,31 @@
+{
+  "zod": {
+    "email": "Adresse email invalide",
+    "url": "URL invalide",
+    "uuid": "Identifiant invalide",
+    "regex": "Format invalide",
+    "too_small": "Valeur trop courte",
+    "too_big": "Valeur trop longue",
+    "invalid_type": "Type invalide",
+    "invalid_format": "Format invalide",
+    "invalid_enum_value": "Valeur non autorisée",
+    "invalid_value": "Valeur non autorisée",
+    "invalid_union": "Valeur invalide",
+    "invalid": "Valeur invalide"
+  },
+  "password": {
+    "minLength": "Au moins {min} caractères",
+    "maxLength": "Maximum {max} caractères",
+    "uppercase": "Une lettre majuscule",
+    "lowercase": "Une lettre minuscule",
+    "digit": "Un chiffre",
+    "special": "Un caractère spécial (!@#$...)",
+    "notCompliant": "Mot de passe non conforme : {details}",
+    "score": {
+      "weak": "Faible",
+      "medium": "Moyen",
+      "strong": "Fort",
+      "veryStrong": "Très fort"
+    }
+  }
+}

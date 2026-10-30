@@ -1,0 +1,543 @@
+{
+  "errors": {
+    "unavailable": "KI-Assistent nicht verfügbar",
+    "modelListUnavailable": "Modellliste nicht verfügbar",
+    "fixedScope": "Der Bereich dieser Unterhaltung ist festgelegt: Starten Sie eine neue, um ihn zu ändern",
+    "modelNotAllowed": "Dieses Modell ist von der Administration nicht zugelassen",
+    "projectInaccessible": "Projekt nicht zugänglich",
+    "replyInProgress": "In dieser Unterhaltung wird bereits eine Antwort erstellt: Warten Sie, bis sie fertig ist, oder stoppen Sie sie.",
+    "tooManyReplies": "{count, plural, =1 {1 Antwort wird bereits erstellt: Warten Sie oder stoppen Sie sie.} other {# Antworten werden bereits erstellt: Warten Sie oder stoppen Sie eine davon.}}",
+    "conversationNotFound": "Unterhaltung nicht gefunden",
+    "quotaReached": "Ihr monatliches Kontingent für den KI-Chat ist erreicht: Es wird am {date} zurückgesetzt.",
+    "userNotFound": "Benutzer nicht gefunden"
+  },
+  "replyErrors": {
+    "serverRestarted": "Server während der Antwort neu gestartet",
+    "maxDuration": "Maximale Dauer von {minutes, plural, one {# Minute} other {# Minuten}} überschritten",
+    "reasoningMandatory": "Das Modell {model} erfordert Nachdenken: Die Stufe „Keines“ ist nicht zulässig. Wählen Sie in den Einstellungen „Kurz“ oder höher."
+  },
+  "notifications": {
+    "replyDone": "Der Assistent hat geantwortet",
+    "replyFailed": "Die Antwort des Assistenten ist fehlgeschlagen",
+    "replyInterrupted": "Die Antwort des Assistenten wurde unterbrochen"
+  },
+  "attachments": {
+    "sheetHeading": "# Tabellenblatt: {name}",
+    "errors": {
+      "unreadableWorkbook": "{name}: Excel-Arbeitsmappe nicht lesbar ({detail}). Öffnen Sie sie in Excel und speichern Sie sie erneut, oder prüfen Sie, ob sie passwortgeschützt ist.",
+      "tooLarge": "Datei zu groß (maximal 20 MB)",
+      "unsupportedFormat": "Format nicht unterstützt (PDF, Word, Excel, CSV, Text oder Bild)",
+      "noText": "Kein lesbarer Text in dieser Datei"
+    }
+  },
+  "conversations": {
+    "defaultTitle": "Neue Unterhaltung",
+    "renameAriaLabel": "Neuer Titel der Unterhaltung",
+    "new": "Neue Unterhaltung"
+  },
+  "actions": {
+    "tools": {
+      "createTask": "Aufgabe erstellen",
+      "updateTask": "Aufgabe bearbeiten",
+      "deleteTask": "Aufgabe löschen",
+      "moveTask": "Aufgabe verschieben",
+      "copyTask": "Aufgabe duplizieren",
+      "createProject": "Projekt erstellen",
+      "updateProject": "Projekt bearbeiten"
+    },
+    "fields": {
+      "taskId": "Aufgabe",
+      "projectId": "Projekt",
+      "userIds": "Zugewiesene Personen",
+      "statusId": "Status",
+      "placeId": "Ort",
+      "resourceId": "Ressource",
+      "ownerId": "Verantwortlicher",
+      "groupId": "Gruppe",
+      "businessUnitId": "Business Unit",
+      "title": "Titel",
+      "notes": "Notizen",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "startTime": "Startzeit",
+      "endTime": "Endzeit",
+      "duration": "Dauer",
+      "name": "Name",
+      "color": "Farbe",
+      "description": "Beschreibung",
+      "businessNumber": "Projektnummer",
+      "status": "Status",
+      "budgetTime": "Stundenbudget",
+      "budgetAmount": "Budget",
+      "deliveryDate": "Liefertermin",
+      "address": "Adresse"
+    },
+    "values": {
+      "todo": "Zu erledigen",
+      "in_progress": "In Bearbeitung",
+      "done": "Erledigt",
+      "archived": "Archiviert"
+    },
+    "boolean": {
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "labels": {
+      "notVisible": "Element nicht sichtbar",
+      "untitledTask": "Aufgabe ohne Titel"
+    }
+  },
+  "quota": {
+    "unlimited": "Unbegrenztes Kontingent",
+    "used": "{percent} % des Monatskontingents verbraucht",
+    "resetOn": "Zurücksetzung am {date}"
+  },
+  "phase": {
+    "tools": "Der Assistent ruft die Daten ab…",
+    "toolsNamed": "Der Assistent ruft die Daten ab ({tool})…",
+    "writing": "Der Assistent schreibt…",
+    "thinking": "Der Assistent denkt nach…"
+  },
+  "http": {
+    "s400": "Die Anfrage wurde abgelehnt: Ein gesendeter Wert wird nicht akzeptiert.",
+    "s401": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "s403": "Sie haben nicht die erforderlichen Rechte für diese Aktion.",
+    "s404": "Element nicht gefunden - es wurde möglicherweise inzwischen gelöscht.",
+    "s409": "Konflikt: Dieser Wert wird bereits verwendet, oder die Daten wurden inzwischen geändert.",
+    "s413": "Datei zu groß zum Senden.",
+    "s415": "Dateiformat nicht unterstützt.",
+    "s429": "Zu viele Anfragen in kurzer Zeit. Bitte warten Sie einen Moment.",
+    "s500": "Auf dem Server ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "s502": "Der Server ist nicht erreichbar. Versuchen Sie es gleich noch einmal.",
+    "s503": "Der Dienst ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.",
+    "s504": "Der Server hat zu lange für die Antwort gebraucht.",
+    "generic": "Die Anfrage ist fehlgeschlagen (Fehler {status})."
+  },
+  "select": {
+    "placeholder": "Auswählen…",
+    "selectedCount": "{count, plural, one {# ausgewählt} other {# ausgewählt}}"
+  },
+  "scope": {
+    "global": {
+      "name": "Gesamte Planung",
+      "description": "Alle Projekte, die Sie sehen"
+    },
+    "none": "Ohne Bereich",
+    "followsNavigation": "folgt der Navigation",
+    "lockedTooltip": "Der Bereich wird bei der ersten Frage festgelegt: Die bisherigen Antworten hängen davon ab. Starten Sie eine neue Unterhaltung, um das Projekt zu wechseln.",
+    "choose": "Bereich wählen…",
+    "useDataFrom": "Daten verwenden aus:",
+    "searchProject": "Projekt suchen…",
+    "noProject": "Kein Projekt",
+    "projects": "Projekte"
+  },
+  "browserNotifications": {
+    "unsupported": "Ihr Browser kann auf dieser Seite keine Benachrichtigungen anzeigen.",
+    "displayFailed": "Der Browser konnte die Benachrichtigung nicht anzeigen: Prüfen Sie, ob Benachrichtigungen für ihn in den Systemeinstellungen erlaubt sind.",
+    "denied": "Ihr Browser hat Benachrichtigungen blockiert. Sie können sie in seinen Website-Einstellungen wieder erlauben.",
+    "dismissed": "Die Berechtigungsanfrage wurde ohne Antwort geschlossen. Klicken Sie erneut und wählen Sie dann im Browserfenster „Zulassen“.",
+    "enabled": {
+      "title": "Benachrichtigungen aktiviert",
+      "body": "Sie werden benachrichtigt, sobald eine Antwort bereit ist, falls Sie diesen Tab verlassen haben."
+    },
+    "replyTitle": "Antwort des Assistenten"
+  },
+  "dictation": {
+    "transcriptionFailed": "Transkription nicht möglich: {detail}",
+    "unknownError": "unbekannter Fehler",
+    "engineUnavailable": "Diktiermodul nicht verfügbar: {detail}",
+    "loadFailed": "Laden fehlgeschlagen",
+    "noMicrophoneApi": "Dieser Browser bietet keinen Zugriff auf das Mikrofon",
+    "microphoneBlocked": "Diese Website ist für das Mikrofon gesperrt. Öffnen Sie die Browsereinstellungen → Datenschutz → Mikrofon, entfernen Sie diese Website aus den gesperrten Websites und laden Sie die Seite neu.",
+    "microphoneDenied": "Mikrofon verweigert - erlauben Sie es für diese Website in den Browsereinstellungen",
+    "noMicrophone": "Kein Mikrofon erkannt",
+    "microphoneUnavailable": "Mikrofon nicht zugänglich"
+  },
+  "unavailable": {
+    "title": "KI-Assistent nicht verfügbar",
+    "detail": "Der Assistent ist derzeit nicht erreichbar. Laden Sie die Seite neu oder wenden Sie sich an einen Administrator."
+  },
+  "list": {
+    "title": "Unterhaltungen",
+    "toast": {
+      "deleted": "{count, plural, one {Unterhaltung gelöscht} other {# Unterhaltungen gelöscht}}"
+    },
+    "lastExchange": "Letzte Nachricht: {date}",
+    "lastExchangeFloating": "Letzte Nachricht: {date} · aus dem schwebenden Assistenten geöffnet",
+    "openedFromFloating": "Aus dem schwebenden Assistenten geöffnet",
+    "actionsOn": "Aktionen für {title}",
+    "rename": "Umbenennen",
+    "pin": "Anheften",
+    "unpin": "Lösen",
+    "search": {
+      "ariaLabel": "Unterhaltung suchen",
+      "tooltip": "In Unterhaltungen suchen",
+      "placeholder": "Unterhaltung suchen…"
+    },
+    "sections": {
+      "pinned": "Angeheftet",
+      "recent": "Neueste"
+    },
+    "noMatch": "Keine passende Unterhaltung.",
+    "deleteAll": "Alle löschen",
+    "deleteAllTooltip": "Löscht nach Bestätigung alle Unterhaltungen der Liste",
+    "confirmDelete": {
+      "title": "Diese Unterhaltung löschen?",
+      "description": "„{title}“ und alle zugehörigen Nachrichten werden gelöscht."
+    },
+    "confirmDeleteAll": {
+      "title": "Alle Ihre Unterhaltungen löschen?",
+      "description": "{count, plural, one {Ihre Unterhaltung und alle zugehörigen Nachrichten werden gelöscht.} other {Ihre # Unterhaltungen und alle zugehörigen Nachrichten werden gelöscht.}} Dieser Vorgang ist endgültig."
+    }
+  },
+  "floating": {
+    "title": "KI-Assistent",
+    "openChat": "KI-Chat öffnen",
+    "replying": "Der Assistent antwortet…",
+    "replyReady": "Antwort bereit",
+    "hide": {
+      "ariaLabel": "Assistenten ausblenden",
+      "tooltip": "Assistenten bis zum nächsten Laden der Seite ausblenden"
+    },
+    "scope": "Bereich: {scope}",
+    "history": {
+      "ariaLabel": "Verlauf der Unterhaltungen",
+      "tooltip": "Frühere Unterhaltung fortsetzen",
+      "title": "Unterhaltungen des Assistenten",
+      "empty": "Keine Unterhaltungen."
+    },
+    "fullPage": {
+      "ariaLabel": "Als ganze Seite öffnen",
+      "tooltip": "Diese Unterhaltung auf der Seite Assistent öffnen"
+    },
+    "collapse": {
+      "ariaLabel": "Assistenten einklappen",
+      "tooltip": "Einklappen"
+    }
+  },
+  "notify": {
+    "ariaLabel": "Benachrichtigen, wenn eine Antwort bereit ist",
+    "pending": "Der Browser bittet um Erlaubnis, Benachrichtigungen anzuzeigen: Antworten Sie in seinem Fenster",
+    "active": "Sie erhalten eine Browserbenachrichtigung, sobald eine Antwort bereit ist, falls Sie diesen Tab verlassen haben. Klicken, um dies zu beenden.",
+    "inactive": "Mich per Browserbenachrichtigung informieren, sobald eine Antwort bereit ist, falls ich diesen Tab verlassen habe"
+  },
+  "thread": {
+    "quotaReached": "Ihr monatliches Kontingent für den KI-Chat ist erreicht. Es wird am {date} zurückgesetzt.",
+    "toast": {
+      "unfinished": "Der Assistent konnte seine Antwort nicht abschließen: {error}",
+      "attachmentsNotSent": "{names} - nicht übermittelt: {model} kann diesen Inhalt nicht lesen. Wählen Sie für die Analyse ein geeignetes Modell.",
+      "attachmentsRemoved": "{names} - entfernt: {model} kann diesen Inhalt nicht lesen."
+    },
+    "openList": "Liste der Unterhaltungen öffnen",
+    "welcome": "Was kann ich für Sie tun?",
+    "suggestions": {
+      "title": "Vorschläge",
+      "project": {
+        "progress": "Wie steht es um dieses Projekt? Geplante, verbrauchte und verbleibende Stunden.",
+        "whoThisWeek": "Wer arbeitet diese Woche an diesem Projekt?",
+        "lateOrUnassigned": "Welche Aufgaben dieses Projekts sind überfällig oder nicht zugewiesen?",
+        "conflicts": "Gibt es in diesem Projekt Konflikte bei Fahrzeugen oder Ressourcen?"
+      },
+      "global": {
+        "availableNextWeek": "Wer ist nächste Woche verfügbar?",
+        "summaryByTeam": "Zusammenfassung der Planung dieser Woche nach Team.",
+        "overBudget": "Welche Projekte verbrauchen im Verhältnis zu ihrem Budget die meisten Stunden?",
+        "unassigned": "Welchen Aufgaben ist niemand zugewiesen?"
+      }
+    },
+    "disclaimer": "Der Assistent kann sich irren: Prüfen Sie wichtige Zahlen.",
+    "disclaimerReadOnly": "Der Assistent kann sich irren: Prüfen Sie wichtige Zahlen. Mit Nur-Lesezugriff ändert er Ihre Daten nie.",
+    "renameTooltip": "Klicken, um die Unterhaltung umzubenennen",
+    "untitled": "Unterhaltung",
+    "readOnly": "Nur Lesezugriff",
+    "attachment": "Anhang",
+    "sentToModel": "An das Modell übermittelt",
+    "interrupted": "Antwort unterbrochen: {error}",
+    "failed": "Der Assistent konnte nicht antworten: {error}"
+  },
+  "message": {
+    "copyFailed": "Kopieren nicht möglich - der Browser hat es verweigert",
+    "copied": "Kopiert",
+    "copy": "Text kopieren",
+    "resend": "Diese Frage erneut senden",
+    "regenerate": {
+      "ariaLabel": "Antwort neu generieren",
+      "tooltip": "Antwort neu generieren, mit demselben oder einem anderen Modell",
+      "with": "Neu generieren mit"
+    }
+  },
+  "document": {
+    "extracted": "Extrahierter Text · {size}",
+    "chars": "{count, plural, one {# Zeichen} other {# Zeichen}}",
+    "thousandChars": "{count} Tsd. Zeichen"
+  },
+  "reasoning": {
+    "inProgress": "Das Modell denkt nach…",
+    "title": "Denkprozess des Modells"
+  },
+  "approval": {
+    "title": "Ihre Zustimmung ist erforderlich",
+    "request": "Der Assistent möchte in Ihrer Planung folgende Aktion ausführen: <b>{action}</b>.",
+    "note": "Es wird nichts geschrieben, solange Sie nicht bestätigt haben. Die Änderung wird unter Ihrem Namen gespeichert.",
+    "approve": "Bestätigen",
+    "reject": "Ablehnen",
+    "technicalDetails": "Technische Details"
+  },
+  "unavailability": {
+    "disabled": {
+      "title": "KI-Chat deaktiviert",
+      "detail": "Ein Administrator kann ihn unter Einstellungen → KI → KI-Chat aktivieren."
+    },
+    "forbidden": {
+      "title": "Zugriff verweigert",
+      "detail": "Ihre Rolle gewährt keinen Zugriff auf den KI-Assistenten."
+    },
+    "notConfigured": {
+      "title": "Chat nicht konfiguriert",
+      "detail": "Der API-Schlüssel des Anbieters fehlt (Einstellungen → KI → KI-Chat)."
+    }
+  },
+  "reasoningLevels": {
+    "none": {
+      "short": "Direkt",
+      "label": "Ohne Nachdenken",
+      "description": "Sofortige Antwort, am günstigsten"
+    },
+    "low": {
+      "short": "Schnell",
+      "label": "Kurzes Nachdenken",
+      "description": "Minimale Analysezeit"
+    },
+    "medium": {
+      "short": "Mittel",
+      "label": "Mittleres Nachdenken",
+      "description": "Gleichgewicht zwischen Genauigkeit und Geschwindigkeit"
+    },
+    "high": {
+      "short": "Gründlich",
+      "label": "Gründliches Nachdenken",
+      "description": "Lange Analysen, heikle Schätzungen"
+    }
+  },
+  "composer": {
+    "piece": {
+      "thousandCharsRead": "{count} Tsd. Zeichen gelesen",
+      "charsRead": "{count, plural, one {# Zeichen gelesen} other {# Zeichen gelesen}}",
+      "image": "Bild",
+      "imageUnread": "Bild - von diesem Modell nicht gelesen",
+      "pdfNative": "PDF - direkt vom Modell gelesen",
+      "pdfNoText": "PDF ohne Text - dieses Modell kann es nicht lesen",
+      "remove": "{name} entfernen"
+    },
+    "errors": {
+      "imagesUnsupported": "{name} - {model} liest keine Bilder",
+      "readFailed": "Lesen fehlgeschlagen",
+      "pdfNoText": "{name} - PDF ohne Text, für {model} nicht lesbar"
+    },
+    "dropFiles": "Dateien hier ablegen",
+    "readingDocument": "Dokument wird gelesen…",
+    "attachmentsPending": "{count, plural, one {# Anhang - er wird mit Ihrer nächsten Nachricht gesendet.} other {# Anhänge - sie werden mit Ihrer nächsten Nachricht gesendet.}}",
+    "placeholder": {
+      "dictating": "Sprechen Sie, ich schreibe…",
+      "default": "Wie kann ich Ihnen helfen?",
+      "noScope": "Wählen Sie zuerst einen Bereich…"
+    },
+    "attach": {
+      "tooltip": "Dokument oder Bild anhängen (PDF, Word, Excel, CSV)",
+      "tooltipNoImages": "Dokument anhängen (PDF, Word, Excel, CSV) - {model} liest keine Bilder",
+      "ariaLabel": "Datei anhängen"
+    },
+    "noImagesTooltip": "Dieses Modell liest keine Bilder. Dokumente werden weiterhin analysiert: Der Text wird vor dem Senden extrahiert.",
+    "dictation": {
+      "stopTooltip": "Diktat beenden und transkribieren",
+      "tooltip": "Frage diktieren - lokale Transkription, es wird kein Ton gesendet",
+      "tooltipGpu": "Frage diktieren - lokale Transkription, es wird kein Ton gesendet · GPU-beschleunigt (hochpräzises Modell)",
+      "tooltipCpu": "Frage diktieren - lokale Transkription, es wird kein Ton gesendet · Berechnung auf dem Prozessor (Standardmodell)",
+      "stopAriaLabel": "Diktat stoppen",
+      "startAriaLabel": "Frage diktieren",
+      "listening": "Ich höre zu…",
+      "speak": "Sprechen Sie - das Diktat endet nach einer Pause automatisch",
+      "downloadingWhileSpeaking": "Download des {precision, select, high {hochpräzisen Modells} other {Standardmodells}} ({percent} %) - der Text erscheint anschließend",
+      "micRequested": "Mikrofonberechtigung beim Browser angefragt…",
+      "downloading": "Download des {precision, select, high {hochpräzisen Diktiermodells} other {Standard-Diktiermodells}} ({percent} %) - nur einmal, danach bleibt es im Cache. Die Transkription folgt.",
+      "transcribing": "Transkription läuft…"
+    },
+    "stopReply": "Antwort stoppen"
+  },
+  "settings": {
+    "reasons": {
+      "missing_api_key": "OpenRouter-Schlüssel fehlt",
+      "no_model": "Kein Modell ausgewählt",
+      "disabled": "Chat deaktiviert (Schalter aus)"
+    },
+    "loadError": "Einstellungen des KI-Chats nicht verfügbar",
+    "loading": "Einstellungen des KI-Chats werden geladen…",
+    "saved": "KI-Chat gespeichert",
+    "status": {
+      "active": "KI-Chat aktiv",
+      "inactive": "Der KI-Chat ist nicht aktiv: {reasons}",
+      "inactiveHidden": "Solange der Chat nicht aktiv ist, ist er für alle ausgeblendet: keine Kugel, kein Menüeintrag, keine Seite."
+    },
+    "chat": {
+      "title": "KI-Chat",
+      "description": "Integrierter Konversationsassistent, gestützt auf die Tools des MCP-Servers: Er sieht nur, was der Benutzer sehen darf.",
+      "enable": "KI-Chat für die gesamte Instanz aktivieren",
+      "note": "Wenn deaktiviert, verschwindet der Assistent aus dem Menü und die Kugel wird niemandem mehr angeboten. Der individuelle Zugriff wird pro Rolle geregelt: „KI-Assistenten verwenden“ (Lesen) und „Änderungen durch den KI-Assistenten erlauben“ (Schreiben, stets mit Bestätigung durch den Benutzer).",
+      "apiKey": {
+        "label": "OpenRouter-API-Schlüssel",
+        "envManaged": "In .env definiert",
+        "placeholderConfigured": "•••••••• (gespeichert: leer lassen, um ihn beizubehalten)",
+        "help": "Der Chat läuft ausschließlich über OpenRouter: Routing, Datenschutz und das Lesen von PDFs hängen davon ab. Empfohlen: OPENROUTER_API_KEY in der Datei .env definieren (die Datenbank speichert ihn im Klartext)."
+      },
+      "dictation": "Sprachdiktat (Whisper, lokale Transkription; das Modell wird von HuggingFace heruntergeladen)"
+    },
+    "widget": {
+      "title": "Schwebender Assistent",
+      "description": "Die Kugel unten rechts auf jedem Bildschirm: derselbe Chat in einem Panel, dessen Tools der geöffneten Seite folgen.",
+      "enable": "Schwebenden Assistenten auf allen Seiten anbieten",
+      "closable": "Dem Benutzer erlauben, die Kugel bis zum nächsten Laden der Seite auszublenden",
+      "note": "Die Kugel erscheint nur für Personen mit Zugriff auf den KI-Chat: Chat oben aktiviert und eine Rolle, die ihn freigibt. Das Ausblenden der Kugel wird nirgends gespeichert: Beim Neuladen der Seite erscheint sie wieder."
+    },
+    "models": {
+      "title": "Modelle",
+      "description": "Das Standardmodell gilt für neue Unterhaltungen; der Benutzer kann aus der Liste der zugelassenen Modelle wählen. Änderungen an den Modellen werden sofort gespeichert.",
+      "load": {
+        "label": "Von OpenRouter laden",
+        "tooltip": "Ruft die Liste der bei OpenRouter verfügbaren Modelle ab"
+      },
+      "loaded": "{count, plural, one {# Modell verfügbar} other {# Modelle verfügbar}}",
+      "loadFailed": "Modellliste nicht verfügbar - geben Sie die Kennung manuell ein",
+      "default": {
+        "label": "Standardmodell",
+        "placeholder": "Modell wählen",
+        "placeholderEmpty": "Fügen Sie zuerst ein zugelassenes Modell hinzu"
+      },
+      "allowed": "Zugelassene Modelle ({count})",
+      "remove": {
+        "ariaLabel": "{model} entfernen",
+        "tooltip": "Aus der Liste entfernen"
+      },
+      "none": "Kein zugelassenes Modell.",
+      "add": "Modell hinzufügen",
+      "saved": "Modelle gespeichert"
+    },
+    "privacy": {
+      "title": "Datenschutz und Routing",
+      "description": "OpenRouter-spezifische Optionen: Sie legen fest, wer Ihre Unterhaltungen verarbeitet und was davon gespeichert werden darf.",
+      "dataCollection": {
+        "label": "Datenerfassung",
+        "deny": "Abgelehnt - Anbieter, die nicht mit Ihren Daten trainieren",
+        "allow": "Erlaubt",
+        "help": "Standardmäßig abgelehnt: Anbieter, die Unterhaltungen speichern, werden vom Routing ausgeschlossen."
+      },
+      "zdr": {
+        "label": "Keine Datenspeicherung (ZDR)",
+        "help": "Nutzt nur Endpunkte, die keinen Prompt speichern. Das ist die stärkste Garantie von OpenRouter; sie schränkt die Auswahl an Anbietern ein und kann manche Modelle ausschließen."
+      },
+      "nitro": "Nitro-Routing - bevorzugt die schnellsten Anbieter, oft zu höheren Kosten"
+    },
+    "generation": {
+      "title": "Generierung",
+      "description": "Diese Einstellungen beeinflussen die Länge der Antworten und die Denkzeit und damit die Kosten jeder Anfrage.",
+      "reasoning": {
+        "label": "Nachdenken (Standard)",
+        "options": {
+          "none": "Keines - sofortige Antwort (am günstigsten, am schnellsten)",
+          "low": "Kurz - minimale Analysezeit",
+          "medium": "Mittel - Gleichgewicht zwischen Genauigkeit und Geschwindigkeit",
+          "high": "Gründlich - lange Analysen, heikle Berechnungen"
+        },
+        "help": "Vor der Antwort denken manche Modelle separat nach: Je höher die Stufe, desto zuverlässiger ist die Antwort bei einer Berechnung oder einer zu erklärenden Abweichung, aber desto langsamer und teurer ist sie - die Denk-Token werden berechnet. Der Benutzer kann diese Stufe im Chat ändern; ein Modell ohne Denkfähigkeit ignoriert die Einstellung einfach."
+      },
+      "maxTokens": {
+        "label": "Maximale Länge einer Antwort",
+        "help": "In Token - jeweils etwa drei Viertel eines Wortes. 8.192 entspricht einer sehr langen Antwort; das ist eine Sicherheitsobergrenze, kein Ziel. Sie begrenzt nicht die Unterhaltung, nur jede einzelne Antwort."
+      },
+      "temperature": {
+        "label": "Temperatur",
+        "help": "Spielraum des Modells, von 0 bis 2. Niedrig bleibt es sachlich und reproduzierbar; hoch wird es kreativ. Für Planungsdaten ist 0,3 ein guter Kompromiss - vermeiden Sie höhere Werte."
+      },
+      "maxDuration": {
+        "label": "Maximale Dauer einer Antwort (Minuten)",
+        "help": "Von 1 bis 30 Minuten. Eine Antwort läuft auf dem Server weiter und wird abgeschlossen, auch wenn der Benutzer die Seite verlässt; nach Ablauf dieser Zeit wird sie unterbrochen, und das bereits Geschriebene bleibt erhalten."
+      },
+      "concurrent": {
+        "label": "Gleichzeitige Antworten pro Benutzer",
+        "help": "Von 1 bis 20, über alle Unterhaltungen hinweg. Darüber hinaus wird eine neue Frage abgelehnt, bis eine Antwort abgeschlossen oder gestoppt ist. Eine Unterhaltung hat nie mehr als eine laufende Antwort gleichzeitig."
+      }
+    },
+    "prompt": {
+      "title": "System-Prompt",
+      "description": "Er beschränkt den Assistenten auf den Rahmen der Planung: Außerhalb Ihrer Daten lehnt er ab. Auf Englisch verfasst; der Assistent antwortet in der Sprache des Benutzers.",
+      "resetTooltip": "Zum ursprünglichen Prompt zurückkehren (Speichern nicht vergessen)",
+      "original": "Ursprünglicher Prompt",
+      "help": "wird durch den Titel der Anwendung ersetzt. Die Typografieregel (kein Geviertstrich) wird immer hinzugefügt, auch bei einem benutzerdefinierten Prompt."
+    }
+  },
+  "quotas": {
+    "title": "Kontingente des KI-Chats",
+    "description": "Monatliche Obergrenze pro Person, gemessen an den tatsächlichen Kosten der Antworten, gemeinsam für die Seite Assistent und den schwebenden Assistenten. Der Benutzer sieht nur eine Anzeige, nie einen Betrag.",
+    "loading": "Kontingente werden geladen…",
+    "toast": {
+      "saved": "Kontingente des KI-Chats gespeichert",
+      "resetAll": "Kontingente für alle zurückgesetzt",
+      "resetOne": "Kontingent für {name} zurückgesetzt",
+      "resetOneUnnamed": "Kontingent für dieses Konto zurückgesetzt",
+      "unlimitedOn": "Kontingent für dieses Konto aufgehoben",
+      "unlimitedOff": "Kontingent für dieses Konto wiederhergestellt"
+    },
+    "columns": {
+      "user": "Benutzer",
+      "usage": "Verbrauch",
+      "status": "Status"
+    },
+    "resetOn": "Zurückgesetzt am {date}",
+    "unlimited": "Unbegrenzt",
+    "percent": "{percent} %",
+    "reached": "Erreicht",
+    "noQuota": "Ohne Kontingent",
+    "unlimitedTooltip": "Unbegrenztes Kontingent für dieses Konto",
+    "unlimitedAriaLabel": "Unbegrenztes Kontingent für {name}",
+    "resetOneTooltip": "Zurücksetzen: setzt den Verbrauch nur dieses Kontos auf null",
+    "resetOneAriaLabel": "Kontingent von {name} zurücksetzen",
+    "csv": {
+      "name": "Name",
+      "email": "E-Mail",
+      "usage": "Verbrauch (USD)",
+      "percent": "Prozent",
+      "unlimited": "Unbegrenzt",
+      "lastReset": "Letzte individuelle Zurücksetzung",
+      "yes": "ja",
+      "no": "nein"
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "period": "Laufender Zeitraum seit {start} · nächste Zurücksetzung am {next}.",
+      "enableAriaLabel": "Kontingent aktivieren",
+      "amount": {
+        "label": "Monatlicher Betrag pro Person",
+        "unit": "$ pro Monat",
+        "help": "In Dollar, wie OpenRouter abrechnet. 0 hebt das Kontingent für alle auf."
+      },
+      "resetDay": {
+        "label": "Tag der Zurücksetzung",
+        "help": "Vom 1. bis 28. des Monats, um Mitternacht (Zeitzone der Instanz): So gibt es den Tag in jedem Monat."
+      },
+      "resetAll": {
+        "label": "Für alle zurücksetzen",
+        "tooltip": "Beginnt für alle Konten wieder bei null, ohne auf den Tag der Zurücksetzung zu warten"
+      },
+      "lastGlobalReset": "Letzte allgemeine Zurücksetzung: {date}."
+    },
+    "searchPlaceholder": "Benutzer suchen…",
+    "exportCsv": "Exportieren (CSV)",
+    "confirmResetAll": {
+      "title": "Kontingente aller Benutzer zurücksetzen?",
+      "description": "Der Verbrauch jedes Kontos beginnt ab sofort wieder bei null, unabhängig vom Tag der Zurücksetzung. Laufende Antworten werden zu Ende geführt. Der Vorgang wird im Audit-Protokoll erfasst."
+    },
+    "confirmResetOne": {
+      "title": "Kontingent dieses Kontos zurücksetzen?",
+      "description": "Der Verbrauch von <b>{name}</b> beginnt ab sofort wieder bei null. Der Vorgang wird im Audit-Protokoll erfasst."
+    }
+  }
+}

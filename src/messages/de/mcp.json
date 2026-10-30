@@ -1,0 +1,86 @@
+{
+  "errors": {
+    "disabled": "MCP deaktiviert",
+    "connectorDisabled": "Der MCP-Konnektor ist deaktiviert",
+    "consentRejected": "Anfrage abgelehnt",
+    "sessionExpired": "Sitzung abgelaufen, bitte melden Sie sich erneut an",
+    "consentRateLimited": "Zu viele Versuche, versuchen Sie es in einigen Minuten erneut",
+    "invalidCsrf": "Ungültiges Sicherheitstoken, laden Sie die Seite neu",
+    "missingClientId": "Parameter client_id fehlt.",
+    "clientUnverifiable": "Die Identität der Anwendung kann nicht überprüft werden (client_id-Dokument nicht erreichbar oder ungültig).",
+    "unknownClient": "Unbekannte Anwendung. Entfernen Sie den Konnektor in Ihrem KI-Assistenten und fügen Sie ihn erneut hinzu.",
+    "missingRedirectUri": "Parameter redirect_uri fehlt.",
+    "redirectUriNotRegistered": "Rücksprungadresse (redirect_uri) für diese Anwendung nicht registriert.",
+    "keyLimitReached": "Maximale Anzahl an MCP-Schlüsseln erreicht ({max})",
+    "requestFailed": "Die Anfrage konnte nicht verarbeitet werden",
+    "createFailed": "Fehler beim Erstellen"
+  },
+  "authorize": {
+    "disabled": {
+      "title": "KI-Konnektor deaktiviert",
+      "message": "Der MCP-Konnektor ist auf dieser Instanz nicht aktiviert. Wenden Sie sich an Ihren Administrator."
+    },
+    "invalidRequest": {
+      "title": "Ungültige Verbindungsanfrage"
+    },
+    "accountDisabled": {
+      "title": "Konto deaktiviert",
+      "message": "Dieses Konto ist deaktiviert. Wenden Sie sich an Ihren Administrator."
+    },
+    "denied": {
+      "title": "Zugriff auf den KI-Konnektor nicht erlaubt",
+      "description": "Das Konto <b>{user}</b> hat nicht die Berechtigung „MCP-Konnektor verwenden“. <b>{client}</b> wurde keine Autorisierung erteilt.",
+      "help": "Bitten Sie einen Administrator, Ihrer Rolle diese Berechtigung hinzuzufügen, und starten Sie die Verbindung dann erneut aus Ihrem KI-Assistenten.",
+      "returnTo": "Zurück zu {client}",
+      "returnHost": "Zurück zu {host}",
+      "switchAccount": "Anderes Konto verwenden"
+    },
+    "consent": {
+      "title": "{client} verbinden",
+      "description": "<b>{client}</b> fordert mit Ihrem Konto Zugriff auf {appTitle} an.",
+      "application": "Anwendung: <b>{name}</b>",
+      "metadataHost": "Von {host} veröffentlichte Identität",
+      "unverified": "Nicht erkannte Anwendung: Autorisieren Sie sie nur, wenn Sie sie gerade selbst hinzugefügt haben.",
+      "redirect": "Rücksprung nach der Autorisierung: <b>{host}</b>",
+      "account": "Konto: <b>{user}</b>",
+      "changeAccount": "ändern",
+      "capabilities": "Der Assistent kann:",
+      "read": "Die Daten einsehen, die Ihre Rolle Ihnen anzuzeigen erlaubt (Aufgaben, Projekte, Teams…).",
+      "write": "Aufgaben und Projekte erstellen, bearbeiten und löschen, im Rahmen Ihrer Rechte.",
+      "readOnly": "Nur Lesezugriff: Ihre Rolle erlaubt keine Schreibzugriffe über den MCP-Konnektor.",
+      "footer": "Ihre Berechtigungen werden bei jeder Aktion geprüft: Ein Entzug von Rechten gilt sofort. Sie können diesen Zugriff unter Mein Konto > KI widerrufen.",
+      "deny": "Ablehnen",
+      "approve": "Zulassen"
+    }
+  },
+  "revoke": "Widerrufen",
+  "lastUsed": "Zuletzt verwendet: {date}",
+  "keys": {
+    "connect": {
+      "title": "KI-Assistenten verbinden",
+      "description": "Claude, ChatGPT und OAuth-kompatible Clients benötigen keinen Schlüssel: Fügen Sie den Konnektor mit der URL <code>{url}</code> hinzu und melden Sie sich dann mit Ihrem Konto an. Die folgenden Schlüssel sind für manuell konfigurierte Clients bestimmt (Claude Code, Cursor, VS Code…), immer im Header <code>Authorization: Bearer …</code>: Ein in der URL übergebener Schlüssel (<code>?token=</code>) wird abgelehnt. Der Assistent handelt immer mit Ihren Berechtigungen."
+    },
+    "created": {
+      "title": "Schlüssel erstellt — kopieren Sie ihn jetzt",
+      "description": "Dieser Schlüssel wird nicht erneut angezeigt. Bewahren Sie ihn sicher auf.",
+      "secretLabel": "Geheimer Schlüssel",
+      "copyAriaLabel": "Schlüssel kopieren",
+      "configLabel": "MCP-Konfiguration (Claude Code, Cursor, VS Code…)",
+      "dismiss": "Ich habe meinen Schlüssel kopiert, schließen"
+    },
+    "create": {
+      "title": "MCP-Schlüssel erstellen",
+      "limitReached": "{max, plural, one {Sie haben das Limit von # MCP-Schlüssel erreicht.} other {Sie haben das Limit von # MCP-Schlüsseln erreicht.}} Widerrufen Sie einen vorhandenen Schlüssel, um einen neuen zu erstellen.",
+      "namePlaceholder": "Name des Schlüssels (z. B. Claude Desktop, ChatGPT...)"
+    },
+    "list": {
+      "title": "Aktive Schlüssel und Verbindungen",
+      "empty": "Kein aktiver MCP-Schlüssel und keine aktive Verbindung",
+      "typeOauth": "OAuth",
+      "typeKey": "Schlüssel",
+      "oauthAuthorized": "Autorisierte Verbindung",
+      "createdOn": "Erstellt am {date}",
+      "neverUsed": "Nie verwendet"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "privacy": {
+    "defaultTitle": "Política de privacidad",
+    "unavailable": "Esta página no está disponible.",
+    "lastUpdated": "Última actualización: {date}",
+    "empty": "Todavía no se ha redactado ningún contenido.",
+    "dpo": {
+      "title": "Delegado de Protección de Datos",
+      "contact": "Para ejercer sus derechos o para cualquier pregunta: <link>{email}</link>"
+    },
+    "manageCookies": "Gestionar mis preferencias de cookies",
+    "signIn": "Iniciar sesión",
+    "placeholders": {
+      "company": "[Nombre de la empresa]",
+      "dpoEmail": "[Correo electrónico del DPD]",
+      "retention": "{count, plural, one {# día} other {# días}}"
+    }
+  },
+  "cookies": {
+    "consent": {
+      "title": "Gestión de cookies",
+      "description": "Este sitio utiliza cookies esenciales para su funcionamiento. Puede elegir aceptar o rechazar las cookies opcionales."
+    },
+    "necessary": {
+      "title": "Cookies necesarias",
+      "description": "Estas cookies son imprescindibles para el funcionamiento del sitio y no se pueden desactivar."
+    },
+    "analytics": {
+      "title": "Cookies de análisis",
+      "description": "Estas cookies nos permiten medir la audiencia y mejorar el sitio. Todos los datos se anonimizan."
+    },
+    "functional": {
+      "title": "Cookies funcionales",
+      "description": "Estas cookies permiten mejorar las funcionalidades del sitio, como la personalización de la interfaz."
+    },
+    "acceptAll": "Aceptar todo",
+    "rejectAll": "Rechazar todo",
+    "customize": "Personalizar",
+    "preferencesTitle": "Preferencias de cookies",
+    "savePreferences": "Guardar mis preferencias"
+  }
+}

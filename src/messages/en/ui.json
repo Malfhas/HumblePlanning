@@ -1,0 +1,151 @@
+{
+  "search": {
+    "close": "Close search"
+  },
+  "dataTable": {
+    "perPage": "Per page",
+    "count": "{count, plural, one {# item} other {# items}}",
+    "selectedOf": "{selected} of {count, plural, one {# item} other {# items}}"
+  },
+  "deleteConfirm": {
+    "description": "This action cannot be undone. Do you want to continue?"
+  },
+  "dateRange": {
+    "previousPeriod": "Previous period",
+    "nextPeriod": "Next period",
+    "todayShort": "Today",
+    "shortcuts": "Shortcuts — period starting today",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "presets": {
+      "weeks": "{count, plural, one {# wk} other {# wks}}",
+      "months": "{count, plural, one {# month} other {# months}}"
+    },
+    "startPicked": "Start: <b>{date}</b> — now select the end date",
+    "hint": "Select the start date, then the end date, to set the period"
+  },
+  "errorState": {
+    "forbidden": {
+      "title": "Access denied",
+      "description": "You do not have the permissions required to access this page. Contact your administrator if you think this is a mistake."
+    },
+    "unauthenticated": {
+      "title": "Not signed in",
+      "description": "You must be signed in to access this page."
+    },
+    "unavailable": {
+      "title": "Service unavailable",
+      "description": "This service is temporarily unavailable. Please try again in a moment."
+    },
+    "badGateway": {
+      "title": "Gateway error",
+      "description": "The server encountered a temporary error. Please try again in a moment."
+    },
+    "rateLimited": {
+      "title": "Too many requests",
+      "description": "You have made too many requests. Please wait a moment before trying again."
+    },
+    "unknown": {
+      "code": "Error",
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Try again or go back to the home page."
+    }
+  },
+  "fileUpload": {
+    "dropzone": "Drag your files here or click",
+    "limits": "{extensions} — max {maxSize, number} MB per file, {maxTotal, number} MB in total",
+    "errors": {
+      "extension": "{name}: the .{ext} extension is not allowed",
+      "tooLarge": "{name}: too large ({size}, max {max, number} MB)",
+      "maxFiles": "{name}: maximum number of files reached ({max, number})",
+      "totalSize": "{name}: total size exceeded (max {max, number} MB)"
+    },
+    "pending": "Pending",
+    "preview": "File preview",
+    "counter": "{count, number}/{max, number} files — {size}/{maxTotal, number} MB",
+    "size": {
+      "bytes": "{n, number} B",
+      "kb": "{n, number} KB",
+      "mb": "{n, number} MB"
+    }
+  },
+  "filter": {
+    "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+    "clear": "Clear filter"
+  },
+  "maintenance": {
+    "title": "Maintenance in progress",
+    "description": "The schedule is temporarily unavailable due to maintenance. We are working to improve your experience.",
+    "retryLater": "Please try again later"
+  },
+  "permission": {
+    "denied": "Insufficient permission"
+  },
+  "phone": {
+    "searchCountry": "Search for a country…",
+    "noCountry": "No countries"
+  },
+  "richText": {
+    "placeholder": "Start writing…",
+    "linkPrompt": "Link URL",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "link": "Link",
+    "divider": "Divider",
+    "alignLeft": "Align left",
+    "alignCenter": "Centre",
+    "alignRight": "Align right",
+    "undo": "Undo",
+    "redo": "Redo",
+    "expand": "Expand"
+  },
+  "timePicker": {
+    "hour": "Hour",
+    "minutes": "Min"
+  },
+  "addressMap": {
+    "loading": "Loading…",
+    "label": "Address",
+    "searchPlaceholder": "Search for an address, a place or a company…",
+    "satelliteView": "Satellite view",
+    "mapView": "Map view",
+    "coordinates": "Lat: {lat}, Lng: {lng} — Move the map to adjust the position"
+  },
+  "iconPicker": {
+    "searchPlaceholder": "Search for an icon…",
+    "categories": {
+      "general": "General",
+      "technical": "Technical",
+      "transport": "Transport",
+      "health": "Health",
+      "training": "Training",
+      "team": "Team",
+      "security": "Security",
+      "communication": "Communication",
+      "environment": "Environment",
+      "creative": "Creative",
+      "development": "Development",
+      "finance": "Finance",
+      "time": "Time",
+      "location": "Location",
+      "organisation": "Organisation",
+      "food": "Food",
+      "construction": "Construction",
+      "sport": "Sport",
+      "daily": "Everyday"
+    }
+  },
+  "moduleGuard": {
+    "title": {
+      "resources": "Resources module disabled",
+      "vehicles": "Vehicles module disabled"
+    },
+    "description": "This module has been disabled by the administrator in the application settings."
+  }
+}

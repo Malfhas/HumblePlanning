@@ -1,0 +1,108 @@
+{
+  "page": {
+    "title": "Exports",
+    "description": "Exportez votre planning dans différents formats",
+    "files": {
+      "title": "PDF, Excel, CSV",
+      "description": "Les exports PDF, Excel et CSV sont disponibles directement depuis le planning via le bouton \"Export\" dans la barre d'outils.",
+      "goToPlanning": "Aller au planning"
+    },
+    "ical": {
+      "title": "iCal",
+      "description": "Flux iCal (.ics) pour s'abonner depuis Google Calendar, Outlook ou Apple Calendar. Le lien est personnel et se met à jour automatiquement avec vos tâches assignées.",
+      "copyAriaLabel": "Copier le lien iCal",
+      "regenerate": "Régénérer",
+      "help": "Régénérer le token invalide l'ancien lien. Supprimer le token désactive complètement le flux iCal.",
+      "generate": "Générer le lien iCal"
+    }
+  },
+  "panel": {
+    "title": "Exporter le planning",
+    "format": "Format",
+    "liveSettingsHint": "Les réglages ci-dessous modifient le planning en temps réel.",
+    "calendar": {
+      "personal": "Calendrier de {name}",
+      "teamDay": "Journée du {date}",
+      "hint": "L'export reflète le mode calendrier actif."
+    },
+    "view": "Vue",
+    "views": {
+      "users": "Utilisateurs",
+      "projects": "Projets",
+      "places": "Lieux",
+      "resources": "Ressources",
+      "vehicles": "Véhicules"
+    },
+    "sort": "Tri",
+    "sortModes": {
+      "nameAsc": "Nom A → Z",
+      "nameDesc": "Nom Z → A",
+      "custom": "Ordre manuel (équipes et membres)",
+      "teamAlphaCustom": "Équipes A → Z, ordre manuel des membres",
+      "teamNameAsc": "Équipes A → Z, membres A → Z",
+      "teamNameDesc": "Équipes Z → A, membres A → Z",
+      "customBu": "BU A → Z, membres A → Z",
+      "customBuTeam": "BU A → Z, équipes A → Z, ordre manuel des membres",
+      "customBuUser": "BU A → Z, ordre manuel (équipes et membres)",
+      "customGroup": "Ordre manuel (groupes et projets)",
+      "groupAlphaCustom": "Groupes A → Z, ordre manuel des projets",
+      "groupNameAsc": "Groupes A → Z, projets A → Z",
+      "groupNameDesc": "Groupes Z → A, projets A → Z",
+      "customBuGroup": "BU A → Z, ordre manuel (groupes et projets)",
+      "customBuGroupAlpha": "BU A → Z, groupes A → Z, projets A → Z",
+      "typeNameAsc": "Par type, nom A → Z",
+      "typeNameDesc": "Par type, nom Z → A"
+    },
+    "cellContent": {
+      "label": "Contenu des cellules",
+      "userName": "Nom",
+      "userLogin": "Login",
+      "projectOrType": "Projet / Type",
+      "title": "Titre",
+      "projectName": "Nom du projet",
+      "taskTitle": "Titre de la tâche",
+      "assigneeName": "Nom utilisateur"
+    },
+    "excludeWeekends": "Exclure samedi / dimanche",
+    "stats": {
+      "label": "Statistiques projets / utilisateurs",
+      "helpExcel": "Ajoute un onglet avec heures consommées, temps utilisateurs et budgets restants.",
+      "helpPdf": "Ajoute des pages avec heures consommées, temps utilisateurs et budgets restants."
+    },
+    "summary": {
+      "day": "Journée",
+      "period": "Période",
+      "periodHint": "Modifiez la période depuis la barre d'outils du planning."
+    },
+    "filters": {
+      "title": "Filtres actifs",
+      "count": "{count, plural, one {# catégorie} other {# catégories}}",
+      "hint": "Modifiez les filtres depuis la barre d'outils du planning.",
+      "categories": {
+        "teams": "Équipes",
+        "users": "Utilisateurs",
+        "projects": "Projets",
+        "statuses": "Statuts",
+        "businessUnits": "Business Units",
+        "resources": "Ressources"
+      }
+    },
+    "pdf": {
+      "title": "Options PDF",
+      "paperSize": "Format papier",
+      "orientation": "Orientation",
+      "orientations": {
+        "landscape": "Paysage",
+        "portrait": "Portrait"
+      },
+      "viewType": "Type de vue",
+      "viewTypes": {
+        "calendar": "Calendrier",
+        "gantt": "Planning (grille)",
+        "list": "Liste (tableau)"
+      },
+      "fitOnePage": "Adapter sur 1 page"
+    },
+    "generating": "Génération…"
+  }
+}

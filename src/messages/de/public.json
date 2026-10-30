@@ -1,0 +1,42 @@
+{
+  "privacy": {
+    "defaultTitle": "Datenschutzerklärung",
+    "unavailable": "Diese Seite ist nicht verfügbar.",
+    "lastUpdated": "Zuletzt aktualisiert: {date}",
+    "empty": "Es wurde noch kein Inhalt verfasst.",
+    "dpo": {
+      "title": "Datenschutzbeauftragter",
+      "contact": "Zur Ausübung Ihrer Rechte oder bei Fragen: <link>{email}</link>"
+    },
+    "manageCookies": "Meine Cookie-Einstellungen verwalten",
+    "signIn": "Anmelden",
+    "placeholders": {
+      "company": "[Firmenname]",
+      "dpoEmail": "[E-Mail des DSB]",
+      "retention": "{count, plural, one {# Tag} other {# Tage}}"
+    }
+  },
+  "cookies": {
+    "consent": {
+      "title": "Cookie-Verwaltung",
+      "description": "Diese Website verwendet Cookies, die für ihren Betrieb unerlässlich sind. Sie können optionale Cookies akzeptieren oder ablehnen."
+    },
+    "necessary": {
+      "title": "Notwendige Cookies",
+      "description": "Diese Cookies sind für den Betrieb der Website unerlässlich und können nicht deaktiviert werden."
+    },
+    "analytics": {
+      "title": "Analyse-Cookies",
+      "description": "Mit diesen Cookies können wir die Nutzung messen und die Website verbessern. Alle Daten werden anonymisiert."
+    },
+    "functional": {
+      "title": "Funktionale Cookies",
+      "description": "Diese Cookies verbessern die Funktionen der Website, etwa die Personalisierung der Oberfläche."
+    },
+    "acceptAll": "Alle akzeptieren",
+    "rejectAll": "Alle ablehnen",
+    "customize": "Anpassen",
+    "preferencesTitle": "Cookie-Einstellungen",
+    "savePreferences": "Meine Einstellungen speichern"
+  }
+}

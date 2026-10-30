@@ -1,0 +1,77 @@
+{
+  "maintenance": {
+    "authBadge": "Planning en mode maintenance"
+  },
+  "demo": {
+    "banner": "Démonstration : les données sont réinitialisées chaque nuit à {time}. Administration, envois et assistant IA désactivés."
+  },
+  "nav": {
+    "home": "Accueil",
+    "planning": "Planning",
+    "tasks": "Tâches",
+    "assistant": "Assistant IA",
+    "businessUnits": "Business Units",
+    "team": "Équipe",
+    "users": "Utilisateurs",
+    "teams": "Équipes",
+    "qualifications": "Habilitations",
+    "laborTypes": "Types MO",
+    "worksites": "Chantiers",
+    "projects": "Projets",
+    "projectGroups": "Groupes projet",
+    "statuses": "Statuts",
+    "logistics": "Logistique",
+    "vehicles": "Véhicules",
+    "vehicleTypes": "Types véhicules",
+    "resources": "Ressources",
+    "resourceTypes": "Types ressources",
+    "analysis": "Analyse",
+    "statsUsers": "Stats utilisateurs",
+    "statsProjects": "Stats projets",
+    "audit": "Audit",
+    "logs": "Logs",
+    "export": "Export",
+    "administration": "Administration",
+    "settings": "Paramètres",
+    "roles": "Rôles",
+    "holidays": "Jours fériés",
+    "files": "Fichiers"
+  },
+  "sidebar": {
+    "expand": "Déplier",
+    "collapse": "Replier"
+  },
+  "footer": {
+    "privacy": "Confidentialité"
+  },
+  "userMenu": {
+    "fallbackName": "Utilisateur",
+    "account": "Mon compte",
+    "logOut": "Déconnexion",
+    "ariaLabel": "Menu du compte"
+  },
+  "bu": {
+    "all": "Toutes les BU",
+    "allLong": "Toutes les Business Units",
+    "selectedCount": "{count, plural, one {# BU sélectionnée} other {# BU sélectionnées}}",
+    "searchPlaceholder": "Rechercher une BU…",
+    "empty": "Aucune Business Unit",
+    "ownOnly": "Accès limité à votre Business Unit"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Page introuvable",
+      "subtitle": "Oups, cette page n'existe pas",
+      "description": "La page que vous recherchez n'existe pas ou a été déplacée. Vérifiez l'adresse ou retournez à l'accueil.",
+      "footer": "Erreur 404"
+    },
+    "server": {
+      "title": "Erreur inattendue",
+      "subtitle": "Oups, quelque chose s'est mal passé",
+      "description": "Une erreur est survenue lors du chargement de cette page. Réessayez ou revenez à l'accueil.",
+      "reference": "Référence : {digest}",
+      "retry": "Réessayer",
+      "footer": "Erreur serveur"
+    }
+  }
+}

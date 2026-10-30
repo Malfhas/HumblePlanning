@@ -1,0 +1,72 @@
+{
+  "errors": {
+    "permissionRequired": "Berechtigung erforderlich: {permission}",
+    "aiChatReadOnly": "KI-Assistent im Nur-Lesemodus: Die Berechtigung „Änderungen durch den KI-Assistenten erlauben“ ist erforderlich. Wenden Sie sich an einen Administrator.",
+    "mcpReadOnly": "MCP-Zugriff im Nur-Lesemodus — für Änderungen ist die Berechtigung „MCP-Schreibzugriffe erlauben“ erforderlich. Wenden Sie sich an einen Administrator.",
+    "taskNotFound": "Aufgabe nicht gefunden",
+    "projectNotFound": "Projekt nicht gefunden",
+    "userNotFound": "Benutzer nicht gefunden",
+    "teamNotFound": "Team nicht gefunden",
+    "createForUsersForbidden": "Unzureichende Berechtigung, um Aufgaben für diese Benutzer zu erstellen",
+    "updateNotAllowed": "Sie dürfen diese Aufgabe nicht bearbeiten",
+    "deleteNotAllowed": "Sie dürfen diese Aufgabe nicht löschen",
+    "moveNotAllowed": "Sie dürfen diese Aufgabe nicht verschieben",
+    "taskLocked": "Diese Aufgabe ist gesperrt",
+    "assignPermissionRequired": "Berechtigung „Benutzer zuweisen“ erforderlich",
+    "assigneesOutOfScope": "Die angeforderten zugewiesenen Personen liegen außerhalb Ihres erlaubten Bereichs",
+    "moveOutOfScope": "Die angeforderte Verschiebung liegt außerhalb Ihres erlaubten Bereichs",
+    "copyForbidden": "Unzureichende Berechtigung zum Kopieren von Aufgaben",
+    "copyTaskForbidden": "Unzureichende Berechtigung zum Kopieren dieser Aufgabe",
+    "copyFailed": "Kopieren fehlgeschlagen",
+    "businessUnitsPermissionRequired": "Berechtigung erforderlich: business_units:view oder business_units:view_own"
+  },
+  "results": {
+    "taskDeleted": "Aufgabe gelöscht"
+  },
+  "labels": {
+    "noProject": "Ohne Projekt",
+    "noStatus": "Ohne Status"
+  },
+  "transport": {
+    "disabled": "MCP ist auf dieser Instanz deaktiviert",
+    "originNotAllowed": "Herkunft nicht erlaubt",
+    "authMissing": "Authentifizierung erforderlich: Verbinden Sie den Konnektor (OAuth) oder geben Sie im Header Authorization einen MCP-Schlüssel an.",
+    "authInvalid": "Authentifizierung fehlgeschlagen: Token oder MCP-Schlüssel ungültig, abgelaufen oder widerrufen, oder Benutzerkonto deaktiviert. Verbinden Sie den Konnektor erneut.",
+    "authQuery": "Das Token in der URL (?token=) wird nicht mehr akzeptiert: Entfernen Sie es aus der Adresse und senden Sie den MCP-Schlüssel im Header „Authorization: Bearer …“.",
+    "permissionDenied": "Berechtigung verweigert: Ihr Konto hat nicht die Berechtigung „MCP-Konnektor verwenden“. Wenden Sie sich an Ihren Administrator.",
+    "sessionNotFound": "Sitzung nicht gefunden oder abgelaufen: Setzen Sie die MCP-Verbindung zurück",
+    "internal": "Interner Fehler"
+  },
+  "oauth": {
+    "disabled": "MCP deaktiviert",
+    "registerRateLimited": "Zu viele Registrierungen, versuchen Sie es später erneut",
+    "tokenRateLimited": "Zu viele Anfragen, versuchen Sie es später erneut",
+    "jsonBodyExpected": "JSON-Anfragetext erwartet",
+    "redirectUrisCount": "redirect_uris muss zwischen 1 und 10 URIs enthalten",
+    "redirectUriRejected": "Weiterleitungs-URI abgelehnt (HTTPS erforderlich, HTTP nur für Loopback, kein Fragment)",
+    "grantTypesMissingCode": "grant_types muss authorization_code enthalten",
+    "responseTypesMissingCode": "response_types muss code enthalten",
+    "unsupportedResponseType": "Nur response_type=code wird unterstützt",
+    "codeChallengeRequired": "code_challenge erforderlich (PKCE)",
+    "codeChallengeMethodRequired": "code_challenge_method=S256 erforderlich",
+    "codeChallengeInvalid": "Ungültige code_challenge",
+    "unknownResource": "Unbekannte Ressource",
+    "clientIdRequired": "client_id erforderlich",
+    "unknownClient": "Unbekannter Client",
+    "unsupportedGrantType": "grant_type nicht unterstützt",
+    "codeRequired": "code erforderlich",
+    "codeVerifierRequired": "code_verifier erforderlich (PKCE)",
+    "invalidCode": "Ungültiger Code",
+    "codeAlreadyUsed": "Code bereits verwendet",
+    "codeExpired": "Code abgelaufen",
+    "redirectUriMismatch": "redirect_uri weicht von der Autorisierungsanfrage ab",
+    "pkceFailed": "PKCE-Prüfung fehlgeschlagen",
+    "accountIneligible": "Konto deaktiviert oder ohne MCP-Berechtigung",
+    "refreshTokenRequired": "refresh_token erforderlich",
+    "invalidRefreshToken": "Ungültiges Refresh-Token",
+    "refreshTokenRevoked": "Refresh-Token widerrufen",
+    "refreshTokenExpired": "Refresh-Token abgelaufen",
+    "accessDenied": "Zugriff vom Benutzer verweigert",
+    "accountNotAllowed": "Dieses Konto darf den MCP-Konnektor nicht verwenden"
+  }
+}

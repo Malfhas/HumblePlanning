@@ -1,0 +1,49 @@
+#@template
+# Humble Planning — Caddyfile template.
+#
+# install.sh renders this file into the installation directory:
+#   __SITE_ADDRESS__  domain of the public URL, or ":80" for plain HTTP
+#   __ACME_EMAIL__    optional e-mail address for Let's Encrypt
+# Blocks between "#@<name>" and "#@end" are kept only when enabled:
+#   acme_email  an e-mail address was given
+#   cloudflare  ACME DNS-01 challenge through Cloudflare (token in .env)
+#   https       the site is served over HTTPS
+# The Cloudflare token is never written here: Caddy reads it from the
+# CLOUDFLARE_API_TOKEN environment variable.
+#@end
+#@acme_email
+{
+	email __ACME_EMAIL__
+}
+#@end
+
+__SITE_ADDRESS__ {
+	encode zstd gzip
+
+	#@cloudflare
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+	#@end
+
+	# Security headers: only set when the application did not set them.
+	header {
+		?X-Content-Type-Options "nosniff"
+		?X-Frame-Options "SAMEORIGIN"
+		?Referrer-Policy "strict-origin-when-cross-origin"
+		#@https
+		?Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		#@end
+		-Server
+		-X-Powered-By
+	}
+
+	# Socket.io (real-time updates) goes to the socket server, everything else
+	# to the Next.js application. X-Real-IP is overwritten with the address of
+	# the connection: the application reads the client address from it, so a
+	# client cannot forge it.
+	reverse_proxy /socket.io/* socket:3001
+	reverse_proxy app:3000 {
+		header_up X-Real-IP {remote_host}
+	}
+}

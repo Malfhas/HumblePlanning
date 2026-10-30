@@ -1,0 +1,77 @@
+{
+  "maintenance": {
+    "authBadge": "Schedule in maintenance mode"
+  },
+  "demo": {
+    "banner": "Demo: the data is reset every night at {time}. Administration, outgoing messages and the AI assistant are turned off."
+  },
+  "nav": {
+    "home": "Home",
+    "planning": "Schedule",
+    "tasks": "Tasks",
+    "assistant": "AI assistant",
+    "businessUnits": "Business units",
+    "team": "Team",
+    "users": "Users",
+    "teams": "Teams",
+    "qualifications": "Qualifications",
+    "laborTypes": "Labour types",
+    "worksites": "Worksites",
+    "projects": "Projects",
+    "projectGroups": "Project groups",
+    "statuses": "Statuses",
+    "logistics": "Logistics",
+    "vehicles": "Vehicles",
+    "vehicleTypes": "Vehicle types",
+    "resources": "Resources",
+    "resourceTypes": "Resource types",
+    "analysis": "Analysis",
+    "statsUsers": "User statistics",
+    "statsProjects": "Project statistics",
+    "audit": "Audit",
+    "logs": "Logs",
+    "export": "Export",
+    "administration": "Administration",
+    "settings": "Settings",
+    "roles": "Roles",
+    "holidays": "Public holidays",
+    "files": "Files"
+  },
+  "sidebar": {
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "footer": {
+    "privacy": "Privacy"
+  },
+  "userMenu": {
+    "fallbackName": "User",
+    "account": "My account",
+    "logOut": "Sign out",
+    "ariaLabel": "Account menu"
+  },
+  "bu": {
+    "all": "All BUs",
+    "allLong": "All business units",
+    "selectedCount": "{count, plural, one {# BU selected} other {# BUs selected}}",
+    "searchPlaceholder": "Search for a BU…",
+    "empty": "No business units",
+    "ownOnly": "Access limited to your business unit"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Page not found",
+      "subtitle": "Oops, this page does not exist",
+      "description": "The page you are looking for does not exist or has been moved. Check the address or go back to the home page.",
+      "footer": "Error 404"
+    },
+    "server": {
+      "title": "Unexpected error",
+      "subtitle": "Oops, something went wrong",
+      "description": "An error occurred while loading this page. Try again or go back to the home page.",
+      "reference": "Reference: {digest}",
+      "retry": "Try again",
+      "footer": "Server error"
+    }
+  }
+}

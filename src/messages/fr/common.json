@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "description": "Outil de planification de ressources"
+  },
+  "actions": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "create": "Créer",
+    "creating": "Création…",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "back": "Retour",
+    "continue": "Continuer",
+    "finish": "Terminer",
+    "search": "Rechercher",
+    "reset": "Réinitialiser",
+    "clear": "Effacer",
+    "refresh": "Actualiser",
+    "copy": "Copier",
+    "duplicate": "Dupliquer",
+    "download": "Télécharger",
+    "import": "Importer",
+    "export": "Exporter",
+    "send": "Envoyer",
+    "select": "Sélectionner",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "collapse": "Réduire",
+    "disable": "Désactiver",
+    "archive": "Archiver",
+    "unarchive": "Désarchiver",
+    "restore": "Restaurer",
+    "test": "Tester",
+    "logIn": "Se connecter",
+    "searchPlaceholder": "Rechercher…"
+  },
+  "states": {
+    "loading": "Chargement…",
+    "saving": "Enregistrement…",
+    "noResults": "Aucun résultat",
+    "none": "Aucun",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "enabled": "Activé",
+    "unknown": "Inconnu",
+    "comingSoon": "Fonction disponible prochainement",
+    "noResultsFor": "Aucun résultat pour « {search} »",
+    "sending": "Envoi…"
+  },
+  "status": {
+    "error": "Erreur"
+  },
+  "boolean": {
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {page} sur {total}"
+  },
+  "table": {
+    "noResults": "Aucun résultat.",
+    "actions": "Actions",
+    "selectedRows": "{count, plural, =0 {Aucune ligne sélectionnée} one {# ligne sélectionnée} other {# lignes sélectionnées}}",
+    "total": "Total"
+  },
+  "confirm": {
+    "title": "Êtes-vous sûr ?",
+    "deleteTitle": "Confirmer la suppression"
+  },
+  "toast": {
+    "error": "Une erreur est survenue"
+  },
+  "time": {
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "hours": "{count, plural, one {# heure} other {# heures}}",
+    "days": "{count, plural, one {# jour} other {# jours}}",
+    "weeks": "{count, plural, one {# semaine} other {# semaines}}",
+    "months": "{count, plural, one {# mois} other {# mois}}",
+    "never": "Jamais"
+  },
+  "entities": {
+    "projects": "Projets",
+    "projectGroups": "Groupes projet",
+    "statuses": "Statuts",
+    "users": "Utilisateurs",
+    "teams": "Équipes",
+    "businessUnits": "Business Units",
+    "qualifications": "Habilitations",
+    "laborTypes": "Types de main-d'œuvre",
+    "resources": "Ressources",
+    "resourceTypes": "Types de ressources",
+    "vehicles": "Véhicules",
+    "vehicleTypes": "Types de véhicules"
+  },
+  "locale": {
+    "label": "Langue",
+    "auto": "Automatique",
+    "autoWithLanguage": "Automatique ({language})",
+    "changeError": "Impossible de changer de langue"
+  },
+  "theme": {
+    "light": "Thème clair",
+    "dark": "Thème sombre",
+    "system": "Thème automatique"
+  },
+  "a11y": {
+    "close": "Fermer",
+    "openMenu": "Ouvrir le menu",
+    "loading": "Chargement en cours"
+  }
+}

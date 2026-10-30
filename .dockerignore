@@ -1,0 +1,31 @@
+# Keep the build context small and free of secrets or local data.
+.git
+.github
+.next
+node_modules
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets and local state
+.env
+.env.*
+!.env.example
+*.pem
+certs
+.setup-complete
+data
+uploads
+
+# Deployment and documentation files (not needed inside the image)
+deploy
+tasks
+install.sh
+docker-compose.yml
+Dockerfile
+.dockerignore
+*.md
+
+# Misc
+.DS_Store
+*.log

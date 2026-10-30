@@ -1,0 +1,64 @@
+{
+  "banner": {
+    "update": "Update available",
+    "security": "Security update",
+    "details": "v{version} · View details",
+    "dismiss": "Hide until the next version",
+    "withVersion": "{title}: v{version}"
+  },
+  "panel": {
+    "title": "Version",
+    "installed": "Installed version",
+    "latest": "Latest available version",
+    "lastCheck": "Last check",
+    "publishedOn": "Published on {date}",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "checkFailed": "The check could not be started: {message}",
+    "checkNowDisabled": "Update checking is disabled",
+    "checkNowForbidden": "Reserved for users allowed to edit the settings",
+    "loading": "Loading update status…",
+    "loadError": "Unable to load the update status.",
+    "status": {
+      "up_to_date": "Up to date",
+      "update_available": "Update available",
+      "security_update": "Security update available",
+      "disabled": "Checking disabled",
+      "no_release": "No published version",
+      "error": "Unable to check at the moment"
+    },
+    "hint": {
+      "upToDate": "You are using the latest published version.",
+      "updateAvailable": "{count, plural, =0 {Version {version} is available.} =1 {Version {version} is available.} other {Version {version} is available: # versions have been released since yours.}}",
+      "securityUpdate": "A newer version fixes a security issue: install it promptly.",
+      "disabled": "The server does not contact GitHub. Enable checking below to be notified of new versions.",
+      "noRelease": "No version has been published yet on the {repo} repository.",
+      "knownData": "The information below dates from the last successful check, on {date}."
+    },
+    "errors": {
+      "network": "The server could not reach GitHub (network or firewall).",
+      "timeout": "GitHub did not respond in time.",
+      "rate_limited": "The GitHub API rate limit has been reached. Try again in an hour.",
+      "not_found": "The {repo} repository cannot be found on GitHub, or is not public.",
+      "http": "GitHub returned an error.",
+      "invalid_response": "The GitHub response cannot be read.",
+      "invalid_repo": "The HUMBLE_UPDATE_REPO variable is invalid (expected format: owner/repository)."
+    },
+    "commandUpdate": "To install version {version}, run this command on the server:",
+    "commandIdle": "Updates are installed on the server, with this command:",
+    "commandHelp": "It backs up the database, applies the migrations and rolls back to the previous version if anything fails. The administration panel does not install anything itself.",
+    "copied": "Copied",
+    "source": "Source:",
+    "releaseNotes": "Release notes — v{version}",
+    "viewOnGithub": "View on GitHub",
+    "history": "Version history",
+    "historyCount": "{count, plural, one {# version} other {# versions}}",
+    "badges": {
+      "security": "Security",
+      "new": "New",
+      "installed": "Installed",
+      "prerelease": "Pre-release"
+    },
+    "noNotes": "No release notes."
+  }
+}

@@ -1,0 +1,543 @@
+{
+  "errors": {
+    "unavailable": "Assistant IA indisponible",
+    "modelListUnavailable": "Liste des modèles indisponible",
+    "fixedScope": "La portée de cette conversation est fixée : ouvrez-en une nouvelle pour en changer",
+    "modelNotAllowed": "Ce modèle n'est pas autorisé par l'administration",
+    "projectInaccessible": "Projet inaccessible",
+    "replyInProgress": "Une réponse est déjà en cours dans cette conversation : attendez sa fin ou arrêtez-la.",
+    "tooManyReplies": "{count, plural, =1 {1 réponse est déjà en cours : patientez ou arrêtez-la.} other {# réponses sont déjà en cours : patientez ou arrêtez-en une.}}",
+    "conversationNotFound": "Conversation introuvable",
+    "quotaReached": "Votre quota mensuel du chat IA est atteint : il sera réinitialisé le {date}.",
+    "userNotFound": "Utilisateur introuvable"
+  },
+  "replyErrors": {
+    "serverRestarted": "Serveur redémarré pendant la réponse",
+    "maxDuration": "Durée maximale de {minutes, plural, one {# minute} other {# minutes}} dépassée",
+    "reasoningMandatory": "Le modèle {model} impose un raisonnement : la réflexion « aucune » n'est pas acceptée. Choisissez « courte » ou plus dans les réglages."
+  },
+  "notifications": {
+    "replyDone": "L'assistant a répondu",
+    "replyFailed": "La réponse de l'assistant a échoué",
+    "replyInterrupted": "La réponse de l'assistant a été interrompue"
+  },
+  "attachments": {
+    "sheetHeading": "# Feuille : {name}",
+    "errors": {
+      "unreadableWorkbook": "{name} : classeur Excel illisible ({detail}). Ouvrez-le dans Excel et réenregistrez-le, ou vérifiez qu’il n’est pas protégé par mot de passe.",
+      "tooLarge": "Fichier trop volumineux (20 Mo maximum)",
+      "unsupportedFormat": "Format non pris en charge (PDF, Word, Excel, CSV, texte ou image)",
+      "noText": "Aucun texte lisible dans ce fichier"
+    }
+  },
+  "conversations": {
+    "defaultTitle": "Nouvelle conversation",
+    "renameAriaLabel": "Nouveau titre de la conversation",
+    "new": "Nouvelle conversation"
+  },
+  "actions": {
+    "tools": {
+      "createTask": "Créer une tâche",
+      "updateTask": "Modifier une tâche",
+      "deleteTask": "Supprimer une tâche",
+      "moveTask": "Déplacer une tâche",
+      "copyTask": "Dupliquer une tâche",
+      "createProject": "Créer un projet",
+      "updateProject": "Modifier un projet"
+    },
+    "fields": {
+      "taskId": "Tâche",
+      "projectId": "Projet",
+      "userIds": "Personnes assignées",
+      "statusId": "Statut",
+      "placeId": "Lieu",
+      "resourceId": "Ressource",
+      "ownerId": "Propriétaire",
+      "groupId": "Groupe",
+      "businessUnitId": "Business unit",
+      "title": "Titre",
+      "notes": "Notes",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "duration": "Durée",
+      "name": "Nom",
+      "color": "Couleur",
+      "description": "Description",
+      "businessNumber": "Numéro de projet",
+      "status": "Statut",
+      "budgetTime": "Budget en heures",
+      "budgetAmount": "Budget",
+      "deliveryDate": "Date de livraison",
+      "address": "Adresse"
+    },
+    "values": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "done": "Terminé",
+      "archived": "Archivé"
+    },
+    "boolean": {
+      "yes": "Oui",
+      "no": "Non"
+    },
+    "labels": {
+      "notVisible": "élément non visible",
+      "untitledTask": "Tâche sans titre"
+    }
+  },
+  "quota": {
+    "unlimited": "Quota illimité",
+    "used": "{percent} % du quota mensuel utilisé",
+    "resetOn": "Réinitialisation le {date}"
+  },
+  "phase": {
+    "tools": "L’assistant consulte les données…",
+    "toolsNamed": "L’assistant consulte les données ({tool})…",
+    "writing": "L’assistant rédige…",
+    "thinking": "L’assistant réfléchit…"
+  },
+  "http": {
+    "s400": "La requête a été refusée : une valeur envoyée n’est pas acceptée.",
+    "s401": "Votre session a expiré. Reconnectez-vous.",
+    "s403": "Vous n’avez pas les droits nécessaires pour cette action.",
+    "s404": "Élément introuvable - il a peut-être été supprimé entre-temps.",
+    "s409": "Conflit : cette valeur est déjà utilisée, ou la donnée a changé entre-temps.",
+    "s413": "Fichier trop volumineux pour être envoyé.",
+    "s415": "Format de fichier non pris en charge.",
+    "s429": "Trop de requêtes en peu de temps. Patientez quelques instants.",
+    "s500": "Le serveur a rencontré une erreur inattendue. Réessayez.",
+    "s502": "Le serveur est injoignable. Réessayez dans un instant.",
+    "s503": "Le service est momentanément indisponible. Réessayez dans un instant.",
+    "s504": "Le serveur a mis trop de temps à répondre.",
+    "generic": "La requête a échoué (erreur {status})."
+  },
+  "select": {
+    "placeholder": "Sélectionner…",
+    "selectedCount": "{count, plural, one {# sélectionné} other {# sélectionnés}}"
+  },
+  "scope": {
+    "global": {
+      "name": "Tout le planning",
+      "description": "Tous les projets que vous voyez"
+    },
+    "none": "Sans portée",
+    "followsNavigation": "suit la navigation",
+    "lockedTooltip": "La portée est fixée à la première question : les réponses déjà données en dépendent. Ouvrez une nouvelle conversation pour changer de projet.",
+    "choose": "Choisir une portée…",
+    "useDataFrom": "Utiliser les données de :",
+    "searchProject": "Rechercher un projet…",
+    "noProject": "Aucun projet",
+    "projects": "Projets"
+  },
+  "browserNotifications": {
+    "unsupported": "Votre navigateur ne sait pas afficher de notification depuis cette page.",
+    "displayFailed": "Le navigateur n’a pas pu afficher la notification : vérifiez que les notifications lui sont autorisées dans les réglages du système.",
+    "denied": "Votre navigateur a refusé les notifications. Vous pouvez les réautoriser dans ses réglages de site.",
+    "dismissed": "La demande d’autorisation a été fermée sans réponse. Cliquez à nouveau, puis choisissez « Autoriser » dans la fenêtre du navigateur.",
+    "enabled": {
+      "title": "Notifications activées",
+      "body": "Vous serez prévenu dès qu’une réponse est prête, si vous avez quitté cet onglet."
+    },
+    "replyTitle": "Réponse de l’assistant"
+  },
+  "dictation": {
+    "transcriptionFailed": "Transcription impossible : {detail}",
+    "unknownError": "erreur inconnue",
+    "engineUnavailable": "Moteur de dictée indisponible : {detail}",
+    "loadFailed": "chargement impossible",
+    "noMicrophoneApi": "Ce navigateur ne donne pas accès au microphone",
+    "microphoneBlocked": "Ce site est bloqué pour le microphone. Ouvrez les réglages du navigateur → Confidentialité → Microphone, retirez ce site des sites bloqués, puis rechargez la page.",
+    "microphoneDenied": "Microphone refusé - autorisez-le pour ce site dans les réglages du navigateur",
+    "noMicrophone": "Aucun microphone détecté",
+    "microphoneUnavailable": "Microphone inaccessible"
+  },
+  "unavailable": {
+    "title": "Assistant IA indisponible",
+    "detail": "L’assistant n’est pas accessible pour le moment. Rechargez la page ou contactez un administrateur."
+  },
+  "list": {
+    "title": "Conversations",
+    "toast": {
+      "deleted": "{count, plural, one {Conversation supprimée} other {# conversations supprimées}}"
+    },
+    "lastExchange": "Dernier échange : {date}",
+    "lastExchangeFloating": "Dernier échange : {date} · ouverte depuis l’assistant flottant",
+    "openedFromFloating": "Ouverte depuis l’assistant flottant",
+    "actionsOn": "Actions sur {title}",
+    "rename": "Renommer",
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "search": {
+      "ariaLabel": "Rechercher une conversation",
+      "tooltip": "Rechercher dans les conversations",
+      "placeholder": "Rechercher une conversation…"
+    },
+    "sections": {
+      "pinned": "Épinglé",
+      "recent": "Récentes"
+    },
+    "noMatch": "Aucune conversation ne correspond.",
+    "deleteAll": "Tout supprimer",
+    "deleteAllTooltip": "Supprime toutes les conversations de la liste, après confirmation",
+    "confirmDelete": {
+      "title": "Supprimer cette conversation ?",
+      "description": "« {title} » et tous ses échanges seront supprimés."
+    },
+    "confirmDeleteAll": {
+      "title": "Supprimer toutes vos conversations ?",
+      "description": "{count, plural, one {Votre conversation et tous ses échanges seront supprimés.} other {Vos # conversations et tous leurs échanges seront supprimés.}} Cette action est définitive."
+    }
+  },
+  "floating": {
+    "title": "Assistant IA",
+    "openChat": "Ouvrir le chat IA",
+    "replying": "L’assistant répond…",
+    "replyReady": "Réponse prête",
+    "hide": {
+      "ariaLabel": "Masquer l’assistant",
+      "tooltip": "Masquer l’assistant jusqu’au prochain chargement de la page"
+    },
+    "scope": "Portée : {scope}",
+    "history": {
+      "ariaLabel": "Historique des conversations",
+      "tooltip": "Reprendre une conversation précédente",
+      "title": "Conversations de l’assistant",
+      "empty": "Aucune conversation."
+    },
+    "fullPage": {
+      "ariaLabel": "Ouvrir en pleine page",
+      "tooltip": "Ouvrir cette conversation dans la page Assistant"
+    },
+    "collapse": {
+      "ariaLabel": "Replier l’assistant",
+      "tooltip": "Replier"
+    }
+  },
+  "notify": {
+    "ariaLabel": "Me prévenir quand une réponse est prête",
+    "pending": "Le navigateur vous demande l’autorisation d’afficher des notifications : répondez à sa fenêtre",
+    "active": "Vous serez prévenu par une notification du navigateur dès qu’une réponse est prête, si vous avez quitté cet onglet. Cliquer pour ne plus l’être.",
+    "inactive": "Me prévenir par une notification du navigateur dès qu’une réponse est prête, si j’ai quitté cet onglet"
+  },
+  "thread": {
+    "quotaReached": "Votre quota mensuel du chat IA est atteint. Il sera réinitialisé le {date}.",
+    "toast": {
+      "unfinished": "L’assistant n’a pas pu terminer sa réponse : {error}",
+      "attachmentsNotSent": "{names} - non transmis : {model} ne sait pas lire ce contenu. Choisissez un modèle capable pour l’analyser.",
+      "attachmentsRemoved": "{names} - retiré : {model} ne sait pas lire ce contenu."
+    },
+    "openList": "Ouvrir la liste des conversations",
+    "welcome": "Que puis-je faire pour vous ?",
+    "suggestions": {
+      "title": "Suggestions",
+      "project": {
+        "progress": "Où en est ce projet ? Heures prévues, consommées et restantes.",
+        "whoThisWeek": "Qui travaille sur ce projet cette semaine ?",
+        "lateOrUnassigned": "Quelles tâches de ce projet sont en retard ou non assignées ?",
+        "conflicts": "Y a-t-il des conflits de véhicules ou de ressources sur ce projet ?"
+      },
+      "global": {
+        "availableNextWeek": "Qui est disponible la semaine prochaine ?",
+        "summaryByTeam": "Résume le planning de cette semaine par équipe.",
+        "overBudget": "Quels projets consomment le plus d’heures par rapport à leur budget ?",
+        "unassigned": "Quelles tâches n’ont personne d’assigné ?"
+      }
+    },
+    "disclaimer": "L’assistant peut se tromper : vérifiez les chiffres importants.",
+    "disclaimerReadOnly": "L’assistant peut se tromper : vérifiez les chiffres importants. En lecture seule, il ne modifie jamais vos données.",
+    "renameTooltip": "Cliquer pour renommer la conversation",
+    "untitled": "Conversation",
+    "readOnly": "Lecture seule",
+    "attachment": "Pièce jointe",
+    "sentToModel": "Transmis au modèle",
+    "interrupted": "Réponse interrompue : {error}",
+    "failed": "L’assistant n’a pas pu répondre : {error}"
+  },
+  "message": {
+    "copyFailed": "Copie impossible - le navigateur l’a refusée",
+    "copied": "Copié",
+    "copy": "Copier le texte",
+    "resend": "Renvoyer cette question",
+    "regenerate": {
+      "ariaLabel": "Régénérer la réponse",
+      "tooltip": "Régénérer la réponse, avec le même modèle ou un autre",
+      "with": "Régénérer avec"
+    }
+  },
+  "document": {
+    "extracted": "Texte extrait · {size}",
+    "chars": "{count, plural, one {# caractère} other {# caractères}}",
+    "thousandChars": "{count} k caractères"
+  },
+  "reasoning": {
+    "inProgress": "Le modèle réfléchit…",
+    "title": "Réflexion du modèle"
+  },
+  "approval": {
+    "title": "Votre accord est nécessaire",
+    "request": "L’assistant demande à <b>{action}</b> dans votre planning.",
+    "note": "Rien n’est écrit tant que vous n’avez pas validé. La modification sera enregistrée sous votre nom.",
+    "approve": "Valider",
+    "reject": "Refuser",
+    "technicalDetails": "Détail technique"
+  },
+  "unavailability": {
+    "disabled": {
+      "title": "Chat IA désactivé",
+      "detail": "Un administrateur peut l’activer dans Paramètres → IA → Chat IA."
+    },
+    "forbidden": {
+      "title": "Accès non autorisé",
+      "detail": "Votre rôle n’ouvre pas l’assistant IA."
+    },
+    "notConfigured": {
+      "title": "Chat non configuré",
+      "detail": "La clé API du fournisseur manque (Paramètres → IA → Chat IA)."
+    }
+  },
+  "reasoningLevels": {
+    "none": {
+      "short": "Direct",
+      "label": "Sans réflexion",
+      "description": "Réponse immédiate, la moins coûteuse"
+    },
+    "low": {
+      "short": "Rapide",
+      "label": "Réflexion courte",
+      "description": "Un temps d’analyse minimal"
+    },
+    "medium": {
+      "short": "Moyen",
+      "label": "Réflexion moyenne",
+      "description": "Équilibre entre justesse et délai"
+    },
+    "high": {
+      "short": "Poussé",
+      "label": "Réflexion poussée",
+      "description": "Analyses longues, chiffrages délicats"
+    }
+  },
+  "composer": {
+    "piece": {
+      "thousandCharsRead": "{count} k caractères lus",
+      "charsRead": "{count, plural, one {# caractère lu} other {# caractères lus}}",
+      "image": "Image",
+      "imageUnread": "Image - non lue par ce modèle",
+      "pdfNative": "PDF - lu directement par le modèle",
+      "pdfNoText": "PDF sans texte - ce modèle ne pourra pas le lire",
+      "remove": "Retirer {name}"
+    },
+    "errors": {
+      "imagesUnsupported": "{name} - {model} ne lit pas les images",
+      "readFailed": "lecture impossible",
+      "pdfNoText": "{name} - PDF sans texte, illisible pour {model}"
+    },
+    "dropFiles": "Déposez vos fichiers",
+    "readingDocument": "Lecture du document…",
+    "attachmentsPending": "{count, plural, one {# pièce jointe - elle partira avec votre prochain message.} other {# pièces jointes - elles partiront avec votre prochain message.}}",
+    "placeholder": {
+      "dictating": "Parlez, j’écris…",
+      "default": "Comment puis-je vous aider ?",
+      "noScope": "Choisissez d’abord une portée…"
+    },
+    "attach": {
+      "tooltip": "Joindre un document ou une image (PDF, Word, Excel, CSV)",
+      "tooltipNoImages": "Joindre un document (PDF, Word, Excel, CSV) - {model} ne lit pas les images",
+      "ariaLabel": "Joindre un fichier"
+    },
+    "noImagesTooltip": "Ce modèle ne lit pas les images. Les documents restent analysés : leur texte est extrait avant l’envoi.",
+    "dictation": {
+      "stopTooltip": "Terminer la dictée et transcrire",
+      "tooltip": "Dicter la question - transcription en local, aucun son n’est envoyé",
+      "tooltipGpu": "Dicter la question - transcription en local, aucun son n’est envoyé · accélérée par le GPU (modèle haute précision)",
+      "tooltipCpu": "Dicter la question - transcription en local, aucun son n’est envoyé · calcul processeur (modèle standard)",
+      "stopAriaLabel": "Arrêter la dictée",
+      "startAriaLabel": "Dicter la question",
+      "listening": "Je vous écoute…",
+      "speak": "Parlez - la dictée s’arrête seule après un silence",
+      "downloadingWhileSpeaking": "Téléchargement du modèle {precision, select, high {haute précision} other {standard}} ({percent} %) - le texte apparaîtra ensuite",
+      "micRequested": "Autorisation du microphone demandée au navigateur…",
+      "downloading": "Téléchargement du modèle de dictée {precision, select, high {haute précision} other {standard}} ({percent} %) - une seule fois, puis il reste en cache. La transcription suivra.",
+      "transcribing": "Transcription en cours…"
+    },
+    "stopReply": "Arrêter la réponse"
+  },
+  "settings": {
+    "reasons": {
+      "missing_api_key": "Clé OpenRouter manquante",
+      "no_model": "Aucun modèle sélectionné",
+      "disabled": "Chat désactivé (interrupteur coupé)"
+    },
+    "loadError": "Réglages du chat IA indisponibles",
+    "loading": "Chargement des réglages du chat IA…",
+    "saved": "Chat IA enregistré",
+    "status": {
+      "active": "Chat IA actif",
+      "inactive": "Le chat IA n'est pas actif : {reasons}",
+      "inactiveHidden": "Tant que le chat n'est pas actif, il est masqué pour tout le monde : ni sphère, ni entrée de menu, ni page."
+    },
+    "chat": {
+      "title": "Chat IA",
+      "description": "Assistant conversationnel intégré, adossé aux outils du serveur MCP : il ne voit que ce que l’utilisateur a le droit de voir.",
+      "enable": "Activer le chat IA pour toute l’instance",
+      "note": "Décoché, l’assistant disparaît du menu et la sphère n’est plus proposée, pour tout le monde. L’accès individuel se règle par rôle : « Utiliser l’assistant IA » (lecture) et « Autoriser les modifications par l’assistant IA » (écriture, toujours soumise à la confirmation de l’utilisateur).",
+      "apiKey": {
+        "label": "Clé API OpenRouter",
+        "envManaged": "Définie dans .env",
+        "placeholderConfigured": "•••••••• (enregistrée : laisser vide pour la conserver)",
+        "help": "Le chat passe par OpenRouter seul : routage, confidentialité et lecture des PDF en dépendent. Recommandé : définir OPENROUTER_API_KEY dans le fichier .env (la base la conserve en clair)."
+      },
+      "dictation": "Dictée vocale (Whisper, transcription locale ; le modèle est téléchargé depuis HuggingFace)"
+    },
+    "widget": {
+      "title": "Assistant flottant",
+      "description": "La sphère en bas à droite de chaque écran : le même chat, dans un panneau, dont les outils suivent la page ouverte.",
+      "enable": "Proposer l’assistant flottant sur toutes les pages",
+      "closable": "Laisser l’utilisateur masquer la sphère, jusqu’au prochain chargement de la page",
+      "note": "La sphère n’apparaît qu’à qui a accès au chat IA : chat activé ci-dessus, et rôle qui l’ouvre. Masquer la sphère n’est mémorisé nulle part : elle revient au rechargement de la page."
+    },
+    "models": {
+      "title": "Modèles",
+      "description": "Le modèle par défaut s’applique aux nouvelles conversations ; l’utilisateur peut choisir parmi la liste autorisée. Les changements de modèles s’enregistrent immédiatement.",
+      "load": {
+        "label": "Charger depuis OpenRouter",
+        "tooltip": "Récupère la liste des modèles disponibles chez OpenRouter"
+      },
+      "loaded": "{count, plural, one {# modèle disponible} other {# modèles disponibles}}",
+      "loadFailed": "Liste des modèles indisponible - saisissez l’identifiant à la main",
+      "default": {
+        "label": "Modèle par défaut",
+        "placeholder": "Choisir un modèle",
+        "placeholderEmpty": "Ajoutez d’abord un modèle autorisé"
+      },
+      "allowed": "Modèles autorisés ({count})",
+      "remove": {
+        "ariaLabel": "Retirer {model}",
+        "tooltip": "Retirer de la liste"
+      },
+      "none": "Aucun modèle autorisé.",
+      "add": "Ajouter un modèle",
+      "saved": "Modèles enregistrés"
+    },
+    "privacy": {
+      "title": "Confidentialité et routage",
+      "description": "Options propres à OpenRouter : elles décident qui traite vos échanges et ce qu’il a le droit d’en conserver.",
+      "dataCollection": {
+        "label": "Collecte de données",
+        "deny": "Refusée - fournisseurs qui n’entraînent pas sur vos données",
+        "allow": "Autorisée",
+        "help": "Refusée par défaut : les fournisseurs conservant les échanges sont écartés du routage."
+      },
+      "zdr": {
+        "label": "Rétention zéro (ZDR)",
+        "help": "N’utilise que les points de service qui ne conservent aucun prompt. C’est la garantie la plus forte offerte par OpenRouter ; elle réduit le choix de fournisseurs et peut écarter certains modèles."
+      },
+      "nitro": "Routage nitro - privilégie les fournisseurs les plus rapides, souvent au prix d’un coût plus élevé"
+    },
+    "generation": {
+      "title": "Génération",
+      "description": "Ces réglages pèsent sur la longueur des réponses et sur le temps de réflexion, donc sur le coût de chaque échange.",
+      "reasoning": {
+        "label": "Réflexion par défaut",
+        "options": {
+          "none": "Aucune - réponse immédiate (le moins cher, le plus rapide)",
+          "low": "Courte - un temps d’analyse minimal",
+          "medium": "Moyenne - équilibre entre justesse et délai",
+          "high": "Poussée - analyses longues, calculs délicats"
+        },
+        "help": "Avant de répondre, certains modèles raisonnent à part : plus le niveau est élevé, plus la réponse est fiable sur un calcul ou un écart à expliquer, plus elle est lente et coûteuse - les jetons de réflexion sont facturés. L’utilisateur peut changer ce niveau dans le chat ; un modèle qui ne sait pas raisonner ignore simplement le réglage."
+      },
+      "maxTokens": {
+        "label": "Longueur maximale d’une réponse",
+        "help": "En jetons - environ trois quarts d’un mot chacun. 8 192 correspond à une réponse très longue ; c’est un plafond de sécurité, pas un objectif. Il ne limite pas la conversation, seulement chaque réponse."
+      },
+      "temperature": {
+        "label": "Température",
+        "help": "Marge de liberté du modèle, de 0 à 2. Basse, il reste factuel et reproductible ; haute, il devient inventif. Sur des données de planning, 0,3 est un bon compromis - évitez de monter."
+      },
+      "maxDuration": {
+        "label": "Durée maximale d’une réponse (minutes)",
+        "help": "De 1 à 30 minutes. Une réponse continue et s’achève sur le serveur même si l’utilisateur quitte la page ; passé ce délai, elle est interrompue et ce qui a été rédigé est conservé."
+      },
+      "concurrent": {
+        "label": "Réponses simultanées par utilisateur",
+        "help": "De 1 à 20, toutes conversations confondues. Au-delà, une nouvelle question est refusée tant qu’une réponse n’est pas terminée ou arrêtée. Une conversation n’a jamais qu’une réponse en cours à la fois."
+      }
+    },
+    "prompt": {
+      "title": "Prompt système",
+      "description": "Il enferme l’assistant dans le périmètre du planning : hors de vos données, il refuse. Rédigé en anglais ; l’assistant répond dans la langue de l’utilisateur.",
+      "resetTooltip": "Revenir au prompt d’origine (pensez à enregistrer)",
+      "original": "Prompt d’origine",
+      "help": "est remplacé par le titre de l’application. La règle de typographie (pas de tiret cadratin) s’ajoute toujours, même avec un prompt personnalisé."
+    }
+  },
+  "quotas": {
+    "title": "Quotas du chat IA",
+    "description": "Plafond mensuel par personne, mesuré sur le coût réel des réponses, commun à la page Assistant et à l’assistant flottant. L’utilisateur ne voit qu’une jauge, jamais un montant.",
+    "loading": "Chargement des quotas…",
+    "toast": {
+      "saved": "Quotas du chat IA enregistrés",
+      "resetAll": "Quotas remis à zéro pour tout le monde",
+      "resetOne": "Quota remis à zéro pour {name}",
+      "resetOneUnnamed": "Quota remis à zéro pour ce compte",
+      "unlimitedOn": "Quota levé pour ce compte",
+      "unlimitedOff": "Quota rétabli pour ce compte"
+    },
+    "columns": {
+      "user": "Utilisateur",
+      "usage": "Consommation",
+      "status": "Statut"
+    },
+    "resetOn": "Remis à zéro le {date}",
+    "unlimited": "Illimité",
+    "percent": "{percent} %",
+    "reached": "Atteint",
+    "noQuota": "Sans quota",
+    "unlimitedTooltip": "Quota illimité pour ce compte",
+    "unlimitedAriaLabel": "Quota illimité pour {name}",
+    "resetOneTooltip": "Réinitialiser : remet à zéro la consommation de ce seul compte",
+    "resetOneAriaLabel": "Réinitialiser le quota de {name}",
+    "csv": {
+      "name": "Nom",
+      "email": "E-mail",
+      "usage": "Consommation (USD)",
+      "percent": "Pourcentage",
+      "unlimited": "Illimité",
+      "lastReset": "Dernière réinitialisation propre",
+      "yes": "oui",
+      "no": "non"
+    },
+    "settings": {
+      "title": "Réglages",
+      "period": "Période en cours depuis le {start} · prochaine réinitialisation le {next}.",
+      "enableAriaLabel": "Activer le quota",
+      "amount": {
+        "label": "Montant mensuel par personne",
+        "unit": "$ par mois",
+        "help": "En dollars, comme OpenRouter facture. 0 lève le quota pour tout le monde."
+      },
+      "resetDay": {
+        "label": "Jour de réinitialisation",
+        "help": "Du 1er au 28 du mois, à minuit (fuseau de l’instance) : le jour existe ainsi chaque mois."
+      },
+      "resetAll": {
+        "label": "Réinitialiser pour tout le monde",
+        "tooltip": "Repart de zéro pour tous les comptes, sans attendre le jour de réinitialisation"
+      },
+      "lastGlobalReset": "Dernière remise à zéro générale : {date}."
+    },
+    "searchPlaceholder": "Rechercher un utilisateur…",
+    "exportCsv": "Exporter (CSV)",
+    "confirmResetAll": {
+      "title": "Réinitialiser les quotas de tout le monde ?",
+      "description": "La consommation de chaque compte repart de zéro dès maintenant, quel que soit le jour de réinitialisation. Les réponses en cours vont jusqu’au bout. L’opération est tracée au journal."
+    },
+    "confirmResetOne": {
+      "title": "Réinitialiser le quota de ce compte ?",
+      "description": "La consommation de <b>{name}</b> repart de zéro dès maintenant. L’opération est tracée au journal."
+    }
+  }
+}

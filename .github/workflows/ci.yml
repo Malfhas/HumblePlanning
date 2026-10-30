@@ -1,0 +1,95 @@
+name: CI
+
+# Runs on every pull request and on every push to main. The job names are the
+# required status checks of the main branch: rename them in the ruleset too.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Type check, tests, lint, i18n
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: bun install --frozen-lockfile
+      - name: Type check
+        run: bunx tsc --noEmit
+      - name: Unit tests
+        run: bun test
+      - name: Lint
+        run: bun run lint
+      - name: Translations
+        run: |
+          bun run i18n:check --strict
+          bun run i18n:scan --max 0
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: bun install --frozen-lockfile
+      - name: Build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          # A syntactically valid URL is required at build time; no connection is made.
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/build
+        run: bun run build
+
+  installer:
+    name: Installer scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Syntax and ShellCheck
+        run: |
+          bash -n install.sh
+          bash -n deploy/humble-planning
+          sh -n docker-entrypoint.sh
+          shellcheck -S warning install.sh deploy/humble-planning docker-entrypoint.sh
+
+  dco:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Every commit is signed off by its author
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            author="$(git log -1 --format='%an <%ae>' "$sha")"
+            case "$author" in *"[bot]"*) continue ;; esac
+            if ! git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" | grep -qiF "$author"; then
+              echo "::error::Commit ${sha:0:7} by ${author} is not signed off by its author. Sign it off with 'git commit -s' (see CONTRIBUTING.md)."
+              status=1
+            fi
+          done
+          exit "$status"

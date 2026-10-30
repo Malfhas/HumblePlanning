@@ -1,0 +1,213 @@
+{
+  "common": {
+    "permissionDenied": "Unzureichende Berechtigung",
+    "perPage": "Pro Seite",
+    "total": "{count, plural, one {# Element} other {# Elemente}}",
+    "unnamedUser": "Ohne Namen"
+  },
+  "audit": {
+    "title": "Audit-Protokoll",
+    "purge": "Bereinigen",
+    "clearFilters": "Alle zurücksetzen",
+    "filters": {
+      "type": "Typ",
+      "action": "Aktion",
+      "user": "Benutzer",
+      "source": "Quelle",
+      "start": "Beginn",
+      "end": "Ende"
+    },
+    "entityFilter": {
+      "task": "Aufgaben",
+      "project": "Projekte",
+      "user": "Benutzer",
+      "team": "Teams",
+      "status": "Status",
+      "holiday": "Feiertage",
+      "qualification": "Qualifikationen",
+      "vehicle": "Fahrzeuge",
+      "vehicle_type": "Fahrzeugtypen",
+      "resource": "Ressourcen",
+      "resource_type": "Ressourcentypen",
+      "labor_type": "Arbeitskräftetypen",
+      "project_group": "Projektgruppen",
+      "role": "Rollen",
+      "place": "Orte",
+      "config": "Konfiguration",
+      "api_key": "API-Schlüssel",
+      "mcp_key": "MCP-Schlüssel",
+      "session": "Sitzungen"
+    },
+    "sources": {
+      "all": "Alle Quellen",
+      "web": "Web",
+      "mcp": "MCP",
+      "api": "API"
+    },
+    "columns": {
+      "date": "Datum",
+      "action": "Aktion",
+      "type": "Typ",
+      "item": "Element",
+      "summary": "Zusammenfassung",
+      "concerned": "Betroffen",
+      "by": "Von"
+    },
+    "purgeDialog": {
+      "title": "Audit-Protokoll bereinigen",
+      "description": "Alle Einträge vor dem ausgewählten Datum endgültig löschen.",
+      "datePlaceholder": "Datum auswählen"
+    },
+    "errors": {
+      "moduleDisabled": "Audit-Modul deaktiviert",
+      "notFound": "Protokolleintrag nicht gefunden",
+      "nothingToRestore": "Keine Werte zum Wiederherstellen",
+      "missingEntityId": "Entitäts-ID fehlt",
+      "unsupportedEntityType": "Entitätstyp wird für die Wiederherstellung nicht unterstützt: {entityType}"
+    }
+  },
+  "auditDetail": {
+    "details": "Details",
+    "email": "E-Mail:",
+    "ip": "IP:",
+    "userAgent": "User-Agent:",
+    "type": "Typ:",
+    "recipients": "Empfänger:",
+    "file": "Datei:",
+    "columns": {
+      "field": "Feld",
+      "before": "Vorher",
+      "after": "Nachher",
+      "value": "Wert"
+    }
+  },
+  "restore": {
+    "title": "Wiederherstellung bestätigen",
+    "entityLine": "{entity}: {name}",
+    "project": "Projekt: {name}",
+    "assignedTo": "Zugewiesen an: {names}",
+    "cascade": "{count, plural, one {# neuere Aktion wird ebenfalls rückgängig gemacht:} other {# neuere Aktionen werden ebenfalls rückgängig gemacht:}}",
+    "columns": {
+      "field": "Feld",
+      "current": "Aktueller Stand",
+      "restored": "Wiederhergestellter Stand"
+    },
+    "deleted": "Gelöscht",
+    "noChanges": "Keine Änderungen erkannt"
+  },
+  "files": {
+    "title": "Dateiverwaltung",
+    "purge": "Bereinigen",
+    "searchPlaceholder": "Datei suchen...",
+    "types": {
+      "placeholder": "Typ",
+      "all": "Alle Typen",
+      "image": "Bilder",
+      "pdf": "PDF",
+      "other": "Sonstige"
+    },
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "empty": "Keine Dateien gefunden",
+    "columns": {
+      "name": "Name",
+      "task": "Aufgabe",
+      "project": "Projekt",
+      "uploadedBy": "Hochgeladen von",
+      "date": "Datum",
+      "hash": "Hash",
+      "size": "Größe"
+    },
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB",
+      "gb": "{value} GB"
+    },
+    "viewTask": "Aufgabe anzeigen",
+    "deleteDialog": {
+      "title": "Datei löschen",
+      "description": "Möchten Sie „{name}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "purgeDialog": {
+      "title": "Dateien bereinigen",
+      "description": "Alle vor dem ausgewählten Datum hochgeladenen Dateien endgültig löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "datePlaceholder": "Datum auswählen"
+    },
+    "previewTitle": "Dateivorschau",
+    "errors": {
+      "notFound": "Datei nicht gefunden"
+    }
+  },
+  "filters": {
+    "errors": {
+      "notFound": "Filter nicht gefunden"
+    }
+  },
+  "holidays": {
+    "title": "Feiertage",
+    "searchPlaceholder": "Feiertag suchen...",
+    "columns": {
+      "date": "Datum",
+      "label": "Bezeichnung",
+      "color": "Farbe"
+    },
+    "dialog": {
+      "createTitle": "Feiertag hinzufügen",
+      "editTitle": "Feiertag bearbeiten",
+      "createDescription": "Einen neuen Feiertag erstellen.",
+      "editDescription": "Die Angaben zum Feiertag bearbeiten."
+    },
+    "deleteTitle": "Feiertag löschen",
+    "form": {
+      "date": "Datum",
+      "datePlaceholder": "Datum auswählen",
+      "label": "Bezeichnung",
+      "color": "Farbe"
+    },
+    "import": {
+      "title": "Feiertage importieren",
+      "description": "Importieren Sie die Feiertage eines Landes automatisch über Nager.Date.",
+      "unavailable": "Der Dienst Nager.Date ist derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.",
+      "checkingService": "Dienst wird überprüft...",
+      "country": "Land",
+      "countryPlaceholder": "Land auswählen",
+      "countrySearch": "Land suchen...",
+      "countryEmpty": "Kein Land gefunden",
+      "year": "Jahr",
+      "labelSource": "Importierte Bezeichnungen",
+      "labelSourceLocal": "Lokaler Name (Landessprache)",
+      "labelSourceEnglish": "Englischer Name",
+      "loadingHolidays": "Feiertage werden geladen...",
+      "columns": {
+        "date": "Datum",
+        "label": "Bezeichnung"
+      },
+      "empty": "Keine Feiertage für dieses Land und Jahr gefunden.",
+      "result": "{count, plural, one {<b>#</b> Feiertag importiert} other {<b>#</b> Feiertage importiert}}.",
+      "resultWithSkipped": "{count, plural, one {<b>#</b> Feiertag importiert} other {<b>#</b> Feiertage importiert}}, {skipped, plural, one {<b>#</b> übersprungen (bereits vorhanden)} other {<b>#</b> übersprungen (bereits vorhanden)}}.",
+      "importing": "Wird importiert...",
+      "importButton": "{count, plural, =0 {Importieren} one {# Feiertag importieren} other {# Feiertage importieren}}"
+    },
+    "errors": {
+      "notFound": "Feiertag nicht gefunden",
+      "nagerParamsRequired": "Die Parameter country und year sind erforderlich",
+      "nagerInvalidType": "Ungültiger Typ (status, countries oder holidays)"
+    }
+  },
+  "logs": {
+    "title": "Systemprotokolle",
+    "entries": "{count, plural, one {# Eintrag} other {# Einträge}}",
+    "clear": "Leeren",
+    "levelPlaceholder": "Stufe",
+    "allLevels": "Alle Stufen",
+    "categoryPlaceholder": "Kategorie",
+    "allCategories": "Alle",
+    "loading": "Protokolle werden geladen...",
+    "empty": "Keine Protokolle",
+    "clearDialog": {
+      "title": "Systemprotokolle leeren",
+      "description": "Diese Aktion löscht alle Protokolle im Arbeitsspeicher. Die Protokolle werden nicht dauerhaft gespeichert und gehen endgültig verloren."
+    }
+  }
+}

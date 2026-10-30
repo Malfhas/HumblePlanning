@@ -1,0 +1,20 @@
+# Local development PostgreSQL database (the production stack is in deploy/).
+name: humble-planning
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: humble
+      POSTGRES_PASSWORD: humble_dev
+      POSTGRES_DB: humble_planning
+    volumes:
+      # PostgreSQL 18+ stores its data in /var/lib/postgresql/<version>/docker:
+      # we mount the parent directory, as in deploy/docker-compose.yml.
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

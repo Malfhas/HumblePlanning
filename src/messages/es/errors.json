@@ -1,0 +1,21 @@
+{
+  "unauthenticated": "No autenticado",
+  "sessionExpired": "La sesión ha caducado, vuelva a iniciar sesión",
+  "forbidden": "Acceso no autorizado",
+  "demoRestricted": "Esta acción no está disponible en la instancia de demostración.",
+  "demoAccountLocked": "La cuenta de demostración no se puede modificar.",
+  "notFound": "Elemento no encontrado",
+  "invalidData": "Datos no válidos",
+  "invalidId": "Identificador no válido",
+  "invalidRequest": "Solicitud no válida",
+  "invalidOrigin": "Origen de la solicitud rechazado",
+  "rateLimited": "Demasiadas solicitudes, inténtelo de nuevo dentro de un minuto",
+  "internal": "Error interno del servidor",
+  "network": "Error de red",
+  "unknown": "Error desconocido",
+  "conflict": "Este valor ya está en uso",
+  "apiDisabled": "Acceso a la API desactivado",
+  "invalidApiKey": "Clave de API no válida",
+  "fileTooLargeMax": "Archivo demasiado grande. Máximo: {max}",
+  "noFile": "No se ha proporcionado ningún archivo"
+}

@@ -1,0 +1,226 @@
+{
+  "accessDenied": "Access denied. The <code>pages:settings</code> permission is required.",
+  "toc": {
+    "title": "API documentation",
+    "general": "General",
+    "endpoints": "Endpoints"
+  },
+  "header": {
+    "title": "REST API documentation",
+    "subtitle": "Complete reference for the {appName} API. Integrate your tools and automate your planning.",
+    "apiKeyBadge": "API key",
+    "baseUrl": "Base URL: <code>{baseUrl}</code>"
+  },
+  "sections": {
+    "introduction": "Introduction",
+    "authentication": "Authentication",
+    "rateLimiting": "Rate limiting",
+    "errors": "Error handling",
+    "language": "Response language",
+    "pagination": "Pagination"
+  },
+  "code": {
+    "apiKeyPlaceholder": "hp_your_api_key"
+  },
+  "intro": {
+    "p1": "The {appName} API is a REST API that lets you read and manipulate your planning data programmatically. All responses are in JSON format (except exports, which return files).",
+    "p2": "The base URL for all requests is <code>{baseUrl}</code> (the paths below start with /api). Every request must include a valid <code>Authorization</code> header."
+  },
+  "auth": {
+    "p1": "The API uses API key authentication. Every request must include the HTTP <code>Authorization</code> header with the <code>Bearer</code> prefix.",
+    "p2": "API keys use the format <code>hp_</code> followed by 64 hexadecimal characters. They are created in Settings > API access (“settings:edit” permission, API access enabled) and are shown only once.",
+    "p3": "A key acts with all the permissions of the user who created it. If API access is disabled, every key-authenticated request returns <code>503</code> “{message}”; an unknown or deleted key returns <code>401</code>.",
+    "codeHeaderComment": "Authentication header",
+    "codeExampleComment": "Full example",
+    "securityTitle": "Security",
+    "securityText": "Never share your API key. Do not include it in client-side source code. Store it in environment variables. If it is compromised, delete the key immediately (it becomes invalid) and create a new one."
+  },
+  "rateLimiting": {
+    "text": "Calls authenticated with an API key are limited to <b>120 requests per minute per key</b> and <b>300 requests per minute per IP address</b>. Beyond that, the API responds with <code>429 Too Many Requests</code>: wait until the next minute before retrying. No <code>X-RateLimit-*</code> headers are returned. Space out automated calls and prefer date filters on large lists."
+  },
+  "errorHandling": {
+    "intro": "The API uses standard HTTP status codes. When an error occurs, the response body contains a JSON object with an <code>error</code> field describing the problem.",
+    "codeIntro": "The <code>error</code> text is written in the language of the request (see <link>Response language</link>). To identify an error in an integration, use the <code>code</code> field instead: a stable identifier (for example <code>errors.notFound</code>) that is the same in every language.",
+    "fieldsTitle": "Error response fields",
+    "fields": {
+      "error": "Human-readable message, written in the language of the request",
+      "code": "Stable error identifier (message key, for example errors.forbidden or errors.rateLimited). It does not depend on the language.",
+      "params": "Optional. Values inserted into the message (for example a limit or a date)",
+      "fields": "Optional. Per-field errors for the request body: each affected field is mapped to its translated message",
+      "details": "Optional. Technical details, for example the list of validation errors (422)"
+    },
+    "notFoundExample": "Error example (404)",
+    "validationExample": "Validation error example (422)",
+    "statuses": {
+      "ok": "Request completed successfully",
+      "created": "Resource created successfully",
+      "badRequest": "Invalid or missing parameters",
+      "unauthorized": "Missing or invalid API key",
+      "forbidden": "Insufficient permissions for this action",
+      "notFound": "Resource not found",
+      "conflict": "Duplicate, locked task or daily task limit reached",
+      "unprocessable": "Request body rejected by validation (see details)",
+      "tooManyRequests": "Rate limit exceeded (per key or per IP address)",
+      "unavailable": "API access disabled in the settings",
+      "internal": "Internal server error"
+    }
+  },
+  "language": {
+    "intro": "Error messages (<code>error</code>, <code>fields</code>) and exported files (PDF, Excel, CSV, iCal) are written in French, English, Spanish or German. Data entered by users (project names, statuses, places…) is not translated, and the <code>code</code> field is the same in every language.",
+    "order": "The language of each request is determined in this order:",
+    "steps": {
+      "cookie": "the <code>HP_LOCALE</code> cookie (<code>fr</code>, <code>en</code>, <code>es</code> or <code>de</code>), set by the language selector of the interface;",
+      "instance": "the instance “Default language” setting (<code>APP_LOCALE</code>, Settings > General > Application), when it enforces a language instead of “Automatic”;",
+      "acceptLanguage": "the <code>Accept-Language</code> request header (first supported language, according to the <code>q</code> weights);",
+      "fallback": "otherwise, French."
+    },
+    "apiKeyTip": "Calls made with an API key usually do not send cookies: add the <code>Accept-Language</code> header to choose the language of the messages (unless the instance enforces a language).",
+    "icalTip": "Token-based iCal calendar subscriptions follow the language of the token owner (the last language they used in the interface)."
+  },
+  "pagination": {
+    "p1": "Only <code>GET /api/tasks</code> is paginated (other lists return a JSON array directly). It accepts the <code>page</code> and <code>limit</code> parameters.",
+    "p2": "The response includes the pagination metadata in the root object:",
+    "fields": {
+      "data": "Array of results for the current page",
+      "total": "Total number of results matching the filters",
+      "page": "Current page number (starts at 1)",
+      "limit": "Maximum number of results per page"
+    }
+  },
+  "table": {
+    "parameter": "Parameter",
+    "type": "Type",
+    "required": "Required",
+    "description": "Description",
+    "code": "Code",
+    "meaning": "Meaning",
+    "field": "Field",
+    "yes": "yes",
+    "no": "no"
+  },
+  "endpoint": {
+    "queryParams": "Query parameters",
+    "body": "Request body (JSON)",
+    "curlExample": "curl example",
+    "responseExample": "Example response",
+    "count": "{count, plural, one {# endpoint} other {# endpoints}}",
+    "binaryFile": "(binary file)",
+    "csvExample": "Content-Type: text/csv\nContent-Disposition: attachment; filename=\"planning_20260401.csv\"\n\nTitle;Project;Start date;End date;Start time;End time;Assignees;Status;Location;Resource;Notes;Milestone;Link\nInstallation;Project Alpha;01/04/2026;03/04/2026;;;John Smith;In progress;;;;No;"
+  },
+  "categories": {
+    "tasks": "Tasks",
+    "projects": "Projects",
+    "users": "Users",
+    "teams": "Teams",
+    "statuses": "Statuses",
+    "places": "Places",
+    "resources": "Resources",
+    "holidays": "Public holidays",
+    "vehicles": "Vehicles",
+    "config": "Configuration",
+    "export": "Export"
+  },
+  "endpoints": {
+    "tasks": {
+      "list": "Retrieves the list of tasks, with optional filters and pagination.",
+      "create": "Creates a new task.",
+      "get": "Retrieves the full details of a task, including the assigned users and files.",
+      "update": "Updates an existing task. Only the fields sent are changed (partial update).",
+      "delete": "Permanently deletes a task and its attached files. Returns the deleted task."
+    },
+    "projects": {
+      "list": "Retrieves the list of projects. Archived projects are excluded by default.",
+      "create": "Creates a new project.",
+      "get": "Retrieves the details of a project, with its owner and group.",
+      "update": "Updates an existing project (partial update).",
+      "delete": "Permanently deletes a project AND all its tasks (cascade deletion). Returns the deleted project."
+    },
+    "users": {
+      "list": "Retrieves the list of users, with their team and role.",
+      "get": "Retrieves the full details of a user (profile, team, role, qualifications)."
+    },
+    "teams": {
+      "list": "Retrieves the list of all teams.",
+      "get": "Retrieves the details of a team, with the list of its members."
+    },
+    "statuses": {
+      "list": "Retrieves all available task statuses (used in tasks and filters)."
+    },
+    "places": {
+      "list": "Retrieves all available places."
+    },
+    "resources": {
+      "list": "Retrieves all available equipment resources."
+    },
+    "holidays": {
+      "list": "Retrieves the public holidays within a given date range."
+    },
+    "vehicles": {
+      "list": "Retrieves the list of all vehicles.",
+      "assignments": "Retrieves vehicle assignments, with optional filters."
+    },
+    "config": {
+      "get": "Retrieves all the application configuration settings (key/value pairs)."
+    },
+    "export": {
+      "csv": "Exports tasks in CSV format (; separator). Requires the export:use permission. Without dates: from today to today + 30 days.",
+      "excel": "Exports tasks in Excel format (.xlsx). Requires the export:use permission. Same parameters as the CSV export.",
+      "pdf": "Exports tasks in PDF format (Gantt). Requires the export:use permission. Same parameters as the CSV export, plus paperSize and orientation.",
+      "ical": "Exports all the tasks assigned to the authenticated user in iCalendar format (.ics), with no filters."
+    }
+  },
+  "params": {
+    "filterProjectId": "Filter by project ID",
+    "filterUserId": "Filter by assigned user ID",
+    "filterStatusId": "Filter by status ID",
+    "minStartDate": "Minimum start date",
+    "maxEndDate": "Maximum end date",
+    "searchTitleNotes": "Text search in the title and notes",
+    "page": "Page number (default: 1)",
+    "limit": "Number of results per page (default: 200, max: 10000)",
+    "projectId": "Project ID",
+    "userIds": "IDs of the assigned users",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "endDateOptional": "End date (optional: without an end date, the task lasts one day)",
+    "taskTitle": "Task title",
+    "notes": "Notes or long description",
+    "statusId": "Status ID",
+    "placeId": "Place ID",
+    "resourceId": "Resource ID",
+    "duration": "Duration (hours:minutes)",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "isMilestone": "Mark as a milestone (default: false)",
+    "files": "Metadata of files already uploaded (uploads go through POST /api/tasks/[id]/files, as multipart)",
+    "taskIdUnique": "Unique task ID (URL parameter)",
+    "taskId": "Task ID (URL parameter)",
+    "newTitle": "New title",
+    "newStartDate": "New start date",
+    "newEndDate": "New end date",
+    "newStatus": "New status",
+    "newUserIds": "New assigned users",
+    "deleteScope": "Recurring tasks: single (default), all, before or after",
+    "searchProjectName": "Text search in the project name",
+    "includeArchived": "Include archived projects (default: false)",
+    "projectName": "Project name",
+    "projectColor": "Hexadecimal colour #RRGGBB (default: #FFFFFF)",
+    "projectStatus": "Project status: \"todo\" (default), \"in_progress\", \"done\" or \"archived\"",
+    "ownerId": "Owner ID",
+    "groupId": "Project group ID (optional)",
+    "projectDescription": "Project description",
+    "projectIdUrl": "Project ID (URL parameter)",
+    "newName": "New name",
+    "newColor": "New colour",
+    "newProjectStatus": "New status (todo, in_progress, done, archived)",
+    "newOwner": "New owner",
+    "searchUser": "Search by last name, first name or email",
+    "userIdUrl": "User ID (URL parameter)",
+    "teamIdUrl": "Team ID (URL parameter)",
+    "rangeStart": "Start date of the range",
+    "rangeEnd": "End date of the range",
+    "filterVehicle": "Filter by vehicle",
+    "filterProjects": "Filter by projects (comma-separated IDs)",
+    "filterUsers": "Filter by users (comma-separated IDs)"
+  }
+}

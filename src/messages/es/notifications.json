@@ -1,0 +1,78 @@
+{
+  "bell": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "deleteAll": "Eliminar todo",
+    "empty": "No hay notificaciones",
+    "ariaLabel": "Notificaciones"
+  },
+  "types": {
+    "task_created": "Asignación",
+    "task_deleted": "Eliminación",
+    "task_updated": "Modificación",
+    "task_title_changed": "Modificación",
+    "task_dates_changed": "Fechas modificadas",
+    "task_times_changed": "Horarios modificados",
+    "task_status_changed": "Estado modificado",
+    "task_project_changed": "Proyecto modificado",
+    "task_notes_changed": "Notas modificadas",
+    "task_user_added": "Usuario añadido",
+    "task_user_removed": "Usuario retirado",
+    "task_file_added": "Archivo añadido",
+    "task_file_deleted": "Archivo eliminado"
+  },
+  "task": {
+    "untitled": "Tarea",
+    "assigned": "Tarea asignada por {actor} para el {date}",
+    "assignedNoActor": "Tarea asignada para el {date}",
+    "changed": {
+      "title": "Título modificado por {actor} · {date}",
+      "titleNoActor": "Título modificado · {date}",
+      "dates": "Fechas modificadas por {actor} · {date}",
+      "datesNoActor": "Fechas modificadas · {date}",
+      "times": "Horarios modificados por {actor} · {date}",
+      "timesNoActor": "Horarios modificados · {date}",
+      "status": "Estado modificado por {actor} · {date}",
+      "statusNoActor": "Estado modificado · {date}",
+      "project": "Proyecto modificado por {actor} · {date}",
+      "projectNoActor": "Proyecto modificado · {date}",
+      "notes": "Notas modificadas por {actor} · {date}",
+      "notesNoActor": "Notas modificadas · {date}",
+      "other": "Tarea modificada por {actor} · {date}",
+      "otherNoActor": "Tarea modificada · {date}"
+    },
+    "deleted": "Tarea eliminada por {actor} · {date}",
+    "deletedNoActor": "Tarea eliminada · {date}",
+    "removedFromTask": "{actor} le ha retirado de esta tarea",
+    "removedFromTaskNoActor": "Se le ha retirado de esta tarea",
+    "fileAdded": "Archivo «{fileName}» añadido por {actor}",
+    "fileAddedNoActor": "Archivo «{fileName}» añadido",
+    "fileDeleted": "Archivo «{fileName}» eliminado por {actor}",
+    "fileDeletedNoActor": "Archivo «{fileName}» eliminado"
+  },
+  "sms": {
+    "events": {
+      "created": "Tarea creada",
+      "updated": "Tarea modificada",
+      "deleted": "Tarea eliminada"
+    },
+    "test": {
+      "event": "Prueba",
+      "project": "Configuración",
+      "message": "Conexión con Sent.dm correcta"
+    }
+  },
+  "errors": {
+    "weeklyNoTasks": "No hay ninguna tarea prevista para la semana que viene, no se ha enviado el correo electrónico",
+    "phoneRequired": "Se requiere el número de teléfono del destinatario",
+    "sendFailed": "Error en el envío: {reason}",
+    "sms": {
+      "disabled": "La función SMS / WhatsApp está desactivada — disponible próximamente",
+      "notConfigured": "Sent.dm no está configurado (falta la clave de API, el sender ID o el template ID)"
+    },
+    "email": {
+      "blocked": "Este correo electrónico está bloqueado (rebote o queja por spam). Desbloquéelo en Configuración > Correo electrónico.",
+      "disabled": "Envío de correo electrónico desactivado: faltan las credenciales del proveedor «{provider}» ({keys}). Indíquelas en Configuración > Correo electrónico o en el archivo .env."
+    }
+  }
+}

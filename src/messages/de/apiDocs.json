@@ -1,0 +1,226 @@
+{
+  "accessDenied": "Zugriff verweigert. Die Berechtigung <code>pages:settings</code> ist erforderlich.",
+  "toc": {
+    "title": "API-Dokumentation",
+    "general": "Allgemein",
+    "endpoints": "Endpunkte"
+  },
+  "header": {
+    "title": "REST-API-Dokumentation",
+    "subtitle": "Vollständige Referenz der {appName}-API. Integrieren Sie Ihre Tools und automatisieren Sie Ihre Planung.",
+    "apiKeyBadge": "API-Schlüssel",
+    "baseUrl": "Basis-URL: <code>{baseUrl}</code>"
+  },
+  "sections": {
+    "introduction": "Einführung",
+    "authentication": "Authentifizierung",
+    "rateLimiting": "Ratenbegrenzung",
+    "errors": "Fehlerbehandlung",
+    "language": "Sprache der Antworten",
+    "pagination": "Paginierung"
+  },
+  "code": {
+    "apiKeyPlaceholder": "hp_ihr_api_schluessel"
+  },
+  "intro": {
+    "p1": "Die {appName}-API ist eine REST-API, mit der Sie die Daten Ihrer Planung programmgesteuert lesen und bearbeiten können. Alle Antworten sind im JSON-Format (außer Exporten, die Dateien zurückgeben).",
+    "p2": "Die Basis-URL aller Anfragen ist <code>{baseUrl}</code> (die folgenden Pfade beginnen mit /api). Jede Anfrage muss einen gültigen <code>Authorization</code>-Header enthalten."
+  },
+  "auth": {
+    "p1": "Die API verwendet eine Authentifizierung per API-Schlüssel. Jede Anfrage muss den HTTP-Header <code>Authorization</code> mit dem Präfix <code>Bearer</code> enthalten.",
+    "p2": "API-Schlüssel haben das Format <code>hp_</code>, gefolgt von 64 Hexadezimalzeichen. Sie werden unter Einstellungen > API-Zugriff erstellt (Berechtigung „settings:edit“, API-Zugriff aktiviert) und nur einmal angezeigt.",
+    "p3": "Ein Schlüssel handelt mit allen Berechtigungen des Benutzers, der ihn erstellt hat. Ist der API-Zugriff deaktiviert, gibt jede Anfrage per Schlüssel <code>503</code> „{message}“ zurück; ein unbekannter oder gelöschter Schlüssel gibt <code>401</code> zurück.",
+    "codeHeaderComment": "Authentifizierungs-Header",
+    "codeExampleComment": "Vollständiges Beispiel",
+    "securityTitle": "Sicherheit",
+    "securityText": "Geben Sie Ihren API-Schlüssel niemals weiter. Fügen Sie ihn nicht in clientseitigen Quellcode ein. Speichern Sie ihn in Umgebungsvariablen. Wurde er kompromittiert, löschen Sie den Schlüssel sofort (er wird ungültig) und erstellen Sie einen neuen."
+  },
+  "rateLimiting": {
+    "text": "Per API-Schlüssel authentifizierte Aufrufe sind auf <b>120 Anfragen pro Minute und Schlüssel</b> sowie auf <b>300 Anfragen pro Minute und IP-Adresse</b> begrenzt. Darüber hinaus antwortet die API mit <code>429 Too Many Requests</code>: Warten Sie bis zur nächsten Minute, bevor Sie es erneut versuchen. Es werden keine <code>X-RateLimit-*</code>-Header zurückgegeben. Verteilen Sie automatisierte Aufrufe zeitlich und nutzen Sie bei umfangreichen Listen bevorzugt Datumsfilter."
+  },
+  "errorHandling": {
+    "intro": "Die API verwendet die Standard-HTTP-Statuscodes. Im Fehlerfall enthält der Antworttext ein JSON-Objekt mit dem Feld <code>error</code>, das das Problem beschreibt.",
+    "codeIntro": "Der Text von <code>error</code> ist in der Sprache der Anfrage verfasst (siehe <link>Sprache der Antworten</link>). Um einen Fehler in einer Integration zu erkennen, verwenden Sie besser das Feld <code>code</code>: eine stabile Kennung (zum Beispiel <code>errors.notFound</code>), die in allen Sprachen identisch ist.",
+    "fieldsTitle": "Felder einer Fehlerantwort",
+    "fields": {
+      "error": "Lesbare Meldung in der Sprache der Anfrage",
+      "code": "Stabile Fehlerkennung (Meldungsschlüssel, zum Beispiel errors.forbidden oder errors.rateLimited). Sie hängt nicht von der Sprache ab.",
+      "params": "Optional. In die Meldung eingefügte Werte (zum Beispiel ein Grenzwert oder ein Datum)",
+      "fields": "Optional. Fehler pro Feld des Anfragetexts: Jedem betroffenen Feld ist seine übersetzte Meldung zugeordnet",
+      "details": "Optional. Technische Details, zum Beispiel die Liste der Validierungsfehler (422)"
+    },
+    "notFoundExample": "Fehlerbeispiel (404)",
+    "validationExample": "Beispiel für einen Validierungsfehler (422)",
+    "statuses": {
+      "ok": "Anfrage erfolgreich ausgeführt",
+      "created": "Ressource erfolgreich erstellt",
+      "badRequest": "Ungültige oder fehlende Parameter",
+      "unauthorized": "API-Schlüssel fehlt oder ist ungültig",
+      "forbidden": "Unzureichende Berechtigungen für diese Aktion",
+      "notFound": "Ressource nicht gefunden",
+      "conflict": "Duplikat, gesperrte Aufgabe oder Tageslimit für Aufgaben erreicht",
+      "unprocessable": "Anfragetext von der Validierung abgelehnt (Details in details)",
+      "tooManyRequests": "Ratenbegrenzung überschritten (pro Schlüssel oder pro IP-Adresse)",
+      "unavailable": "API-Zugriff in den Einstellungen deaktiviert",
+      "internal": "Interner Serverfehler"
+    }
+  },
+  "language": {
+    "intro": "Fehlermeldungen (<code>error</code>, <code>fields</code>) und exportierte Dateien (PDF, Excel, CSV, iCal) sind auf Französisch, Englisch, Spanisch oder Deutsch verfasst. Eingegebene Daten (Projektnamen, Status, Orte…) werden nicht übersetzt, und das Feld <code>code</code> ist in allen Sprachen identisch.",
+    "order": "Die Sprache jeder Anfrage wird in dieser Reihenfolge bestimmt:",
+    "steps": {
+      "cookie": "das Cookie <code>HP_LOCALE</code> (<code>fr</code>, <code>en</code>, <code>es</code> oder <code>de</code>), gesetzt durch die Sprachauswahl der Oberfläche;",
+      "instance": "die Einstellung „Standardsprache“ der Instanz (<code>APP_LOCALE</code>, Einstellungen > Allgemein > Anwendung), wenn sie anstelle von „Automatisch“ eine Sprache vorgibt;",
+      "acceptLanguage": "der Header <code>Accept-Language</code> der Anfrage (erste unterstützte Sprache, gemäß den <code>q</code>-Gewichtungen);",
+      "fallback": "andernfalls Französisch."
+    },
+    "apiKeyTip": "Aufrufe per API-Schlüssel senden in der Regel kein Cookie: Fügen Sie den Header <code>Accept-Language</code> hinzu, um die Sprache der Meldungen zu wählen (sofern die Instanz keine Sprache vorgibt).",
+    "icalTip": "iCal-Kalenderabonnements per Token folgen der Sprache des Token-Inhabers (der Sprache, die er zuletzt in der Oberfläche verwendet hat)."
+  },
+  "pagination": {
+    "p1": "Nur <code>GET /api/tasks</code> ist paginiert (die anderen Listen geben direkt ein JSON-Array zurück). Der Endpunkt akzeptiert die Parameter <code>page</code> und <code>limit</code>.",
+    "p2": "Die Antwort enthält die Paginierungsmetadaten im Stammobjekt:",
+    "fields": {
+      "data": "Array der Ergebnisse der aktuellen Seite",
+      "total": "Gesamtzahl der Ergebnisse, die den Filtern entsprechen",
+      "page": "Nummer der aktuellen Seite (beginnt bei 1)",
+      "limit": "Maximale Anzahl an Ergebnissen pro Seite"
+    }
+  },
+  "table": {
+    "parameter": "Parameter",
+    "type": "Typ",
+    "required": "Erforderlich",
+    "description": "Beschreibung",
+    "code": "Code",
+    "meaning": "Bedeutung",
+    "field": "Feld",
+    "yes": "ja",
+    "no": "nein"
+  },
+  "endpoint": {
+    "queryParams": "Abfrageparameter",
+    "body": "Anfragetext (JSON)",
+    "curlExample": "curl-Beispiel",
+    "responseExample": "Beispielantwort",
+    "count": "{count, plural, one {# Endpunkt} other {# Endpunkte}}",
+    "binaryFile": "(Binärdatei)",
+    "csvExample": "Content-Type: text/csv\nContent-Disposition: attachment; filename=\"planning_20260401.csv\"\n\nTitel;Projekt;Startdatum;Enddatum;Startzeit;Endzeit;Zugewiesen;Status;Ort;Ressource;Notizen;Meilenstein;Link\nInstallation;Projekt Alpha;01/04/2026;03/04/2026;;;Max Mustermann;In Bearbeitung;;;;Nein;"
+  },
+  "categories": {
+    "tasks": "Aufgaben",
+    "projects": "Projekte",
+    "users": "Benutzer",
+    "teams": "Teams",
+    "statuses": "Status",
+    "places": "Orte",
+    "resources": "Ressourcen",
+    "holidays": "Feiertage",
+    "vehicles": "Fahrzeuge",
+    "config": "Konfiguration",
+    "export": "Export"
+  },
+  "endpoints": {
+    "tasks": {
+      "list": "Ruft die Liste der Aufgaben mit optionalen Filtern und Paginierung ab.",
+      "create": "Erstellt eine neue Aufgabe.",
+      "get": "Ruft alle Details einer Aufgabe ab, einschließlich der zugewiesenen Benutzer und der Dateien.",
+      "update": "Aktualisiert eine bestehende Aufgabe. Nur die gesendeten Felder werden geändert (Teilaktualisierung).",
+      "delete": "Löscht eine Aufgabe und ihre zugehörigen Dateien endgültig. Gibt die gelöschte Aufgabe zurück."
+    },
+    "projects": {
+      "list": "Ruft die Liste der Projekte ab. Archivierte Projekte sind standardmäßig ausgeschlossen.",
+      "create": "Erstellt ein neues Projekt.",
+      "get": "Ruft die Details eines Projekts mit seinem Verantwortlichen und seiner Gruppe ab.",
+      "update": "Aktualisiert ein bestehendes Projekt (Teilaktualisierung).",
+      "delete": "Löscht ein Projekt UND alle seine Aufgaben endgültig (kaskadierendes Löschen). Gibt das gelöschte Projekt zurück."
+    },
+    "users": {
+      "list": "Ruft die Liste der Benutzer mit ihrem Team und ihrer Rolle ab.",
+      "get": "Ruft alle Details eines Benutzers ab (Profil, Team, Rolle, Qualifikationen)."
+    },
+    "teams": {
+      "list": "Ruft die Liste aller Teams ab.",
+      "get": "Ruft die Details eines Teams mit der Liste seiner Mitglieder ab."
+    },
+    "statuses": {
+      "list": "Ruft alle verfügbaren Aufgabenstatus ab (verwendet in Aufgaben und Filtern)."
+    },
+    "places": {
+      "list": "Ruft alle verfügbaren Orte ab."
+    },
+    "resources": {
+      "list": "Ruft alle verfügbaren materiellen Ressourcen ab."
+    },
+    "holidays": {
+      "list": "Ruft die Feiertage in einem bestimmten Datumsbereich ab."
+    },
+    "vehicles": {
+      "list": "Ruft die Liste aller Fahrzeuge ab.",
+      "assignments": "Ruft die Fahrzeugzuweisungen ab, mit optionalen Filtern."
+    },
+    "config": {
+      "get": "Ruft alle Konfigurationseinstellungen der Anwendung ab (Schlüssel-Wert-Paare)."
+    },
+    "export": {
+      "csv": "Exportiert Aufgaben im CSV-Format (Trennzeichen ;). Berechtigung export:use. Ohne Datumsangaben: von heute bis heute + 30 Tage.",
+      "excel": "Exportiert Aufgaben im Excel-Format (.xlsx). Berechtigung export:use. Gleiche Parameter wie beim CSV-Export.",
+      "pdf": "Exportiert Aufgaben im PDF-Format (Gantt). Berechtigung export:use. Gleiche Parameter wie beim CSV-Export, zusätzlich paperSize und orientation.",
+      "ical": "Exportiert alle dem authentifizierten Benutzer zugewiesenen Aufgaben im iCalendar-Format (.ics), ohne Filter."
+    }
+  },
+  "params": {
+    "filterProjectId": "Nach Projekt-ID filtern",
+    "filterUserId": "Nach ID des zugewiesenen Benutzers filtern",
+    "filterStatusId": "Nach Status-ID filtern",
+    "minStartDate": "Frühestes Startdatum",
+    "maxEndDate": "Spätestes Enddatum",
+    "searchTitleNotes": "Textsuche in Titel und Notizen",
+    "page": "Seitennummer (Standard: 1)",
+    "limit": "Anzahl der Ergebnisse pro Seite (Standard: 200, max.: 10000)",
+    "projectId": "Projekt-ID",
+    "userIds": "IDs der zugewiesenen Benutzer",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "endDateOptional": "Enddatum (optional: ohne Enddatum dauert die Aufgabe einen Tag)",
+    "taskTitle": "Titel der Aufgabe",
+    "notes": "Notizen oder ausführliche Beschreibung",
+    "statusId": "Status-ID",
+    "placeId": "Orts-ID",
+    "resourceId": "Ressourcen-ID",
+    "duration": "Dauer (Stunden:Minuten)",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "isMilestone": "Als Meilenstein markieren (Standard: false)",
+    "files": "Metadaten bereits hochgeladener Dateien (der Upload erfolgt über POST /api/tasks/[id]/files, als Multipart)",
+    "taskIdUnique": "Eindeutige Aufgaben-ID (URL-Parameter)",
+    "taskId": "Aufgaben-ID (URL-Parameter)",
+    "newTitle": "Neuer Titel",
+    "newStartDate": "Neues Startdatum",
+    "newEndDate": "Neues Enddatum",
+    "newStatus": "Neuer Status",
+    "newUserIds": "Neue zugewiesene Benutzer",
+    "deleteScope": "Wiederkehrende Aufgaben: single (Standard), all, before oder after",
+    "searchProjectName": "Textsuche im Projektnamen",
+    "includeArchived": "Archivierte Projekte einbeziehen (Standard: false)",
+    "projectName": "Projektname",
+    "projectColor": "Hexadezimale Farbe #RRGGBB (Standard: #FFFFFF)",
+    "projectStatus": "Projektstatus: \"todo\" (Standard), \"in_progress\", \"done\" oder \"archived\"",
+    "ownerId": "ID des Verantwortlichen",
+    "groupId": "ID der Projektgruppe (optional)",
+    "projectDescription": "Projektbeschreibung",
+    "projectIdUrl": "Projekt-ID (URL-Parameter)",
+    "newName": "Neuer Name",
+    "newColor": "Neue Farbe",
+    "newProjectStatus": "Neuer Status (todo, in_progress, done, archived)",
+    "newOwner": "Neuer Verantwortlicher",
+    "searchUser": "Suche nach Nachname, Vorname oder E-Mail",
+    "userIdUrl": "Benutzer-ID (URL-Parameter)",
+    "teamIdUrl": "Team-ID (URL-Parameter)",
+    "rangeStart": "Startdatum des Zeitraums",
+    "rangeEnd": "Enddatum des Zeitraums",
+    "filterVehicle": "Nach Fahrzeug filtern",
+    "filterProjects": "Nach Projekten filtern (kommagetrennte IDs)",
+    "filterUsers": "Nach Benutzern filtern (kommagetrennte IDs)"
+  }
+}

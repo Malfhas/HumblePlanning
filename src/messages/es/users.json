@@ -1,0 +1,232 @@
+{
+  "shared": {
+    "insufficientPermission": "Permiso insuficiente",
+    "selectBu": "Seleccionar una BU",
+    "noBu": "Ninguna Business Unit",
+    "fields": {
+      "nameRequired": "Nombre *",
+      "color": "Color",
+      "colorRequired": "Color *",
+      "businessUnitRequired": "Business Unit *",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Descripción opcional...",
+      "preview": "Vista previa"
+    },
+    "validation": {
+      "nameRequired": "El nombre es obligatorio",
+      "businessUnitRequired": "La Business Unit es obligatoria",
+      "roleRequired": "El rol es obligatorio",
+      "usernameRequired": "El nombre de usuario es obligatorio",
+      "numberRequired": "El número es obligatorio"
+    }
+  },
+  "list": {
+    "title": "Usuarios",
+    "columns": {
+      "name": "Nombre",
+      "login": "Nombre de usuario",
+      "email": "Correo electrónico",
+      "team": "Equipo",
+      "role": "Rol",
+      "businessUnit": "BU",
+      "qualifications": "Habilitaciones",
+      "job": "Puesto"
+    },
+    "actions": {
+      "reactivate": "Reactivar",
+      "deletePermanently": "Eliminar definitivamente"
+    },
+    "filters": {
+      "team": "Equipo",
+      "role": "Rol",
+      "businessUnit": "BU",
+      "qualification": "Habilitación",
+      "inactive": "Inactivos",
+      "searchPlaceholder": "Buscar un usuario..."
+    },
+    "count": "{count, plural, one {# usuario} other {# usuarios}}",
+    "dialog": {
+      "editTitle": "Editar el usuario",
+      "duplicateTitle": "Duplicar un usuario",
+      "createTitle": "Nuevo usuario",
+      "editDescription": "Modifique la información del usuario.",
+      "duplicateDescription": "Los campos generales se han rellenado previamente. Indique el nombre, el correo electrónico y el nombre de usuario para crear el usuario.",
+      "createDescription": "Rellene la información para crear un usuario."
+    },
+    "archive": {
+      "reactivateTitle": "Reactivar el usuario",
+      "deactivateTitle": "Desactivar el usuario",
+      "reactivateDescription": "El usuario podrá volver a iniciar sesión y aparecerá en las listas.",
+      "deactivateDescription": "El usuario ya no podrá iniciar sesión y quedará oculto de forma predeterminada. Sus datos se conservan.",
+      "reactivateConfirm": "Reactivar",
+      "deactivateConfirm": "Desactivar"
+    },
+    "delete": {
+      "title": "Eliminar definitivamente el usuario",
+      "description": "Esta acción es irreversible. Se eliminarán todos los datos del usuario (cuenta, sesiones, historial de contraseñas). Las tareas asignadas únicamente a este usuario también se eliminarán. ¿Desea continuar?"
+    }
+  },
+  "form": {
+    "tabs": {
+      "general": "General",
+      "security": "Seguridad",
+      "details": "Detalles"
+    },
+    "sections": {
+      "identity": "Identidad",
+      "organisation": "Organización",
+      "password": "Contraseña",
+      "qualifications": "Habilitaciones",
+      "personal": "Información personal",
+      "options": "Opciones"
+    },
+    "fields": {
+      "lastNameRequired": "Apellidos *",
+      "firstName": "Nombre",
+      "email": "Correo electrónico",
+      "username": "Nombre de usuario *",
+      "team": "Equipo",
+      "laborType": "Tipo de mano de obra",
+      "role": "Rol *",
+      "job": "Puesto",
+      "contract": "Contrato",
+      "password": "Contraseña",
+      "phone": "Teléfono fijo",
+      "mobile": "Teléfono móvil",
+      "address": "Dirección postal",
+      "comment": "Comentario",
+      "commentPlaceholder": "Notas libres...",
+      "active": "Usuario activo",
+      "visibleOnPlanning": "Visible en la planificación",
+      "emailNotifications": "Notificaciones por correo electrónico",
+      "pushNotifications": "Notificaciones push",
+      "smsNotifications": "Notificaciones por SMS / WhatsApp"
+    },
+    "pickers": {
+      "noTeam": "Ningún equipo",
+      "noType": "Ningún tipo",
+      "selectRole": "Seleccionar un rol",
+      "noRole": "Ningún rol",
+      "adminSuffix": "(Admin)",
+      "fullAccess": "Acceso total",
+      "noContract": "Ningún contrato",
+      "applyTeamColor": "Aplicar el color del equipo"
+    },
+    "password": {
+      "random": "Contraseña aleatoria (enviada por correo electrónico)",
+      "newPlaceholder": "Nueva contraseña...",
+      "optionalPlaceholder": "Contraseña (opcional)",
+      "generate": "Generar una contraseña",
+      "copied": "Contraseña copiada en el portapapeles",
+      "cancelEdit": "Cancelar la modificación",
+      "needsEmail": "El usuario debe tener un correo electrónico",
+      "needsEmailNotifications": "Las notificaciones por correo electrónico deben estar activadas en la configuración",
+      "assignRandom": "Asignar una contraseña aleatoria (enviada por correo electrónico)",
+      "forceChange": "Obligar a cambiar la contraseña en el próximo inicio de sesión",
+      "changePending": "Cambio de contraseña pendiente",
+      "resetSent": "¡Enlace enviado!",
+      "sendReset": "Enviar un enlace de restablecimiento por correo electrónico"
+    },
+    "twoFactor": {
+      "title": "Autenticación 2FA",
+      "notEnabled": "No activada",
+      "confirmDisable": "¿Desactivar la 2FA de este usuario? Si la 2FA es obligatoria, tendrá que volver a configurarla para iniciar sesión.",
+      "disabling": "Desactivando...",
+      "force": "Imponer la 2FA a este usuario"
+    },
+    "qualifications": {
+      "count": "{count, plural, one {# habilitación} other {# habilitaciones}}",
+      "select": "Seleccionar..."
+    },
+    "emailRequiredForNotifications": "Se necesita un correo electrónico válido para activar las notificaciones por correo electrónico",
+    "emailBlocked": "Este correo electrónico está bloqueado (rebote o queja por spam recibida a través de Nuntly). Desbloquéelo en Configuración > Correo electrónico para poder usarlo.",
+    "lastNameRequired": "Los apellidos son obligatorios"
+  },
+  "contractTypes": {
+    "employee": "Asalariado",
+    "temporary": "Trabajador temporal",
+    "subcontractor": "Subcontratista",
+    "workStudy": "Aprendiz",
+    "intern": "Becario",
+    "freelance": "Autónomo"
+  },
+  "teams": {
+    "title": "Equipos",
+    "empty": "Ningún equipo.",
+    "outsideBu": "Fuera de BU",
+    "reorderAria": "Reordenar el equipo",
+    "noMembers": "Ningún miembro",
+    "dialog": {
+      "editTitle": "Editar el equipo",
+      "createTitle": "Añadir un equipo",
+      "editDescription": "Editar la información del equipo.",
+      "createDescription": "Crear un nuevo equipo."
+    },
+    "delete": {
+      "title": "Eliminar el equipo",
+      "description": "Esta acción es irreversible. Los usuarios asociados a este equipo se desvincularán, pero se conservarán."
+    }
+  },
+  "businessUnits": {
+    "title": "Business Units",
+    "searchPlaceholder": "Buscar una BU...",
+    "columns": {
+      "name": "Nombre",
+      "number": "Número",
+      "address": "Dirección"
+    },
+    "dialog": {
+      "editTitle": "Editar la Business Unit",
+      "createTitle": "Nueva Business Unit",
+      "editDescription": "Modifique la información de la Business Unit.",
+      "createDescription": "Rellene la información para crear una Business Unit."
+    },
+    "delete": {
+      "title": "Eliminar la Business Unit",
+      "description": "Esta acción es irreversible. Los equipos y grupos de proyectos vinculados a esta Business Unit también se eliminarán. ¿Desea continuar?"
+    },
+    "form": {
+      "number": "Número *",
+      "addressRequired": "Seleccione una dirección de la lista para situar el punto en el mapa"
+    }
+  },
+  "qualifications": {
+    "title": "Habilitaciones",
+    "searchPlaceholder": "Buscar una habilitación...",
+    "columns": {
+      "name": "Habilitación",
+      "description": "Descripción"
+    },
+    "dialog": {
+      "editTitle": "Editar la habilitación",
+      "createTitle": "Nueva habilitación",
+      "editDescription": "Modifique la información de la habilitación.",
+      "createDescription": "Rellene la información para crear una habilitación."
+    },
+    "delete": {
+      "title": "Eliminar la habilitación",
+      "description": "Esta acción es irreversible. Las asignaciones de usuarios también se eliminarán."
+    },
+    "form": {
+      "icon": "Icono *",
+      "previewFallback": "Habilitación"
+    }
+  },
+  "errors": {
+    "invalidFields": "Algunos campos no son válidos",
+    "loginAlreadyUsed": "Este nombre de usuario ya lo utiliza otro usuario",
+    "emailAlreadyUsed": "Este correo electrónico ya lo utiliza otro usuario",
+    "emailBlocked": "Este correo electrónico está bloqueado (rebote o queja por spam recibida a través de Nuntly). Desbloquéelo en Configuración > Correo electrónico.",
+    "notFound": "Usuario no encontrado",
+    "activeRequired": "Campo «active» obligatorio",
+    "cannotDeactivateSuperAdmin": "No se puede desactivar una cuenta de Superadministrador.",
+    "cannotDeleteSuperAdmin": "No se puede eliminar una cuenta de Superadministrador.",
+    "ownsProjects": "No se puede eliminar: el usuario es propietario de {count, plural, one {# proyecto} other {# proyectos}} ({names}). Reasígnelos primero.",
+    "passwordBlacklisted": "Esta contraseña figura en la lista negra de contraseñas prohibidas.",
+    "passwordReused": "Esta contraseña ya se ha utilizado recientemente. Elija otra.",
+    "noEmail": "El usuario no tiene dirección de correo electrónico",
+    "teamNotFound": "Equipo no encontrado",
+    "businessUnitNotFound": "Business Unit no encontrada",
+    "qualificationNotFound": "Habilitación no encontrada"
+  }
+}

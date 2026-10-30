@@ -1,0 +1,36 @@
+{
+  "greeting": "¡Hola, {name}!",
+  "weekBadge": "Semana {week}",
+  "weekPill": "S{week} · {range}",
+  "collaborators": {
+    "label": "Compañeros",
+    "show": "Mostrar a los compañeros",
+    "hide": "Ocultar a los compañeros"
+  },
+  "today": {
+    "title": "Hoy",
+    "taskCount": "{count, plural, one {# tarea} other {# tareas}}",
+    "empty": "Ninguna tarea hoy"
+  },
+  "holiday": {
+    "fallback": "Día festivo",
+    "wish": "Día festivo — ¡Que tenga un buen día!"
+  },
+  "week": {
+    "title": "Planificación de la semana",
+    "empty": "Ninguna tarea",
+    "previous": "Semana anterior",
+    "next": "Semana siguiente"
+  },
+  "duration": {
+    "hours": "{hours} h",
+    "hoursMinutes": "{hours} h {minutes}"
+  },
+  "viewFullPlanning": "Ver la planificación completa",
+  "notifications": {
+    "title": "Notificaciones"
+  },
+  "errors": {
+    "dateRangeRequired": "startDate y endDate son obligatorios"
+  }
+}

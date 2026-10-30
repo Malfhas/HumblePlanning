@@ -1,0 +1,140 @@
+{
+  "page": {
+    "title": "Mein Konto",
+    "demoLocked": "Gemeinsames Demo-Konto: Profil, Passwort, Zwei-Faktor-Authentifizierung und Sitzungen können nicht geändert werden. Die Einstellungen bleiben verfügbar.",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sicherheit",
+      "preferences": "Präferenzen",
+      "ai": "KI"
+    }
+  },
+  "profileTab": {
+    "sections": {
+      "info": "Informationen",
+      "avatar": "Avatar",
+      "edit": "Mein Profil bearbeiten"
+    },
+    "fields": {
+      "login": "Benutzername",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "team": "Team",
+      "lastLogin": "Letzte Anmeldung",
+      "name": "Nachname *",
+      "firstName": "Vorname",
+      "phone": "Festnetz",
+      "mobile": "Mobil",
+      "address": "Adresse",
+      "job": "Beruf / Position",
+      "color": "Planungsfarbe"
+    },
+    "avatar": {
+      "uploading": "Hochladen...",
+      "change": "Avatar ändern"
+    },
+    "saved": "Profil erfolgreich aktualisiert"
+  },
+  "preferences": {
+    "sections": {
+      "display": "Anzeige",
+      "notifications": "Benachrichtigungen"
+    },
+    "homePage": "Standard-Startseite",
+    "homePages": {
+      "home": "Startseite",
+      "planning": "Planung",
+      "tasks": "Aufgaben",
+      "projects": "Projekte",
+      "users": "Benutzer",
+      "teams": "Teams",
+      "resources": "Ressourcen",
+      "vehicles": "Fahrzeuge",
+      "audit": "Audit",
+      "settings": "Einstellungen"
+    },
+    "defaultView": "Standard-Planungsansicht",
+    "views": {
+      "users": "Benutzer",
+      "projects": "Projekte",
+      "resources": "Ressourcen",
+      "vehicles": "Fahrzeuge"
+    },
+    "columnView": "Spaltenmodus",
+    "columns": {
+      "days": "Tage",
+      "hours": "Stunden"
+    },
+    "theme": "Design",
+    "themes": {
+      "system": "System",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "emailNotifications": "E-Mail-Benachrichtigungen",
+    "pushNotifications": "Push-Benachrichtigungen",
+    "smsNotifications": "SMS-/WhatsApp-Benachrichtigungen",
+    "disabledByAdmin": "Vom Administrator deaktiviert",
+    "saved": "Präferenzen gespeichert"
+  },
+  "security": {
+    "password": {
+      "title": "Passwort ändern",
+      "current": "Aktuelles Passwort",
+      "new": "Neues Passwort",
+      "generate": "Passwort generieren",
+      "copied": "Passwort in die Zwischenablage kopiert",
+      "confirm": "Neues Passwort bestätigen",
+      "mismatch": "Die Passwörter stimmen nicht überein",
+      "success": "Passwort erfolgreich geändert",
+      "submitting": "Wird geändert...",
+      "submit": "Passwort ändern"
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung (2FA)",
+      "enabledDescription": "Die Zwei-Faktor-Authentifizierung ist für Ihr Konto aktiviert.",
+      "disable": "2FA deaktivieren",
+      "mandatoryTooltip": "2FA ist für Ihr Konto verpflichtend",
+      "mandatoryNotice": "2FA ist für Ihr Konto verpflichtend und kann nicht deaktiviert werden.",
+      "disableDescription": "Geben Sie Ihr Passwort ein, um die Deaktivierung der Zwei-Faktor-Authentifizierung zu bestätigen.",
+      "currentPasswordPlaceholder": "Aktuelles Passwort",
+      "confirmDisable": "Deaktivierung bestätigen",
+      "notEnabled": "2FA ist nicht aktiviert",
+      "mandatoryEnable": "2FA ist für Ihr Konto verpflichtend. Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung.",
+      "pitch": "Fügen Sie mit einer Authenticator-App (Google Authenticator, Authy usw.) eine zusätzliche Sicherheitsebene hinzu",
+      "enable": "2FA aktivieren",
+      "passwordPrompt": "Geben Sie Ihr Passwort ein, um fortzufahren:",
+      "scanQr": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App:",
+      "manualEntry": "Oder geben Sie diesen Code manuell ein:",
+      "codeLabel": "Bestätigungscode (6 Ziffern)",
+      "verifying": "Wird überprüft...",
+      "enabledSuccess": "2FA erfolgreich aktiviert!",
+      "backupHelp": "Bewahren Sie diese Codes sicher auf. Jeder Code kann nur einmal zur Anmeldung verwendet werden, falls Sie den Zugriff auf Ihre Authenticator-App verlieren."
+    },
+    "sessions": {
+      "title": "Aktive Sitzungen",
+      "otherBrowser": "Andere",
+      "mobile": "Mobil",
+      "desktop": "Computer",
+      "current": "Aktuelle Sitzung",
+      "meta": "IP: {ip} · Erstellt am {date}",
+      "unknownIp": "Unbekannt",
+      "revoke": "Widerrufen",
+      "empty": "Keine aktiven Sitzungen"
+    }
+  },
+  "errors": {
+    "wrongPassword": "Aktuelles Passwort falsch",
+    "noPassword": "Kein Passwort festgelegt",
+    "sessionNotFound": "Sitzung nicht gefunden",
+    "invalidSessionId": "Ungültige Sitzungs-ID",
+    "incorrectPassword": "Falsches Passwort",
+    "twoFactorMandatory": "2FA ist für Ihr Konto verpflichtend und kann nicht deaktiviert werden.",
+    "twoFactorAlreadyEnabled": "2FA ist bereits aktiviert",
+    "codeRequired": "Code erforderlich",
+    "noTwoFactorSetup": "Keine laufende 2FA-Einrichtung",
+    "invalidTotpCode": "Ungültiger Code. Prüfen Sie Ihre Authenticator-App.",
+    "avatarTooLarge": "Datei zu groß. Maximum: {max} MB",
+    "extensionNotAllowed": "Dateiendung .{ext} nicht erlaubt"
+  }
+}

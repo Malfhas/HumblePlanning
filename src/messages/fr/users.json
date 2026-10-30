@@ -1,0 +1,232 @@
+{
+  "shared": {
+    "insufficientPermission": "Permission insuffisante",
+    "selectBu": "Sélectionner une BU",
+    "noBu": "Aucune Business Unit",
+    "fields": {
+      "nameRequired": "Nom *",
+      "color": "Couleur",
+      "colorRequired": "Couleur *",
+      "businessUnitRequired": "Business Unit *",
+      "description": "Description",
+      "descriptionPlaceholder": "Description optionnelle...",
+      "preview": "Aperçu"
+    },
+    "validation": {
+      "nameRequired": "Le nom est obligatoire",
+      "businessUnitRequired": "La Business Unit est obligatoire",
+      "roleRequired": "Le rôle est obligatoire",
+      "usernameRequired": "Le login est obligatoire",
+      "numberRequired": "Le numéro est obligatoire"
+    }
+  },
+  "list": {
+    "title": "Utilisateurs",
+    "columns": {
+      "name": "Nom",
+      "login": "Login",
+      "email": "Email",
+      "team": "Équipe",
+      "role": "Rôle",
+      "businessUnit": "BU",
+      "qualifications": "Habilitations",
+      "job": "Poste"
+    },
+    "actions": {
+      "reactivate": "Réactiver",
+      "deletePermanently": "Supprimer définitivement"
+    },
+    "filters": {
+      "team": "Équipe",
+      "role": "Rôle",
+      "businessUnit": "BU",
+      "qualification": "Habilitation",
+      "inactive": "Inactifs",
+      "searchPlaceholder": "Rechercher un utilisateur..."
+    },
+    "count": "{count, plural, one {# utilisateur} other {# utilisateurs}}",
+    "dialog": {
+      "editTitle": "Modifier l'utilisateur",
+      "duplicateTitle": "Dupliquer un utilisateur",
+      "createTitle": "Nouvel utilisateur",
+      "editDescription": "Modifiez les informations de l'utilisateur.",
+      "duplicateDescription": "Les champs généraux ont été pré-remplis. Renseignez le nom, l'email et le login pour créer l'utilisateur.",
+      "createDescription": "Remplissez les informations pour créer un utilisateur."
+    },
+    "archive": {
+      "reactivateTitle": "Réactiver l'utilisateur",
+      "deactivateTitle": "Désactiver l'utilisateur",
+      "reactivateDescription": "L'utilisateur pourra à nouveau se connecter et apparaîtra dans les listes.",
+      "deactivateDescription": "L'utilisateur ne pourra plus se connecter et sera masqué par défaut. Ses données sont conservées.",
+      "reactivateConfirm": "Réactiver",
+      "deactivateConfirm": "Désactiver"
+    },
+    "delete": {
+      "title": "Supprimer définitivement l'utilisateur",
+      "description": "Cette action est irréversible. Toutes les données de l'utilisateur seront supprimées (compte, sessions, historique de mots de passe). Les tâches assignées uniquement à cet utilisateur seront également supprimées. Voulez-vous continuer ?"
+    }
+  },
+  "form": {
+    "tabs": {
+      "general": "Général",
+      "security": "Sécurité",
+      "details": "Détails"
+    },
+    "sections": {
+      "identity": "Identité",
+      "organisation": "Organisation",
+      "password": "Mot de passe",
+      "qualifications": "Habilitations",
+      "personal": "Informations personnelles",
+      "options": "Options"
+    },
+    "fields": {
+      "lastNameRequired": "Nom *",
+      "firstName": "Prénom",
+      "email": "Email",
+      "username": "Login *",
+      "team": "Équipe",
+      "laborType": "Type main d'oeuvre",
+      "role": "Rôle *",
+      "job": "Poste",
+      "contract": "Contrat",
+      "password": "Mot de passe",
+      "phone": "Téléphone fixe",
+      "mobile": "Téléphone mobile",
+      "address": "Adresse postale",
+      "comment": "Commentaire",
+      "commentPlaceholder": "Notes libres...",
+      "active": "Utilisateur actif",
+      "visibleOnPlanning": "Visible sur le planning",
+      "emailNotifications": "Notifications email",
+      "pushNotifications": "Notifications push",
+      "smsNotifications": "Notifications SMS / WhatsApp"
+    },
+    "pickers": {
+      "noTeam": "Aucune équipe",
+      "noType": "Aucun type",
+      "selectRole": "Sélectionner un rôle",
+      "noRole": "Aucun rôle",
+      "adminSuffix": "(Admin)",
+      "fullAccess": "Accès total",
+      "noContract": "Aucun contrat",
+      "applyTeamColor": "Appliquer la couleur de l'équipe"
+    },
+    "password": {
+      "random": "Mot de passe aléatoire (envoyé par email)",
+      "newPlaceholder": "Nouveau mot de passe...",
+      "optionalPlaceholder": "Mot de passe (optionnel)",
+      "generate": "Générer un mot de passe",
+      "copied": "Mot de passe copié dans le presse-papier",
+      "cancelEdit": "Annuler la modification",
+      "needsEmail": "L'utilisateur doit avoir un email",
+      "needsEmailNotifications": "Les notifications email doivent être activées dans les paramètres",
+      "assignRandom": "Assigner un MDP aléatoire (envoyé par email)",
+      "forceChange": "Obliger à changer le MDP à la prochaine connexion",
+      "changePending": "Changement de mot de passe en attente",
+      "resetSent": "Lien envoyé !",
+      "sendReset": "Envoyer un lien de réinitialisation par email"
+    },
+    "twoFactor": {
+      "title": "Authentification 2FA",
+      "notEnabled": "Non activé",
+      "confirmDisable": "Désactiver le 2FA de cet utilisateur ? Il devra le reconfigurer pour se reconnecter si le 2FA est imposé.",
+      "disabling": "Désactivation en cours...",
+      "force": "Imposer le 2FA pour cet utilisateur"
+    },
+    "qualifications": {
+      "count": "{count, plural, one {# habilitation} other {# habilitations}}",
+      "select": "Sélectionner..."
+    },
+    "emailRequiredForNotifications": "Un email valide est requis pour activer les notifications email",
+    "emailBlocked": "Cet email est bloqué (bounce ou plainte spam reçue via Nuntly). Débloquez-le dans Paramètres > Email pour pouvoir l'utiliser.",
+    "lastNameRequired": "Le nom est obligatoire"
+  },
+  "contractTypes": {
+    "employee": "Salarié",
+    "temporary": "Intérimaire",
+    "subcontractor": "Sous-traitant",
+    "workStudy": "Alternant",
+    "intern": "Stagiaire",
+    "freelance": "Indépendant"
+  },
+  "teams": {
+    "title": "Équipes",
+    "empty": "Aucune équipe.",
+    "outsideBu": "Hors BU",
+    "reorderAria": "Réordonner l'équipe",
+    "noMembers": "Aucun membre",
+    "dialog": {
+      "editTitle": "Modifier l'équipe",
+      "createTitle": "Ajouter une équipe",
+      "editDescription": "Modifier les informations de l'équipe.",
+      "createDescription": "Créer une nouvelle équipe."
+    },
+    "delete": {
+      "title": "Supprimer l'équipe",
+      "description": "Cette action est irréversible. Les utilisateurs associés à cette équipe seront dissociés mais conservés."
+    }
+  },
+  "businessUnits": {
+    "title": "Business Units",
+    "searchPlaceholder": "Rechercher une BU...",
+    "columns": {
+      "name": "Nom",
+      "number": "Numéro",
+      "address": "Adresse"
+    },
+    "dialog": {
+      "editTitle": "Modifier la Business Unit",
+      "createTitle": "Nouvelle Business Unit",
+      "editDescription": "Modifiez les informations de la Business Unit.",
+      "createDescription": "Remplissez les informations pour créer une Business Unit."
+    },
+    "delete": {
+      "title": "Supprimer la Business Unit",
+      "description": "Cette action est irréversible. Les équipes et groupes de projets rattachés à cette Business Unit seront également supprimés. Voulez-vous continuer ?"
+    },
+    "form": {
+      "number": "Numéro *",
+      "addressRequired": "Veuillez sélectionner une adresse dans la liste pour placer le point sur la carte"
+    }
+  },
+  "qualifications": {
+    "title": "Habilitations",
+    "searchPlaceholder": "Rechercher une habilitation...",
+    "columns": {
+      "name": "Habilitation",
+      "description": "Description"
+    },
+    "dialog": {
+      "editTitle": "Modifier l'habilitation",
+      "createTitle": "Nouvelle habilitation",
+      "editDescription": "Modifiez les informations de l'habilitation.",
+      "createDescription": "Remplissez les informations pour créer une habilitation."
+    },
+    "delete": {
+      "title": "Supprimer l'habilitation",
+      "description": "Cette action est irréversible. Les assignations utilisateurs seront également supprimées."
+    },
+    "form": {
+      "icon": "Icône *",
+      "previewFallback": "Habilitation"
+    }
+  },
+  "errors": {
+    "invalidFields": "Certains champs sont invalides",
+    "loginAlreadyUsed": "Ce login est déjà utilisé par un autre utilisateur",
+    "emailAlreadyUsed": "Cet email est déjà utilisé par un autre utilisateur",
+    "emailBlocked": "Cet email est bloqué (bounce ou plainte spam reçue via Nuntly). Débloquez-le dans Paramètres > Email.",
+    "notFound": "Utilisateur non trouvé",
+    "activeRequired": "Champ « active » requis",
+    "cannotDeactivateSuperAdmin": "Impossible de désactiver un compte Super Administrateur.",
+    "cannotDeleteSuperAdmin": "Impossible de supprimer un compte Super Administrateur.",
+    "ownsProjects": "Impossible de supprimer : l'utilisateur est propriétaire de {count, plural, one {# projet} other {# projets}} ({names}). Réassignez-les d'abord.",
+    "passwordBlacklisted": "Ce mot de passe figure dans la liste noire des mots de passe interdits.",
+    "passwordReused": "Ce mot de passe a déjà été utilisé récemment. Veuillez en choisir un autre.",
+    "noEmail": "L'utilisateur n'a pas d'adresse email",
+    "teamNotFound": "Équipe non trouvée",
+    "businessUnitNotFound": "Business Unit non trouvée",
+    "qualificationNotFound": "Habilitation non trouvée"
+  }
+}

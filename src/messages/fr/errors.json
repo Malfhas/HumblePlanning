@@ -1,0 +1,21 @@
+{
+  "unauthenticated": "Non authentifié",
+  "sessionExpired": "Session expirée, veuillez vous reconnecter",
+  "forbidden": "Accès non autorisé",
+  "demoRestricted": "Action indisponible sur l'instance de démonstration.",
+  "demoAccountLocked": "Le compte de démonstration ne peut pas être modifié.",
+  "notFound": "Élément introuvable",
+  "invalidData": "Données invalides",
+  "invalidId": "Identifiant invalide",
+  "invalidRequest": "Requête invalide",
+  "invalidOrigin": "Origine de la requête refusée",
+  "rateLimited": "Trop de requêtes, réessayez dans une minute",
+  "internal": "Erreur interne du serveur",
+  "network": "Erreur réseau",
+  "unknown": "Erreur inconnue",
+  "conflict": "Cette valeur est déjà utilisée",
+  "apiDisabled": "Accès API désactivé",
+  "invalidApiKey": "Clé API invalide",
+  "fileTooLargeMax": "Fichier trop volumineux. Maximum : {max}",
+  "noFile": "Aucun fichier fourni"
+}

@@ -1,0 +1,86 @@
+{
+  "errors": {
+    "disabled": "MCP disabled",
+    "connectorDisabled": "The MCP connector is disabled",
+    "consentRejected": "Request rejected",
+    "sessionExpired": "Session expired, please sign in again",
+    "consentRateLimited": "Too many attempts, try again in a few minutes",
+    "invalidCsrf": "Invalid security token, reload the page",
+    "missingClientId": "Missing client_id parameter.",
+    "clientUnverifiable": "Unable to verify the application’s identity (client_id document unreachable or invalid).",
+    "unknownClient": "Unknown application. Remove the connector, then add it again from your AI assistant.",
+    "missingRedirectUri": "Missing redirect_uri parameter.",
+    "redirectUriNotRegistered": "Return address (redirect_uri) not registered for this application.",
+    "keyLimitReached": "Maximum number of MCP keys reached ({max})",
+    "requestFailed": "The request could not be processed",
+    "createFailed": "Creation failed"
+  },
+  "authorize": {
+    "disabled": {
+      "title": "AI connector disabled",
+      "message": "The MCP connector is not enabled on this instance. Contact your administrator."
+    },
+    "invalidRequest": {
+      "title": "Invalid connection request"
+    },
+    "accountDisabled": {
+      "title": "Account disabled",
+      "message": "This account is disabled. Contact your administrator."
+    },
+    "denied": {
+      "title": "Access to the AI connector not authorised",
+      "description": "The account <b>{user}</b> does not have the “Use the MCP connector” permission. No authorisation has been granted to <b>{client}</b>.",
+      "help": "Ask an administrator to add this permission to your role, then restart the connection from your AI assistant.",
+      "returnTo": "Return to {client}",
+      "returnHost": "Back to {host}",
+      "switchAccount": "Use another account"
+    },
+    "consent": {
+      "title": "Connect {client}",
+      "description": "<b>{client}</b> is requesting access to {appTitle} with your account.",
+      "application": "Application: <b>{name}</b>",
+      "metadataHost": "Identity published by {host}",
+      "unverified": "Unrecognised application: only authorise it if you have just added it yourself.",
+      "redirect": "Return after authorisation: <b>{host}</b>",
+      "account": "Account: <b>{user}</b>",
+      "changeAccount": "change",
+      "capabilities": "The assistant will be able to:",
+      "read": "View the data your role allows you to see (tasks, projects, teams…).",
+      "write": "Create, edit and delete tasks and projects, within the limits of your rights.",
+      "readOnly": "Read-only: your role does not allow writes via the MCP connector.",
+      "footer": "Your permissions are checked on every action: removing a right takes effect immediately. You can revoke this access from My account > AI.",
+      "deny": "Deny",
+      "approve": "Authorise"
+    }
+  },
+  "revoke": "Revoke",
+  "lastUsed": "Last used: {date}",
+  "keys": {
+    "connect": {
+      "title": "Connect an AI assistant",
+      "description": "Claude, ChatGPT and OAuth-compatible clients do not need a key: add the connector with the URL <code>{url}</code>, then sign in with your account. The keys below are for manually configured clients (Claude Code, Cursor, VS Code…), always in the <code>Authorization: Bearer …</code> header: a key passed in the URL (<code>?token=</code>) is rejected. The assistant always acts with your permissions."
+    },
+    "created": {
+      "title": "Key created — copy it now",
+      "description": "This key will not be shown again. Keep it somewhere safe.",
+      "secretLabel": "Secret key",
+      "copyAriaLabel": "Copy the key",
+      "configLabel": "MCP configuration (Claude Code, Cursor, VS Code…)",
+      "dismiss": "I have copied my key, close"
+    },
+    "create": {
+      "title": "Create an MCP key",
+      "limitReached": "{max, plural, one {You have reached the limit of # MCP key.} other {You have reached the limit of # MCP keys.}} Revoke an existing key to create a new one.",
+      "namePlaceholder": "Key name (e.g. Claude Desktop, ChatGPT...)"
+    },
+    "list": {
+      "title": "Active keys and connections",
+      "empty": "No active MCP key or connection",
+      "typeOauth": "OAuth",
+      "typeKey": "Key",
+      "oauthAuthorized": "Authorised connection",
+      "createdOn": "Created on {date}",
+      "neverUsed": "Never used"
+    }
+  }
+}

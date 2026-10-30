@@ -1,0 +1,31 @@
+{
+  "zod": {
+    "email": "Dirección de correo electrónico no válida",
+    "url": "URL no válida",
+    "uuid": "Identificador no válido",
+    "regex": "Formato no válido",
+    "too_small": "Valor demasiado corto",
+    "too_big": "Valor demasiado largo",
+    "invalid_type": "Tipo no válido",
+    "invalid_format": "Formato no válido",
+    "invalid_enum_value": "Valor no permitido",
+    "invalid_value": "Valor no permitido",
+    "invalid_union": "Valor no válido",
+    "invalid": "Valor no válido"
+  },
+  "password": {
+    "minLength": "Al menos {min} caracteres",
+    "maxLength": "Máximo {max} caracteres",
+    "uppercase": "Una letra mayúscula",
+    "lowercase": "Una letra minúscula",
+    "digit": "Un número",
+    "special": "Un carácter especial (!@#$...)",
+    "notCompliant": "La contraseña no cumple la política: {details}",
+    "score": {
+      "weak": "Débil",
+      "medium": "Media",
+      "strong": "Fuerte",
+      "veryStrong": "Muy fuerte"
+    }
+  }
+}

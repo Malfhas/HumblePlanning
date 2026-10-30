@@ -1,0 +1,157 @@
+{
+  "status": {
+    "available": "Disponible",
+    "maintenance": "Mantenimiento",
+    "inMaintenance": "En mantenimiento",
+    "outOfService": "Fuera de servicio"
+  },
+  "assignmentTypes": {
+    "reservation": "Reserva",
+    "maintenance": "Mantenimiento"
+  },
+  "list": {
+    "permissionDenied": "Permiso insuficiente",
+    "outOfService": "Fuera de servicio",
+    "columns": {
+      "name": "Nombre",
+      "type": "Tipo",
+      "businessUnit": "Business Unit",
+      "status": "Estado",
+      "serialNumber": "N.º de serie",
+      "registrationNumber": "Matrícula"
+    }
+  },
+  "form": {
+    "nameLabel": "Nombre *",
+    "typeLabel": "Tipo",
+    "businessUnitLabel": "Business Unit",
+    "iconLabel": "Icono *",
+    "colorLabel": "Color *",
+    "statusLabel": "Estado",
+    "commentLabel": "Comentario",
+    "commentPlaceholder": "Comentario opcional…",
+    "preview": "Vista previa",
+    "typePreviewFallback": "Tipo",
+    "noBusinessUnit": "Ninguna",
+    "searchBusinessUnit": "Buscar una business unit…",
+    "noBusinessUnitFound": "No se ha encontrado ninguna business unit",
+    "nameRequired": "El nombre es obligatorio",
+    "businessUnitRequired": "La Business Unit es obligatoria"
+  },
+  "resources": {
+    "searchPlaceholder": "Buscar un recurso…",
+    "count": "{count, plural, one {# recurso} other {# recursos}}",
+    "dialog": {
+      "createTitle": "Nuevo recurso",
+      "editTitle": "Editar el recurso",
+      "createDescription": "Rellene la información para crear un recurso.",
+      "editDescription": "Modifique la información del recurso."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el recurso",
+      "description": "Esta acción es irreversible. Se eliminarán todas las asignaciones de este recurso."
+    },
+    "form": {
+      "namePlaceholder": "Nombre del recurso",
+      "serialLabel": "N.º de serie",
+      "serialPlaceholder": "Ej.: SN-2024-001",
+      "previewFallback": "Recurso"
+    }
+  },
+  "resourceTypes": {
+    "searchPlaceholder": "Buscar un tipo…",
+    "dialog": {
+      "createTitle": "Nuevo tipo de recurso",
+      "editTitle": "Editar el tipo",
+      "createDescription": "Cree un nuevo tipo de recurso.",
+      "editDescription": "Modifique la información del tipo."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el tipo de recurso",
+      "description": "Los recursos de este tipo no se eliminarán, pero ya no tendrán ningún tipo asociado."
+    }
+  },
+  "vehicles": {
+    "searchPlaceholder": "Buscar un vehículo…",
+    "count": "{count, plural, one {# vehículo} other {# vehículos}}",
+    "dialog": {
+      "createTitle": "Nuevo vehículo",
+      "editTitle": "Editar el vehículo",
+      "createDescription": "Rellene la información para crear un vehículo.",
+      "editDescription": "Modifique la información del vehículo."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el vehículo",
+      "description": "Esta acción es irreversible. Se eliminarán todas las asignaciones de este vehículo."
+    },
+    "form": {
+      "namePlaceholder": "Nombre del vehículo",
+      "registrationLabel": "Matrícula",
+      "registrationPlaceholder": "Ej.: 1234-ABC",
+      "previewFallback": "Vehículo"
+    }
+  },
+  "vehicleTypes": {
+    "searchPlaceholder": "Buscar un tipo…",
+    "dialog": {
+      "createTitle": "Nuevo tipo de vehículo",
+      "editTitle": "Editar el tipo",
+      "createDescription": "Rellene la información para crear un tipo de vehículo.",
+      "editDescription": "Modifique la información del tipo de vehículo."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el tipo de vehículo",
+      "description": "Esta acción es irreversible. Los vehículos de este tipo no se eliminarán, pero se les quitará el tipo."
+    }
+  },
+  "assignments": {
+    "locked": "Esta reserva está bloqueada",
+    "willLock": "Se bloqueará al guardar",
+    "willUnlock": "Se desbloqueará al guardar",
+    "resourceLabel": "Recurso *",
+    "vehicleLabel": "Vehículo *",
+    "typeLabel": "Tipo *",
+    "startDateLabel": "Fecha de inicio *",
+    "endDateLabel": "Fecha de fin *",
+    "durationLabel": "Duración (días) *",
+    "daysPlaceholder": "Número de días",
+    "startTimeLabel": "Hora de inicio",
+    "endTimeLabel": "Hora de fin",
+    "projectLabel": "Proyecto",
+    "searchProject": "Buscar un proyecto…",
+    "noProjectFound": "No se ha encontrado ningún proyecto",
+    "dayProjects": "Proyectos del día",
+    "allProjects": "Todos los proyectos",
+    "notesLabel": "Notas",
+    "notesRequiredPlaceholder": "Obligatorio si no se selecciona ningún proyecto",
+    "notesPlaceholder": "Notas opcionales…",
+    "conflictTitle": "Conflicto de reserva",
+    "conflictResource": "Este recurso ya está reservado en este periodo:",
+    "conflictVehicle": "Este vehículo ya está reservado en este periodo:",
+    "confirmDelete": "¿Confirmar?",
+    "lock": "Bloquear",
+    "unlock": "Desbloquear",
+    "resourceDialog": {
+      "createTitle": "Asignar un recurso",
+      "editTitle": "Editar la asignación",
+      "createDescription": "Cree una asignación o un periodo de mantenimiento.",
+      "editDescription": "Modifique la información de la asignación."
+    },
+    "vehicleDialog": {
+      "createTitle": "Reservar un vehículo",
+      "editTitle": "Editar la reserva",
+      "createDescription": "Cree una reserva o un periodo de mantenimiento.",
+      "editDescription": "Modifique la información de la reserva."
+    }
+  },
+  "errors": {
+    "resourceNotFound": "Recurso no encontrado",
+    "resourceTypeNotFound": "Tipo no encontrado",
+    "resourceAssignmentNotFound": "Asignación no encontrada",
+    "vehicleNotFound": "Vehículo no encontrado",
+    "vehicleTypeNotFound": "Tipo de vehículo no encontrado",
+    "vehicleAssignmentNotFound": "Asignación no encontrada",
+    "placeNotFound": "Lugar no encontrado",
+    "reservationLocked": "Esta reserva está bloqueada"
+  }
+}

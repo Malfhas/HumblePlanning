@@ -1,0 +1,1271 @@
+{
+  "categories": {
+    "general": "Général",
+    "communication": "Communication",
+    "security": "Sécurité",
+    "system": "Système",
+    "ai": "IA",
+    "backup-import": "Sauvegarder / Importer",
+    "version": "Version"
+  },
+  "nav": {
+    "application": "Application",
+    "appearance": "Apparence",
+    "workDurations": "Durées travail",
+    "announcement": "Annonce",
+    "email": "Email",
+    "sms": "SMS / WhatsApp",
+    "emailNotifications": "Notifications email",
+    "weeklySummary": "Synthèse hebdomadaire",
+    "pushNotifications": "Notifications push",
+    "smsNotifications": "Notifications SMS / WhatsApp",
+    "passwords": "Mots de passe",
+    "forgotPassword": "Mot de passe oublié",
+    "twoFactor": "2FA",
+    "sessions": "Sessions",
+    "captcha": "Captcha",
+    "gdpr": "RGPD",
+    "files": "Fichiers",
+    "audit": "Audit",
+    "logs": "Logs",
+    "apiAccess": "Accès API",
+    "cache": "Cache",
+    "purge": "Purge",
+    "mcp": "MCP",
+    "aiChat": "Chat IA",
+    "aiChatQuotas": "Quotas du chat IA",
+    "backup": "Sauvegarder",
+    "import": "Importer",
+    "migration": "Migration",
+    "version": "Version"
+  },
+  "sections": {
+    "application": "Application",
+    "maintenance": "Maintenance",
+    "newUserDefaults": "Réglages par défaut des nouveaux utilisateurs",
+    "appearance": "Apparence",
+    "planningDisplay": "Affichage planning",
+    "workDurations": "Durées travail",
+    "announcement": "Annonce",
+    "email": "Email",
+    "smsSentDm": "SMS / WhatsApp (Sent.dm)",
+    "emailNotifications": "Notifications email",
+    "weeklySummary": "Synthèse hebdomadaire",
+    "pushNotifications": "Notifications push",
+    "smsNotifications": "Notifications SMS / WhatsApp",
+    "passwordPolicy": "Politique de mot de passe",
+    "passwordGenerator": "Générateur de mot de passe",
+    "passwordBlacklist": "Liste noire des mots de passe",
+    "forgotPassword": "Mot de passe oublié",
+    "bruteforce": "Protection anti-bruteforce",
+    "twoFactor": "Authentification à deux facteurs",
+    "sessions": "Sessions",
+    "captcha": "Captcha",
+    "cookieBanner": "Bandeau cookies",
+    "privacyPolicy": "Politique de confidentialité",
+    "legalInfo": "Informations légales",
+    "footer": "Pied de page",
+    "files": "Fichiers",
+    "audit": "Audit",
+    "logs": "Logs",
+    "apiAccess": "Accès API",
+    "cache": "Cache",
+    "purge": "Purge",
+    "mcp": "MCP",
+    "aiChat": "Chat IA",
+    "aiChatQuotas": "Quotas du chat IA",
+    "backup": "Sauvegarder",
+    "import": "Importer",
+    "migration": "Migration",
+    "updateCheck": "Vérification des mises à jour"
+  },
+  "page": {
+    "title": "Paramètres"
+  },
+  "badges": {
+    "recommended": "Recommandé"
+  },
+  "field": {
+    "envManaged": "Géré via .env",
+    "envManagedTooltip": "Cette valeur est définie dans le fichier .env du serveur. Pour la modifier, éditez .env et redémarrez l'application.",
+    "configured": "Configuré",
+    "keepSecretPlaceholder": "•••••••••••• (laissez vide pour conserver)",
+    "translatedDefaultHelp": "Laissez vide pour afficher le texte proposé en exemple, traduit dans la langue du visiteur."
+  },
+  "tagList": {
+    "placeholder": "Ajouter un mot de passe...",
+    "help": "Appuyez sur Entrée ou virgule pour ajouter. Collez une liste séparée par des virgules pour un ajout en masse.",
+    "count": "{count, plural, one {# mot de passe dans la liste} other {# mots de passe dans la liste}}",
+    "filterPlaceholder": "Filtrer..."
+  },
+  "image": {
+    "uploading": "Upload...",
+    "chooseFile": "Choisir un fichier",
+    "choose": "Choisir",
+    "formats": "Formats acceptés : PNG, JPG, WebP, GIF, AVIF — 10 Mo max",
+    "themedFormats": "Formats : PNG, JPG, WebP, GIF, AVIF, SVG — 10 Mo max. L'image du thème clair est utilisée par défaut. Si une image thème sombre est uploadée, elle remplacera l'image en mode sombre.",
+    "noImage": "Aucune image"
+  },
+  "dateTime": {
+    "selectDate": "Sélectionner une date",
+    "timePlaceholder": "Heure"
+  },
+  "richText": {
+    "variables": "Variables disponibles :",
+    "announcementPlaceholder": "Rédigez votre annonce...",
+    "privacyPlaceholder": "Rédigez votre politique de confidentialité...",
+    "pageUrl": "URL de la page :"
+  },
+  "alerts": {
+    "emailDisabled": {
+      "title": "Envoi d'emails désactivé",
+      "description": "Le fournisseur <b>{provider}</b> est sélectionné mais les credentials suivants sont manquants : <code>{keys}</code>. Renseignez-les ci-dessous ou dans le fichier <code>.env</code> du serveur."
+    },
+    "altchaMissing": {
+      "title": "ALTCHA non configuré",
+      "description": "Les secrets HMAC ALTCHA sont absents du fichier <code>.env</code> du serveur. Le captcha sera ignoré silencieusement tant que les variables <code>ALTCHA_HMAC_SECRET</code> et <code>ALTCHA_HMAC_KEY_SECRET</code> ne sont pas renseignées. Relancez <code>install.sh</code> pour les générer automatiquement."
+    }
+  },
+  "purge": {
+    "files": {
+      "title": "Purger les fichiers",
+      "description": "Supprimer définitivement tous les fichiers uploadés avant la date sélectionnée. Cette action est irréversible."
+    },
+    "tasks": {
+      "title": "Purger les tâches",
+      "description": "Supprimer définitivement toutes les tâches dont la date de début est antérieure à la date sélectionnée (ainsi que leurs fichiers associés). Cette action est irréversible."
+    },
+    "dateLabel": "Date limite (strict « avant »)",
+    "confirm": "Purger",
+    "pending": "Purge…",
+    "result": "{count, plural, one {# élément supprimé.} other {# éléments supprimés.}}"
+  },
+  "actionButton": {
+    "done": "Terminé !",
+    "purgeNotifications": {
+      "title": "Purger les notifications",
+      "description": "Toutes les notifications push de tous les utilisateurs seront définitivement supprimées. Cette action est irréversible."
+    }
+  },
+  "test": {
+    "sendError": "Erreur lors de l'envoi",
+    "connectionError": "Erreur de connexion",
+    "sms": {
+      "title": "Tester l'envoi SMS / WhatsApp",
+      "phoneRequired": "Numéro de téléphone requis",
+      "success": "SMS / WhatsApp de test envoyé avec succès",
+      "help": "Envoie un message de test via Sent.dm pour vérifier la configuration. Numéro au format E.164 (+33...). Pensez à enregistrer vos modifications avant de tester."
+    },
+    "weeklySummary": {
+      "title": "Tester l'envoi de la synthèse hebdomadaire",
+      "send": "Envoyer la synthèse maintenant",
+      "success": "Synthèse hebdomadaire envoyée avec succès",
+      "help": "Envoie immédiatement la synthèse de la semaine prochaine à votre adresse email. Pensez à enregistrer vos modifications avant de tester."
+    },
+    "email": {
+      "title": "Tester la connexion email",
+      "placeholder": "Adresse email de test (optionnel)",
+      "success": "Email de test envoyé avec succès",
+      "help": "Envoie un email de test pour vérifier la configuration. Pensez à enregistrer vos modifications avant de tester."
+    }
+  },
+  "sentDm": {
+    "title": "Templates Sent.dm à créer sur leur dashboard",
+    "intro": "Connectez-vous sur <link>app.sent.dm</link> et créez le template ci-dessous, puis copiez son UUID dans le champ « Template ID Sent.dm ».",
+    "templateName": "Template « Notification de tâche »",
+    "variablesBadge": "{count, plural, one {# variable} other {# variables}}",
+    "createWith": "Créez un template Sent.dm avec cinq variables :",
+    "vars": {
+      "appName": "<code>{variable}</code> : nom de l'application (marque blanche, depuis le réglage <b>Titre de l'application</b>)",
+      "eventType": "<code>{variable}</code> : type d'événement (ex: « Tâche créée », « Tâche modifiée »)",
+      "projectName": "<code>{variable}</code> : nom du projet",
+      "taskTitle": "<code>{variable}</code> : titre de la tâche",
+      "appUrl": "<code>{variable}</code> : URL de l'application (depuis le réglage <b>URL de l'application</b>)"
+    },
+    "suggestedContent": "Contenu suggéré :",
+    "template": "Vous avez une nouvelle notification du planning {v1}.\n\n{v2}\nProjet : {v3}\nTâche : {v4}\n\nConnectez-vous pour voir les détails : {v5}",
+    "outro": "Une fois créé et approuvé par Sent.dm (et WhatsApp si activé), copiez l'UUID du template depuis le dashboard Sent.dm et collez-le dans le champ <b>Template ID Sent.dm</b> ci-dessus."
+  },
+  "keys": {
+    "columns": {
+      "name": "Nom",
+      "key": "Clé",
+      "user": "Utilisateur",
+      "createdAt": "Créée le",
+      "lastUsed": "Dernière utilisation"
+    }
+  },
+  "panels": {
+    "apiKeys": {
+      "intro": "Les clés API permettent aux outils externes (automatisations, scripts, intégrations) de communiquer avec le planning via l'API REST. Chaque requête doit inclure l'en-tête <code>Authorization: Bearer votre_clé</code>. La clé secrète n'est affichée qu'une seule fois à la création.",
+      "apiUrl": "URL de l'API",
+      "docsLink": "Consulter la documentation API",
+      "created": "Clé créée — copiez-la maintenant, elle ne sera plus affichée",
+      "copiedClose": "J'ai copié ma clé, fermer",
+      "createTitle": "Créer une clé API",
+      "namePlaceholder": "Nom de la clé (ex: Script import, Zapier...)",
+      "activeKeys": "Clés actives",
+      "empty": "Aucune clé API créée",
+      "confirmDelete": {
+        "title": "Supprimer la clé API",
+        "description": "Êtes-vous sûr de vouloir supprimer la clé « {name} » ? Les outils externes utilisant cette clé seront immédiatement déconnectés."
+      }
+    },
+    "cache": {
+      "cleared": "Cache vidé avec succès",
+      "howItWorks": {
+        "title": "Fonctionnement du cache",
+        "description": "Le cache serveur stocke en mémoire les données fréquemment lues (configuration de l'application, permissions des utilisateurs) pour éviter de solliciter la base de données à chaque requête. Les données sont automatiquement rafraîchies après la durée de vie configurée. Le cache est aussi immédiatement invalidé lorsqu'un administrateur modifie les paramètres ou les rôles."
+      },
+      "state": "État du cache",
+      "entries": "Entrées actives",
+      "ttl": "Durée de vie",
+      "status": "Statut",
+      "clear": "Vider le cache",
+      "refreshStats": "Rafraîchir les stats"
+    },
+    "mcpKeys": {
+      "title": "Clés MCP actives ({count})",
+      "empty": "Aucune clé MCP active",
+      "unnamed": "Sans nom",
+      "refresh": "Rafraîchir",
+      "confirmRevoke": {
+        "title": "Révoquer la clé MCP",
+        "description": "Êtes-vous sûr de vouloir révoquer la clé « {name} » de {user} ? L'assistant IA connecté avec cette clé sera immédiatement déconnecté.",
+        "confirm": "Révoquer"
+      }
+    },
+    "mcpGuide": {
+      "title": "Connecter un assistant IA",
+      "intro": "Le serveur MCP permet aux assistants IA d'interagir avec votre planning : consulter les tâches, créer des tâches, voir les projets, etc. Les actions sont effectuées avec les permissions de l'utilisateur connecté.",
+      "oauthInfo": "<b>Claude, ChatGPT et clients OAuth :</b> ajoutez un connecteur personnalisé avec l'URL ci-dessous, sans clé. L'utilisateur est redirigé vers la page de connexion, puis autorise l'accès.",
+      "manualInfo": "<b>Clients configurés à la main :</b> l'utilisateur génère une clé MCP depuis <b>Mon compte > IA</b> et la passe dans l'en-tête <code>Authorization</code>.",
+      "serverUrl": "URL du serveur MCP",
+      "integrations": "Intégrations par client",
+      "keyPlaceholder": "VOTRE_CLE_MCP",
+      "clients": {
+        "claude": {
+          "step": "<b>Paramètres > Connecteurs > Ajouter un connecteur personnalisé.</b> URL :",
+          "note": "Laissez les champs OAuth vides. Claude ouvre la page de connexion de l'application : identifiant, mot de passe (et 2FA si activée), puis « Autoriser »."
+        },
+        "claudeCode": {
+          "run": "Exécutez cette commande :",
+          "withKey": "Ou, avec une clé MCP (sans OAuth), passée dans l'en-tête <code>Authorization</code> :"
+        },
+        "chatgpt": {
+          "devMode": "Nécessite le mode Développeur activé dans ChatGPT.",
+          "createApp": "Créez une app MCP avec cette URL :",
+          "oauth": "Choisissez l'authentification OAuth : ChatGPT ouvre la page de connexion de l'application, puis l'écran d'autorisation."
+        },
+        "cursor": {
+          "remote": "<b>Remote :</b> ajoutez dans <code>.cursor/mcp.json</code> :"
+        },
+        "vscode": {
+          "add": "Ajoutez dans les paramètres MCP de VS Code :"
+        },
+        "jetbrains": {
+          "path": "Paramètres > Tools > AI Assistant > MCP. Onglet HTTP :"
+        },
+        "other": {
+          "title": "Autres clients MCP",
+          "remote": "<b>Remote (HTTP) :</b> utilisez l'URL du serveur. Les clients compatibles OAuth se connecteront automatiquement via la page d'autorisation.",
+          "bearer": "<b>Bearer token :</b> pour les clients supportant les headers, passez votre clé MCP :",
+          "noQueryToken": "La clé passée dans l'URL (<code>?token=</code>) n'est pas acceptée : la spécification MCP l'interdit, car elle finirait dans les journaux. Si le client ne permet pas d'en-tête, utilisez la connexion OAuth."
+        }
+      },
+      "prerequisite": "<b>Prérequis :</b> l'utilisateur doit avoir la permission <code>mcp:use</code> dans son rôle (attribuée par défaut aux rôles Manager et Administrateur). Les clés actives sont gérées dans <b>Mon compte > IA</b>."
+    },
+    "backup": {
+      "keyConfigured": "Clé de chiffrement configurée",
+      "keyMissing": "Clé de chiffrement absente",
+      "creating": "Sauvegarde en cours...",
+      "create": "Créer une sauvegarde",
+      "keyHelp": "Ajoutez <code>BACKUP_ENCRYPTION_KEY</code> dans votre fichier <code>.env</code> pour activer les sauvegardes. Utilisez une chaîne de 32+ caractères.",
+      "warning": "<b>Attention :</b> les fichiers téléchargés (.dump) ne sont pas chiffrés et contiennent l'intégralité de vos données (utilisateurs, mots de passe hashés, projets, tâches...). Conservez-les en lieu sûr et ne les partagez pas.",
+      "history": "Historique",
+      "empty": "Aucune sauvegarde",
+      "columns": {
+        "date": "Date",
+        "size": "Taille",
+        "duration": "Durée",
+        "type": "Type",
+        "status": "Statut"
+      },
+      "trigger": {
+        "manual": "Manuel",
+        "scheduled": "Auto"
+      },
+      "status": {
+        "completed": "Terminé",
+        "failed": "Échoué",
+        "inProgress": "En cours"
+      },
+      "confirmDelete": {
+        "title": "Supprimer la sauvegarde",
+        "description": "Supprimer définitivement {filename} ? Le fichier chiffré sera supprimé du serveur."
+      }
+    },
+    "backupStep": {
+      "done": "Backup téléchargé",
+      "todo": "Sauvegarder la base de données",
+      "creating": "Création...",
+      "downloading": "Téléchargement...",
+      "createAndDownload": "Créer et télécharger le backup",
+      "downloaded": "Le backup a été téléchargé.",
+      "redownload": "Retélécharger",
+      "unencrypted": "Ce fichier n'est pas chiffré et contient toutes vos données. Conservez-le en lieu sûr.",
+      "downloadFirst": "Téléchargez d'abord le backup.",
+      "error": "Impossible de créer ou télécharger le backup."
+    },
+    "socket": {
+      "title": "Socket.io — Temps réel",
+      "connected": "Connecté",
+      "connecting": "Connexion...",
+      "disconnected": "Déconnecté",
+      "uptime": "Uptime : {value}",
+      "clients": "Clients connectés : {count}",
+      "unreachable": "Serveur injoignable",
+      "notResponding": "{error} — Le serveur Socket.io (port 3001) ne répond pas. Vérifiez que <code>bun --hot server.ts</code> est lancé.",
+      "description": "Le serveur Socket.io assure la mise à jour en temps réel du planning, la barre de présence, et les notifications de session entre tous les utilisateurs connectés.",
+      "uptimeDays": "{d}j {h}h {m}min",
+      "uptimeHours": "{h}h {m}min",
+      "uptimeMinutes": "{m}min"
+    },
+    "import": {
+      "title": "Importer une base de données",
+      "intro": "Cet outil permet de restaurer des données à partir d'un fichier de sauvegarde (<code>.dump</code>) généré par Humble Planning.",
+      "mergeMode": {
+        "title": "Mode fusion",
+        "description": "Ajoute les nouvelles données du fichier sans toucher aux données existantes. Les enregistrements en conflit sont ignorés."
+      },
+      "replaceMode": {
+        "title": "Mode remplacement",
+        "description": "Remplace intégralement la base par le contenu du fichier. Un backup de sécurité sera exigé avant l'opération."
+      },
+      "analysisNote": "Le fichier sera analysé avant toute modification : vous verrez un résumé du contenu et des éventuels conflits, puis vous choisirez le mode d'importation.",
+      "dropTitle": "Glissez un fichier .dump ici",
+      "dropHint": "ou cliquez pour sélectionner un fichier de sauvegarde Humble Planning",
+      "dumpOnly": "Seuls les fichiers .dump sont acceptés",
+      "analyzing": "Analyse du fichier en cours...",
+      "analyzingDetail": "Validation, restauration temporaire et analyse des données",
+      "content": "Contenu du fichier",
+      "columns": {
+        "entity": "Entité",
+        "inDump": "Dans le dump",
+        "live": "Base actuelle",
+        "new": "Nouveau",
+        "conflicts": "Conflits"
+      },
+      "conflicts": "{count, plural, one {# conflit détecté} other {# conflits détectés}} — certains identifiants existent déjà dans la base actuelle.",
+      "merge": {
+        "title": "Fusionner sans écraser",
+        "nothing": "Aucune nouvelle donnée à importer. Toutes les entrées du dump existent déjà.",
+        "description": "Ajoute uniquement les nouvelles données. Les enregistrements existants sont conservés intacts."
+      },
+      "replace": {
+        "title": "Remplacer toute la base",
+        "description": "Supprime toutes les données actuelles et les remplace. Un backup sera obligatoire avant."
+      },
+      "cancel": "Annuler l'importation",
+      "executing": "Importation en cours...",
+      "executingDetail": "Ne fermez pas cette page. L'opération peut prendre plusieurs minutes.",
+      "success": "Importation réussie ({mode, select, merge {fusion} other {remplacement complet}})",
+      "added": "{count, plural, one {# ajouté} other {# ajoutés}}",
+      "sessionsInvalidated": "Toutes les sessions ont été invalidées. Redirection vers la page de connexion...",
+      "failed": "Échec de l'importation",
+      "replaceDialog": {
+        "title": "Remplacement complet de la base",
+        "description": "Toutes les données actuelles seront supprimées et remplacées. Vous devez d'abord sauvegarder vos données.",
+        "confirmStep": "Confirmer le remplacement"
+      },
+      "tables": {
+        "users": "Utilisateurs",
+        "teams": "Équipes",
+        "roles": "Rôles",
+        "role_permissions": "Permissions des rôles",
+        "projects": "Projets",
+        "project_groups": "Groupes de projets",
+        "tasks": "Tâches",
+        "task_users": "Assignations de tâches",
+        "statuses": "Statuts",
+        "places": "Lieux",
+        "qualifications": "Habilitations",
+        "user_qualifications": "Habilitations des utilisateurs",
+        "holidays": "Jours fériés",
+        "vehicles": "Véhicules",
+        "vehicle_types": "Types de véhicules",
+        "vehicle_assignments": "Assignations véhicules",
+        "resources": "Ressources",
+        "resource_types": "Types de ressources",
+        "resource_assignments": "Assignations ressources",
+        "business_units": "Business Units",
+        "labor_types": "Types de main-d'œuvre",
+        "project_labor_budgets": "Budgets de main-d'œuvre des projets"
+      }
+    },
+    "migration": {
+      "title": "Migration depuis un outil externe",
+      "intro": "Sélectionnez le logiciel de planification depuis lequel vous souhaitez migrer vos données vers Humble Planning.",
+      "source": "Source de migration",
+      "sourcePlaceholder": "Choisir un outil...",
+      "soplanning": {
+        "title": "Migration SoPlanning",
+        "intro": "Cet outil permet d'importer les données d'un export SoPlanning (versions 1.55, 1.56 et 1.57, versions correctives incluses) vers Humble Planning. L'import remplacera intégralement les données existantes.",
+        "important": "Informations importantes",
+        "notes": {
+          "passwords": "Les mots de passe ne sont pas transférables — un mot de passe unique sera généré pour tous les utilisateurs importés",
+          "changePassword": "Tous les utilisateurs devront changer leur mot de passe à la première connexion",
+          "roles": "Les droits SoPlanning seront convertis en rôles Humble Planning",
+          "superAdmin": "Un compte super-administrateur « {login} » sera créé automatiquement",
+          "backup": "Un backup de la base actuelle sera exigé avant la migration"
+        },
+        "dropTitle": "Glissez un fichier .zip SoPlanning ici",
+        "dropHint": "ou cliquez pour sélectionner l'archive d'export SoPlanning",
+        "zipOnly": "Seuls les fichiers .zip sont acceptés.",
+        "analyzing": "Analyse du fichier SoPlanning en cours...",
+        "analyzingDetail": "Extraction de l'archive, validation de la version et analyse des données CSV",
+        "analysisTitle": "Analyse de l'export SoPlanning v{version}",
+        "columns": {
+          "entity": "Entité",
+          "count": "Nombre"
+        },
+        "start": "Lancer la migration",
+        "executing": "Migration en cours...",
+        "executingDetail": "Remplacement de la base de données et import des données SoPlanning",
+        "failed": "La migration a échoué",
+        "restart": "Recommencer",
+        "success": "Migration terminée avec succès",
+        "credentials": {
+          "title": "Identifiants de connexion",
+          "warning": "Notez bien ces informations avant de continuer. Elles ne seront plus affichées.",
+          "usersPassword": "Mot de passe des utilisateurs importés",
+          "usersPasswordHelp": "Tous les utilisateurs devront changer ce mot de passe à la prochaine connexion.",
+          "superAdmin": "Compte super-administrateur",
+          "login": "Login :",
+          "password": "MDP :"
+        },
+        "reviewRoles": {
+          "title": "Vérifiez les rôles et permissions",
+          "description": "Le système de droits de SoPlanning a été converti automatiquement vers le système de rôles et permissions de HumblePlanning, mais la correspondance n'est pas parfaite. Nous vous recommandons de passer en revue chaque utilisateur ainsi que les rôles créés afin d'ajuster les permissions aux besoins réels de votre organisation. Rendez-vous dans <b>Rôles</b> puis dans <b>Utilisateurs</b> pour finaliser cette configuration."
+        },
+        "finalize": "Finaliser la migration",
+        "finalizeDialog": {
+          "title": "Avez-vous bien enregistré les identifiants ?",
+          "credentialsHidden": "Le mot de passe des utilisateurs importés et les identifiants du compte super-administrateur ne seront <b>plus jamais affichés</b>.",
+          "logout": "En finalisant la migration, <b>tous les utilisateurs seront déconnectés</b>, vous compris. Vous devrez ensuite vous reconnecter avec le compte super-administrateur.",
+          "back": "Revenir aux identifiants",
+          "confirm": "J'ai noté les identifiants, finaliser"
+        },
+        "replaceDialog": {
+          "title": "Migration SoPlanning — Remplacement total",
+          "description": "Cette opération va <b>supprimer intégralement</b> toutes les données actuelles de Humble Planning et les remplacer par les données de SoPlanning.",
+          "step1": "Étape 1 : Créez un backup de sécurité (obligatoire)",
+          "confirmStep": "Confirmer la migration"
+        }
+      },
+      "entities": {
+        "users": "Utilisateurs",
+        "teams": "Équipes",
+        "defaultStatuses": "Statuts (recréés)",
+        "projectGroups": "Groupes de projets",
+        "projects": "Projets",
+        "tasks": "Tâches",
+        "statuses": "Statuts",
+        "holidays": "Jours fériés",
+        "taskUsers": "Assignations"
+      },
+      "warnings": {
+        "duplicateEmails": "{count, plural, one {# email en doublon détecté} other {# emails en doublon détectés}} — ces emails seront supprimés des utilisateurs concernés : {emails}",
+        "inactiveUsers": "{count, plural, one {# utilisateur inactif sera importé comme désactivé.} other {# utilisateurs inactifs seront importés comme désactivés.}}",
+        "skillsNotExported": "Les compétences SoPlanning (module ajouté en 1.57) ne font pas partie de l'export SoPlanning : elles ne seront pas migrées et devront être recréées en tant que qualifications.",
+        "orphanTasks": "{count, plural, one {# tâche sans projet valide sera ignorée.} other {# tâches sans projet valide seront ignorées.}}"
+      }
+    }
+  },
+  "stats": {
+    "loading": "Chargement des statistiques...",
+    "successRate": "Taux de réussite",
+    "thisMonth": "Ce mois",
+    "lastMonth": "Mois précédent",
+    "successTitle": "Succès : {count}",
+    "errorTitle": "Échecs : {count}",
+    "successLegend": "Succès ({count})",
+    "errorLegend": "Échecs ({count})",
+    "resetTitle": "Réinitialiser les statistiques"
+  },
+  "emailStats": {
+    "title": "Statistiques d'envoi",
+    "monthTotal": "Emails ce mois",
+    "sent": "{count, plural, one {# envoyé} other {# envoyés}}",
+    "failed": "{count, plural, one {# échoué} other {# échoués}}",
+    "empty": "Aucun email envoyé pour le moment.",
+    "resetDescription": "Cette action supprimera les logs d'envoi des mois précédents. Le compteur du mois en cours sera conservé."
+  },
+  "smsStats": {
+    "title": "Statistiques d'envoi SMS / WhatsApp",
+    "empty": "Aucun SMS / WhatsApp envoyé pour le moment.",
+    "resetDescription": "Cette action supprimera définitivement tous les logs d'envoi SMS / WhatsApp. Les compteurs seront remis à zéro."
+  },
+  "storage": {
+    "title": "Stockage",
+    "filesOnTasks": "{files, plural, one {fichier} other {fichiers}} sur {tasks, plural, one {# tâche} other {# tâches}}",
+    "attachments": "pièces jointes",
+    "perUser": "Stockage par utilisateur",
+    "empty": "Aucun fichier",
+    "userFiles": "{size} · {count, plural, one {# fichier} other {# fichiers}}"
+  },
+  "blocklist": {
+    "title": "Emails bloqués",
+    "searchPlaceholder": "Rechercher email, utilisateur, raison...",
+    "inactive": "Blocklist inactive — fournisseur email non Nuntly. Les emails ci-dessous sont temporairement utilisables.",
+    "empty": "Aucun email bloqué",
+    "columns": {
+      "email": "Email",
+      "user": "Utilisateur",
+      "reason": "Raison",
+      "date": "Date",
+      "source": "Source",
+      "action": "Action"
+    },
+    "reasons": {
+      "bounce": "Bounce",
+      "complaint": "Plainte spam"
+    },
+    "unblock": "Débloquer",
+    "confirm": {
+      "title": "Débloquer cet email ?",
+      "description": "L'email {email} pourra à nouveau être utilisé. Si Nuntly redétecte un bounce ou une plainte, il sera automatiquement rebloqué."
+    }
+  },
+  "webhookLogs": {
+    "title": "Logs webhook Nuntly",
+    "total": "{count} total",
+    "searchPlaceholder": "Rechercher type, destinataire, statut...",
+    "empty": "Aucun événement reçu pour le moment",
+    "columns": {
+      "dateTime": "Date / heure",
+      "type": "Type",
+      "recipient": "Destinataire",
+      "status": "Statut",
+      "error": "Erreur"
+    },
+    "pageOf": "Page {page} / {total}"
+  },
+  "webhookStatus": {
+    "loading": "Chargement du statut webhook...",
+    "title": "Webhook Nuntly",
+    "healthy": "Opérationnel",
+    "secretMissing": "Secret non configuré",
+    "waiting": "En attente d'événements",
+    "errors": "Erreurs détectées",
+    "urlLabel": "URL du webhook (à configurer dans Nuntly)",
+    "urlMissing": "Définissez APP_BASE_URL dans Application",
+    "copied": "Copié",
+    "lastEvent": "Dernier événement",
+    "events24h": "Événements 24h",
+    "errors24h": "Erreurs 24h",
+    "help": "Configurez ce webhook dans votre dashboard Nuntly pour activer le blocage automatique des bounces et plaintes spam."
+  },
+  "fields": {
+    "APP_TITLE": {
+      "label": "Titre de l'application"
+    },
+    "APP_BASE_URL": {
+      "label": "URL de l'application",
+      "description": "Utilisée dans les emails (liens de reset, notifications)"
+    },
+    "TIMEZONE": {
+      "label": "Fuseau horaire",
+      "description": "Détermine comment les dates et heures sont affichées dans l'application"
+    },
+    "APP_LOCALE": {
+      "label": "Langue par défaut",
+      "description": "Langue utilisée quand l'utilisateur n'a pas choisi de langue dans son navigateur. Sert aussi aux emails des utilisateurs qui ne se sont jamais connectés.",
+      "options": {
+        "auto": "Automatique (langue du navigateur)",
+        "fr": "Français",
+        "en": "English",
+        "es": "Español",
+        "de": "Deutsch"
+      }
+    },
+    "PLANNING_DATE_FORMAT": {
+      "label": "Format de date"
+    },
+    "TIME_FORMAT": {
+      "label": "Format d'heure",
+      "options": {
+        "24h": "24 heures (14h30)",
+        "12h": "12 heures (2:30 PM)"
+      }
+    },
+    "MODULE_VEHICLES": {
+      "label": "Activer module Véhicules",
+      "description": "Si désactivé, le bouton Véhicules dans le planning et les pages /vehicles, /vehicle-types deviennent inaccessibles."
+    },
+    "MODULE_RESOURCES": {
+      "label": "Activer module Ressources",
+      "description": "Si désactivé, le bouton Ressources dans le planning et les pages /resources, /resource-types deviennent inaccessibles."
+    },
+    "MAINTENANCE_MODE": {
+      "label": "Mode maintenance",
+      "description": "Active le mode maintenance sur le planning. Les utilisateurs sans la permission 'maintenance:bypass' ne pourront plus accéder au planning."
+    },
+    "DEFAULT_HOME_PAGE": {
+      "label": "Page d'accueil par défaut",
+      "description": "Ces réglages sont appliqués à la création d'un compte. Chaque utilisateur peut ensuite les modifier dans son profil.",
+      "options": {
+        "home": "Accueil",
+        "planning": "Planning",
+        "tasks": "Tâches",
+        "projects": "Projets",
+        "users": "Utilisateurs",
+        "teams": "Équipes",
+        "resources": "Ressources",
+        "vehicles": "Véhicules",
+        "audit": "Audit",
+        "settings": "Paramètres"
+      }
+    },
+    "DEFAULT_PLANNING_VIEW": {
+      "label": "Vue planning par défaut",
+      "options": {
+        "users": "Utilisateurs",
+        "projects": "Projets",
+        "resources": "Ressources",
+        "vehicles": "Véhicules"
+      }
+    },
+    "DEFAULT_COLUMN_VIEW": {
+      "label": "Mode colonnes par défaut",
+      "options": {
+        "days": "Jours",
+        "hours": "Heures"
+      }
+    },
+    "DEFAULT_THEME": {
+      "label": "Thème par défaut",
+      "options": {
+        "system": "Système",
+        "light": "Clair",
+        "dark": "Sombre"
+      }
+    },
+    "DEFAULT_NOTIFICATIONS": {
+      "label": "Notifications email activées par défaut"
+    },
+    "DEFAULT_PUSH_NOTIFICATIONS": {
+      "label": "Notifications push activées par défaut"
+    },
+    "DEFAULT_SMS_NOTIFICATIONS": {
+      "label": "Notifications SMS / WhatsApp activées par défaut"
+    },
+    "APP_LOGO": {
+      "label": "Logo du site"
+    },
+    "APP_FAVICON": {
+      "label": "Favicon"
+    },
+    "LOGIN_BACKGROUND": {
+      "label": "Image de fond page de connexion"
+    },
+    "PLANNING_MIN_CELL_WIDTH": {
+      "label": "Largeur minimale des cellules (px)",
+      "description": "Borne basse du slider de largeur dans le planning."
+    },
+    "PLANNING_MAX_CELL_WIDTH": {
+      "label": "Largeur maximale des cellules (px)",
+      "description": "Borne haute du slider. Doit être supérieure à la largeur minimale."
+    },
+    "PLANNING_DEFAULT_CELL_WIDTH": {
+      "label": "Largeur par défaut des cellules (px)",
+      "description": "Largeur appliquée à la première connexion d'un utilisateur (avant qu'il ne touche au slider). Doit être comprise entre la largeur minimale et la largeur maximale."
+    },
+    "PLANNING_MAX_CELL_WIDTH_MOBILE": {
+      "label": "Largeur max des cellules sur mobile (px)",
+      "description": "Plafond appliqué automatiquement sur les écrans < 768 px, même si l'utilisateur a configuré une valeur plus large via le slider."
+    },
+    "PLANNING_SIDEBAR_WIDTH": {
+      "label": "Largeur de la colonne des noms / projets",
+      "description": "\"auto\" pour s'adapter au contenu, ou une valeur en pixels (ex: 200). En mode auto, la colonne s'élargit pour afficher le nom le plus long."
+    },
+    "PLANNING_SIDEBAR_WIDTH_MOBILE": {
+      "label": "Largeur max noms / projets (mobile)",
+      "description": "Largeur maximale en pixels sur mobile (< 768px). Limite la colonne en mode auto pour préserver la lisibilité."
+    },
+    "PLANNING_LINE_HEIGHT": {
+      "label": "Hauteur des barres de tâches (px)"
+    },
+    "PLANNING_CELL_FONTSIZE": {
+      "label": "Taille police cellules (px)"
+    },
+    "PLANNING_FONT_FAMILY": {
+      "label": "Police d'écriture des tâches",
+      "description": "Polices hébergées localement (chargées au build). Aucun appel à un serveur externe.",
+      "options": {
+        "geist": "Geist Sans (par défaut)",
+        "inter": "Inter",
+        "roboto": "Roboto",
+        "ibm-plex-sans": "IBM Plex Sans",
+        "source-sans": "Source Sans 3"
+      }
+    },
+    "PLANNING_FONT_BOLD": {
+      "label": "Texte des tâches en gras",
+      "description": "Applique un poids semi-gras (600) au lieu de normal (400)."
+    },
+    "DEFAULT_NB_MONTHS_DISPLAYED": {
+      "label": "Nombre de mois affichés par défaut"
+    },
+    "PLANNING_MAX_TASKS_PER_DAY": {
+      "label": "Nombre max de tâches par utilisateur et par jour",
+      "description": "0 = pas de limite. Commun aux vues jours et heures : bloque la création d'une tâche supplémentaire si l'utilisateur a déjà atteint cette limite sur le jour ciblé."
+    },
+    "AM_START": {
+      "label": "Début matin"
+    },
+    "AM_END": {
+      "label": "Fin matin"
+    },
+    "PM_START": {
+      "label": "Début après-midi"
+    },
+    "PM_END": {
+      "label": "Fin après-midi"
+    },
+    "DURATION_DAY": {
+      "label": "Durée journée (calculée automatiquement)",
+      "description": "Calculée à partir des horaires matin + après-midi"
+    },
+    "INCLUDE_WEEKENDS": {
+      "label": "Inclure les samedis et dimanches dans les calculs",
+      "description": "Si activé, les week-ends sont comptés comme jours ouvrés pour le calcul d'occupation"
+    },
+    "INCLUDE_HOLIDAYS": {
+      "label": "Inclure les jours fériés dans les calculs",
+      "description": "Si activé, les jours fériés sont comptés comme jours ouvrés pour le calcul d'occupation"
+    },
+    "ANNOUNCEMENT_ENABLED": {
+      "label": "Afficher une annonce",
+      "description": "Affiche une bannière flottante sur toutes les pages du planning"
+    },
+    "ANNOUNCEMENT_CONTENT": {
+      "label": "Contenu de l'annonce"
+    },
+    "ANNOUNCEMENT_COLOR": {
+      "label": "Couleur de fond"
+    },
+    "ANNOUNCEMENT_ICON": {
+      "label": "Icône"
+    },
+    "ANNOUNCEMENT_EXPIRES_AT": {
+      "label": "Afficher jusqu'au",
+      "description": "Laissez vide pour un affichage permanent"
+    },
+    "ANNOUNCEMENT_REPEAT": {
+      "label": "Répétition de l'annonce",
+      "description": "Réaffiche automatiquement l'annonce aux utilisateurs qui l'ont fermée",
+      "options": {
+        "never": "Jamais",
+        "day": "Chaque jour",
+        "week": "Chaque semaine",
+        "month": "Chaque mois"
+      }
+    },
+    "EMAIL_PROVIDER": {
+      "label": "Fournisseur email",
+      "options": {
+        "nuntly": "Nuntly",
+        "smtp": "SMTP",
+        "mailgun": "Mailgun"
+      }
+    },
+    "SMTP_FROM": {
+      "label": "Adresse expéditeur"
+    },
+    "NUNTLY_API_KEY": {
+      "label": "Clé API Nuntly",
+      "description": "Clé API disponible sur https://app.nuntly.com"
+    },
+    "NUNTLY_WEBHOOK_SECRET": {
+      "label": "Secret webhook Nuntly",
+      "description": "Signing secret pour vérifier les webhooks (préfixé whsec_)"
+    },
+    "SMTP_HOST": {
+      "label": "Serveur SMTP"
+    },
+    "SMTP_PORT": {
+      "label": "Port SMTP"
+    },
+    "SMTP_LOGIN": {
+      "label": "Login SMTP"
+    },
+    "SMTP_PASSWORD": {
+      "label": "Mot de passe SMTP"
+    },
+    "SMTP_SECURE": {
+      "label": "Connexion sécurisée (TLS)"
+    },
+    "MAILGUN_API_KEY": {
+      "label": "Clé API Mailgun"
+    },
+    "MAILGUN_DOMAIN": {
+      "label": "Domaine Mailgun"
+    },
+    "MAILGUN_REGION": {
+      "label": "Région Mailgun",
+      "options": {
+        "eu": "Europe (EU)",
+        "us": "États-Unis (US)"
+      }
+    },
+    "SENT_API_KEY": {
+      "label": "Clé API Sent.dm",
+      "description": "Récupérez votre clé API et sender ID sur https://app.sent.dm. Le numéro de téléphone mobile de l'utilisateur est utilisé pour l'envoi des notifications."
+    },
+    "SENT_SENDER_ID": {
+      "label": "Sender ID Sent.dm",
+      "description": "GUID identifiant votre compte Sent.dm"
+    },
+    "SENT_TEMPLATE_ID": {
+      "label": "Template ID Sent.dm",
+      "description": "UUID du template à utiliser. Le template doit être créé sur https://app.sent.dm avec cinq variables : {v1} (nom de l'application), {v2} (type d'événement), {v3} (nom du projet), {v4} (titre de la tâche) et {v5} (URL de l'application)"
+    },
+    "SENT_DEFAULT_COUNTRY": {
+      "label": "Pays par défaut",
+      "description": "Code pays ISO 2 lettres (ex: FR, BE, CH) utilisé pour le sélecteur de drapeau dans les champs téléphone"
+    },
+    "NOTIFICATION_EMAIL_COCHE": {
+      "label": "Notifications email activées"
+    },
+    "EMAIL_SEND_DELAY": {
+      "label": "Délai avant envoi (secondes)",
+      "description": "Temps d'attente avant l'envoi pour regrouper les modifications rapides"
+    },
+    "EMAIL_THROTTLE_DELAY": {
+      "label": "Délai entre chaque email (secondes)",
+      "description": "Pause entre chaque envoi pour limiter le débit (0 = aucun délai)"
+    },
+    "EMAIL_NOTIFICATION_TRIGGERS": {
+      "label": "Événements déclencheurs",
+      "description": "Sélectionnez les événements qui déclenchent l'envoi d'un email de notification"
+    },
+    "WEEKLY_SUMMARY_ENABLED": {
+      "label": "Activer la synthèse hebdomadaire par email",
+      "description": "Envoi automatique d'un email récapitulatif des tâches de la semaine à venir (lundi → dimanche prochain) à chaque utilisateur ayant les notifications email activées. Si l'utilisateur n'a aucune tâche planifiée, aucun email n'est envoyé."
+    },
+    "WEEKLY_SUMMARY_DAY": {
+      "label": "Jour d'envoi",
+      "options": {
+        "1": "Lundi",
+        "2": "Mardi",
+        "3": "Mercredi",
+        "4": "Jeudi",
+        "5": "Vendredi",
+        "6": "Samedi",
+        "7": "Dimanche"
+      }
+    },
+    "WEEKLY_SUMMARY_TIME": {
+      "label": "Heure d'envoi"
+    },
+    "NOTIFICATION_PUSH_ENABLED": {
+      "label": "Notifications push activées"
+    },
+    "PUSH_NOTIFICATION_TRIGGERS": {
+      "label": "Événements déclencheurs (push)",
+      "description": "Sélectionnez les événements qui déclenchent l'envoi d'une notification push in-app"
+    },
+    "PUSH_RETENTION_DAYS": {
+      "label": "Rétention des notifications (jours)",
+      "description": "Supprime automatiquement les notifications plus anciennes. 0 = illimité"
+    },
+    "__purge_notifications": {
+      "actionLabel": "Purger toutes les notifications",
+      "description": "Supprime toutes les notifications push de tous les utilisateurs. Cette action est irréversible."
+    },
+    "NOTIFICATION_SMS_ENABLED": {
+      "label": "Notifications SMS / WhatsApp activées",
+      "description": "Le numéro de téléphone mobile de l'utilisateur est utilisé pour l'envoi. Les messages sont routés automatiquement par Sent.dm vers WhatsApp si disponible, sinon SMS."
+    },
+    "SMS_THROTTLE_DELAY": {
+      "label": "Délai entre chaque SMS (secondes)",
+      "description": "Pause entre chaque envoi pour limiter le débit (0 = aucun délai)"
+    },
+    "SMS_NOTIFICATION_TRIGGERS": {
+      "label": "Événements déclencheurs (SMS / WhatsApp)",
+      "description": "Sélectionnez les événements qui déclenchent l'envoi d'un SMS / WhatsApp"
+    },
+    "PWD_MIN_LENGTH": {
+      "label": "Longueur minimale du mot de passe"
+    },
+    "PWD_MAX_LENGTH": {
+      "label": "Longueur maximale du mot de passe"
+    },
+    "PWD_REQUIRE_UPPERCASE": {
+      "label": "Exiger une lettre majuscule"
+    },
+    "PWD_REQUIRE_LOWERCASE": {
+      "label": "Exiger une lettre minuscule"
+    },
+    "PWD_REQUIRE_DIGIT": {
+      "label": "Exiger un chiffre"
+    },
+    "PWD_REQUIRE_SPECIAL": {
+      "label": "Exiger un caractère spécial"
+    },
+    "PWD_HISTORY_COUNT": {
+      "label": "Interdire la réutilisation des X derniers mots de passe",
+      "description": "0 = pas de restriction"
+    },
+    "PWD_GEN_LENGTH": {
+      "label": "Longueur par défaut des MDP générés"
+    },
+    "PWD_GEN_INCLUDE_SPECIAL": {
+      "label": "Inclure les caractères spéciaux dans la génération"
+    },
+    "PWD_BLACKLIST_ENABLED": {
+      "label": "Activer la liste noire de mots de passe",
+      "description": "Interdit l'utilisation des mots de passe présents dans la liste ci-dessous"
+    },
+    "PWD_BLACKLIST": {
+      "label": "Mots de passe interdits"
+    },
+    "FORGOT_PASSWORD_ENABLED": {
+      "label": "Activer la fonction « Mot de passe oublié »",
+      "description": "Affiche un lien sur la page de connexion permettant aux utilisateurs de réinitialiser leur mot de passe par email. Nécessite que les paramètres email (SMTP ou Mailgun) soient configurés."
+    },
+    "BRUTEFORCE_MAX_ATTEMPTS": {
+      "label": "Nombre de tentatives avant blocage",
+      "description": "0 = pas de protection"
+    },
+    "BRUTEFORCE_LOCKOUT_SECONDS": {
+      "label": "Durée du blocage (secondes)",
+      "description": "Temps d'attente imposé après le nombre de tentatives échouées (ex: 300 = 5 minutes)"
+    },
+    "TWOFACTOR_REQUIRED": {
+      "label": "Imposer le 2FA à tous les utilisateurs",
+      "description": "Si activé, tous les utilisateurs devront configurer l'authentification à deux facteurs pour se connecter"
+    },
+    "SESSION_DURATION_DAYS": {
+      "label": "Durée de session (jours)",
+      "description": "Durée de validité d'une session utilisateur. La session est rafraîchie automatiquement à chaque visite."
+    },
+    "SESSION_REMEMBER_DAYS": {
+      "label": "Durée \"Rester connecté\" (jours)",
+      "description": "Durée de session quand l'utilisateur coche \"Rester connecté\" sur la page de connexion"
+    },
+    "CAPTCHA_ENABLED": {
+      "label": "Activer le captcha",
+      "description": "Ajoute une vérification captcha sur les pages de connexion et réinitialisation de mot de passe"
+    },
+    "CAPTCHA_PROVIDER": {
+      "label": "Fournisseur",
+      "options": {
+        "altcha": "ALTCHA (auto-hébergé)",
+        "turnstile": "Cloudflare Turnstile",
+        "recaptcha": "Google reCAPTCHA v3"
+      }
+    },
+    "CAPTCHA_SITE_KEY": {
+      "label": "Clé du site (Site Key)",
+      "description": "Clé publique fournie par le fournisseur de captcha"
+    },
+    "CAPTCHA_SECRET_KEY": {
+      "label": "Clé secrète (Secret Key)",
+      "description": "Clé privée utilisée pour la vérification côté serveur"
+    },
+    "COOKIE_BANNER_ENABLED": {
+      "label": "Activer le bandeau de consentement aux cookies"
+    },
+    "COOKIE_BANNER_TITLE": {
+      "label": "Titre du bandeau"
+    },
+    "COOKIE_BANNER_DESCRIPTION": {
+      "label": "Description du bandeau"
+    },
+    "COOKIE_BANNER_POSITION": {
+      "label": "Position du bandeau",
+      "options": {
+        "bottom_center": "En bas (centré)",
+        "bottom_left": "En bas à gauche",
+        "bottom_right": "En bas à droite",
+        "top_center": "En haut (centré)"
+      }
+    },
+    "COOKIE_ANALYTICS_ENABLED": {
+      "label": "Proposer les cookies analytiques"
+    },
+    "COOKIE_ANALYTICS_LABEL": {
+      "label": "Label cookies analytiques"
+    },
+    "COOKIE_FUNCTIONAL_ENABLED": {
+      "label": "Proposer les cookies fonctionnels"
+    },
+    "COOKIE_FUNCTIONAL_LABEL": {
+      "label": "Label cookies fonctionnels"
+    },
+    "PRIVACY_POLICY_ENABLED": {
+      "label": "Activer la page politique de confidentialité"
+    },
+    "PRIVACY_POLICY_TITLE": {
+      "label": "Titre de la page"
+    },
+    "LEGAL_COMPANY_NAME": {
+      "label": "Nom de la société / responsable",
+      "description": "Variable : {variable} — Insérez cette variable dans le contenu de la politique pour afficher ce nom automatiquement."
+    },
+    "LEGAL_CONTACT_EMAIL": {
+      "label": "Email DPO / contact RGPD",
+      "description": "Variable : {variable} — Insérez cette variable dans le contenu de la politique pour afficher cet email automatiquement."
+    },
+    "LEGAL_DATA_RETENTION_DAYS": {
+      "label": "Durée de conservation des données (jours)",
+      "description": "Variable : {variable} — Insérez cette variable dans le contenu de la politique. Sera affiché en jours."
+    },
+    "PRIVACY_POLICY_CONTENT": {
+      "label": "Contenu de la politique"
+    },
+    "FOOTER_COPYRIGHT_TEXT": {
+      "label": "Texte de copyright",
+      "description": "Ex: © 2026 MonEntreprise. Affiché en bas du menu latéral."
+    },
+    "FOOTER_SHOW_PRIVACY_LINK": {
+      "label": "Afficher le lien Confidentialité dans le menu"
+    },
+    "FOOTER_SHOW_VERSION": {
+      "label": "Afficher le numéro de version"
+    },
+    "ENABLE_FILE_UPLOAD": {
+      "label": "Activer la gestion des fichiers"
+    },
+    "WHITELIST_UPLOAD": {
+      "label": "Extensions autorisées (séparées par virgule)"
+    },
+    "MAX_UPLOAD_SIZE_MB": {
+      "label": "Taille max par fichier (Mo)"
+    },
+    "MAX_TOTAL_SIZE_MB": {
+      "label": "Taille max totale par tâche (Mo)"
+    },
+    "MAX_FILES_PER_TASK": {
+      "label": "Nombre max de fichiers par tâche"
+    },
+    "FILE_RETENTION": {
+      "label": "Durée de rétention des fichiers"
+    },
+    "MODULE_AUDIT": {
+      "label": "Activer module audit"
+    },
+    "AUDIT_TASKS": {
+      "label": "Audit tâches"
+    },
+    "AUDIT_PROJECTS": {
+      "label": "Audit projets"
+    },
+    "AUDIT_USERS": {
+      "label": "Audit utilisateurs"
+    },
+    "AUDIT_LOGINS": {
+      "label": "Audit connexions"
+    },
+    "AUDIT_RETENTION": {
+      "label": "Durée de rétention des audits"
+    },
+    "LOGS_ENABLED": {
+      "label": "Activer les logs système",
+      "description": "Enregistre les événements système (erreurs, actions, connexions) dans un buffer mémoire consultable depuis la page Logs"
+    },
+    "LOGS_LEVEL": {
+      "label": "Niveau minimum",
+      "options": {
+        "ERROR": "Erreur uniquement",
+        "WARN": "Avertissements et erreurs",
+        "INFO": "Informations (recommandé)",
+        "DEBUG": "Debug (verbeux)"
+      }
+    },
+    "LOGS_MAX_ENTRIES": {
+      "label": "Nombre max d'entrées",
+      "description": "Taille du buffer circulaire en mémoire (les plus anciens sont remplacés)"
+    },
+    "API_ENABLED": {
+      "label": "Activer l'accès API",
+      "description": "Permet aux outils externes de communiquer avec le planning via des clés API"
+    },
+    "API_RATE_LIMIT_MINUTE": {
+      "label": "Requêtes par minute",
+      "description": "Nombre maximum de requêtes API par clé et par minute"
+    },
+    "API_RATE_LIMIT_HOUR": {
+      "label": "Requêtes par heure",
+      "description": "Nombre maximum de requêtes API par clé et par heure"
+    },
+    "API_RATE_LIMIT_EXPORT": {
+      "label": "Exports par minute",
+      "description": "Nombre maximum d'exports (CSV, Excel, PDF, iCal) par clé et par minute"
+    },
+    "CACHE_ENABLED": {
+      "label": "Activer le cache serveur",
+      "description": "Met en cache les configurations et permissions en mémoire pour réduire les requêtes à la base de données"
+    },
+    "CACHE_TTL": {
+      "label": "Durée de vie du cache (secondes)",
+      "description": "Temps avant que les données en cache soient automatiquement rafraîchies. 300 = 5 minutes."
+    },
+    "_purge_files": {
+      "actionLabel": "Purger les fichiers...",
+      "description": "Supprime définitivement tous les fichiers uploadés avant la date sélectionnée. Cette action est irréversible."
+    },
+    "_purge_tasks": {
+      "actionLabel": "Purger les tâches...",
+      "description": "Supprime définitivement toutes les tâches dont la date de début est antérieure à la date sélectionnée (incluant leurs fichiers associés). Cette action est irréversible."
+    },
+    "MCP_ENABLED": {
+      "label": "Activer le serveur MCP",
+      "description": "Permet aux assistants IA (Claude, ChatGPT) d'interagir avec le planning via le protocole MCP"
+    },
+    "MCP_MAX_KEYS_PER_USER": {
+      "label": "Nombre max de clés MCP par utilisateur",
+      "description": "Chaque utilisateur peut générer ce nombre de clés depuis son profil"
+    },
+    "BACKUP_ENABLED": {
+      "label": "Sauvegardes automatiques",
+      "description": "Active la sauvegarde automatique de la base de données selon la fréquence configurée"
+    },
+    "BACKUP_SCHEDULE": {
+      "label": "Fréquence",
+      "options": {
+        "6h": "Toutes les 6 heures",
+        "12h": "Toutes les 12 heures",
+        "daily": "Quotidien",
+        "weekly": "Hebdomadaire"
+      }
+    },
+    "BACKUP_TIME": {
+      "label": "Heure cible",
+      "description": "Heure à laquelle la sauvegarde automatique est déclenchée"
+    },
+    "BACKUP_RETENTION_DAYS": {
+      "label": "Rétention",
+      "options": {
+        "7": "7 jours",
+        "30": "30 jours",
+        "90": "90 jours",
+        "365": "1 an"
+      }
+    },
+    "BACKUP_MAX_COUNT": {
+      "label": "Nombre maximum de sauvegardes conservées"
+    },
+    "UPDATE_CHECK_ENABLED": {
+      "label": "Vérifier les mises à jour",
+      "description": "Le serveur interroge l'API publique GitHub Releases (api.github.com) au plus une fois par 24 h, ou quand vous cliquez sur « Vérifier maintenant ». Seule cette requête de lecture est envoyée : aucune donnée sur l'instance ni sur ses utilisateurs. Désactivée, aucune requête ne part, ni automatique ni manuelle."
+    }
+  },
+  "timezones": {
+    "auto": "Automatique (fuseau du navigateur)",
+    "Europe_Paris": "France (GMT+1)",
+    "Europe_London": "Royaume-Uni (GMT+0)",
+    "Europe_Berlin": "Allemagne (GMT+1)",
+    "Europe_Madrid": "Espagne (GMT+1)",
+    "Europe_Rome": "Italie (GMT+1)",
+    "Europe_Brussels": "Belgique (GMT+1)",
+    "Europe_Zurich": "Suisse (GMT+1)",
+    "Europe_Luxembourg": "Luxembourg (GMT+1)",
+    "Europe_Amsterdam": "Pays-Bas (GMT+1)",
+    "Europe_Lisbon": "Portugal (GMT+0)",
+    "Europe_Vienna": "Autriche (GMT+1)",
+    "Europe_Warsaw": "Pologne (GMT+1)",
+    "Europe_Prague": "Tchéquie (GMT+1)",
+    "Europe_Bucharest": "Roumanie (GMT+2)",
+    "Europe_Athens": "Grèce (GMT+2)",
+    "Europe_Helsinki": "Finlande (GMT+2)",
+    "Europe_Stockholm": "Suède (GMT+1)",
+    "Europe_Oslo": "Norvège (GMT+1)",
+    "Europe_Copenhagen": "Danemark (GMT+1)",
+    "Europe_Dublin": "Irlande (GMT+0)",
+    "Europe_Moscow": "Russie — Moscou (GMT+3)",
+    "Europe_Istanbul": "Turquie (GMT+3)",
+    "America_New_York": "USA — Est (GMT-5)",
+    "America_Chicago": "USA — Centre (GMT-6)",
+    "America_Denver": "USA — Montagne (GMT-7)",
+    "America_Los_Angeles": "USA — Pacifique (GMT-8)",
+    "America_Toronto": "Canada — Toronto (GMT-5)",
+    "America_Montreal": "Canada — Québec (GMT-5)",
+    "America_Sao_Paulo": "Brésil (GMT-3)",
+    "America_Mexico_City": "Mexique (GMT-6)",
+    "America_Martinique": "Martinique (GMT-4)",
+    "America_Guadeloupe": "Guadeloupe (GMT-4)",
+    "America_Cayenne": "Guyane (GMT-3)",
+    "Indian_Reunion": "La Réunion (GMT+4)",
+    "Indian_Mayotte": "Mayotte (GMT+3)",
+    "Pacific_Tahiti": "Polynésie française (GMT-10)",
+    "Pacific_Noumea": "Nouvelle-Calédonie (GMT+11)",
+    "Asia_Tokyo": "Japon (GMT+9)",
+    "Asia_Shanghai": "Chine (GMT+8)",
+    "Asia_Dubai": "Émirats arabes unis (GMT+4)",
+    "Asia_Singapore": "Singapour (GMT+8)",
+    "Asia_Kolkata": "Inde (GMT+5:30)",
+    "Australia_Sydney": "Australie — Sydney (GMT+10)",
+    "Africa_Casablanca": "Maroc (GMT+1)",
+    "Africa_Tunis": "Tunisie (GMT+1)",
+    "Africa_Algiers": "Algérie (GMT+1)",
+    "Africa_Dakar": "Sénégal (GMT+0)",
+    "Africa_Abidjan": "Côte d'Ivoire (GMT+0)",
+    "UTC": "UTC (GMT+0)"
+  },
+  "options": {
+    "triggers": {
+      "task_created": "Création d'une tâche",
+      "task_deleted": "Suppression d'une tâche",
+      "task_title_changed": "Modification du titre",
+      "task_dates_changed": "Modification des dates",
+      "task_times_changed": "Modification des horaires",
+      "task_status_changed": "Changement de statut",
+      "task_project_changed": "Changement de projet",
+      "task_notes_changed": "Modification des notes",
+      "task_user_added": "Ajout d'un utilisateur",
+      "task_user_removed": "Retrait d'un utilisateur",
+      "task_file_added": "Ajout d'un fichier",
+      "task_file_deleted": "Suppression d'un fichier"
+    },
+    "retention": {
+      "0": "Illimité (pas de purge auto)",
+      "7": "1 semaine",
+      "30": "1 mois",
+      "90": "3 mois",
+      "180": "6 mois",
+      "365": "1 an"
+    }
+  },
+  "errors": {
+    "captchaKeysRequired": "Le captcha {provider} requiert une Site Key et une Secret Key. Renseignez les deux ou désactivez le captcha.",
+    "cellWidthsNotPositive": "Les largeurs de cellules doivent être strictement positives.",
+    "cellMinAboveMax": "La largeur minimale doit être inférieure ou égale à la largeur maximale.",
+    "cellDefaultOutOfRange": "La largeur par défaut doit être comprise entre la largeur minimale et la largeur maximale.",
+    "cellMobileBelowMin": "Le plafond mobile doit être supérieur ou égal à la largeur minimale.",
+    "brandingInvalidType": "Type invalide (logo, favicon ou login-bg)",
+    "brandingInvalidVariant": "Variante invalide (light ou dark)",
+    "fileTooLargeMb": "Fichier trop volumineux. Maximum : {max, number} Mo",
+    "extensionNotAllowed": "Extension .{ext} non autorisée. Extensions autorisées : {allowed}",
+    "backupKeyMissing": "Clé de chiffrement non configurée (BACKUP_ENCRYPTION_KEY dans .env)",
+    "backupUnsupportedEncryption": "Version de chiffrement non supportée : {version}",
+    "backupInProgress": "Une sauvegarde est déjà en cours",
+    "backupFileNotFound": "Fichier de sauvegarde introuvable",
+    "backupNotFound": "Sauvegarde introuvable",
+    "backupNotReady": "Sauvegarde non disponible",
+    "importEmptyBody": "Aucun corps dans la requête",
+    "importEmptyFile": "Fichier vide",
+    "importNoFileOnDisk": "Aucun fichier d'import sur disque.",
+    "importInvalidDump": "Le fichier fourni n'est pas un dump PostgreSQL valide. Seuls les fichiers .dump générés par Humble Planning sont acceptés.",
+    "importAnalysisFailed": "Erreur lors de l'analyse : {detail}",
+    "importNoPending": "Aucun fichier d'import en attente. Veuillez d'abord analyser un fichier.",
+    "importFailed": "Échec de l'import : {detail}",
+    "migrationZipRequired": "Format invalide. Seuls les fichiers .zip sont acceptés.",
+    "migrationVersionInfoMissing": "Archive SoPlanning invalide : fichier version.info introuvable.",
+    "migrationUnsupportedVersion": "Version SoPlanning non supportée : {version}. Versions prises en charge : {supported}.",
+    "migrationNoPending": "Aucune migration en attente. Veuillez d'abord analyser un fichier.",
+    "migrationFailed": "Échec de la migration : {detail}"
+  }
+}

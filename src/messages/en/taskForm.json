@@ -1,0 +1,137 @@
+{
+  "recurringDelete": {
+    "title": "Delete a recurring task",
+    "description": "This task is part of a recurring series. What would you like to delete?",
+    "single": "This occurrence",
+    "after": "This and following",
+    "all": "The whole series"
+  },
+  "location": {
+    "title": "Location",
+    "projectSite": "Site of project “{name}”",
+    "noProjectAddress": "No address recorded for this project — enter a location below"
+  },
+  "history": {
+    "unnamed": "Unnamed",
+    "empty": "No history",
+    "restoreConfirm": "Restore?"
+  },
+  "recurrence": {
+    "enable": "Repeat this task",
+    "type": {
+      "label": "Type",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "frequency": "Every",
+    "unit": {
+      "days": "{count, plural, one {day} other {days}}",
+      "weeks": "{count, plural, one {week} other {weeks}}",
+      "months": "{count, plural, one {month} other {months}}"
+    },
+    "dayOfWeek": "Day of the week",
+    "endDate": {
+      "label": "End date",
+      "placeholder": "Select an end date"
+    },
+    "exception": {
+      "label": "Public holidays / weekends",
+      "skip": "Skip (do not create)",
+      "shift": "Move to the next working day",
+      "include": "Create anyway"
+    }
+  },
+  "contextMenu": {
+    "permissionDenied": "Insufficient permissions",
+    "cut": "Cut",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "confirmDelete": "Confirm?",
+    "newTask": "New task",
+    "paste": "Paste"
+  },
+  "dropMenu": {
+    "addUser": "Add this user",
+    "moveThisUser": "Move (this user)",
+    "moveAll": "Move (all)",
+    "move": "Move"
+  },
+  "dialog": {
+    "title": {
+      "create": "New task",
+      "edit": "Edit task"
+    },
+    "description": {
+      "create": "Task creation form",
+      "edit": "Task editing form"
+    },
+    "lock": {
+      "willLock": "The task will be locked when saved",
+      "willUnlock": "The task will be unlocked when saved",
+      "locked": "This task is locked",
+      "lockTask": "Lock the task",
+      "unlockTask": "Unlock the task"
+    },
+    "fields": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Task title"
+      },
+      "project": {
+        "label": "Project *",
+        "required": "The project is required",
+        "searchPlaceholder": "Search for a project...",
+        "empty": "No project found"
+      },
+      "users": {
+        "label": "Users *",
+        "required": "At least one user is required",
+        "count": "{count, plural, one {# user} other {# users}}"
+      },
+      "status": {
+        "label": "Status *"
+      },
+      "startDate": {
+        "label": "Start date *",
+        "required": "The start date is required"
+      },
+      "endDate": {
+        "label": "End date",
+        "durationLabel": "Duration (days)",
+        "daysPlaceholder": "Number of days"
+      },
+      "startTime": {
+        "label": "Start time"
+      },
+      "endTime": {
+        "label": "End time"
+      },
+      "notes": {
+        "label": "Notes",
+        "placeholder": "Notes..."
+      }
+    },
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "recurringOccurrence": "Occurrence of a recurring task",
+    "files": {
+      "title": "Attachments",
+      "add": "Add a file",
+      "uploading": "Uploading…",
+      "uploadingShort": "Uploading…"
+    },
+    "confirmDelete": "Confirm?",
+    "permissionDenied": "Insufficient permissions",
+    "history": {
+      "tooltip": "History",
+      "permissionRequired": "“Audit & history” permission required"
+    },
+    "multiDelete": {
+      "title": "Task assigned to several users",
+      "description": "{count, plural, one {This task is assigned to # user.} other {This task is assigned to # users.}}",
+      "confirm": "Delete for everyone",
+      "removeUser": "Remove this user"
+    }
+  }
+}

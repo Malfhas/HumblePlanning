@@ -1,0 +1,86 @@
+{
+  "errors": {
+    "disabled": "MCP désactivé",
+    "connectorDisabled": "Le connecteur MCP est désactivé",
+    "consentRejected": "Requête refusée",
+    "sessionExpired": "Session expirée, reconnectez-vous",
+    "consentRateLimited": "Trop de tentatives, réessayez dans quelques minutes",
+    "invalidCsrf": "Jeton de sécurité invalide, rechargez la page",
+    "missingClientId": "Paramètre client_id manquant.",
+    "clientUnverifiable": "Impossible de vérifier l'identité de l'application (document client_id inaccessible ou invalide).",
+    "unknownClient": "Application inconnue. Supprimez puis ajoutez de nouveau le connecteur depuis votre assistant IA.",
+    "missingRedirectUri": "Paramètre redirect_uri manquant.",
+    "redirectUriNotRegistered": "Adresse de retour (redirect_uri) non enregistrée pour cette application.",
+    "keyLimitReached": "Nombre maximum de clés MCP atteint ({max})",
+    "requestFailed": "La demande n'a pas pu être traitée",
+    "createFailed": "Erreur lors de la création"
+  },
+  "authorize": {
+    "disabled": {
+      "title": "Connecteur IA désactivé",
+      "message": "Le connecteur MCP n'est pas activé sur cette instance. Contactez votre administrateur."
+    },
+    "invalidRequest": {
+      "title": "Demande de connexion invalide"
+    },
+    "accountDisabled": {
+      "title": "Compte désactivé",
+      "message": "Ce compte est désactivé. Contactez votre administrateur."
+    },
+    "denied": {
+      "title": "Accès au connecteur IA non autorisé",
+      "description": "Le compte <b>{user}</b> n'a pas la permission « Utiliser le connecteur MCP ». Aucune autorisation n'a été accordée à <b>{client}</b>.",
+      "help": "Demandez à un administrateur d'ajouter cette permission à votre rôle, puis relancez la connexion depuis votre assistant IA.",
+      "returnTo": "Retourner à {client}",
+      "returnHost": "Retour vers {host}",
+      "switchAccount": "Utiliser un autre compte"
+    },
+    "consent": {
+      "title": "Connecter {client}",
+      "description": "<b>{client}</b> demande l'accès à {appTitle} avec votre compte.",
+      "application": "Application : <b>{name}</b>",
+      "metadataHost": "Identité publiée par {host}",
+      "unverified": "Application non reconnue : n'autorisez que si vous venez de l'ajouter vous-même.",
+      "redirect": "Retour après autorisation : <b>{host}</b>",
+      "account": "Compte : <b>{user}</b>",
+      "changeAccount": "changer",
+      "capabilities": "L'assistant pourra :",
+      "read": "Consulter les données que votre rôle vous permet de voir (tâches, projets, équipes…).",
+      "write": "Créer, modifier et supprimer des tâches et des projets, dans la limite de vos droits.",
+      "readOnly": "Lecture seule : votre rôle n'autorise pas les écritures via le connecteur MCP.",
+      "footer": "Vos permissions sont vérifiées à chaque action : un retrait de droit s'applique immédiatement. Vous pourrez révoquer cet accès depuis Mon compte > IA.",
+      "deny": "Refuser",
+      "approve": "Autoriser"
+    }
+  },
+  "revoke": "Révoquer",
+  "lastUsed": "Dernière utilisation : {date}",
+  "keys": {
+    "connect": {
+      "title": "Connecter un assistant IA",
+      "description": "Claude, ChatGPT et les clients compatibles OAuth n'ont pas besoin de clé : ajoutez le connecteur avec l'URL <code>{url}</code>, puis connectez-vous avec votre compte. Les clés ci-dessous servent aux clients configurés manuellement (Claude Code, Cursor, VS Code…), toujours dans l'en-tête <code>Authorization: Bearer …</code> : une clé passée dans l'URL (<code>?token=</code>) est refusée. L'assistant agit toujours avec vos permissions."
+    },
+    "created": {
+      "title": "Clé créée — copiez-la maintenant",
+      "description": "Cette clé ne sera plus affichée. Conservez-la en lieu sûr.",
+      "secretLabel": "Clé secrète",
+      "copyAriaLabel": "Copier la clé",
+      "configLabel": "Configuration MCP (Claude Code, Cursor, VS Code…)",
+      "dismiss": "J'ai copié ma clé, fermer"
+    },
+    "create": {
+      "title": "Créer une clé MCP",
+      "limitReached": "{max, plural, one {Vous avez atteint la limite de # clé MCP.} other {Vous avez atteint la limite de # clés MCP.}} Révoquez une clé existante pour en créer une nouvelle.",
+      "namePlaceholder": "Nom de la clé (ex: Claude Desktop, ChatGPT...)"
+    },
+    "list": {
+      "title": "Clés et connexions actives",
+      "empty": "Aucune clé ni connexion MCP active",
+      "typeOauth": "OAuth",
+      "typeKey": "Clé",
+      "oauthAuthorized": "Connexion autorisée",
+      "createdOn": "Créée le {date}",
+      "neverUsed": "Jamais utilisée"
+    }
+  }
+}

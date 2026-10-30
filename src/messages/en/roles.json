@@ -1,0 +1,532 @@
+{
+  "system": {
+    "superAdmin": "Super Administrator"
+  },
+  "list": {
+    "title": "Roles",
+    "accessDenied": "Access denied",
+    "searchPlaceholder": "Search for a role...",
+    "insufficientPermission": "Insufficient permission",
+    "columns": {
+      "role": "Role",
+      "description": "Description",
+      "type": "Type",
+      "permissions": "Permissions",
+      "users": "Users"
+    },
+    "types": {
+      "system": "System",
+      "custom": "Custom"
+    },
+    "allPermissions": "All",
+    "dialog": {
+      "editTitle": "Edit role",
+      "duplicateTitle": "Duplicate a role",
+      "createTitle": "New role",
+      "editDescription": "Edit the role's details and permissions.",
+      "duplicateDescription": "The permissions and colour have been copied. Adjust the name and confirm to create the new role.",
+      "createDescription": "Set the name and permissions of the new role."
+    },
+    "delete": {
+      "title": "Delete role",
+      "description": "The role “{name}” will be permanently deleted. This action cannot be undone."
+    },
+    "blocked": {
+      "title": "Cannot delete",
+      "description": "The role <b>{name}</b> is still used by {count, plural, one {# user} other {# users}}. Reassign them to another role from the <b>Users</b> page, then come back here to delete the role."
+    }
+  },
+  "form": {
+    "name": "Name *",
+    "color": "Colour",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional description...",
+    "preview": "Preview",
+    "previewFallback": "Role",
+    "nameRequired": "Name is required",
+    "permissions": "Permissions",
+    "adminBypass": "(full access — bypass)",
+    "copyName": "{name} (copy)",
+    "mutexHint": "(1 choice maximum)",
+    "blocks": {
+      "pages": {
+        "title": "Accessible pages",
+        "subtitle": "Controls the visibility of the left-hand menu and access to routes. Unticked pages return a 403."
+      },
+      "actions": {
+        "title": "Administrative actions",
+        "subtitle": "Create / Edit / Delete buttons on list pages and other global actions. These permissions are independent of the planning scope."
+      },
+      "scope": {
+        "title": "Display scope and planning control",
+        "subtitle": "Defines what the user sees and can edit on the planning and all derived views (task list, project list, drop-downs). The first 3 groups are mutually exclusive — one choice per group."
+      }
+    }
+  },
+  "categories": {
+    "pages": "Page access",
+    "projects": "Projects — actions",
+    "users_teams": "Users & teams — actions",
+    "logistics": "Logistics — actions",
+    "referentials": "Reference data — actions",
+    "audit_export": "Audit, files & exports — actions",
+    "admin": "Administration & security — actions",
+    "integrations": "AI integrations (MCP) — actions",
+    "ai_chat": "AI assistant (built-in chat) — actions",
+    "scope_projects": "Planning scope — Visible projects",
+    "scope_users": "Planning scope — Visible users",
+    "scope_modify": "Planning scope — Editing level",
+    "scope_bu": "Accessible business units",
+    "planning_views": "Planning scope — Allowed views",
+    "task_actions": "Planning scope — Task actions"
+  },
+  "permissions": {
+    "pages": {
+      "home": {
+        "label": "Home",
+        "description": "Access the home page and personal dashboard."
+      },
+      "planning": {
+        "label": "Schedule",
+        "description": "Access the planning view (Gantt). What is visible on the planning depends on the scope defined in the “Planning scope” block."
+      },
+      "tasks": {
+        "label": "Task list",
+        "description": "Access the page that lists all tasks in a table."
+      },
+      "projects": {
+        "label": "Projects",
+        "description": "Access the projects page and its sub-sections (project groups, task statuses)."
+      },
+      "users": {
+        "label": "Users",
+        "description": "Access the list of users."
+      },
+      "teams": {
+        "label": "Teams",
+        "description": "Access the list of teams and their members."
+      },
+      "business_units": {
+        "label": "Business units",
+        "description": "Access the business units page and their addresses."
+      },
+      "qualifications": {
+        "label": "Qualifications",
+        "description": "Access the page of qualifications (forklift licence, first aid, etc.) assigned to users."
+      },
+      "vehicles": {
+        "label": "Vehicles",
+        "description": "Access the list of vehicles."
+      },
+      "vehicle_types": {
+        "label": "Vehicle types",
+        "description": "Access the list of vehicle types (van, lorry, aerial platform...)."
+      },
+      "resources": {
+        "label": "Resources",
+        "description": "Access the list of equipment resources."
+      },
+      "resource_types": {
+        "label": "Resource types",
+        "description": "Access the list of resource types."
+      },
+      "labor_types": {
+        "label": "Labour types",
+        "description": "Access the list of labour types and their hourly rates."
+      },
+      "places": {
+        "label": "Places",
+        "description": "Access the list of places (addresses reusable in tasks)."
+      },
+      "holidays": {
+        "label": "Public holidays",
+        "description": "Access the list of public holidays and import them from Nager.Date."
+      },
+      "files": {
+        "label": "File management",
+        "description": "Access the page that lists all files uploaded to tasks."
+      },
+      "audit": {
+        "label": "Audit & history",
+        "description": "Access the audit log, system logs and task history."
+      },
+      "stats_users": {
+        "label": "User statistics",
+        "description": "Access user activity statistics."
+      },
+      "stats_projects": {
+        "label": "Project statistics",
+        "description": "Access project activity and progress statistics."
+      },
+      "stats_roi": {
+        "label": "Project ROI",
+        "description": "Access the project ROI (return on investment) page."
+      },
+      "settings": {
+        "label": "Settings",
+        "description": "Access the application's general settings page."
+      },
+      "roles": {
+        "label": "Roles",
+        "description": "Access the list of roles and their permissions."
+      },
+      "backups": {
+        "label": "Backups",
+        "description": "Access the backup history in the settings."
+      }
+    },
+    "projects": {
+      "create": {
+        "label": "Create projects",
+        "description": "Create new projects from the Projects page or the task form."
+      },
+      "edit": {
+        "label": "Edit projects",
+        "description": "Edit the details of visible projects (name, colour, dates, owner...). Limited to the project scope in block 3."
+      },
+      "delete": {
+        "label": "Delete projects",
+        "description": "Permanently delete projects and their tasks."
+      },
+      "archive": {
+        "label": "Archive projects",
+        "description": "Archive and unarchive projects."
+      }
+    },
+    "groups": {
+      "edit": {
+        "label": "Manage project groups",
+        "description": "Create, edit and delete project groups."
+      }
+    },
+    "statuses": {
+      "edit": {
+        "label": "Manage task statuses",
+        "description": "Create, edit and delete the statuses used to classify tasks."
+      }
+    },
+    "users": {
+      "create": {
+        "label": "Create users",
+        "description": "Create new user accounts."
+      },
+      "edit": {
+        "label": "Edit user profiles",
+        "description": "Edit the details of visible users (name, email, qualifications, team...). Limited to the user scope in block 3."
+      },
+      "delete": {
+        "label": "Delete users",
+        "description": "Permanently delete user accounts."
+      }
+    },
+    "teams": {
+      "edit": {
+        "label": "Manage teams",
+        "description": "Create, edit and delete teams and reorganise their members."
+      }
+    },
+    "business_units": {
+      "create": {
+        "label": "Create business units",
+        "description": "Create new business units."
+      },
+      "edit": {
+        "label": "Edit business units",
+        "description": "Edit the details of existing business units (name, address, colour...)."
+      },
+      "delete": {
+        "label": "Delete business units",
+        "description": "Permanently delete business units."
+      }
+    },
+    "qualifications": {
+      "edit": {
+        "label": "Manage qualifications",
+        "description": "Create, edit and delete the qualifications that can be assigned to users."
+      }
+    },
+    "vehicles": {
+      "create": {
+        "label": "Create vehicles",
+        "description": "Create new vehicles."
+      },
+      "edit": {
+        "label": "Edit vehicles",
+        "description": "Edit vehicle details."
+      },
+      "delete": {
+        "label": "Delete vehicles",
+        "description": "Permanently delete vehicles."
+      }
+    },
+    "vehicle_types": {
+      "create": {
+        "label": "Create vehicle types",
+        "description": "Create new vehicle types."
+      },
+      "edit": {
+        "label": "Edit vehicle types",
+        "description": "Edit existing vehicle types."
+      },
+      "delete": {
+        "label": "Delete vehicle types",
+        "description": "Permanently delete vehicle types."
+      }
+    },
+    "resources": {
+      "create": {
+        "label": "Create resources",
+        "description": "Create new equipment resources."
+      },
+      "edit": {
+        "label": "Edit resources",
+        "description": "Edit equipment resource details."
+      },
+      "delete": {
+        "label": "Delete resources",
+        "description": "Permanently delete equipment resources."
+      }
+    },
+    "resource_types": {
+      "edit": {
+        "label": "Manage resource types",
+        "description": "Create, edit and delete resource types."
+      }
+    },
+    "labor_types": {
+      "edit": {
+        "label": "Manage labour types",
+        "description": "Create, edit and delete labour types and their rates."
+      }
+    },
+    "places": {
+      "edit": {
+        "label": "Manage places",
+        "description": "Create, edit and delete places (addresses reusable in tasks)."
+      }
+    },
+    "holidays": {
+      "edit": {
+        "label": "Manage public holidays",
+        "description": "Create, edit, delete and import public holidays from Nager.Date."
+      }
+    },
+    "files": {
+      "view": {
+        "label": "View files",
+        "description": "View the files attached to tasks in the planning and on the files page."
+      },
+      "upload": {
+        "label": "Add files",
+        "description": "Add attachments to tasks."
+      },
+      "delete": {
+        "label": "Delete files",
+        "description": "Delete attachments from tasks."
+      },
+      "purge": {
+        "label": "Purge files",
+        "description": "Permanently purge orphaned or outdated files from the database."
+      }
+    },
+    "audit": {
+      "restore": {
+        "label": "Restore from the audit log",
+        "description": "Restore an entity (task, project, etc.) to an earlier state using the audit log."
+      },
+      "purge": {
+        "label": "Purge the audit log",
+        "description": "Permanently delete audit log entries older than a given date."
+      }
+    },
+    "export": {
+      "use": {
+        "label": "Use exports",
+        "description": "Export planning data to Excel, PDF, CSV or iCal."
+      }
+    },
+    "settings": {
+      "edit": {
+        "label": "Edit settings",
+        "description": "Edit the application's general settings (branding, email, SMS, cache...)."
+      }
+    },
+    "roles": {
+      "create": {
+        "label": "Create roles",
+        "description": "Create new custom roles."
+      },
+      "edit": {
+        "label": "Edit roles",
+        "description": "Edit existing roles and their permissions."
+      },
+      "delete": {
+        "label": "Delete roles",
+        "description": "Delete custom roles (system roles cannot be deleted)."
+      }
+    },
+    "backups": {
+      "create": {
+        "label": "Create a backup",
+        "description": "Manually create a database backup."
+      },
+      "download": {
+        "label": "Download a backup",
+        "description": "Download an existing backup."
+      },
+      "delete": {
+        "label": "Delete a backup",
+        "description": "Delete a backup file."
+      }
+    },
+    "maintenance": {
+      "bypass": {
+        "label": "Bypass maintenance mode",
+        "description": "Access the planning even when maintenance mode is enabled globally."
+      }
+    },
+    "notifications": {
+      "view": {
+        "label": "Receive notifications",
+        "description": "Receive notifications through the header bell and the real-time feed."
+      }
+    },
+    "mcp": {
+      "use": {
+        "label": "Use the MCP connector",
+        "description": "Allow an AI assistant (Claude, ChatGPT...) to read planning data through the MCP connector."
+      },
+      "write": {
+        "label": "Allow MCP writes",
+        "description": "Allow the MCP connector to create, edit or delete data (in addition to reading)."
+      }
+    },
+    "ai_chat": {
+      "use": {
+        "label": "Use the AI assistant",
+        "description": "Access the AI chat (Assistant page and floating bubble). The assistant reads the planning with the user's own permissions."
+      },
+      "write": {
+        "label": "Allow changes by the AI assistant",
+        "description": "The assistant can offer to create, edit, move, duplicate or delete tasks and projects. Every change always requires the user's explicit confirmation. Requires “Use the AI assistant”."
+      }
+    },
+    "scope": {
+      "projects_all": {
+        "label": "All projects",
+        "description": "See the tasks of every project on the planning, without restriction."
+      },
+      "projects_bu": {
+        "label": "Projects in their business unit",
+        "description": "See only the tasks of projects that belong to their own business unit."
+      },
+      "projects_team": {
+        "label": "Projects of their team",
+        "description": "See only the tasks of projects owned by a member of their team."
+      },
+      "projects_own": {
+        "label": "Projects they take part in",
+        "description": "See only the tasks of projects they own or take part in through an assigned task."
+      },
+      "projects_assigned_only": {
+        "label": "Tasks assigned to them",
+        "description": "See only the tasks assigned directly to them, regardless of the project."
+      },
+      "users_all": {
+        "label": "All users",
+        "description": "See the rows of every user on the planning."
+      },
+      "users_bu": {
+        "label": "Users in their business unit",
+        "description": "See only the users who belong to their own business unit."
+      },
+      "users_team": {
+        "label": "Users in their team",
+        "description": "See only the members of their team on the planning."
+      },
+      "users_self": {
+        "label": "Only themselves",
+        "description": "See only their own row on the planning."
+      },
+      "modify_readonly": {
+        "label": "Read only",
+        "description": "No changes are possible on the planning. Actions such as moving, resizing, creating or deleting tasks are disabled, whatever actions are ticked below."
+      },
+      "modify_all": {
+        "label": "Edit everything",
+        "description": "Can edit every visible task, with no restriction other than visibility."
+      },
+      "modify_team": {
+        "label": "Their team's tasks",
+        "description": "Can edit only the tasks assigned to a member of their team."
+      },
+      "modify_own_project": {
+        "label": "Tasks of their projects",
+        "description": "Can edit only the tasks that belong to projects they own."
+      },
+      "modify_own": {
+        "label": "Their own tasks",
+        "description": "Can edit only their own assigned tasks or the ones they created."
+      },
+      "bu_all": {
+        "label": "All business units",
+        "description": "The user can select any business unit in the global selector and see the data of every business unit."
+      },
+      "bu_own": {
+        "label": "Their own business unit only",
+        "description": "The user only sees the data of their own business unit. The global selector is disabled."
+      }
+    },
+    "planning": {
+      "view_calendar": {
+        "label": "Personal calendar",
+        "description": "Allows access to the “Personal calendar” view, which shows the signed-in user's tasks in a daily calendar layout."
+      },
+      "view_team_day": {
+        "label": "Team / day view",
+        "description": "Allows access to the “Team/day” view, which shows the team's tasks hour by hour over a single day."
+      },
+      "view_vehicles": {
+        "label": "Vehicles view",
+        "description": "Allows access to the “Vehicles” view, which shows the vehicle allocation planning."
+      },
+      "view_resources": {
+        "label": "Resources view",
+        "description": "Allows access to the “Resources” view, which shows the equipment resource allocation planning."
+      }
+    },
+    "tasks": {
+      "create": {
+        "label": "Create tasks",
+        "description": "Can create new tasks. Target users and projects are limited to the scope defined above."
+      },
+      "delete": {
+        "label": "Delete tasks",
+        "description": "Can delete existing tasks, within the limits of their editing level."
+      },
+      "assign": {
+        "label": "Assign users",
+        "description": "Can add or remove users on a task. Target users are limited to the user scope."
+      },
+      "move": {
+        "label": "Move tasks",
+        "description": "Can move tasks by drag and drop on the planning (change the date or the assigned user)."
+      },
+      "resize": {
+        "label": "Resize tasks",
+        "description": "Can resize the duration of tasks by dragging their right edge on the planning."
+      },
+      "lock": {
+        "label": "Lock tasks",
+        "description": "Can lock and unlock tasks to prevent accidental changes."
+      }
+    }
+  },
+  "errors": {
+    "notFound": "Role not found",
+    "cannotRenameSuperAdmin": "The Super Administrator role cannot be renamed",
+    "cannotEditSuperAdminPermissions": "The permissions of the Super Administrator role cannot be changed",
+    "cannotDeleteSystem": "A system role cannot be deleted",
+    "hasUsers": "This role cannot be deleted: {count, plural, one {# user is still assigned to it} other {# users are still assigned to it}}. Reassign them to another role and try again."
+  }
+}

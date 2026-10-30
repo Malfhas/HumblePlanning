@@ -1,0 +1,185 @@
+{
+  "accessDenied": "Access denied",
+  "empty": "No data available",
+  "noTeam": "No team",
+  "axis": {
+    "hours": "Hours",
+    "period": "Period",
+    "euros": "Euros (€)",
+    "laborType": "Labour type"
+  },
+  "columns": {
+    "project": "Project",
+    "status": "Status",
+    "budgetHours": "Budget (h)",
+    "consumedHours": "Consumed (h)",
+    "upcomingHours": "Upcoming (h)",
+    "completionPercent": "Progress (%)",
+    "period": "Period",
+    "count": "Count",
+    "hours": "Hours",
+    "hoursPerPeriod": "Hours / period",
+    "cumulative": "Cumulative",
+    "user": "User",
+    "team": "Team",
+    "plannedHours": "Planned hours",
+    "planned": "Planned",
+    "capacity": "Capacity",
+    "occupancyPercent": "Occupancy (%)",
+    "users": "Users",
+    "projects": "Projects",
+    "laborType": "Labour type",
+    "initials": "Initials",
+    "month": "Month",
+    "budgetEur": "Budget (€)",
+    "laborCostEur": "Labour cost (€)",
+    "profitEur": "Profit (€)",
+    "marginPercent": "Margin (%)",
+    "costEur": "Cost (€)",
+    "cumulativeEur": "Cumulative (€)",
+    "avgRate": "Avg. rate (€/h)"
+  },
+  "chart": {
+    "fullscreen": "Full screen",
+    "exitFullscreen": "Exit full screen",
+    "exportCsv": "Export CSV",
+    "exportExcel": "Export Excel",
+    "sheetName": "Data"
+  },
+  "filters": {
+    "start": "Start",
+    "end": "End",
+    "clearAll": "Clear all",
+    "presets": {
+      "month": "Month",
+      "quarter": "Qtr",
+      "year": "Year",
+      "last12Months": "12 months"
+    },
+    "granularity": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "laborTypes": "Labour types",
+    "weekends": "Weekends",
+    "holidays": "Public holidays"
+  },
+  "users": {
+    "title": "User statistics",
+    "kpis": {
+      "activeUsers": "Active users",
+      "plannedHours": "Planned hours",
+      "avgPerUser": "Average / user",
+      "avgOccupancy": "Average occupancy rate",
+      "capacityPerUser": "Capacity / user",
+      "totalCapacity": "Total capacity"
+    },
+    "series": {
+      "planned": "Planned",
+      "capacity": "Capacity",
+      "occupancy": "Occupancy",
+      "hours": "Hours"
+    },
+    "chargeVsCapacity": {
+      "title": "Planned workload vs capacity",
+      "description": "Planned hours compared with theoretical capacity per user"
+    },
+    "occupancy": {
+      "title": "Occupancy rate",
+      "description": "Percentage of theoretical capacity used"
+    },
+    "detail": {
+      "title": "Breakdown by user",
+      "description": "Workload, capacity and occupancy rate",
+      "available": "Avail.",
+      "occupancy": "Occupancy"
+    },
+    "occupancyLevel": {
+      "overload": "Overloaded",
+      "high": "High",
+      "normal": "Normal",
+      "low": "Low"
+    },
+    "timeline": {
+      "title": "Workload over time",
+      "description": "Distribution of the workload over time"
+    },
+    "byTeam": {
+      "title": "Breakdown by team"
+    },
+    "byLaborType": {
+      "title": "Hours by labour type"
+    }
+  },
+  "projects": {
+    "title": "Project statistics",
+    "kpis": {
+      "projects": "Projects",
+      "activeProjects": "Active projects",
+      "plannedHours": "Planned hours",
+      "globalCompletion": "Overall progress"
+    },
+    "series": {
+      "consumed": "Consumed",
+      "upcoming": "Upcoming",
+      "remaining": "Remaining",
+      "hoursPerPeriod": "Hours / period",
+      "cumulative": "Cumulative"
+    },
+    "progress": {
+      "title": "Progress by project",
+      "description": "Consumed, upcoming and remaining hours"
+    },
+    "monthly": {
+      "title": "Monthly hours by project"
+    },
+    "byStatus": {
+      "title": "Projects by status",
+      "count": "{count, plural, one {# project} other {# projects}}"
+    },
+    "cumulative": {
+      "title": "Cumulative hours",
+      "description": "Consumed hours over time"
+    }
+  },
+  "roi": {
+    "title": "ROI",
+    "kpis": {
+      "revenue": "Revenue",
+      "totalLaborCost": "Total labour cost",
+      "grossProfit": "Gross profit",
+      "avgMargin": "Average margin"
+    },
+    "series": {
+      "budget": "Budget",
+      "cost": "Cost",
+      "costPerMonth": "Cost / month",
+      "cumulative": "Cumulative"
+    },
+    "profitByProject": {
+      "title": "Profitability by project",
+      "description": "Client budget vs actual cost"
+    },
+    "costTimeline": {
+      "title": "Cost trend",
+      "description": "Monthly costs and cumulative total"
+    },
+    "costByLaborType": {
+      "title": "Cost by labour type"
+    },
+    "costByUser": {
+      "title": "Top users by cost"
+    },
+    "summary": {
+      "title": "Summary table",
+      "columns": {
+        "project": "Project",
+        "budget": "Budget",
+        "laborCost": "Labour cost",
+        "profit": "Profit",
+        "margin": "Margin"
+      }
+    }
+  }
+}

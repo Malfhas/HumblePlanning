@@ -1,0 +1,532 @@
+{
+  "system": {
+    "superAdmin": "Superadministrator"
+  },
+  "list": {
+    "title": "Rollen",
+    "accessDenied": "Zugriff verweigert",
+    "searchPlaceholder": "Rolle suchen...",
+    "insufficientPermission": "Unzureichende Berechtigung",
+    "columns": {
+      "role": "Rolle",
+      "description": "Beschreibung",
+      "type": "Typ",
+      "permissions": "Berechtigungen",
+      "users": "Benutzer"
+    },
+    "types": {
+      "system": "System",
+      "custom": "Benutzerdefiniert"
+    },
+    "allPermissions": "Alle",
+    "dialog": {
+      "editTitle": "Rolle bearbeiten",
+      "duplicateTitle": "Rolle duplizieren",
+      "createTitle": "Neue Rolle",
+      "editDescription": "Bearbeiten Sie die Angaben und Berechtigungen der Rolle.",
+      "duplicateDescription": "Die Berechtigungen und die Farbe wurden kopiert. Passen Sie den Namen an und bestätigen Sie, um die neue Rolle zu erstellen.",
+      "createDescription": "Legen Sie den Namen und die Berechtigungen der neuen Rolle fest."
+    },
+    "delete": {
+      "title": "Rolle löschen",
+      "description": "Die Rolle „{name}“ wird endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "blocked": {
+      "title": "Löschen nicht möglich",
+      "description": "Die Rolle <b>{name}</b> wird noch von {count, plural, one {# Benutzer} other {# Benutzern}} verwendet. Weisen Sie diesen über die Seite <b>Benutzer</b> eine andere Rolle zu und kehren Sie dann hierher zurück, um die Rolle zu löschen."
+    }
+  },
+  "form": {
+    "name": "Name *",
+    "color": "Farbe",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Optionale Beschreibung...",
+    "preview": "Vorschau",
+    "previewFallback": "Rolle",
+    "nameRequired": "Der Name ist erforderlich",
+    "permissions": "Berechtigungen",
+    "adminBypass": "(Vollzugriff — Umgehung)",
+    "copyName": "{name} (Kopie)",
+    "mutexHint": "(maximal 1 Auswahl)",
+    "blocks": {
+      "pages": {
+        "title": "Zugängliche Seiten",
+        "subtitle": "Steuert die Sichtbarkeit des linken Menüs und den Zugriff auf die Routen. Nicht angehakte Seiten liefern einen 403-Fehler."
+      },
+      "actions": {
+        "title": "Verwaltungsaktionen",
+        "subtitle": "Schaltflächen Erstellen / Bearbeiten / Löschen auf den Listenseiten und weitere globale Aktionen. Diese Berechtigungen sind unabhängig vom Planungsbereich."
+      },
+      "scope": {
+        "title": "Anzeigebereich und Steuerung der Planung",
+        "subtitle": "Legt fest, was der Benutzer in der Planung und allen abgeleiteten Ansichten (Aufgabenliste, Projektliste, Auswahllisten) sieht und bearbeiten kann. Die ersten 3 Gruppen schließen sich gegenseitig aus — eine Auswahl pro Gruppe."
+      }
+    }
+  },
+  "categories": {
+    "pages": "Seitenzugriff",
+    "projects": "Projekte — Aktionen",
+    "users_teams": "Benutzer & Teams — Aktionen",
+    "logistics": "Logistik — Aktionen",
+    "referentials": "Stammdaten — Aktionen",
+    "audit_export": "Audit, Dateien & Exporte — Aktionen",
+    "admin": "Verwaltung & Sicherheit — Aktionen",
+    "integrations": "KI-Integrationen (MCP) — Aktionen",
+    "ai_chat": "KI-Assistent (integrierter Chat) — Aktionen",
+    "scope_projects": "Planungsbereich — Sichtbare Projekte",
+    "scope_users": "Planungsbereich — Sichtbare Benutzer",
+    "scope_modify": "Planungsbereich — Bearbeitungsstufe",
+    "scope_bu": "Zugängliche Business Units",
+    "planning_views": "Planungsbereich — Erlaubte Ansichten",
+    "task_actions": "Planungsbereich — Aktionen für Aufgaben"
+  },
+  "permissions": {
+    "pages": {
+      "home": {
+        "label": "Startseite",
+        "description": "Zugriff auf die Startseite und das persönliche Dashboard."
+      },
+      "planning": {
+        "label": "Planung",
+        "description": "Zugriff auf die Planungsansicht (Gantt). Was in der Planung sichtbar ist, hängt vom Bereich ab, der im Block „Planungsbereich“ festgelegt ist."
+      },
+      "tasks": {
+        "label": "Aufgabenliste",
+        "description": "Zugriff auf die Seite, die alle Aufgaben in Tabellenform auflistet."
+      },
+      "projects": {
+        "label": "Projekte",
+        "description": "Zugriff auf die Projektseite und ihre Unterbereiche (Projektgruppen, Aufgabenstatus)."
+      },
+      "users": {
+        "label": "Benutzer",
+        "description": "Zugriff auf die Benutzerliste."
+      },
+      "teams": {
+        "label": "Teams",
+        "description": "Zugriff auf die Teamliste und die Zusammensetzung der Teams."
+      },
+      "business_units": {
+        "label": "Business Units",
+        "description": "Zugriff auf die Seite der Business Units und ihre Adressen."
+      },
+      "qualifications": {
+        "label": "Qualifikationen",
+        "description": "Zugriff auf die Seite der Qualifikationen (Staplerschein, Ersthelfer usw.), die Benutzern zugewiesen sind."
+      },
+      "vehicles": {
+        "label": "Fahrzeuge",
+        "description": "Zugriff auf die Fahrzeugliste."
+      },
+      "vehicle_types": {
+        "label": "Fahrzeugtypen",
+        "description": "Zugriff auf die Liste der Fahrzeugtypen (Transporter, Lkw, Hubarbeitsbühne...)."
+      },
+      "resources": {
+        "label": "Ressourcen",
+        "description": "Zugriff auf die Liste der Materialressourcen."
+      },
+      "resource_types": {
+        "label": "Ressourcentypen",
+        "description": "Zugriff auf die Liste der Ressourcentypen."
+      },
+      "labor_types": {
+        "label": "Arbeitskräftetypen",
+        "description": "Zugriff auf die Liste der Arbeitskräftetypen und ihrer Stundensätze."
+      },
+      "places": {
+        "label": "Orte",
+        "description": "Zugriff auf die Liste der Orte (in Aufgaben wiederverwendbare Adressen)."
+      },
+      "holidays": {
+        "label": "Feiertage",
+        "description": "Zugriff auf die Feiertagsliste und Import der Feiertage aus Nager.Date."
+      },
+      "files": {
+        "label": "Dateiverwaltung",
+        "description": "Zugriff auf die Seite, die alle zu Aufgaben hochgeladenen Dateien auflistet."
+      },
+      "audit": {
+        "label": "Audit & Verlauf",
+        "description": "Zugriff auf das Audit-Protokoll, die Systemprotokolle und den Aufgabenverlauf."
+      },
+      "stats_users": {
+        "label": "Benutzerstatistik",
+        "description": "Zugriff auf die Aktivitätsstatistik der Benutzer."
+      },
+      "stats_projects": {
+        "label": "Projektstatistik",
+        "description": "Zugriff auf die Aktivitäts- und Fortschrittsstatistik der Projekte."
+      },
+      "stats_roi": {
+        "label": "Projekt-ROI",
+        "description": "Zugriff auf die ROI-Seite (Kapitalrendite) der Projekte."
+      },
+      "settings": {
+        "label": "Einstellungen",
+        "description": "Zugriff auf die Seite der allgemeinen Anwendungseinstellungen."
+      },
+      "roles": {
+        "label": "Rollen",
+        "description": "Zugriff auf die Liste der Rollen und ihrer Berechtigungen."
+      },
+      "backups": {
+        "label": "Sicherungen",
+        "description": "Zugriff auf den Sicherungsverlauf in den Einstellungen."
+      }
+    },
+    "projects": {
+      "create": {
+        "label": "Projekte erstellen",
+        "description": "Neue Projekte über die Seite Projekte oder das Aufgabenformular erstellen."
+      },
+      "edit": {
+        "label": "Projekte bearbeiten",
+        "description": "Die Angaben sichtbarer Projekte bearbeiten (Name, Farbe, Daten, Verantwortlicher...). Beschränkt auf den Projektbereich in Block 3."
+      },
+      "delete": {
+        "label": "Projekte löschen",
+        "description": "Projekte samt ihren Aufgaben endgültig löschen."
+      },
+      "archive": {
+        "label": "Projekte archivieren",
+        "description": "Projekte archivieren und dearchivieren."
+      }
+    },
+    "groups": {
+      "edit": {
+        "label": "Projektgruppen verwalten",
+        "description": "Projektgruppen erstellen, bearbeiten und löschen."
+      }
+    },
+    "statuses": {
+      "edit": {
+        "label": "Aufgabenstatus verwalten",
+        "description": "Die Status zur Klassifizierung von Aufgaben erstellen, bearbeiten und löschen."
+      }
+    },
+    "users": {
+      "create": {
+        "label": "Benutzer erstellen",
+        "description": "Neue Benutzerkonten erstellen."
+      },
+      "edit": {
+        "label": "Benutzerprofile bearbeiten",
+        "description": "Die Angaben sichtbarer Benutzer bearbeiten (Name, E-Mail, Qualifikationen, Team...). Beschränkt auf den Benutzerbereich in Block 3."
+      },
+      "delete": {
+        "label": "Benutzer löschen",
+        "description": "Benutzerkonten endgültig löschen."
+      }
+    },
+    "teams": {
+      "edit": {
+        "label": "Teams verwalten",
+        "description": "Teams erstellen, bearbeiten und löschen sowie ihre Mitglieder neu organisieren."
+      }
+    },
+    "business_units": {
+      "create": {
+        "label": "Business Units erstellen",
+        "description": "Neue Business Units erstellen."
+      },
+      "edit": {
+        "label": "Business Units bearbeiten",
+        "description": "Die Angaben bestehender Business Units bearbeiten (Name, Adresse, Farbe...)."
+      },
+      "delete": {
+        "label": "Business Units löschen",
+        "description": "Business Units endgültig löschen."
+      }
+    },
+    "qualifications": {
+      "edit": {
+        "label": "Qualifikationen verwalten",
+        "description": "Die Benutzern zuweisbaren Qualifikationen erstellen, bearbeiten und löschen."
+      }
+    },
+    "vehicles": {
+      "create": {
+        "label": "Fahrzeuge erstellen",
+        "description": "Neue Fahrzeuge erstellen."
+      },
+      "edit": {
+        "label": "Fahrzeuge bearbeiten",
+        "description": "Die Angaben der Fahrzeuge bearbeiten."
+      },
+      "delete": {
+        "label": "Fahrzeuge löschen",
+        "description": "Fahrzeuge endgültig löschen."
+      }
+    },
+    "vehicle_types": {
+      "create": {
+        "label": "Fahrzeugtypen erstellen",
+        "description": "Neue Fahrzeugtypen erstellen."
+      },
+      "edit": {
+        "label": "Fahrzeugtypen bearbeiten",
+        "description": "Bestehende Fahrzeugtypen bearbeiten."
+      },
+      "delete": {
+        "label": "Fahrzeugtypen löschen",
+        "description": "Fahrzeugtypen endgültig löschen."
+      }
+    },
+    "resources": {
+      "create": {
+        "label": "Ressourcen erstellen",
+        "description": "Neue Materialressourcen erstellen."
+      },
+      "edit": {
+        "label": "Ressourcen bearbeiten",
+        "description": "Die Angaben der Materialressourcen bearbeiten."
+      },
+      "delete": {
+        "label": "Ressourcen löschen",
+        "description": "Materialressourcen endgültig löschen."
+      }
+    },
+    "resource_types": {
+      "edit": {
+        "label": "Ressourcentypen verwalten",
+        "description": "Ressourcentypen erstellen, bearbeiten und löschen."
+      }
+    },
+    "labor_types": {
+      "edit": {
+        "label": "Arbeitskräftetypen verwalten",
+        "description": "Arbeitskräftetypen und ihre Sätze erstellen, bearbeiten und löschen."
+      }
+    },
+    "places": {
+      "edit": {
+        "label": "Orte verwalten",
+        "description": "Orte erstellen, bearbeiten und löschen (in Aufgaben wiederverwendbare Adressen)."
+      }
+    },
+    "holidays": {
+      "edit": {
+        "label": "Feiertage verwalten",
+        "description": "Feiertage erstellen, bearbeiten, löschen und aus Nager.Date importieren."
+      }
+    },
+    "files": {
+      "view": {
+        "label": "Dateien anzeigen",
+        "description": "Die an Aufgaben angehängten Dateien in der Planung und auf der Dateiseite anzeigen."
+      },
+      "upload": {
+        "label": "Dateien hinzufügen",
+        "description": "Anhänge zu Aufgaben hinzufügen."
+      },
+      "delete": {
+        "label": "Dateien löschen",
+        "description": "Anhänge von Aufgaben löschen."
+      },
+      "purge": {
+        "label": "Dateien bereinigen",
+        "description": "Verwaiste oder veraltete Dateien endgültig aus der Datenbank entfernen."
+      }
+    },
+    "audit": {
+      "restore": {
+        "label": "Aus dem Audit-Protokoll wiederherstellen",
+        "description": "Eine Entität (Aufgabe, Projekt usw.) über das Audit-Protokoll auf einen früheren Stand zurücksetzen."
+      },
+      "purge": {
+        "label": "Audit-Protokoll bereinigen",
+        "description": "Einträge des Audit-Protokolls vor einem bestimmten Datum endgültig löschen."
+      }
+    },
+    "export": {
+      "use": {
+        "label": "Exporte verwenden",
+        "description": "Planungsdaten nach Excel, PDF, CSV oder iCal exportieren."
+      }
+    },
+    "settings": {
+      "edit": {
+        "label": "Einstellungen bearbeiten",
+        "description": "Die allgemeinen Anwendungseinstellungen bearbeiten (Branding, E-Mail, SMS, Cache...)."
+      }
+    },
+    "roles": {
+      "create": {
+        "label": "Rollen erstellen",
+        "description": "Neue benutzerdefinierte Rollen erstellen."
+      },
+      "edit": {
+        "label": "Rollen bearbeiten",
+        "description": "Bestehende Rollen und ihre Berechtigungen bearbeiten."
+      },
+      "delete": {
+        "label": "Rollen löschen",
+        "description": "Benutzerdefinierte Rollen löschen (Systemrollen können nicht gelöscht werden)."
+      }
+    },
+    "backups": {
+      "create": {
+        "label": "Sicherung erstellen",
+        "description": "Manuell eine Sicherung der Datenbank erstellen."
+      },
+      "download": {
+        "label": "Sicherung herunterladen",
+        "description": "Eine vorhandene Sicherung herunterladen."
+      },
+      "delete": {
+        "label": "Sicherung löschen",
+        "description": "Eine Sicherungsdatei löschen."
+      }
+    },
+    "maintenance": {
+      "bypass": {
+        "label": "Wartungsmodus umgehen",
+        "description": "Auf die Planung zugreifen, auch wenn der Wartungsmodus global aktiviert ist."
+      }
+    },
+    "notifications": {
+      "view": {
+        "label": "Benachrichtigungen erhalten",
+        "description": "Benachrichtigungen über die Glocke in der Kopfzeile und den Echtzeit-Feed erhalten."
+      }
+    },
+    "mcp": {
+      "use": {
+        "label": "MCP-Konnektor verwenden",
+        "description": "Einem KI-Assistenten (Claude, ChatGPT...) erlauben, Planungsdaten über den MCP-Konnektor zu lesen."
+      },
+      "write": {
+        "label": "MCP-Schreibzugriffe erlauben",
+        "description": "Dem MCP-Konnektor erlauben, Daten zu erstellen, zu bearbeiten oder zu löschen (zusätzlich zum Lesen)."
+      }
+    },
+    "ai_chat": {
+      "use": {
+        "label": "KI-Assistenten verwenden",
+        "description": "Zugriff auf den KI-Chat (Seite Assistent und schwebende Kugel). Der Assistent liest die Planung mit den Rechten des Benutzers."
+      },
+      "write": {
+        "label": "Änderungen durch den KI-Assistenten erlauben",
+        "description": "Der Assistent kann anbieten, Aufgaben und Projekte zu erstellen, zu bearbeiten, zu verschieben, zu duplizieren oder zu löschen. Jede Änderung erfordert stets die ausdrückliche Bestätigung des Benutzers. Erfordert „KI-Assistenten verwenden“."
+      }
+    },
+    "scope": {
+      "projects_all": {
+        "label": "Alle Projekte",
+        "description": "Die Aufgaben aller Projekte uneingeschränkt in der Planung sehen."
+      },
+      "projects_bu": {
+        "label": "Projekte der eigenen Business Unit",
+        "description": "Nur die Aufgaben der Projekte sehen, die zur eigenen Business Unit gehören."
+      },
+      "projects_team": {
+        "label": "Projekte des eigenen Teams",
+        "description": "Nur die Aufgaben der Projekte sehen, deren Verantwortlicher ein Mitglied des eigenen Teams ist."
+      },
+      "projects_own": {
+        "label": "Projekte mit eigener Beteiligung",
+        "description": "Nur die Aufgaben der Projekte sehen, für die der Benutzer verantwortlich ist oder an denen er über eine zugewiesene Aufgabe beteiligt ist."
+      },
+      "projects_assigned_only": {
+        "label": "Nur zugewiesene Aufgaben",
+        "description": "Nur die Aufgaben sehen, die dem Benutzer direkt zugewiesen sind, unabhängig vom Projekt."
+      },
+      "users_all": {
+        "label": "Alle Benutzer",
+        "description": "Die Zeilen aller Benutzer in der Planung sehen."
+      },
+      "users_bu": {
+        "label": "Benutzer der eigenen Business Unit",
+        "description": "Nur die Benutzer sehen, die zur eigenen Business Unit gehören."
+      },
+      "users_team": {
+        "label": "Benutzer des eigenen Teams",
+        "description": "Nur die Mitglieder des eigenen Teams in der Planung sehen."
+      },
+      "users_self": {
+        "label": "Nur sich selbst",
+        "description": "Nur die eigene Zeile in der Planung sehen."
+      },
+      "modify_readonly": {
+        "label": "Nur Lesezugriff",
+        "description": "In der Planung sind keine Änderungen möglich. Aktionen wie Verschieben, Größe ändern, Erstellen oder Löschen von Aufgaben sind deaktiviert, unabhängig von den unten angehakten Aktionen."
+      },
+      "modify_all": {
+        "label": "Alles bearbeiten",
+        "description": "Kann alle sichtbaren Aufgaben bearbeiten, ohne weitere Einschränkung als die Sichtbarkeit."
+      },
+      "modify_team": {
+        "label": "Aufgaben des eigenen Teams",
+        "description": "Kann nur Aufgaben bearbeiten, die einem Mitglied des eigenen Teams zugewiesen sind."
+      },
+      "modify_own_project": {
+        "label": "Aufgaben der eigenen Projekte",
+        "description": "Kann nur Aufgaben bearbeiten, die zu Projekten gehören, für die der Benutzer verantwortlich ist."
+      },
+      "modify_own": {
+        "label": "Eigene Aufgaben",
+        "description": "Kann nur die eigenen zugewiesenen oder selbst erstellten Aufgaben bearbeiten."
+      },
+      "bu_all": {
+        "label": "Alle Business Units",
+        "description": "Der Benutzer kann im globalen Auswahlfeld jede Business Unit auswählen und die Daten aller BUs sehen."
+      },
+      "bu_own": {
+        "label": "Nur die eigene Business Unit",
+        "description": "Der Benutzer sieht nur die Daten seiner eigenen Business Unit. Das globale Auswahlfeld ist deaktiviert."
+      }
+    },
+    "planning": {
+      "view_calendar": {
+        "label": "Persönlicher Kalender",
+        "description": "Erlaubt den Zugriff auf die Ansicht „Mein Kalender“, die die Aufgaben des angemeldeten Benutzers in einem Tageskalender anzeigt."
+      },
+      "view_team_day": {
+        "label": "Ansicht Team / Tag",
+        "description": "Erlaubt den Zugriff auf die Ansicht „Team/Tag“, die die Aufgaben des Teams stundenweise für einen Tag anzeigt."
+      },
+      "view_vehicles": {
+        "label": "Fahrzeugansicht",
+        "description": "Erlaubt den Zugriff auf die Ansicht „Fahrzeuge“, die die Zuweisungsplanung der Fahrzeuge anzeigt."
+      },
+      "view_resources": {
+        "label": "Ressourcenansicht",
+        "description": "Erlaubt den Zugriff auf die Ansicht „Ressourcen“, die die Zuweisungsplanung der Materialressourcen anzeigt."
+      }
+    },
+    "tasks": {
+      "create": {
+        "label": "Aufgaben erstellen",
+        "description": "Kann neue Aufgaben erstellen. Die Zielbenutzer und -projekte sind auf den oben festgelegten Bereich beschränkt."
+      },
+      "delete": {
+        "label": "Aufgaben löschen",
+        "description": "Kann vorhandene Aufgaben im Rahmen der eigenen Bearbeitungsstufe löschen."
+      },
+      "assign": {
+        "label": "Benutzer zuweisen",
+        "description": "Kann Benutzer zu einer Aufgabe hinzufügen oder daraus entfernen. Die Zielbenutzer sind auf den Benutzerbereich beschränkt."
+      },
+      "move": {
+        "label": "Aufgaben verschieben",
+        "description": "Kann Aufgaben per Drag & Drop in der Planung verschieben (Datum oder zugewiesenen Benutzer ändern)."
+      },
+      "resize": {
+        "label": "Aufgabengröße ändern",
+        "description": "Kann die Dauer von Aufgaben ändern, indem ihr rechter Rand in der Planung gezogen wird."
+      },
+      "lock": {
+        "label": "Aufgaben sperren",
+        "description": "Kann Aufgaben sperren und entsperren, um versehentliche Änderungen zu verhindern."
+      }
+    }
+  },
+  "errors": {
+    "notFound": "Rolle nicht gefunden",
+    "cannotRenameSuperAdmin": "Die Rolle Superadministrator kann nicht umbenannt werden",
+    "cannotEditSuperAdminPermissions": "Die Berechtigungen der Rolle Superadministrator können nicht geändert werden",
+    "cannotDeleteSystem": "Eine Systemrolle kann nicht gelöscht werden",
+    "hasUsers": "Diese Rolle kann nicht gelöscht werden: {count, plural, one {# Benutzer ist ihr noch zugeordnet} other {# Benutzer sind ihr noch zugeordnet}}. Weisen Sie diesen eine andere Rolle zu und versuchen Sie es erneut."
+  }
+}

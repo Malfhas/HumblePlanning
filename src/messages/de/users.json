@@ -1,0 +1,232 @@
+{
+  "shared": {
+    "insufficientPermission": "Unzureichende Berechtigung",
+    "selectBu": "BU auswählen",
+    "noBu": "Keine Business Unit",
+    "fields": {
+      "nameRequired": "Name *",
+      "color": "Farbe",
+      "colorRequired": "Farbe *",
+      "businessUnitRequired": "Business Unit *",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung...",
+      "preview": "Vorschau"
+    },
+    "validation": {
+      "nameRequired": "Der Name ist erforderlich",
+      "businessUnitRequired": "Die Business Unit ist erforderlich",
+      "roleRequired": "Die Rolle ist erforderlich",
+      "usernameRequired": "Der Benutzername ist erforderlich",
+      "numberRequired": "Die Nummer ist erforderlich"
+    }
+  },
+  "list": {
+    "title": "Benutzer",
+    "columns": {
+      "name": "Name",
+      "login": "Benutzername",
+      "email": "E-Mail",
+      "team": "Team",
+      "role": "Rolle",
+      "businessUnit": "BU",
+      "qualifications": "Qualifikationen",
+      "job": "Position"
+    },
+    "actions": {
+      "reactivate": "Reaktivieren",
+      "deletePermanently": "Endgültig löschen"
+    },
+    "filters": {
+      "team": "Team",
+      "role": "Rolle",
+      "businessUnit": "BU",
+      "qualification": "Qualifikation",
+      "inactive": "Inaktive",
+      "searchPlaceholder": "Benutzer suchen..."
+    },
+    "count": "{count, plural, one {# Benutzer} other {# Benutzer}}",
+    "dialog": {
+      "editTitle": "Benutzer bearbeiten",
+      "duplicateTitle": "Benutzer duplizieren",
+      "createTitle": "Neuer Benutzer",
+      "editDescription": "Bearbeiten Sie die Angaben des Benutzers.",
+      "duplicateDescription": "Die allgemeinen Felder wurden vorausgefüllt. Geben Sie Name, E-Mail und Benutzername ein, um den Benutzer zu erstellen.",
+      "createDescription": "Füllen Sie die Angaben aus, um einen Benutzer zu erstellen."
+    },
+    "archive": {
+      "reactivateTitle": "Benutzer reaktivieren",
+      "deactivateTitle": "Benutzer deaktivieren",
+      "reactivateDescription": "Der Benutzer kann sich wieder anmelden und erscheint in den Listen.",
+      "deactivateDescription": "Der Benutzer kann sich nicht mehr anmelden und wird standardmäßig ausgeblendet. Seine Daten bleiben erhalten.",
+      "reactivateConfirm": "Reaktivieren",
+      "deactivateConfirm": "Deaktivieren"
+    },
+    "delete": {
+      "title": "Benutzer endgültig löschen",
+      "description": "Diese Aktion kann nicht rückgängig gemacht werden. Alle Daten des Benutzers werden gelöscht (Konto, Sitzungen, Passwortverlauf). Aufgaben, die nur diesem Benutzer zugewiesen sind, werden ebenfalls gelöscht. Möchten Sie fortfahren?"
+    }
+  },
+  "form": {
+    "tabs": {
+      "general": "Allgemein",
+      "security": "Sicherheit",
+      "details": "Details"
+    },
+    "sections": {
+      "identity": "Identität",
+      "organisation": "Organisation",
+      "password": "Passwort",
+      "qualifications": "Qualifikationen",
+      "personal": "Persönliche Angaben",
+      "options": "Optionen"
+    },
+    "fields": {
+      "lastNameRequired": "Nachname *",
+      "firstName": "Vorname",
+      "email": "E-Mail",
+      "username": "Benutzername *",
+      "team": "Team",
+      "laborType": "Arbeitskräftetyp",
+      "role": "Rolle *",
+      "job": "Position",
+      "contract": "Vertrag",
+      "password": "Passwort",
+      "phone": "Festnetz",
+      "mobile": "Mobiltelefon",
+      "address": "Postanschrift",
+      "comment": "Kommentar",
+      "commentPlaceholder": "Freie Notizen...",
+      "active": "Aktiver Benutzer",
+      "visibleOnPlanning": "In der Planung sichtbar",
+      "emailNotifications": "E-Mail-Benachrichtigungen",
+      "pushNotifications": "Push-Benachrichtigungen",
+      "smsNotifications": "SMS-/WhatsApp-Benachrichtigungen"
+    },
+    "pickers": {
+      "noTeam": "Kein Team",
+      "noType": "Kein Typ",
+      "selectRole": "Rolle auswählen",
+      "noRole": "Keine Rolle",
+      "adminSuffix": "(Admin)",
+      "fullAccess": "Vollzugriff",
+      "noContract": "Kein Vertrag",
+      "applyTeamColor": "Teamfarbe übernehmen"
+    },
+    "password": {
+      "random": "Zufallspasswort (per E-Mail gesendet)",
+      "newPlaceholder": "Neues Passwort...",
+      "optionalPlaceholder": "Passwort (optional)",
+      "generate": "Passwort generieren",
+      "copied": "Passwort in die Zwischenablage kopiert",
+      "cancelEdit": "Änderung abbrechen",
+      "needsEmail": "Der Benutzer muss eine E-Mail-Adresse haben",
+      "needsEmailNotifications": "E-Mail-Benachrichtigungen müssen in den Einstellungen aktiviert sein",
+      "assignRandom": "Zufallspasswort zuweisen (per E-Mail gesendet)",
+      "forceChange": "Passwortänderung bei der nächsten Anmeldung erzwingen",
+      "changePending": "Passwortänderung ausstehend",
+      "resetSent": "Link gesendet!",
+      "sendReset": "Link zum Zurücksetzen per E-Mail senden"
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "notEnabled": "Nicht aktiviert",
+      "confirmDisable": "2FA für diesen Benutzer deaktivieren? Wenn 2FA vorgeschrieben ist, muss er sie neu einrichten, um sich wieder anzumelden.",
+      "disabling": "Wird deaktiviert...",
+      "force": "2FA für diesen Benutzer vorschreiben"
+    },
+    "qualifications": {
+      "count": "{count, plural, one {# Qualifikation} other {# Qualifikationen}}",
+      "select": "Auswählen..."
+    },
+    "emailRequiredForNotifications": "Für E-Mail-Benachrichtigungen ist eine gültige E-Mail-Adresse erforderlich",
+    "emailBlocked": "Diese E-Mail-Adresse ist gesperrt (Bounce oder Spam-Beschwerde über Nuntly). Entsperren Sie sie unter Einstellungen > E-Mail, um sie verwenden zu können.",
+    "lastNameRequired": "Der Nachname ist erforderlich"
+  },
+  "contractTypes": {
+    "employee": "Angestellter",
+    "temporary": "Zeitarbeitskraft",
+    "subcontractor": "Subunternehmer",
+    "workStudy": "Auszubildender",
+    "intern": "Praktikant",
+    "freelance": "Freiberufler"
+  },
+  "teams": {
+    "title": "Teams",
+    "empty": "Keine Teams.",
+    "outsideBu": "Ohne BU",
+    "reorderAria": "Team neu anordnen",
+    "noMembers": "Keine Mitglieder",
+    "dialog": {
+      "editTitle": "Team bearbeiten",
+      "createTitle": "Team hinzufügen",
+      "editDescription": "Die Angaben des Teams bearbeiten.",
+      "createDescription": "Ein neues Team erstellen."
+    },
+    "delete": {
+      "title": "Team löschen",
+      "description": "Diese Aktion kann nicht rückgängig gemacht werden. Die Benutzer dieses Teams werden vom Team gelöst, bleiben aber erhalten."
+    }
+  },
+  "businessUnits": {
+    "title": "Business Units",
+    "searchPlaceholder": "BU suchen...",
+    "columns": {
+      "name": "Name",
+      "number": "Nummer",
+      "address": "Adresse"
+    },
+    "dialog": {
+      "editTitle": "Business Unit bearbeiten",
+      "createTitle": "Neue Business Unit",
+      "editDescription": "Bearbeiten Sie die Angaben der Business Unit.",
+      "createDescription": "Füllen Sie die Angaben aus, um eine Business Unit zu erstellen."
+    },
+    "delete": {
+      "title": "Business Unit löschen",
+      "description": "Diese Aktion kann nicht rückgängig gemacht werden. Die mit dieser Business Unit verknüpften Teams und Projektgruppen werden ebenfalls gelöscht. Möchten Sie fortfahren?"
+    },
+    "form": {
+      "number": "Nummer *",
+      "addressRequired": "Bitte wählen Sie eine Adresse aus der Liste, um den Punkt auf der Karte zu setzen"
+    }
+  },
+  "qualifications": {
+    "title": "Qualifikationen",
+    "searchPlaceholder": "Qualifikation suchen...",
+    "columns": {
+      "name": "Qualifikation",
+      "description": "Beschreibung"
+    },
+    "dialog": {
+      "editTitle": "Qualifikation bearbeiten",
+      "createTitle": "Neue Qualifikation",
+      "editDescription": "Bearbeiten Sie die Angaben der Qualifikation.",
+      "createDescription": "Füllen Sie die Angaben aus, um eine Qualifikation zu erstellen."
+    },
+    "delete": {
+      "title": "Qualifikation löschen",
+      "description": "Diese Aktion kann nicht rückgängig gemacht werden. Die Zuweisungen an Benutzer werden ebenfalls gelöscht."
+    },
+    "form": {
+      "icon": "Symbol *",
+      "previewFallback": "Qualifikation"
+    }
+  },
+  "errors": {
+    "invalidFields": "Einige Felder sind ungültig",
+    "loginAlreadyUsed": "Dieser Benutzername wird bereits von einem anderen Benutzer verwendet",
+    "emailAlreadyUsed": "Diese E-Mail-Adresse wird bereits von einem anderen Benutzer verwendet",
+    "emailBlocked": "Diese E-Mail-Adresse ist gesperrt (Bounce oder Spam-Beschwerde über Nuntly). Entsperren Sie sie unter Einstellungen > E-Mail.",
+    "notFound": "Benutzer nicht gefunden",
+    "activeRequired": "Feld „active“ erforderlich",
+    "cannotDeactivateSuperAdmin": "Ein Superadministrator-Konto kann nicht deaktiviert werden.",
+    "cannotDeleteSuperAdmin": "Ein Superadministrator-Konto kann nicht gelöscht werden.",
+    "ownsProjects": "Löschen nicht möglich: Der Benutzer ist für {count, plural, one {# Projekt} other {# Projekte}} ({names}) verantwortlich. Weisen Sie diese zuerst neu zu.",
+    "passwordBlacklisted": "Dieses Passwort steht auf der Sperrliste verbotener Passwörter.",
+    "passwordReused": "Dieses Passwort wurde kürzlich bereits verwendet. Bitte wählen Sie ein anderes.",
+    "noEmail": "Der Benutzer hat keine E-Mail-Adresse",
+    "teamNotFound": "Team nicht gefunden",
+    "businessUnitNotFound": "Business Unit nicht gefunden",
+    "qualificationNotFound": "Qualifikation nicht gefunden"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "bell": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "deleteAll": "Delete all",
+    "empty": "No notifications",
+    "ariaLabel": "Notifications"
+  },
+  "types": {
+    "task_created": "Assignment",
+    "task_deleted": "Deletion",
+    "task_updated": "Change",
+    "task_title_changed": "Change",
+    "task_dates_changed": "Dates changed",
+    "task_times_changed": "Times changed",
+    "task_status_changed": "Status changed",
+    "task_project_changed": "Project changed",
+    "task_notes_changed": "Notes changed",
+    "task_user_added": "User added",
+    "task_user_removed": "User removed",
+    "task_file_added": "File added",
+    "task_file_deleted": "File deleted"
+  },
+  "task": {
+    "untitled": "Task",
+    "assigned": "Task assigned by {actor} for {date}",
+    "assignedNoActor": "Task assigned for {date}",
+    "changed": {
+      "title": "Title changed by {actor} · {date}",
+      "titleNoActor": "Title changed · {date}",
+      "dates": "Dates changed by {actor} · {date}",
+      "datesNoActor": "Dates changed · {date}",
+      "times": "Times changed by {actor} · {date}",
+      "timesNoActor": "Times changed · {date}",
+      "status": "Status changed by {actor} · {date}",
+      "statusNoActor": "Status changed · {date}",
+      "project": "Project changed by {actor} · {date}",
+      "projectNoActor": "Project changed · {date}",
+      "notes": "Notes changed by {actor} · {date}",
+      "notesNoActor": "Notes changed · {date}",
+      "other": "Task updated by {actor} · {date}",
+      "otherNoActor": "Task updated · {date}"
+    },
+    "deleted": "Task deleted by {actor} · {date}",
+    "deletedNoActor": "Task deleted · {date}",
+    "removedFromTask": "{actor} removed you from this task",
+    "removedFromTaskNoActor": "You have been removed from this task",
+    "fileAdded": "File “{fileName}” added by {actor}",
+    "fileAddedNoActor": "File “{fileName}” added",
+    "fileDeleted": "File “{fileName}” deleted by {actor}",
+    "fileDeletedNoActor": "File “{fileName}” deleted"
+  },
+  "sms": {
+    "events": {
+      "created": "Task created",
+      "updated": "Task updated",
+      "deleted": "Task deleted"
+    },
+    "test": {
+      "event": "Test",
+      "project": "Configuration",
+      "message": "Sent.dm connection successful"
+    }
+  },
+  "errors": {
+    "weeklyNoTasks": "No tasks are scheduled for next week, so the email was not sent",
+    "phoneRequired": "Recipient phone number is required",
+    "sendFailed": "Sending failed: {reason}",
+    "sms": {
+      "disabled": "The SMS / WhatsApp feature is disabled — coming soon",
+      "notConfigured": "Sent.dm is not configured (API key, sender ID or template ID missing)"
+    },
+    "email": {
+      "blocked": "This email address is blocked (bounce or spam complaint). Unblock it in Settings > Email.",
+      "disabled": "Email sending disabled: missing credentials for provider “{provider}” ({keys}). Enter them in Settings > Email or in the .env file."
+    }
+  }
+}

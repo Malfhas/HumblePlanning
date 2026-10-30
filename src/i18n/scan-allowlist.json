@@ -1,0 +1,33 @@
+{
+  "$comment": "Exceptions of `bun run i18n:scan`. paths: excluded path prefixes (from the project root), with the reason. strings: allowed exact strings (brands, proper nouns, formats). patterns: regular expressions (whole string). For a one-off exception, prefer the `// i18n-ignore <reason>` comment on the line (or the previous line).",
+  "paths": {
+    "src/messages/": "message catalogs",
+    "src/db/seed": "seed data (editable, out of scope)",
+    "src/lib/demo/": "demo dataset: French seed values by design, no user interface",
+    "src/db/migrations/": "generated SQL",
+    "src/db/schema/": "schema: technical values and comments (false positives)",
+    "src/scripts/provision.ts": "operations CLI (logs not translated, out of scope)",
+    "src/scripts/i18n-": "i18n tooling (French word lists)",
+    "src/i18n/scan-allowlist.json": "this file",
+    "src/app/global-error.tsx": "inline FR/EN mini-dictionary (no provider available)"
+  },
+  "strings": [
+    "HumblePlanning",
+    "Humble Planning",
+    "Nuntly",
+    "Sent.dm",
+    "SoPlanning",
+    "Mailgun",
+    "SMTP",
+    "OpenRouter",
+    "Cloudflare Turnstile",
+    "Google reCAPTCHA",
+    "ALTCHA",
+    "Français",
+    "English"
+  ],
+  "patterns": [
+    "^[0-9 .,:/hH'-]+$",
+    "^(dd|MM|yyyy|EEEE|EEE|d|MMMM|MMM|HH|H|mm|hh|a|'[^']*'|[ ./:,-])+$"
+  ]
+}

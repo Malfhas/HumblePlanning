@@ -1,0 +1,108 @@
+{
+  "page": {
+    "title": "Exporte",
+    "description": "Exportieren Sie Ihre Planung in verschiedenen Formaten",
+    "files": {
+      "title": "PDF, Excel, CSV",
+      "description": "PDF-, Excel- und CSV-Exporte sind direkt in der Planung über die Schaltfläche „Export“ in der Symbolleiste verfügbar.",
+      "goToPlanning": "Zur Planung"
+    },
+    "ical": {
+      "title": "iCal",
+      "description": "iCal-Feed (.ics) zum Abonnieren in Google Calendar, Outlook oder Apple Calendar. Der Link ist persönlich und wird automatisch mit Ihren zugewiesenen Aufgaben aktualisiert.",
+      "copyAriaLabel": "iCal-Link kopieren",
+      "regenerate": "Neu generieren",
+      "help": "Durch das Neugenerieren des Tokens wird der alte Link ungültig. Durch das Löschen des Tokens wird der iCal-Feed vollständig deaktiviert.",
+      "generate": "iCal-Link generieren"
+    }
+  },
+  "panel": {
+    "title": "Planung exportieren",
+    "format": "Format",
+    "liveSettingsHint": "Die folgenden Einstellungen ändern die Planung in Echtzeit.",
+    "calendar": {
+      "personal": "Kalender von {name}",
+      "teamDay": "Tag vom {date}",
+      "hint": "Der Export entspricht dem aktiven Kalendermodus."
+    },
+    "view": "Ansicht",
+    "views": {
+      "users": "Benutzer",
+      "projects": "Projekte",
+      "places": "Orte",
+      "resources": "Ressourcen",
+      "vehicles": "Fahrzeuge"
+    },
+    "sort": "Sortierung",
+    "sortModes": {
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A",
+      "custom": "Manuelle Reihenfolge (Teams und Mitglieder)",
+      "teamAlphaCustom": "Teams A → Z, manuelle Reihenfolge der Mitglieder",
+      "teamNameAsc": "Teams A → Z, Mitglieder A → Z",
+      "teamNameDesc": "Teams Z → A, Mitglieder A → Z",
+      "customBu": "BU A → Z, Mitglieder A → Z",
+      "customBuTeam": "BU A → Z, Teams A → Z, manuelle Reihenfolge der Mitglieder",
+      "customBuUser": "BU A → Z, manuelle Reihenfolge (Teams und Mitglieder)",
+      "customGroup": "Manuelle Reihenfolge (Gruppen und Projekte)",
+      "groupAlphaCustom": "Gruppen A → Z, manuelle Reihenfolge der Projekte",
+      "groupNameAsc": "Gruppen A → Z, Projekte A → Z",
+      "groupNameDesc": "Gruppen Z → A, Projekte A → Z",
+      "customBuGroup": "BU A → Z, manuelle Reihenfolge (Gruppen und Projekte)",
+      "customBuGroupAlpha": "BU A → Z, Gruppen A → Z, Projekte A → Z",
+      "typeNameAsc": "Nach Typ, Name A → Z",
+      "typeNameDesc": "Nach Typ, Name Z → A"
+    },
+    "cellContent": {
+      "label": "Zelleninhalt",
+      "userName": "Name",
+      "userLogin": "Benutzername",
+      "projectOrType": "Projekt / Typ",
+      "title": "Titel",
+      "projectName": "Projektname",
+      "taskTitle": "Titel der Aufgabe",
+      "assigneeName": "Name des Benutzers"
+    },
+    "excludeWeekends": "Samstag / Sonntag ausschließen",
+    "stats": {
+      "label": "Projekt- / Benutzerstatistik",
+      "helpExcel": "Fügt ein Tabellenblatt mit verbrauchten Stunden, Benutzerzeit und verbleibenden Budgets hinzu.",
+      "helpPdf": "Fügt Seiten mit verbrauchten Stunden, Benutzerzeit und verbleibenden Budgets hinzu."
+    },
+    "summary": {
+      "day": "Tag",
+      "period": "Zeitraum",
+      "periodHint": "Ändern Sie den Zeitraum über die Symbolleiste der Planung."
+    },
+    "filters": {
+      "title": "Aktive Filter",
+      "count": "{count, plural, one {# Kategorie} other {# Kategorien}}",
+      "hint": "Ändern Sie die Filter über die Symbolleiste der Planung.",
+      "categories": {
+        "teams": "Teams",
+        "users": "Benutzer",
+        "projects": "Projekte",
+        "statuses": "Status",
+        "businessUnits": "Business Units",
+        "resources": "Ressourcen"
+      }
+    },
+    "pdf": {
+      "title": "PDF-Optionen",
+      "paperSize": "Papierformat",
+      "orientation": "Ausrichtung",
+      "orientations": {
+        "landscape": "Querformat",
+        "portrait": "Hochformat"
+      },
+      "viewType": "Ansichtstyp",
+      "viewTypes": {
+        "calendar": "Kalender",
+        "gantt": "Planung (Raster)",
+        "list": "Liste (Tabelle)"
+      },
+      "fitOnePage": "Auf 1 Seite einpassen"
+    },
+    "generating": "Wird generiert…"
+  }
+}

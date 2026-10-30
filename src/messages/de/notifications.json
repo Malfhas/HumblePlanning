@@ -1,0 +1,78 @@
+{
+  "bell": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "deleteAll": "Alle löschen",
+    "empty": "Keine Benachrichtigungen",
+    "ariaLabel": "Benachrichtigungen"
+  },
+  "types": {
+    "task_created": "Zuweisung",
+    "task_deleted": "Löschung",
+    "task_updated": "Änderung",
+    "task_title_changed": "Änderung",
+    "task_dates_changed": "Datum geändert",
+    "task_times_changed": "Uhrzeiten geändert",
+    "task_status_changed": "Status geändert",
+    "task_project_changed": "Projekt geändert",
+    "task_notes_changed": "Notizen geändert",
+    "task_user_added": "Benutzer hinzugefügt",
+    "task_user_removed": "Benutzer entfernt",
+    "task_file_added": "Datei hinzugefügt",
+    "task_file_deleted": "Datei gelöscht"
+  },
+  "task": {
+    "untitled": "Aufgabe",
+    "assigned": "Aufgabe für den {date}, zugewiesen von {actor}",
+    "assignedNoActor": "Zugewiesene Aufgabe für den {date}",
+    "changed": {
+      "title": "Titel geändert von {actor} · {date}",
+      "titleNoActor": "Titel geändert · {date}",
+      "dates": "Datum geändert von {actor} · {date}",
+      "datesNoActor": "Datum geändert · {date}",
+      "times": "Uhrzeiten geändert von {actor} · {date}",
+      "timesNoActor": "Uhrzeiten geändert · {date}",
+      "status": "Status geändert von {actor} · {date}",
+      "statusNoActor": "Status geändert · {date}",
+      "project": "Projekt geändert von {actor} · {date}",
+      "projectNoActor": "Projekt geändert · {date}",
+      "notes": "Notizen geändert von {actor} · {date}",
+      "notesNoActor": "Notizen geändert · {date}",
+      "other": "Aufgabe geändert von {actor} · {date}",
+      "otherNoActor": "Aufgabe geändert · {date}"
+    },
+    "deleted": "Aufgabe gelöscht von {actor} · {date}",
+    "deletedNoActor": "Aufgabe gelöscht · {date}",
+    "removedFromTask": "{actor} hat Sie aus dieser Aufgabe entfernt",
+    "removedFromTaskNoActor": "Sie wurden aus dieser Aufgabe entfernt",
+    "fileAdded": "Datei „{fileName}“ von {actor} hinzugefügt",
+    "fileAddedNoActor": "Datei „{fileName}“ hinzugefügt",
+    "fileDeleted": "Datei „{fileName}“ von {actor} gelöscht",
+    "fileDeletedNoActor": "Datei „{fileName}“ gelöscht"
+  },
+  "sms": {
+    "events": {
+      "created": "Aufgabe erstellt",
+      "updated": "Aufgabe geändert",
+      "deleted": "Aufgabe gelöscht"
+    },
+    "test": {
+      "event": "Test",
+      "project": "Konfiguration",
+      "message": "Verbindung zu Sent.dm erfolgreich"
+    }
+  },
+  "errors": {
+    "weeklyNoTasks": "Für nächste Woche sind keine Aufgaben geplant, die E-Mail wurde nicht gesendet",
+    "phoneRequired": "Telefonnummer des Empfängers erforderlich",
+    "sendFailed": "Senden fehlgeschlagen: {reason}",
+    "sms": {
+      "disabled": "Die SMS-/WhatsApp-Funktion ist deaktiviert — demnächst verfügbar",
+      "notConfigured": "Sent.dm ist nicht konfiguriert (API-Schlüssel, Sender-ID oder Template-ID fehlt)"
+    },
+    "email": {
+      "blocked": "Diese E-Mail-Adresse ist gesperrt (Bounce oder Spam-Beschwerde). Entsperren Sie sie unter Einstellungen > E-Mail.",
+      "disabled": "E-Mail-Versand deaktiviert: Zugangsdaten für den Anbieter „{provider}“ fehlen ({keys}). Geben Sie sie unter Einstellungen > E-Mail oder in der Datei .env ein."
+    }
+  }
+}

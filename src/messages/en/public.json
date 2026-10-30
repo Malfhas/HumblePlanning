@@ -1,0 +1,42 @@
+{
+  "privacy": {
+    "defaultTitle": "Privacy policy",
+    "unavailable": "This page is not available.",
+    "lastUpdated": "Last updated: {date}",
+    "empty": "No content has been written yet.",
+    "dpo": {
+      "title": "Data Protection Officer",
+      "contact": "To exercise your rights or for any question: <link>{email}</link>"
+    },
+    "manageCookies": "Manage my cookie preferences",
+    "signIn": "Sign in",
+    "placeholders": {
+      "company": "[Company name]",
+      "dpoEmail": "[DPO email]",
+      "retention": "{count, plural, one {# day} other {# days}}"
+    }
+  },
+  "cookies": {
+    "consent": {
+      "title": "Cookie management",
+      "description": "This site uses cookies that are essential for it to work. You can choose to accept or reject optional cookies."
+    },
+    "necessary": {
+      "title": "Necessary cookies",
+      "description": "These cookies are essential for the site to work and cannot be disabled."
+    },
+    "analytics": {
+      "title": "Analytics cookies",
+      "description": "These cookies allow us to measure audience and improve the site. All data is anonymised."
+    },
+    "functional": {
+      "title": "Functional cookies",
+      "description": "These cookies improve the features of the site, such as personalising the interface."
+    },
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all",
+    "customize": "Customise",
+    "preferencesTitle": "Cookie preferences",
+    "savePreferences": "Save my preferences"
+  }
+}

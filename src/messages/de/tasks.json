@@ -1,0 +1,96 @@
+{
+  "permissionDenied": "Unzureichende Berechtigung",
+  "list": {
+    "title": "Aufgaben",
+    "columns": {
+      "project": "Projekt",
+      "title": "Titel",
+      "users": "Benutzer",
+      "dates": "Datum",
+      "times": "Uhrzeiten",
+      "status": "Status",
+      "place": "Ort"
+    },
+    "defaultHoursTooltip": "Standard-Arbeitszeiten (Einstellungen)",
+    "actions": {
+      "viewDetails": "Details anzeigen"
+    },
+    "filters": {
+      "project": "Projekt",
+      "status": "Status",
+      "user": "Benutzer",
+      "team": "Team"
+    },
+    "searchPlaceholder": "Aufgabe suchen...",
+    "count": "{count, plural, one {# Aufgabe} other {# Aufgaben}}",
+    "limited": "(begrenzt auf {limit, number})",
+    "notLoaded": "{count, plural, one {# weitere Aufgabe nicht geladen} other {# weitere Aufgaben nicht geladen}} — erhöhen Sie das Limit, um alle zu sehen."
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Aufgabe löschen"
+    },
+    "multiDelete": {
+      "title": "Aufgabe mehreren Benutzern zugewiesen",
+      "description": "{count, plural, one {Diese Aufgabe ist # Benutzer zugewiesen: {names}.} other {Diese Aufgabe ist # Benutzern zugewiesen: {names}.}}",
+      "confirm": "Für alle löschen",
+      "removeUser": "Benutzer entfernen"
+    },
+    "removeUser": {
+      "title": "Benutzer entfernen",
+      "description": "Wählen Sie den Benutzer aus, der aus dieser Aufgabe entfernt werden soll."
+    }
+  },
+  "detail": {
+    "untitled": "Ohne Titel",
+    "srDescription": "Details der Aufgabe",
+    "preview": "Vorschau",
+    "recurrence": {
+      "occurrence": "Vorkommen einer wiederkehrenden Aufgabe",
+      "rule": "{type, select, daily {Täglich — {freq, plural, one {jeden Tag} other {alle # Tage}}} weekly {Wöchentlich — {freq, plural, one {jede Woche} other {alle # Wochen}}} monthly {Monatlich — {freq, plural, one {jeden Monat} other {alle # Monate}}} other {{type}}}"
+    },
+    "fields": {
+      "project": "Projekt",
+      "status": "Status",
+      "dates": "Datum",
+      "times": "Uhrzeiten",
+      "users": "{count, plural, one {Benutzer} other {Benutzer (#)}}",
+      "place": "Ort",
+      "resource": "Ressource",
+      "vehicles": "Fahrzeuge",
+      "linkedResources": "Zugeordnete Ressourcen",
+      "sameSite": "Auf derselben Baustelle ({count, number})",
+      "siteAddress": "Baustellenadresse",
+      "recurrence": "Wiederholung",
+      "notes": "Notizen",
+      "files": "Dateien ({count, number})",
+      "createdBy": "Erstellt von",
+      "modifiedBy": "Geändert von"
+    }
+  },
+  "errors": {
+    "notFound": "Aufgabe nicht gefunden",
+    "projectNotFound": "Projekt nicht gefunden",
+    "notAllowed": "Bearbeitung nicht erlaubt",
+    "deleteNotAllowed": "Löschen nicht erlaubt",
+    "locked": "Diese Aufgabe ist gesperrt",
+    "assignForbidden": "Sie haben keine Berechtigung, Benutzer zuzuweisen",
+    "updateOutOfScope": "Die angeforderten Änderungen liegen außerhalb Ihres erlaubten Bereichs",
+    "moveOutOfScope": "Die angeforderte Verschiebung liegt außerhalb Ihres erlaubten Bereichs",
+    "createForUsersForbidden": "Sie haben keine Berechtigung, Aufgaben für diese Benutzer zu erstellen",
+    "copyForbidden": "Unzureichende Berechtigung zum Kopieren dieser Aufgabe",
+    "insufficientPermission": "Unzureichende Berechtigung",
+    "repeatChildOccurrence": "Ein untergeordnetes Vorkommen kann nicht wiederholt werden",
+    "recurrenceEndBeforeStart": "Das Enddatum der Wiederholung muss nach dem Startdatum liegen",
+    "dailyLimitReached": "Limit erreicht: maximal {limit, plural, one {# Aufgabe} other {# Aufgaben}} pro Benutzer und Tag (Konflikt am {day})",
+    "addFilesForbidden": "Unzureichende Berechtigung zum Hinzufügen von Dateien",
+    "deleteFilesForbidden": "Unzureichende Berechtigung zum Löschen von Dateien",
+    "filesDisabled": "Die Dateiverwaltung ist deaktiviert",
+    "maxFilesReached": "{max, plural, one {Maximal # Datei pro Aufgabe erreicht} other {Maximal # Dateien pro Aufgabe erreicht}}",
+    "extensionNotAllowed": "Dateiendung .{ext} nicht erlaubt. Erlaubte Dateiendungen: {allowed}",
+    "fileTooLarge": "Datei zu groß. Maximum: {max, number} MB",
+    "totalSizeExceeded": "Gesamtgröße überschritten. Maximum: {max, number} MB pro Aufgabe",
+    "fileIdRequired": "fileId erforderlich",
+    "fileNotFound": "Datei nicht gefunden"
+  }
+}

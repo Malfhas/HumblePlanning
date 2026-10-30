@@ -1,0 +1,213 @@
+{
+  "common": {
+    "permissionDenied": "Permission insuffisante",
+    "perPage": "Par page",
+    "total": "{count, plural, one {# élément} other {# éléments}}",
+    "unnamedUser": "Sans nom"
+  },
+  "audit": {
+    "title": "Journal d'audit",
+    "purge": "Purger",
+    "clearFilters": "Tout effacer",
+    "filters": {
+      "type": "Type",
+      "action": "Action",
+      "user": "Utilisateur",
+      "source": "Source",
+      "start": "Début",
+      "end": "Fin"
+    },
+    "entityFilter": {
+      "task": "Tâches",
+      "project": "Projets",
+      "user": "Utilisateurs",
+      "team": "Équipes",
+      "status": "Statuts",
+      "holiday": "Jours fériés",
+      "qualification": "Habilitations",
+      "vehicle": "Véhicules",
+      "vehicle_type": "Types véhicules",
+      "resource": "Ressources",
+      "resource_type": "Types ressources",
+      "labor_type": "Types main-d'œuvre",
+      "project_group": "Groupes projet",
+      "role": "Rôles",
+      "place": "Lieux",
+      "config": "Configuration",
+      "api_key": "Clés API",
+      "mcp_key": "Clés MCP",
+      "session": "Sessions"
+    },
+    "sources": {
+      "all": "Toutes sources",
+      "web": "Web",
+      "mcp": "MCP",
+      "api": "API"
+    },
+    "columns": {
+      "date": "Date",
+      "action": "Action",
+      "type": "Type",
+      "item": "Élément",
+      "summary": "Résumé",
+      "concerned": "Concernés",
+      "by": "Par"
+    },
+    "purgeDialog": {
+      "title": "Purger les logs d'audit",
+      "description": "Supprimer définitivement tous les logs antérieurs à la date sélectionnée.",
+      "datePlaceholder": "Sélectionner une date"
+    },
+    "errors": {
+      "moduleDisabled": "Module audit désactivé",
+      "notFound": "Log introuvable",
+      "nothingToRestore": "Pas de valeurs à restaurer",
+      "missingEntityId": "ID entité manquant",
+      "unsupportedEntityType": "Type d'entité non supporté pour la restauration : {entityType}"
+    }
+  },
+  "auditDetail": {
+    "details": "Détails",
+    "email": "Email :",
+    "ip": "IP :",
+    "userAgent": "Agent :",
+    "type": "Type :",
+    "recipients": "Destinataires :",
+    "file": "Fichier :",
+    "columns": {
+      "field": "Champ",
+      "before": "Avant",
+      "after": "Après",
+      "value": "Valeur"
+    }
+  },
+  "restore": {
+    "title": "Confirmer la restauration",
+    "entityLine": "{entity} : {name}",
+    "project": "Projet : {name}",
+    "assignedTo": "Assigné à : {names}",
+    "cascade": "{count, plural, one {# action plus récente sera aussi annulée :} other {# actions plus récentes seront aussi annulées :}}",
+    "columns": {
+      "field": "Champ",
+      "current": "État actuel",
+      "restored": "État restauré"
+    },
+    "deleted": "Supprimé",
+    "noChanges": "Aucun changement détecté"
+  },
+  "files": {
+    "title": "Gestion des fichiers",
+    "purge": "Purger",
+    "searchPlaceholder": "Rechercher un fichier...",
+    "types": {
+      "placeholder": "Type",
+      "all": "Tous les types",
+      "image": "Images",
+      "pdf": "PDF",
+      "other": "Autres"
+    },
+    "startDate": "Date début",
+    "endDate": "Date fin",
+    "empty": "Aucun fichier trouvé",
+    "columns": {
+      "name": "Nom",
+      "task": "Tâche",
+      "project": "Projet",
+      "uploadedBy": "Déposé par",
+      "date": "Date",
+      "hash": "Hash",
+      "size": "Taille"
+    },
+    "size": {
+      "bytes": "{value} o",
+      "kb": "{value} Ko",
+      "mb": "{value} Mo",
+      "gb": "{value} Go"
+    },
+    "viewTask": "Voir la tâche",
+    "deleteDialog": {
+      "title": "Supprimer le fichier",
+      "description": "Êtes-vous sûr de vouloir supprimer « {name} » ? Cette action est irréversible."
+    },
+    "purgeDialog": {
+      "title": "Purger les fichiers",
+      "description": "Supprimer définitivement tous les fichiers uploadés avant la date sélectionnée. Cette action est irréversible.",
+      "datePlaceholder": "Sélectionner une date"
+    },
+    "previewTitle": "Aperçu du fichier",
+    "errors": {
+      "notFound": "Fichier introuvable"
+    }
+  },
+  "filters": {
+    "errors": {
+      "notFound": "Filtre non trouvé"
+    }
+  },
+  "holidays": {
+    "title": "Jours fériés",
+    "searchPlaceholder": "Rechercher un jour férié...",
+    "columns": {
+      "date": "Date",
+      "label": "Libellé",
+      "color": "Couleur"
+    },
+    "dialog": {
+      "createTitle": "Ajouter un jour férié",
+      "editTitle": "Modifier le jour férié",
+      "createDescription": "Créer un nouveau jour férié.",
+      "editDescription": "Modifier les informations du jour férié."
+    },
+    "deleteTitle": "Supprimer le jour férié",
+    "form": {
+      "date": "Date",
+      "datePlaceholder": "Sélectionner une date",
+      "label": "Libellé",
+      "color": "Couleur"
+    },
+    "import": {
+      "title": "Importer des jours fériés",
+      "description": "Importez automatiquement les jours fériés d'un pays via Nager.Date.",
+      "unavailable": "Le service Nager.Date est actuellement indisponible. Veuillez réessayer plus tard.",
+      "checkingService": "Vérification du service...",
+      "country": "Pays",
+      "countryPlaceholder": "Sélectionner un pays",
+      "countrySearch": "Rechercher un pays...",
+      "countryEmpty": "Aucun pays trouvé",
+      "year": "Année",
+      "labelSource": "Libellés importés",
+      "labelSourceLocal": "Nom local (langue du pays)",
+      "labelSourceEnglish": "Nom anglais",
+      "loadingHolidays": "Chargement des jours fériés...",
+      "columns": {
+        "date": "Date",
+        "label": "Libellé"
+      },
+      "empty": "Aucun jour férié trouvé pour ce pays et cette année.",
+      "result": "{count, plural, one {<b>#</b> jour férié importé} other {<b>#</b> jours fériés importés}}.",
+      "resultWithSkipped": "{count, plural, one {<b>#</b> jour férié importé} other {<b>#</b> jours fériés importés}}, {skipped, plural, one {<b>#</b> ignoré (déjà existant)} other {<b>#</b> ignorés (déjà existants)}}.",
+      "importing": "Import en cours...",
+      "importButton": "{count, plural, =0 {Importer} one {Importer # jour férié} other {Importer # jours fériés}}"
+    },
+    "errors": {
+      "notFound": "Jour férié non trouvé",
+      "nagerParamsRequired": "Les paramètres country et year sont requis",
+      "nagerInvalidType": "Type invalide (status, countries ou holidays)"
+    }
+  },
+  "logs": {
+    "title": "Logs système",
+    "entries": "{count, plural, one {# entrée} other {# entrées}}",
+    "clear": "Vider",
+    "levelPlaceholder": "Niveau",
+    "allLevels": "Tous niveaux",
+    "categoryPlaceholder": "Catégorie",
+    "allCategories": "Toutes",
+    "loading": "Chargement des logs...",
+    "empty": "Aucun log",
+    "clearDialog": {
+      "title": "Vider les logs système",
+      "description": "Cette action supprimera tous les logs en mémoire. Les logs ne sont pas persistés et seront perdus définitivement."
+    }
+  }
+}

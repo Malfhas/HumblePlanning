@@ -1,0 +1,232 @@
+{
+  "shared": {
+    "insufficientPermission": "Insufficient permission",
+    "selectBu": "Select a BU",
+    "noBu": "No business unit",
+    "fields": {
+      "nameRequired": "Name *",
+      "color": "Colour",
+      "colorRequired": "Colour *",
+      "businessUnitRequired": "Business unit *",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description...",
+      "preview": "Preview"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "businessUnitRequired": "Business unit is required",
+      "roleRequired": "Role is required",
+      "usernameRequired": "Username is required",
+      "numberRequired": "Number is required"
+    }
+  },
+  "list": {
+    "title": "Users",
+    "columns": {
+      "name": "Name",
+      "login": "Username",
+      "email": "Email",
+      "team": "Team",
+      "role": "Role",
+      "businessUnit": "BU",
+      "qualifications": "Qualifications",
+      "job": "Job title"
+    },
+    "actions": {
+      "reactivate": "Reactivate",
+      "deletePermanently": "Delete permanently"
+    },
+    "filters": {
+      "team": "Team",
+      "role": "Role",
+      "businessUnit": "BU",
+      "qualification": "Qualification",
+      "inactive": "Inactive",
+      "searchPlaceholder": "Search for a user..."
+    },
+    "count": "{count, plural, one {# user} other {# users}}",
+    "dialog": {
+      "editTitle": "Edit user",
+      "duplicateTitle": "Duplicate a user",
+      "createTitle": "New user",
+      "editDescription": "Edit the user's details.",
+      "duplicateDescription": "The general fields have been pre-filled. Enter the name, email and username to create the user.",
+      "createDescription": "Fill in the details to create a user."
+    },
+    "archive": {
+      "reactivateTitle": "Reactivate user",
+      "deactivateTitle": "Deactivate user",
+      "reactivateDescription": "The user will be able to sign in again and will appear in lists.",
+      "deactivateDescription": "The user will no longer be able to sign in and will be hidden by default. Their data is kept.",
+      "reactivateConfirm": "Reactivate",
+      "deactivateConfirm": "Deactivate"
+    },
+    "delete": {
+      "title": "Permanently delete user",
+      "description": "This action cannot be undone. All of the user's data will be deleted (account, sessions, password history). Tasks assigned only to this user will also be deleted. Do you want to continue?"
+    }
+  },
+  "form": {
+    "tabs": {
+      "general": "General",
+      "security": "Security",
+      "details": "Details"
+    },
+    "sections": {
+      "identity": "Identity",
+      "organisation": "Organisation",
+      "password": "Password",
+      "qualifications": "Qualifications",
+      "personal": "Personal information",
+      "options": "Options"
+    },
+    "fields": {
+      "lastNameRequired": "Last name *",
+      "firstName": "First name",
+      "email": "Email",
+      "username": "Username *",
+      "team": "Team",
+      "laborType": "Labour type",
+      "role": "Role *",
+      "job": "Job title",
+      "contract": "Contract",
+      "password": "Password",
+      "phone": "Landline",
+      "mobile": "Mobile phone",
+      "address": "Postal address",
+      "comment": "Comment",
+      "commentPlaceholder": "Free-form notes...",
+      "active": "Active user",
+      "visibleOnPlanning": "Visible on the planning",
+      "emailNotifications": "Email notifications",
+      "pushNotifications": "Push notifications",
+      "smsNotifications": "SMS / WhatsApp notifications"
+    },
+    "pickers": {
+      "noTeam": "No team",
+      "noType": "No type",
+      "selectRole": "Select a role",
+      "noRole": "No role",
+      "adminSuffix": "(Admin)",
+      "fullAccess": "Full access",
+      "noContract": "No contract",
+      "applyTeamColor": "Apply the team colour"
+    },
+    "password": {
+      "random": "Random password (sent by email)",
+      "newPlaceholder": "New password...",
+      "optionalPlaceholder": "Password (optional)",
+      "generate": "Generate a password",
+      "copied": "Password copied to the clipboard",
+      "cancelEdit": "Cancel the change",
+      "needsEmail": "The user must have an email address",
+      "needsEmailNotifications": "Email notifications must be enabled in the settings",
+      "assignRandom": "Assign a random password (sent by email)",
+      "forceChange": "Require a password change at next sign-in",
+      "changePending": "Password change pending",
+      "resetSent": "Link sent!",
+      "sendReset": "Send a reset link by email"
+    },
+    "twoFactor": {
+      "title": "Two-factor authentication",
+      "notEnabled": "Not enabled",
+      "confirmDisable": "Disable two-factor authentication for this user? They will have to set it up again to sign in if it is enforced.",
+      "disabling": "Disabling...",
+      "force": "Enforce two-factor authentication for this user"
+    },
+    "qualifications": {
+      "count": "{count, plural, one {# qualification} other {# qualifications}}",
+      "select": "Select..."
+    },
+    "emailRequiredForNotifications": "A valid email address is required to enable email notifications",
+    "emailBlocked": "This email address is blocked (bounce or spam complaint received via Nuntly). Unblock it in Settings > Email to use it.",
+    "lastNameRequired": "Last name is required"
+  },
+  "contractTypes": {
+    "employee": "Employee",
+    "temporary": "Temporary worker",
+    "subcontractor": "Subcontractor",
+    "workStudy": "Apprentice",
+    "intern": "Intern",
+    "freelance": "Freelancer"
+  },
+  "teams": {
+    "title": "Teams",
+    "empty": "No teams.",
+    "outsideBu": "No BU",
+    "reorderAria": "Reorder team",
+    "noMembers": "No members",
+    "dialog": {
+      "editTitle": "Edit team",
+      "createTitle": "Add a team",
+      "editDescription": "Edit the team's details.",
+      "createDescription": "Create a new team."
+    },
+    "delete": {
+      "title": "Delete team",
+      "description": "This action cannot be undone. Users in this team will be unlinked but kept."
+    }
+  },
+  "businessUnits": {
+    "title": "Business units",
+    "searchPlaceholder": "Search for a BU...",
+    "columns": {
+      "name": "Name",
+      "number": "Number",
+      "address": "Address"
+    },
+    "dialog": {
+      "editTitle": "Edit business unit",
+      "createTitle": "New business unit",
+      "editDescription": "Edit the business unit's details.",
+      "createDescription": "Fill in the details to create a business unit."
+    },
+    "delete": {
+      "title": "Delete business unit",
+      "description": "This action cannot be undone. Teams and project groups linked to this business unit will also be deleted. Do you want to continue?"
+    },
+    "form": {
+      "number": "Number *",
+      "addressRequired": "Please select an address from the list to place the pin on the map"
+    }
+  },
+  "qualifications": {
+    "title": "Qualifications",
+    "searchPlaceholder": "Search for a qualification...",
+    "columns": {
+      "name": "Qualification",
+      "description": "Description"
+    },
+    "dialog": {
+      "editTitle": "Edit qualification",
+      "createTitle": "New qualification",
+      "editDescription": "Edit the qualification's details.",
+      "createDescription": "Fill in the details to create a qualification."
+    },
+    "delete": {
+      "title": "Delete qualification",
+      "description": "This action cannot be undone. User assignments will also be deleted."
+    },
+    "form": {
+      "icon": "Icon *",
+      "previewFallback": "Qualification"
+    }
+  },
+  "errors": {
+    "invalidFields": "Some fields are invalid",
+    "loginAlreadyUsed": "This login is already used by another user",
+    "emailAlreadyUsed": "This email is already used by another user",
+    "emailBlocked": "This email is blocked (bounce or spam complaint received via Nuntly). Unblock it in Settings > Email.",
+    "notFound": "User not found",
+    "activeRequired": "The “active” field is required",
+    "cannotDeactivateSuperAdmin": "A Super Administrator account cannot be deactivated.",
+    "cannotDeleteSuperAdmin": "A Super Administrator account cannot be deleted.",
+    "ownsProjects": "Cannot delete: the user owns {count, plural, one {# project} other {# projects}} ({names}). Reassign them first.",
+    "passwordBlacklisted": "This password is on the list of forbidden passwords.",
+    "passwordReused": "This password has been used recently. Please choose another one.",
+    "noEmail": "The user has no email address",
+    "teamNotFound": "Team not found",
+    "businessUnitNotFound": "Business unit not found",
+    "qualificationNotFound": "Qualification not found"
+  }
+}

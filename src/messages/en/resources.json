@@ -1,0 +1,157 @@
+{
+  "status": {
+    "available": "Available",
+    "maintenance": "Maintenance",
+    "inMaintenance": "Under maintenance",
+    "outOfService": "Out of service"
+  },
+  "assignmentTypes": {
+    "reservation": "Booking",
+    "maintenance": "Maintenance"
+  },
+  "list": {
+    "permissionDenied": "Insufficient permissions",
+    "outOfService": "Out of service",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "businessUnit": "Business unit",
+      "status": "Status",
+      "serialNumber": "Serial no.",
+      "registrationNumber": "Registration"
+    }
+  },
+  "form": {
+    "nameLabel": "Name *",
+    "typeLabel": "Type",
+    "businessUnitLabel": "Business unit",
+    "iconLabel": "Icon *",
+    "colorLabel": "Colour *",
+    "statusLabel": "Status",
+    "commentLabel": "Comment",
+    "commentPlaceholder": "Optional comment…",
+    "preview": "Preview",
+    "typePreviewFallback": "Type",
+    "noBusinessUnit": "None",
+    "searchBusinessUnit": "Search for a business unit…",
+    "noBusinessUnitFound": "No business unit found",
+    "nameRequired": "Name is required",
+    "businessUnitRequired": "Business unit is required"
+  },
+  "resources": {
+    "searchPlaceholder": "Search for a resource…",
+    "count": "{count, plural, one {# resource} other {# resources}}",
+    "dialog": {
+      "createTitle": "New resource",
+      "editTitle": "Edit resource",
+      "createDescription": "Fill in the details to create a resource.",
+      "editDescription": "Edit the resource details."
+    },
+    "confirmDelete": {
+      "title": "Delete resource",
+      "description": "This action cannot be undone. All assignments of this resource will be deleted."
+    },
+    "form": {
+      "namePlaceholder": "Resource name",
+      "serialLabel": "Serial no.",
+      "serialPlaceholder": "e.g. SN-2024-001",
+      "previewFallback": "Resource"
+    }
+  },
+  "resourceTypes": {
+    "searchPlaceholder": "Search for a type…",
+    "dialog": {
+      "createTitle": "New resource type",
+      "editTitle": "Edit type",
+      "createDescription": "Create a new resource type.",
+      "editDescription": "Edit the type details."
+    },
+    "confirmDelete": {
+      "title": "Delete resource type",
+      "description": "Resources of this type will not be deleted but will no longer have an associated type."
+    }
+  },
+  "vehicles": {
+    "searchPlaceholder": "Search for a vehicle…",
+    "count": "{count, plural, one {# vehicle} other {# vehicles}}",
+    "dialog": {
+      "createTitle": "New vehicle",
+      "editTitle": "Edit vehicle",
+      "createDescription": "Fill in the details to create a vehicle.",
+      "editDescription": "Edit the vehicle details."
+    },
+    "confirmDelete": {
+      "title": "Delete vehicle",
+      "description": "This action cannot be undone. All assignments of this vehicle will be deleted."
+    },
+    "form": {
+      "namePlaceholder": "Vehicle name",
+      "registrationLabel": "Registration",
+      "registrationPlaceholder": "e.g. AB-123-CD",
+      "previewFallback": "Vehicle"
+    }
+  },
+  "vehicleTypes": {
+    "searchPlaceholder": "Search for a type…",
+    "dialog": {
+      "createTitle": "New vehicle type",
+      "editTitle": "Edit type",
+      "createDescription": "Fill in the details to create a vehicle type.",
+      "editDescription": "Edit the vehicle type details."
+    },
+    "confirmDelete": {
+      "title": "Delete vehicle type",
+      "description": "This action cannot be undone. Vehicles of this type will not be deleted but their type will be removed."
+    }
+  },
+  "assignments": {
+    "locked": "This booking is locked",
+    "willLock": "Will be locked when saved",
+    "willUnlock": "Will be unlocked when saved",
+    "resourceLabel": "Resource *",
+    "vehicleLabel": "Vehicle *",
+    "typeLabel": "Type *",
+    "startDateLabel": "Start date *",
+    "endDateLabel": "End date *",
+    "durationLabel": "Duration (days) *",
+    "daysPlaceholder": "Number of days",
+    "startTimeLabel": "Start time",
+    "endTimeLabel": "End time",
+    "projectLabel": "Project",
+    "searchProject": "Search for a project…",
+    "noProjectFound": "No project found",
+    "dayProjects": "Projects on these dates",
+    "allProjects": "All projects",
+    "notesLabel": "Notes",
+    "notesRequiredPlaceholder": "Required when no project is selected",
+    "notesPlaceholder": "Optional notes…",
+    "conflictTitle": "Booking conflict",
+    "conflictResource": "This resource is already booked for this period:",
+    "conflictVehicle": "This vehicle is already booked for this period:",
+    "confirmDelete": "Confirm?",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "resourceDialog": {
+      "createTitle": "Assign a resource",
+      "editTitle": "Edit assignment",
+      "createDescription": "Create an assignment or a maintenance period.",
+      "editDescription": "Edit the assignment details."
+    },
+    "vehicleDialog": {
+      "createTitle": "Book a vehicle",
+      "editTitle": "Edit booking",
+      "createDescription": "Create a booking or a maintenance period.",
+      "editDescription": "Edit the booking details."
+    }
+  },
+  "errors": {
+    "resourceNotFound": "Resource not found",
+    "resourceTypeNotFound": "Resource type not found",
+    "resourceAssignmentNotFound": "Assignment not found",
+    "vehicleNotFound": "Vehicle not found",
+    "vehicleTypeNotFound": "Vehicle type not found",
+    "vehicleAssignmentNotFound": "Assignment not found",
+    "placeNotFound": "Location not found",
+    "reservationLocked": "This booking is locked"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "permissionDenied": "Permission insuffisante",
+  "list": {
+    "title": "Tâches",
+    "columns": {
+      "project": "Projet",
+      "title": "Titre",
+      "users": "Utilisateurs",
+      "dates": "Dates",
+      "times": "Horaires",
+      "status": "Statut",
+      "place": "Lieu"
+    },
+    "defaultHoursTooltip": "Horaires de travail par défaut (paramètres)",
+    "actions": {
+      "viewDetails": "Voir les détails"
+    },
+    "filters": {
+      "project": "Projet",
+      "status": "Statut",
+      "user": "Utilisateur",
+      "team": "Équipe"
+    },
+    "searchPlaceholder": "Rechercher une tâche...",
+    "count": "{count, plural, one {# tâche} other {# tâches}}",
+    "limited": "(limité à {limit, number})",
+    "notLoaded": "{count, plural, one {# tâche supplémentaire non chargée} other {# tâches supplémentaires non chargées}} — augmentez la limite pour tout voir."
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Supprimer la tâche"
+    },
+    "multiDelete": {
+      "title": "Tâche assignée à plusieurs utilisateurs",
+      "description": "{count, plural, one {Cette tâche est assignée à # utilisateur : {names}.} other {Cette tâche est assignée à # utilisateurs : {names}.}}",
+      "confirm": "Supprimer pour tous",
+      "removeUser": "Retirer un utilisateur"
+    },
+    "removeUser": {
+      "title": "Retirer un utilisateur",
+      "description": "Sélectionnez l'utilisateur à retirer de cette tâche."
+    }
+  },
+  "detail": {
+    "untitled": "Sans titre",
+    "srDescription": "Détails de la tâche",
+    "preview": "Aperçu",
+    "recurrence": {
+      "occurrence": "Occurrence d'une tâche récurrente",
+      "rule": "{type, select, daily {Quotidienne — {freq, plural, one {tous les jours} other {tous les # jours}}} weekly {Hebdomadaire — {freq, plural, one {toutes les semaines} other {toutes les # semaines}}} monthly {Mensuelle — {freq, plural, one {tous les mois} other {tous les # mois}}} other {{type}}}"
+    },
+    "fields": {
+      "project": "Projet",
+      "status": "Statut",
+      "dates": "Dates",
+      "times": "Horaires",
+      "users": "{count, plural, one {Utilisateur} other {Utilisateurs (#)}}",
+      "place": "Lieu",
+      "resource": "Ressource",
+      "vehicles": "Véhicules",
+      "linkedResources": "Ressources associées",
+      "sameSite": "Sur le même chantier ({count, number})",
+      "siteAddress": "Adresse chantier",
+      "recurrence": "Récurrence",
+      "notes": "Notes",
+      "files": "Fichiers ({count, number})",
+      "createdBy": "Créé par",
+      "modifiedBy": "Modifié par"
+    }
+  },
+  "errors": {
+    "notFound": "Tâche non trouvée",
+    "projectNotFound": "Projet introuvable",
+    "notAllowed": "Modification non autorisée",
+    "deleteNotAllowed": "Suppression non autorisée",
+    "locked": "Cette tâche est verrouillée",
+    "assignForbidden": "Vous n'avez pas la permission d'assigner des utilisateurs",
+    "updateOutOfScope": "Les modifications demandées sortent de votre scope autorisé",
+    "moveOutOfScope": "Le déplacement demandé sort de votre scope autorisé",
+    "createForUsersForbidden": "Vous n'avez pas la permission de créer des tâches pour ces utilisateurs",
+    "copyForbidden": "Permission insuffisante pour copier cette tâche",
+    "insufficientPermission": "Permission insuffisante",
+    "repeatChildOccurrence": "Impossible de répéter une occurrence enfant",
+    "recurrenceEndBeforeStart": "La date de fin de récurrence doit être après la date de début",
+    "dailyLimitReached": "Limite atteinte : {limit, plural, one {# tâche} other {# tâches}} maximum par utilisateur et par jour (conflit le {day})",
+    "addFilesForbidden": "Permission insuffisante pour ajouter des fichiers",
+    "deleteFilesForbidden": "Permission insuffisante pour supprimer des fichiers",
+    "filesDisabled": "La gestion des fichiers est désactivée",
+    "maxFilesReached": "{max, plural, one {Maximum # fichier par tâche atteint} other {Maximum # fichiers par tâche atteint}}",
+    "extensionNotAllowed": "Extension .{ext} non autorisée. Extensions autorisées : {allowed}",
+    "fileTooLarge": "Fichier trop volumineux. Maximum : {max, number} Mo",
+    "totalSizeExceeded": "Taille totale dépassée. Maximum : {max, number} Mo par tâche",
+    "fileIdRequired": "fileId requis",
+    "fileNotFound": "Fichier non trouvé"
+  }
+}

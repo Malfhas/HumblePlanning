@@ -1,0 +1,82 @@
+{
+  "layout": {
+    "viewPlanning": "Voir le planning"
+  },
+  "common": {
+    "greeting": "Bonjour <b>{name}</b>,"
+  },
+  "actor": {
+    "system": "Système",
+    "unknown": "Inconnu"
+  },
+  "task": {
+    "project": "Projet",
+    "dates": "Dates",
+    "notes": "Notes"
+  },
+  "taskCreated": {
+    "subject": "[{appTitle}] Nouvelle tâche : {title}",
+    "heading": "Nouvelle tâche",
+    "intro": "<b>{actor}</b> vous a assigné à la tâche <b>{title}</b>."
+  },
+  "taskUpdated": {
+    "subject": "[{appTitle}] Tâche modifiée : {title}",
+    "heading": "Tâche modifiée",
+    "intro": "<b>{actor}</b> a modifié la tâche <b>{title}</b>.",
+    "changesLabel": "Modifications :"
+  },
+  "taskDeleted": {
+    "subject": "[{appTitle}] Tâche supprimée : {title}",
+    "heading": "Tâche supprimée",
+    "intro": "<b>{actor}</b> a supprimé la tâche <b>{title}</b>."
+  },
+  "changes": {
+    "field": "{label} : {before} → {after}",
+    "empty": "(vide)",
+    "fields": {
+      "title": "Titre",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "statusId": "Statut",
+      "projectId": "Projet",
+      "notes": "Notes"
+    },
+    "usersAdded": "{count, plural, one {Utilisateur ajouté : #} other {Utilisateurs ajoutés : #}}",
+    "usersRemoved": "{count, plural, one {Utilisateur retiré : #} other {Utilisateurs retirés : #}}",
+    "fileAdded": "Fichier ajouté : {fileName}",
+    "fileDeleted": "Fichier supprimé : {fileName}"
+  },
+  "randomPassword": {
+    "subject": "[{appTitle}] Votre mot de passe",
+    "heading": "Vos identifiants de connexion",
+    "intro": "Voici vos identifiants de connexion :",
+    "username": "Identifiant",
+    "password": "Mot de passe",
+    "changeNotice": "Vous serez invité(e) à changer votre mot de passe lors de votre prochaine connexion."
+  },
+  "passwordReset": {
+    "subject": "[{appTitle}] Changement de mot de passe",
+    "heading": "Demande de changement de mot de passe",
+    "intro": "Une demande de changement de mot de passe a été effectuée pour votre compte. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :",
+    "button": "Changer mon mot de passe",
+    "linkFallback": "Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :",
+    "expiry": "Ce lien expire dans <b>{minutes, plural, one {# minute} other {# minutes}}</b>. Passé ce délai, vous devrez effectuer une nouvelle demande.",
+    "ignore": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email."
+  },
+  "weeklySummary": {
+    "subject": "[{appTitle}] Synthèse de votre semaine du {start} au {end}",
+    "heading": "Synthèse de la semaine",
+    "greeting": "Bonjour {name},",
+    "intro": "Voici votre programme du <b>{start}</b> au <b>{end}</b>.",
+    "noTasks": "Aucune tâche",
+    "attachments": "{count, plural, one {# pièce jointe} other {# pièces jointes}}"
+  },
+  "test": {
+    "subject": "[{appTitle}] Test de connexion email",
+    "heading": "Test de connexion email",
+    "body": "Si vous recevez cet email, la configuration email de <b>{appTitle}</b> fonctionne correctement.",
+    "sentAt": "Envoyé le {date}"
+  }
+}

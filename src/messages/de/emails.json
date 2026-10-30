@@ -1,0 +1,82 @@
+{
+  "layout": {
+    "viewPlanning": "Planung ansehen"
+  },
+  "common": {
+    "greeting": "Guten Tag <b>{name}</b>,"
+  },
+  "actor": {
+    "system": "System",
+    "unknown": "Unbekannt"
+  },
+  "task": {
+    "project": "Projekt",
+    "dates": "Datum",
+    "notes": "Notizen"
+  },
+  "taskCreated": {
+    "subject": "[{appTitle}] Neue Aufgabe: {title}",
+    "heading": "Neue Aufgabe",
+    "intro": "<b>{actor}</b> hat Sie der Aufgabe <b>{title}</b> zugewiesen."
+  },
+  "taskUpdated": {
+    "subject": "[{appTitle}] Aufgabe geändert: {title}",
+    "heading": "Aufgabe geändert",
+    "intro": "<b>{actor}</b> hat die Aufgabe <b>{title}</b> geändert.",
+    "changesLabel": "Änderungen:"
+  },
+  "taskDeleted": {
+    "subject": "[{appTitle}] Aufgabe gelöscht: {title}",
+    "heading": "Aufgabe gelöscht",
+    "intro": "<b>{actor}</b> hat die Aufgabe <b>{title}</b> gelöscht."
+  },
+  "changes": {
+    "field": "{label}: {before} → {after}",
+    "empty": "(leer)",
+    "fields": {
+      "title": "Titel",
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "startTime": "Startzeit",
+      "endTime": "Endzeit",
+      "statusId": "Status",
+      "projectId": "Projekt",
+      "notes": "Notizen"
+    },
+    "usersAdded": "{count, plural, one {Benutzer hinzugefügt: #} other {Benutzer hinzugefügt: #}}",
+    "usersRemoved": "{count, plural, one {Benutzer entfernt: #} other {Benutzer entfernt: #}}",
+    "fileAdded": "Datei hinzugefügt: {fileName}",
+    "fileDeleted": "Datei gelöscht: {fileName}"
+  },
+  "randomPassword": {
+    "subject": "[{appTitle}] Ihr Passwort",
+    "heading": "Ihre Anmeldedaten",
+    "intro": "Ihre Anmeldedaten lauten:",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "changeNotice": "Sie werden bei Ihrer nächsten Anmeldung aufgefordert, Ihr Passwort zu ändern."
+  },
+  "passwordReset": {
+    "subject": "[{appTitle}] Passwortänderung",
+    "heading": "Anfrage zur Passwortänderung",
+    "intro": "Für Ihr Konto wurde eine Passwortänderung angefordert. Klicken Sie auf die Schaltfläche unten, um ein neues Passwort festzulegen:",
+    "button": "Mein Passwort ändern",
+    "linkFallback": "Falls die Schaltfläche nicht funktioniert, kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
+    "expiry": "Dieser Link läuft in <b>{minutes, plural, one {# Minute} other {# Minuten}}</b> ab. Danach müssen Sie eine neue Anfrage stellen.",
+    "ignore": "Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren."
+  },
+  "weeklySummary": {
+    "subject": "[{appTitle}] Ihre Wochenübersicht vom {start} bis {end}",
+    "heading": "Wochenübersicht",
+    "greeting": "Guten Tag {name},",
+    "intro": "Ihr Programm vom <b>{start}</b> bis <b>{end}</b> im Überblick.",
+    "noTasks": "Keine Aufgaben",
+    "attachments": "{count, plural, one {# Anhang} other {# Anhänge}}"
+  },
+  "test": {
+    "subject": "[{appTitle}] Test der E-Mail-Verbindung",
+    "heading": "Test der E-Mail-Verbindung",
+    "body": "Wenn Sie diese E-Mail erhalten, funktioniert die E-Mail-Konfiguration von <b>{appTitle}</b> korrekt.",
+    "sentAt": "Gesendet am {date}"
+  }
+}

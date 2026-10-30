@@ -1,0 +1,543 @@
+{
+  "errors": {
+    "unavailable": "Asistente de IA no disponible",
+    "modelListUnavailable": "Lista de modelos no disponible",
+    "fixedScope": "El ámbito de esta conversación es fijo: abra una nueva para cambiarlo",
+    "modelNotAllowed": "La administración no autoriza este modelo",
+    "projectInaccessible": "Proyecto inaccesible",
+    "replyInProgress": "Ya hay una respuesta en curso en esta conversación: espere a que termine o deténgala.",
+    "tooManyReplies": "{count, plural, =1 {Ya hay 1 respuesta en curso: espere o deténgala.} other {Ya hay # respuestas en curso: espere o detenga una de ellas.}}",
+    "conversationNotFound": "Conversación no encontrada",
+    "quotaReached": "Ha alcanzado su cuota mensual del chat de IA: se restablecerá el {date}.",
+    "userNotFound": "Usuario no encontrado"
+  },
+  "replyErrors": {
+    "serverRestarted": "El servidor se reinició durante la respuesta",
+    "maxDuration": "Se superó la duración máxima de {minutes, plural, one {# minuto} other {# minutos}}",
+    "reasoningMandatory": "El modelo {model} exige razonamiento: el nivel «Ninguno» no se acepta. Elija «Breve» o superior en la configuración."
+  },
+  "notifications": {
+    "replyDone": "El asistente ha respondido",
+    "replyFailed": "La respuesta del asistente ha fallado",
+    "replyInterrupted": "La respuesta del asistente se ha interrumpido"
+  },
+  "attachments": {
+    "sheetHeading": "# Hoja: {name}",
+    "errors": {
+      "unreadableWorkbook": "{name}: libro de Excel ilegible ({detail}). Ábralo en Excel y vuelva a guardarlo, o compruebe que no esté protegido con contraseña.",
+      "tooLarge": "Archivo demasiado grande (20 MB como máximo)",
+      "unsupportedFormat": "Formato no admitido (PDF, Word, Excel, CSV, texto o imagen)",
+      "noText": "Este archivo no contiene texto legible"
+    }
+  },
+  "conversations": {
+    "defaultTitle": "Nueva conversación",
+    "renameAriaLabel": "Nuevo título de la conversación",
+    "new": "Nueva conversación"
+  },
+  "actions": {
+    "tools": {
+      "createTask": "Crear una tarea",
+      "updateTask": "Editar una tarea",
+      "deleteTask": "Eliminar una tarea",
+      "moveTask": "Mover una tarea",
+      "copyTask": "Duplicar una tarea",
+      "createProject": "Crear un proyecto",
+      "updateProject": "Editar un proyecto"
+    },
+    "fields": {
+      "taskId": "Tarea",
+      "projectId": "Proyecto",
+      "userIds": "Personas asignadas",
+      "statusId": "Estado",
+      "placeId": "Lugar",
+      "resourceId": "Recurso",
+      "ownerId": "Propietario",
+      "groupId": "Grupo",
+      "businessUnitId": "Business unit",
+      "title": "Título",
+      "notes": "Notas",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "startTime": "Hora de inicio",
+      "endTime": "Hora de fin",
+      "duration": "Duración",
+      "name": "Nombre",
+      "color": "Color",
+      "description": "Descripción",
+      "businessNumber": "Número de proyecto",
+      "status": "Estado",
+      "budgetTime": "Presupuesto en horas",
+      "budgetAmount": "Presupuesto",
+      "deliveryDate": "Fecha de entrega",
+      "address": "Dirección"
+    },
+    "values": {
+      "todo": "Por hacer",
+      "in_progress": "En curso",
+      "done": "Terminado",
+      "archived": "Archivado"
+    },
+    "boolean": {
+      "yes": "Sí",
+      "no": "No"
+    },
+    "labels": {
+      "notVisible": "elemento no visible",
+      "untitledTask": "Tarea sin título"
+    }
+  },
+  "quota": {
+    "unlimited": "Cuota ilimitada",
+    "used": "{percent} % de la cuota mensual utilizada",
+    "resetOn": "Se restablece el {date}"
+  },
+  "phase": {
+    "tools": "El asistente está consultando los datos…",
+    "toolsNamed": "El asistente está consultando los datos ({tool})…",
+    "writing": "El asistente está redactando…",
+    "thinking": "El asistente está pensando…"
+  },
+  "http": {
+    "s400": "Se ha rechazado la solicitud: uno de los valores enviados no se acepta.",
+    "s401": "Su sesión ha caducado. Vuelva a iniciar sesión.",
+    "s403": "No tiene los permisos necesarios para esta acción.",
+    "s404": "Elemento no encontrado: es posible que se haya eliminado entretanto.",
+    "s409": "Conflicto: este valor ya se está utilizando, o los datos han cambiado entretanto.",
+    "s413": "El archivo es demasiado grande para enviarlo.",
+    "s415": "Formato de archivo no admitido.",
+    "s429": "Demasiadas solicitudes en poco tiempo. Espere unos instantes.",
+    "s500": "El servidor ha encontrado un error inesperado. Inténtelo de nuevo.",
+    "s502": "No se puede contactar con el servidor. Inténtelo de nuevo en un momento.",
+    "s503": "El servicio no está disponible temporalmente. Inténtelo de nuevo en un momento.",
+    "s504": "El servidor ha tardado demasiado en responder.",
+    "generic": "La solicitud ha fallado (error {status})."
+  },
+  "select": {
+    "placeholder": "Seleccionar…",
+    "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}"
+  },
+  "scope": {
+    "global": {
+      "name": "Toda la planificación",
+      "description": "Todos los proyectos que usted puede ver"
+    },
+    "none": "Sin ámbito",
+    "followsNavigation": "sigue la navegación",
+    "lockedTooltip": "El ámbito se fija con la primera pregunta: las respuestas ya dadas dependen de él. Abra una nueva conversación para cambiar de proyecto.",
+    "choose": "Elegir un ámbito…",
+    "useDataFrom": "Usar los datos de:",
+    "searchProject": "Buscar un proyecto…",
+    "noProject": "Ningún proyecto",
+    "projects": "Proyectos"
+  },
+  "browserNotifications": {
+    "unsupported": "Su navegador no puede mostrar notificaciones desde esta página.",
+    "displayFailed": "El navegador no ha podido mostrar la notificación: compruebe que tiene permiso para mostrar notificaciones en la configuración del sistema.",
+    "denied": "Su navegador ha bloqueado las notificaciones. Puede volver a permitirlas en la configuración del sitio.",
+    "dismissed": "La solicitud de permiso se cerró sin respuesta. Haga clic de nuevo y elija «Permitir» en la ventana del navegador.",
+    "enabled": {
+      "title": "Notificaciones activadas",
+      "body": "Recibirá un aviso en cuanto haya una respuesta lista, si ha salido de esta pestaña."
+    },
+    "replyTitle": "Respuesta del asistente"
+  },
+  "dictation": {
+    "transcriptionFailed": "No se ha podido transcribir: {detail}",
+    "unknownError": "error desconocido",
+    "engineUnavailable": "Motor de dictado no disponible: {detail}",
+    "loadFailed": "no se ha podido cargar",
+    "noMicrophoneApi": "Este navegador no permite acceder al micrófono",
+    "microphoneBlocked": "Este sitio tiene bloqueado el micrófono. Abra la configuración del navegador → Privacidad → Micrófono, quite este sitio de los sitios bloqueados y vuelva a cargar la página.",
+    "microphoneDenied": "Micrófono denegado: permítalo para este sitio en la configuración del navegador",
+    "noMicrophone": "No se ha detectado ningún micrófono",
+    "microphoneUnavailable": "Micrófono inaccesible"
+  },
+  "unavailable": {
+    "title": "Asistente de IA no disponible",
+    "detail": "El asistente no está accesible en este momento. Vuelva a cargar la página o póngase en contacto con un administrador."
+  },
+  "list": {
+    "title": "Conversaciones",
+    "toast": {
+      "deleted": "{count, plural, one {Conversación eliminada} other {# conversaciones eliminadas}}"
+    },
+    "lastExchange": "Último intercambio: {date}",
+    "lastExchangeFloating": "Último intercambio: {date} · abierta desde el asistente flotante",
+    "openedFromFloating": "Abierta desde el asistente flotante",
+    "actionsOn": "Acciones sobre {title}",
+    "rename": "Cambiar nombre",
+    "pin": "Fijar",
+    "unpin": "Dejar de fijar",
+    "search": {
+      "ariaLabel": "Buscar una conversación",
+      "tooltip": "Buscar en las conversaciones",
+      "placeholder": "Buscar una conversación…"
+    },
+    "sections": {
+      "pinned": "Fijadas",
+      "recent": "Recientes"
+    },
+    "noMatch": "Ninguna conversación coincide.",
+    "deleteAll": "Eliminar todo",
+    "deleteAllTooltip": "Elimina todas las conversaciones de la lista, previa confirmación",
+    "confirmDelete": {
+      "title": "¿Eliminar esta conversación?",
+      "description": "Se eliminarán «{title}» y todos sus intercambios."
+    },
+    "confirmDeleteAll": {
+      "title": "¿Eliminar todas sus conversaciones?",
+      "description": "{count, plural, one {Se eliminarán su conversación y todos sus intercambios.} other {Se eliminarán sus # conversaciones y todos sus intercambios.}} Esta acción es definitiva."
+    }
+  },
+  "floating": {
+    "title": "Asistente de IA",
+    "openChat": "Abrir el chat de IA",
+    "replying": "El asistente está respondiendo…",
+    "replyReady": "Respuesta lista",
+    "hide": {
+      "ariaLabel": "Ocultar el asistente",
+      "tooltip": "Ocultar el asistente hasta la próxima carga de la página"
+    },
+    "scope": "Ámbito: {scope}",
+    "history": {
+      "ariaLabel": "Historial de conversaciones",
+      "tooltip": "Retomar una conversación anterior",
+      "title": "Conversaciones del asistente",
+      "empty": "No hay conversaciones."
+    },
+    "fullPage": {
+      "ariaLabel": "Abrir a página completa",
+      "tooltip": "Abrir esta conversación en la página Asistente"
+    },
+    "collapse": {
+      "ariaLabel": "Contraer el asistente",
+      "tooltip": "Contraer"
+    }
+  },
+  "notify": {
+    "ariaLabel": "Avisarme cuando haya una respuesta lista",
+    "pending": "El navegador le pide permiso para mostrar notificaciones: responda en su ventana",
+    "active": "Recibirá una notificación del navegador en cuanto haya una respuesta lista, si ha salido de esta pestaña. Haga clic para dejar de recibirlas.",
+    "inactive": "Avisarme con una notificación del navegador en cuanto haya una respuesta lista, si he salido de esta pestaña"
+  },
+  "thread": {
+    "quotaReached": "Ha alcanzado su cuota mensual del chat de IA. Se restablecerá el {date}.",
+    "toast": {
+      "unfinished": "El asistente no ha podido terminar su respuesta: {error}",
+      "attachmentsNotSent": "{names}: no enviado, {model} no puede leer este contenido. Elija un modelo compatible para analizarlo.",
+      "attachmentsRemoved": "{names}: retirado, {model} no puede leer este contenido."
+    },
+    "openList": "Abrir la lista de conversaciones",
+    "welcome": "¿Qué puedo hacer por usted?",
+    "suggestions": {
+      "title": "Sugerencias",
+      "project": {
+        "progress": "¿Cómo va este proyecto? Horas previstas, consumidas y restantes.",
+        "whoThisWeek": "¿Quién trabaja en este proyecto esta semana?",
+        "lateOrUnassigned": "¿Qué tareas de este proyecto van con retraso o no están asignadas?",
+        "conflicts": "¿Hay conflictos de vehículos o de recursos en este proyecto?"
+      },
+      "global": {
+        "availableNextWeek": "¿Quién está disponible la semana que viene?",
+        "summaryByTeam": "Resume la planificación de esta semana por equipo.",
+        "overBudget": "¿Qué proyectos consumen más horas en relación con su presupuesto?",
+        "unassigned": "¿Qué tareas no tienen a nadie asignado?"
+      }
+    },
+    "disclaimer": "El asistente puede equivocarse: compruebe las cifras importantes.",
+    "disclaimerReadOnly": "El asistente puede equivocarse: compruebe las cifras importantes. En solo lectura, nunca modifica sus datos.",
+    "renameTooltip": "Haga clic para cambiar el nombre de la conversación",
+    "untitled": "Conversación",
+    "readOnly": "Solo lectura",
+    "attachment": "Archivo adjunto",
+    "sentToModel": "Enviado al modelo",
+    "interrupted": "Respuesta interrumpida: {error}",
+    "failed": "El asistente no ha podido responder: {error}"
+  },
+  "message": {
+    "copyFailed": "No se ha podido copiar: el navegador lo ha rechazado",
+    "copied": "Copiado",
+    "copy": "Copiar el texto",
+    "resend": "Volver a enviar esta pregunta",
+    "regenerate": {
+      "ariaLabel": "Regenerar la respuesta",
+      "tooltip": "Regenerar la respuesta, con el mismo modelo u otro",
+      "with": "Regenerar con"
+    }
+  },
+  "document": {
+    "extracted": "Texto extraído · {size}",
+    "chars": "{count, plural, one {# carácter} other {# caracteres}}",
+    "thousandChars": "{count} k caracteres"
+  },
+  "reasoning": {
+    "inProgress": "El modelo está razonando…",
+    "title": "Razonamiento del modelo"
+  },
+  "approval": {
+    "title": "Se necesita su aprobación",
+    "request": "El asistente pide permiso para <b>{action}</b> en su planificación.",
+    "note": "No se escribe nada hasta que usted lo apruebe. La modificación se registrará a su nombre.",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "technicalDetails": "Detalle técnico"
+  },
+  "unavailability": {
+    "disabled": {
+      "title": "Chat de IA desactivado",
+      "detail": "Un administrador puede activarlo en Configuración → IA → Chat de IA."
+    },
+    "forbidden": {
+      "title": "Acceso no autorizado",
+      "detail": "Su rol no da acceso al asistente de IA."
+    },
+    "notConfigured": {
+      "title": "Chat no configurado",
+      "detail": "Falta la clave de API del proveedor (Configuración → IA → Chat de IA)."
+    }
+  },
+  "reasoningLevels": {
+    "none": {
+      "short": "Directo",
+      "label": "Sin razonamiento",
+      "description": "Respuesta inmediata, la más económica"
+    },
+    "low": {
+      "short": "Rápido",
+      "label": "Razonamiento breve",
+      "description": "Un tiempo de análisis mínimo"
+    },
+    "medium": {
+      "short": "Medio",
+      "label": "Razonamiento medio",
+      "description": "Equilibrio entre precisión y rapidez"
+    },
+    "high": {
+      "short": "Profundo",
+      "label": "Razonamiento profundo",
+      "description": "Análisis largos, estimaciones delicadas"
+    }
+  },
+  "composer": {
+    "piece": {
+      "thousandCharsRead": "{count} k caracteres leídos",
+      "charsRead": "{count, plural, one {# carácter leído} other {# caracteres leídos}}",
+      "image": "Imagen",
+      "imageUnread": "Imagen: este modelo no la lee",
+      "pdfNative": "PDF: el modelo lo lee directamente",
+      "pdfNoText": "PDF sin texto: este modelo no podrá leerlo",
+      "remove": "Quitar {name}"
+    },
+    "errors": {
+      "imagesUnsupported": "{name}: {model} no lee imágenes",
+      "readFailed": "no se ha podido leer",
+      "pdfNoText": "{name}: PDF sin texto, ilegible para {model}"
+    },
+    "dropFiles": "Suelte sus archivos",
+    "readingDocument": "Leyendo el documento…",
+    "attachmentsPending": "{count, plural, one {# archivo adjunto: se enviará con su próximo mensaje.} other {# archivos adjuntos: se enviarán con su próximo mensaje.}}",
+    "placeholder": {
+      "dictating": "Hable, yo escribo…",
+      "default": "¿En qué puedo ayudarle?",
+      "noScope": "Elija primero un ámbito…"
+    },
+    "attach": {
+      "tooltip": "Adjuntar un documento o una imagen (PDF, Word, Excel, CSV)",
+      "tooltipNoImages": "Adjuntar un documento (PDF, Word, Excel, CSV): {model} no lee imágenes",
+      "ariaLabel": "Adjuntar un archivo"
+    },
+    "noImagesTooltip": "Este modelo no lee imágenes. Los documentos se siguen analizando: su texto se extrae antes del envío.",
+    "dictation": {
+      "stopTooltip": "Terminar el dictado y transcribir",
+      "tooltip": "Dictar la pregunta: transcripción local, no se envía ningún audio",
+      "tooltipGpu": "Dictar la pregunta: transcripción local, no se envía ningún audio · acelerada por GPU (modelo de alta precisión)",
+      "tooltipCpu": "Dictar la pregunta: transcripción local, no se envía ningún audio · cálculo por procesador (modelo estándar)",
+      "stopAriaLabel": "Detener el dictado",
+      "startAriaLabel": "Dictar la pregunta",
+      "listening": "Le escucho…",
+      "speak": "Hable: el dictado se detiene solo tras un silencio",
+      "downloadingWhileSpeaking": "Descargando el modelo {precision, select, high {de alta precisión} other {estándar}} ({percent} %): el texto aparecerá a continuación",
+      "micRequested": "Solicitando al navegador permiso para usar el micrófono…",
+      "downloading": "Descargando el modelo de dictado {precision, select, high {de alta precisión} other {estándar}} ({percent} %): solo una vez, después queda en la caché. A continuación se hará la transcripción.",
+      "transcribing": "Transcribiendo…"
+    },
+    "stopReply": "Detener la respuesta"
+  },
+  "settings": {
+    "reasons": {
+      "missing_api_key": "Falta la clave de OpenRouter",
+      "no_model": "Ningún modelo seleccionado",
+      "disabled": "Chat desactivado (interruptor apagado)"
+    },
+    "loadError": "Configuración del chat de IA no disponible",
+    "loading": "Cargando la configuración del chat de IA…",
+    "saved": "Chat de IA guardado",
+    "status": {
+      "active": "Chat de IA activo",
+      "inactive": "El chat de IA no está activo: {reasons}",
+      "inactiveHidden": "Mientras el chat no esté activo, permanece oculto para todos: ni esfera, ni entrada de menú, ni página."
+    },
+    "chat": {
+      "title": "Chat de IA",
+      "description": "Asistente conversacional integrado, basado en las herramientas del servidor MCP: solo ve lo que el usuario tiene derecho a ver.",
+      "enable": "Activar el chat de IA para toda la instancia",
+      "note": "Si se desmarca, el asistente desaparece del menú y la esfera deja de ofrecerse, para todos. El acceso individual se configura por rol: «Usar el asistente de IA» (lectura) y «Permitir modificaciones por el asistente de IA» (escritura, siempre sujeta a la confirmación del usuario).",
+      "apiKey": {
+        "label": "Clave de API de OpenRouter",
+        "envManaged": "Definida en .env",
+        "placeholderConfigured": "•••••••• (guardada: déjelo vacío para conservarla)",
+        "help": "El chat funciona únicamente a través de OpenRouter: de él dependen el enrutamiento, la privacidad y la lectura de PDF. Recomendado: definir OPENROUTER_API_KEY en el archivo .env (la base de datos la guarda en texto plano)."
+      },
+      "dictation": "Dictado por voz (Whisper, transcripción local; el modelo se descarga desde HuggingFace)"
+    },
+    "widget": {
+      "title": "Asistente flotante",
+      "description": "La esfera de la esquina inferior derecha de cada pantalla: el mismo chat, en un panel, cuyas herramientas siguen la página abierta.",
+      "enable": "Ofrecer el asistente flotante en todas las páginas",
+      "closable": "Permitir que el usuario oculte la esfera hasta la próxima carga de la página",
+      "note": "La esfera solo aparece para quien tiene acceso al chat de IA: chat activado más arriba y un rol que lo permita. Ocultar la esfera no se guarda en ningún sitio: vuelve a aparecer al recargar la página."
+    },
+    "models": {
+      "title": "Modelos",
+      "description": "El modelo predeterminado se aplica a las nuevas conversaciones; el usuario puede elegir entre los de la lista autorizada. Los cambios de modelos se guardan inmediatamente.",
+      "load": {
+        "label": "Cargar desde OpenRouter",
+        "tooltip": "Obtiene la lista de modelos disponibles en OpenRouter"
+      },
+      "loaded": "{count, plural, one {# modelo disponible} other {# modelos disponibles}}",
+      "loadFailed": "Lista de modelos no disponible: introduzca el identificador manualmente",
+      "default": {
+        "label": "Modelo predeterminado",
+        "placeholder": "Elegir un modelo",
+        "placeholderEmpty": "Añada primero un modelo autorizado"
+      },
+      "allowed": "Modelos autorizados ({count})",
+      "remove": {
+        "ariaLabel": "Quitar {model}",
+        "tooltip": "Quitar de la lista"
+      },
+      "none": "Ningún modelo autorizado.",
+      "add": "Añadir un modelo",
+      "saved": "Modelos guardados"
+    },
+    "privacy": {
+      "title": "Privacidad y enrutamiento",
+      "description": "Opciones propias de OpenRouter: deciden quién procesa sus intercambios y qué tiene derecho a conservar de ellos.",
+      "dataCollection": {
+        "label": "Recopilación de datos",
+        "deny": "Denegada: proveedores que no entrenan con sus datos",
+        "allow": "Permitida",
+        "help": "Denegada de forma predeterminada: los proveedores que conservan los intercambios quedan excluidos del enrutamiento."
+      },
+      "zdr": {
+        "label": "Retención cero (ZDR)",
+        "help": "Solo utiliza los puntos de servicio que no conservan ningún prompt. Es la garantía más sólida que ofrece OpenRouter; reduce la elección de proveedores y puede excluir algunos modelos."
+      },
+      "nitro": "Enrutamiento nitro: prioriza los proveedores más rápidos, a menudo a un coste más elevado"
+    },
+    "generation": {
+      "title": "Generación",
+      "description": "Estos ajustes influyen en la longitud de las respuestas y en el tiempo de razonamiento y, por tanto, en el coste de cada intercambio.",
+      "reasoning": {
+        "label": "Razonamiento predeterminado",
+        "options": {
+          "none": "Ninguno: respuesta inmediata (lo más barato y rápido)",
+          "low": "Breve: un tiempo de análisis mínimo",
+          "medium": "Medio: equilibrio entre precisión y rapidez",
+          "high": "Profundo: análisis largos, cálculos delicados"
+        },
+        "help": "Antes de responder, algunos modelos razonan por separado: cuanto más alto es el nivel, más fiable es la respuesta sobre un cálculo o una desviación que explicar, pero también más lenta y costosa (los tokens de razonamiento se facturan). El usuario puede cambiar este nivel en el chat; un modelo que no sabe razonar simplemente ignora el ajuste."
+      },
+      "maxTokens": {
+        "label": "Longitud máxima de una respuesta",
+        "help": "En tokens: unas tres cuartas partes de una palabra cada uno. 8192 corresponde a una respuesta muy larga; es un límite de seguridad, no un objetivo. No limita la conversación, solo cada respuesta."
+      },
+      "temperature": {
+        "label": "Temperatura",
+        "help": "Margen de libertad del modelo, de 0 a 2. Baja, se mantiene factual y reproducible; alta, se vuelve creativo. Con datos de planificación, 0,3 es un buen equilibrio: evite subirla."
+      },
+      "maxDuration": {
+        "label": "Duración máxima de una respuesta (minutos)",
+        "help": "De 1 a 30 minutos. Una respuesta continúa y termina en el servidor aunque el usuario salga de la página; pasado este plazo, se interrumpe y se conserva lo redactado."
+      },
+      "concurrent": {
+        "label": "Respuestas simultáneas por usuario",
+        "help": "De 1 a 20, sumando todas las conversaciones. Por encima de ese número, se rechaza una nueva pregunta hasta que una respuesta termine o se detenga. Una conversación nunca tiene más de una respuesta en curso a la vez."
+      }
+    },
+    "prompt": {
+      "title": "Prompt del sistema",
+      "description": "Limita el asistente al ámbito de la planificación: fuera de sus datos, se niega a responder. Redactado en inglés; el asistente responde en el idioma del usuario.",
+      "resetTooltip": "Volver al prompt original (recuerde guardar)",
+      "original": "Prompt original",
+      "help": "se sustituye por el título de la aplicación. La regla tipográfica (sin raya) se añade siempre, incluso con un prompt personalizado."
+    }
+  },
+  "quotas": {
+    "title": "Cuotas del chat de IA",
+    "description": "Límite mensual por persona, medido según el coste real de las respuestas, común a la página Asistente y al asistente flotante. El usuario solo ve un indicador, nunca un importe.",
+    "loading": "Cargando las cuotas…",
+    "toast": {
+      "saved": "Cuotas del chat de IA guardadas",
+      "resetAll": "Cuotas restablecidas para todos",
+      "resetOne": "Cuota restablecida para {name}",
+      "resetOneUnnamed": "Cuota restablecida para esta cuenta",
+      "unlimitedOn": "Se ha quitado la cuota de esta cuenta",
+      "unlimitedOff": "Se ha vuelto a aplicar la cuota a esta cuenta"
+    },
+    "columns": {
+      "user": "Usuario",
+      "usage": "Consumo",
+      "status": "Estado"
+    },
+    "resetOn": "Restablecida el {date}",
+    "unlimited": "Ilimitada",
+    "percent": "{percent} %",
+    "reached": "Alcanzada",
+    "noQuota": "Sin cuota",
+    "unlimitedTooltip": "Cuota ilimitada para esta cuenta",
+    "unlimitedAriaLabel": "Cuota ilimitada para {name}",
+    "resetOneTooltip": "Restablecer: pone a cero el consumo de esta cuenta únicamente",
+    "resetOneAriaLabel": "Restablecer la cuota de {name}",
+    "csv": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "usage": "Consumo (USD)",
+      "percent": "Porcentaje",
+      "unlimited": "Ilimitada",
+      "lastReset": "Último restablecimiento individual",
+      "yes": "sí",
+      "no": "no"
+    },
+    "settings": {
+      "title": "Configuración",
+      "period": "Periodo en curso desde el {start} · próximo restablecimiento el {next}.",
+      "enableAriaLabel": "Activar la cuota",
+      "amount": {
+        "label": "Importe mensual por persona",
+        "unit": "$ al mes",
+        "help": "En dólares, como factura OpenRouter. 0 quita la cuota para todos."
+      },
+      "resetDay": {
+        "label": "Día de restablecimiento",
+        "help": "Del 1 al 28 del mes, a medianoche (zona horaria de la instancia): así el día existe todos los meses."
+      },
+      "resetAll": {
+        "label": "Restablecer para todos",
+        "tooltip": "Vuelve a empezar desde cero para todas las cuentas, sin esperar al día de restablecimiento"
+      },
+      "lastGlobalReset": "Último restablecimiento general: {date}."
+    },
+    "searchPlaceholder": "Buscar un usuario…",
+    "exportCsv": "Exportar (CSV)",
+    "confirmResetAll": {
+      "title": "¿Restablecer las cuotas de todos?",
+      "description": "El consumo de cada cuenta vuelve a cero desde ahora, sea cual sea el día de restablecimiento. Las respuestas en curso llegan hasta el final. La operación queda registrada en el registro de auditoría."
+    },
+    "confirmResetOne": {
+      "title": "¿Restablecer la cuota de esta cuenta?",
+      "description": "El consumo de <b>{name}</b> vuelve a cero desde ahora. La operación queda registrada en el registro de auditoría."
+    }
+  }
+}

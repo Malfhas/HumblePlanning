@@ -1,0 +1,162 @@
+{
+  "common": {
+    "holiday": "Férié",
+    "weekLabel": "S{week}",
+    "assignmentTypes": {
+      "task": "Tâche",
+      "maintenance": "Maintenance",
+      "reservation": "Réservation"
+    }
+  },
+  "rows": {
+    "noTeam": "Sans équipe",
+    "noGroup": "Sans groupe",
+    "noType": "Sans type",
+    "noBu": "Sans BU"
+  },
+  "columns": {
+    "title": "Titre",
+    "project": "Projet",
+    "vehicle": "Véhicule",
+    "vehicleType": "Type véhicule",
+    "assignmentType": "Type affectation",
+    "startDate": "Date début",
+    "endDate": "Date fin",
+    "startTime": "Heure début",
+    "endTime": "Heure fin",
+    "assignedBy": "Assigné par",
+    "notes": "Notes",
+    "assignees": "Assigné(s)",
+    "status": "Statut",
+    "place": "Lieu",
+    "resource": "Ressource",
+    "milestone": "Jalon",
+    "link": "Lien",
+    "dates": "Dates"
+  },
+  "stats": {
+    "title": "Statistiques projets — Du {start} au {end}",
+    "counts": "{projects, plural, one {# projet} other {# projets}} · {users, plural, one {# utilisateur} other {# utilisateurs}} · {tasks, plural, one {# tâche} other {# tâches}}",
+    "periodHours": "{total} sur la période ({consumed} consommées · {upcoming} à venir)",
+    "noData": "Aucune donnée pour la période.",
+    "sections": {
+      "periodHours": "Heures sur la période (par projet — prorata période)",
+      "usersByProject": "Temps utilisateurs par projet (sur la période — prorata)",
+      "budgets": "Budgets main d'œuvre (total projet — non limité à la période)"
+    },
+    "columns": {
+      "project": "Projet",
+      "group": "Groupe",
+      "totalHours": "Heures total",
+      "total": "Total",
+      "consumedHours": "Consommées",
+      "upcoming": "À venir",
+      "tasks": "Tâches",
+      "users": "Utilisateurs",
+      "usersShort": "Util.",
+      "user": "Utilisateur",
+      "laborType": "Type main d'œuvre",
+      "hours": "Heures",
+      "budgetHours": "Budget (h)",
+      "budget": "Budget",
+      "consumed": "Consommé",
+      "remaining": "Restant",
+      "progress": "Progression"
+    },
+    "totalPeriod": "TOTAL PÉRIODE",
+    "totalProjects": "TOTAL PROJETS",
+    "subtotal": "Sous-total {project}"
+  },
+  "excel": {
+    "sheets": {
+      "planning": "Planning",
+      "tasks": "Liste des tâches",
+      "assignments": "Liste des affectations",
+      "stats": "Stats projets"
+    },
+    "titles": {
+      "personal": "Calendrier de {name} — Du {start} au {end}",
+      "personalUnknown": "Calendrier de l'utilisateur — Du {start} au {end}",
+      "teamDay": "Planning {appTitle} — {date}",
+      "vehicles": "Planning véhicules {appTitle} — Du {start} au {end}",
+      "default": "Planning {appTitle} — Du {start} au {end}"
+    }
+  },
+  "pdf": {
+    "titles": {
+      "personal": "Calendrier de {name} — {start} au {end}",
+      "personalUnknown": "Calendrier de l'utilisateur — {start} au {end}",
+      "teamDay": "Planning du {date}",
+      "vehicles": "Planning véhicules — {start} au {end}",
+      "default": "Planning du {start} au {end}"
+    },
+    "cover": {
+      "summaryTitle": "Résumé de l'export",
+      "format": "Format : {value}",
+      "view": "Vue : {value}",
+      "cellContent": "Contenu cellules : {value}",
+      "sort": "Tri : {value}",
+      "exportDate": "Date d'export : {date}",
+      "activeFilters": "Filtres actifs :",
+      "filterCount": "• {label} : {count, plural, one {# sélectionné} other {# sélectionnés}}",
+      "formats": {
+        "gantt": "Planning",
+        "list": "Liste",
+        "calendar": "Calendrier"
+      },
+      "views": {
+        "users": "Utilisateurs",
+        "projects": "Projets",
+        "places": "Lieux",
+        "resources": "Ressources",
+        "vehicles": "Véhicules"
+      },
+      "cellContents": {
+        "project": "Projet",
+        "title": "Titre",
+        "userName": "Nom utilisateur",
+        "userLogin": "Login"
+      },
+      "sortModes": {
+        "custom": "Ordre personnalisé par équipe",
+        "customGroup": "Ordre personnalisé par groupe",
+        "customBu": "Ordre personnalisé par business unit",
+        "customBuTeam": "Ordre personnalisé par BU puis équipe",
+        "customBuUser": "Ordre personnalisé par BU (équipes et membres)",
+        "customBuGroup": "Ordre personnalisé par BU (groupes et projets)",
+        "customBuGroupAlpha": "BU (A à Z), groupes (A à Z), projets (A à Z)",
+        "nameAsc": "Nom (A à Z)",
+        "nameDesc": "Nom (Z à A)",
+        "teamNameAsc": "Équipes (A à Z), membres (A à Z)",
+        "teamNameDesc": "Équipes (Z à A), membres (A à Z)",
+        "teamAlphaCustom": "Équipes (A à Z), ordre personnalisé des membres",
+        "groupNameAsc": "Groupes (A à Z), projets (A à Z)",
+        "groupNameDesc": "Groupes (Z à A), projets (A à Z)",
+        "groupAlphaCustom": "Groupes (A à Z), ordre personnalisé des projets",
+        "typeNameAsc": "Par type, nom (A à Z)",
+        "typeNameDesc": "Par type, nom (Z à A)"
+      },
+      "filters": {
+        "teams": "Équipes",
+        "users": "Utilisateurs",
+        "projects": "Projets",
+        "statuses": "Statuts",
+        "places": "Lieux",
+        "resources": "Ressources"
+      }
+    },
+    "footer": {
+      "exportedOn": "Exporté le {date}",
+      "page": "Page {page} / {total}"
+    },
+    "calendar": {
+      "allDay": "Journée"
+    }
+  },
+  "ical": {
+    "untitled": "Tâche sans titre"
+  },
+  "errors": {
+    "invalidToken": "Token invalide"
+  }
+}

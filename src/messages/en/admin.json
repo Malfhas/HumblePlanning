@@ -1,0 +1,213 @@
+{
+  "common": {
+    "permissionDenied": "Insufficient permission",
+    "perPage": "Per page",
+    "total": "{count, plural, one {# item} other {# items}}",
+    "unnamedUser": "Unnamed"
+  },
+  "audit": {
+    "title": "Audit log",
+    "purge": "Purge",
+    "clearFilters": "Clear all",
+    "filters": {
+      "type": "Type",
+      "action": "Action",
+      "user": "User",
+      "source": "Source",
+      "start": "Start",
+      "end": "End"
+    },
+    "entityFilter": {
+      "task": "Tasks",
+      "project": "Projects",
+      "user": "Users",
+      "team": "Teams",
+      "status": "Statuses",
+      "holiday": "Public holidays",
+      "qualification": "Qualifications",
+      "vehicle": "Vehicles",
+      "vehicle_type": "Vehicle types",
+      "resource": "Resources",
+      "resource_type": "Resource types",
+      "labor_type": "Labour types",
+      "project_group": "Project groups",
+      "role": "Roles",
+      "place": "Locations",
+      "config": "Configuration",
+      "api_key": "API keys",
+      "mcp_key": "MCP keys",
+      "session": "Sessions"
+    },
+    "sources": {
+      "all": "All sources",
+      "web": "Web",
+      "mcp": "MCP",
+      "api": "API"
+    },
+    "columns": {
+      "date": "Date",
+      "action": "Action",
+      "type": "Type",
+      "item": "Item",
+      "summary": "Summary",
+      "concerned": "Affected",
+      "by": "By"
+    },
+    "purgeDialog": {
+      "title": "Purge audit logs",
+      "description": "Permanently delete all logs prior to the selected date.",
+      "datePlaceholder": "Select a date"
+    },
+    "errors": {
+      "moduleDisabled": "Audit module disabled",
+      "notFound": "Log entry not found",
+      "nothingToRestore": "No values to restore",
+      "missingEntityId": "Missing entity ID",
+      "unsupportedEntityType": "Entity type not supported for restore: {entityType}"
+    }
+  },
+  "auditDetail": {
+    "details": "Details",
+    "email": "Email:",
+    "ip": "IP:",
+    "userAgent": "Agent:",
+    "type": "Type:",
+    "recipients": "Recipients:",
+    "file": "File:",
+    "columns": {
+      "field": "Field",
+      "before": "Before",
+      "after": "After",
+      "value": "Value"
+    }
+  },
+  "restore": {
+    "title": "Confirm restore",
+    "entityLine": "{entity}: {name}",
+    "project": "Project: {name}",
+    "assignedTo": "Assigned to: {names}",
+    "cascade": "{count, plural, one {# more recent action will also be undone:} other {# more recent actions will also be undone:}}",
+    "columns": {
+      "field": "Field",
+      "current": "Current state",
+      "restored": "Restored state"
+    },
+    "deleted": "Deleted",
+    "noChanges": "No changes detected"
+  },
+  "files": {
+    "title": "File management",
+    "purge": "Purge",
+    "searchPlaceholder": "Search for a file...",
+    "types": {
+      "placeholder": "Type",
+      "all": "All types",
+      "image": "Images",
+      "pdf": "PDF",
+      "other": "Other"
+    },
+    "startDate": "Start date",
+    "endDate": "End date",
+    "empty": "No files found",
+    "columns": {
+      "name": "Name",
+      "task": "Task",
+      "project": "Project",
+      "uploadedBy": "Uploaded by",
+      "date": "Date",
+      "hash": "Hash",
+      "size": "Size"
+    },
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB",
+      "gb": "{value} GB"
+    },
+    "viewTask": "View task",
+    "deleteDialog": {
+      "title": "Delete file",
+      "description": "Are you sure you want to delete “{name}”? This action cannot be undone."
+    },
+    "purgeDialog": {
+      "title": "Purge files",
+      "description": "Permanently delete all files uploaded before the selected date. This action cannot be undone.",
+      "datePlaceholder": "Select a date"
+    },
+    "previewTitle": "File preview",
+    "errors": {
+      "notFound": "File not found"
+    }
+  },
+  "filters": {
+    "errors": {
+      "notFound": "Filter not found"
+    }
+  },
+  "holidays": {
+    "title": "Public holidays",
+    "searchPlaceholder": "Search for a public holiday...",
+    "columns": {
+      "date": "Date",
+      "label": "Label",
+      "color": "Colour"
+    },
+    "dialog": {
+      "createTitle": "Add a public holiday",
+      "editTitle": "Edit public holiday",
+      "createDescription": "Create a new public holiday.",
+      "editDescription": "Edit the public holiday details."
+    },
+    "deleteTitle": "Delete public holiday",
+    "form": {
+      "date": "Date",
+      "datePlaceholder": "Select a date",
+      "label": "Label",
+      "color": "Colour"
+    },
+    "import": {
+      "title": "Import public holidays",
+      "description": "Automatically import a country's public holidays from Nager.Date.",
+      "unavailable": "The Nager.Date service is currently unavailable. Please try again later.",
+      "checkingService": "Checking service...",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countrySearch": "Search for a country...",
+      "countryEmpty": "No country found",
+      "year": "Year",
+      "labelSource": "Imported labels",
+      "labelSourceLocal": "Local name (country's language)",
+      "labelSourceEnglish": "English name",
+      "loadingHolidays": "Loading public holidays...",
+      "columns": {
+        "date": "Date",
+        "label": "Label"
+      },
+      "empty": "No public holidays found for this country and year.",
+      "result": "{count, plural, one {<b>#</b> public holiday imported} other {<b>#</b> public holidays imported}}.",
+      "resultWithSkipped": "{count, plural, one {<b>#</b> public holiday imported} other {<b>#</b> public holidays imported}}, {skipped, plural, one {<b>#</b> skipped (already exists)} other {<b>#</b> skipped (already exist)}}.",
+      "importing": "Importing...",
+      "importButton": "{count, plural, =0 {Import} one {Import # public holiday} other {Import # public holidays}}"
+    },
+    "errors": {
+      "notFound": "Public holiday not found",
+      "nagerParamsRequired": "The country and year parameters are required",
+      "nagerInvalidType": "Invalid type (status, countries or holidays)"
+    }
+  },
+  "logs": {
+    "title": "System logs",
+    "entries": "{count, plural, one {# entry} other {# entries}}",
+    "clear": "Clear",
+    "levelPlaceholder": "Level",
+    "allLevels": "All levels",
+    "categoryPlaceholder": "Category",
+    "allCategories": "All",
+    "loading": "Loading logs...",
+    "empty": "No logs",
+    "clearDialog": {
+      "title": "Clear system logs",
+      "description": "This will delete all in-memory logs. Logs are not persisted and will be permanently lost."
+    }
+  }
+}

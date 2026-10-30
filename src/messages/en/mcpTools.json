@@ -1,0 +1,72 @@
+{
+  "errors": {
+    "permissionRequired": "Permission required: {permission}",
+    "aiChatReadOnly": "The AI assistant is read-only: the “Allow changes by the AI assistant” permission is required. Contact an administrator.",
+    "mcpReadOnly": "MCP access is read-only — the “Allow MCP writes” permission is required to make changes. Contact an administrator.",
+    "taskNotFound": "Task not found",
+    "projectNotFound": "Project not found",
+    "userNotFound": "User not found",
+    "teamNotFound": "Team not found",
+    "createForUsersForbidden": "Insufficient permission to create tasks for these users",
+    "updateNotAllowed": "You are not allowed to modify this task",
+    "deleteNotAllowed": "You are not allowed to delete this task",
+    "moveNotAllowed": "You are not allowed to move this task",
+    "taskLocked": "This task is locked",
+    "assignPermissionRequired": "“Assign users” permission required",
+    "assigneesOutOfScope": "The requested assignees are outside your authorised scope",
+    "moveOutOfScope": "The requested move is outside your authorised scope",
+    "copyForbidden": "Insufficient permission to copy tasks",
+    "copyTaskForbidden": "Insufficient permission to copy this task",
+    "copyFailed": "Copy failed",
+    "businessUnitsPermissionRequired": "Permission required: business_units:view or business_units:view_own"
+  },
+  "results": {
+    "taskDeleted": "Task deleted"
+  },
+  "labels": {
+    "noProject": "No project",
+    "noStatus": "No status"
+  },
+  "transport": {
+    "disabled": "MCP is disabled on this instance",
+    "originNotAllowed": "Origin not allowed",
+    "authMissing": "Authentication required: connect the connector (OAuth) or provide an MCP key in the Authorization header.",
+    "authInvalid": "Authentication failed: invalid, expired or revoked token or MCP key, or disabled user account. Reconnect the connector.",
+    "authQuery": "The token in the URL (?token=) is no longer accepted: remove it from the address and send the MCP key in the “Authorization: Bearer …” header.",
+    "permissionDenied": "Permission denied: your account does not have the “Use the MCP connector” permission. Contact your administrator.",
+    "sessionNotFound": "Session not found or expired: reset the MCP connection",
+    "internal": "Internal error"
+  },
+  "oauth": {
+    "disabled": "MCP disabled",
+    "registerRateLimited": "Too many registrations, try again later",
+    "tokenRateLimited": "Too many requests, try again later",
+    "jsonBodyExpected": "JSON body expected",
+    "redirectUrisCount": "redirect_uris must contain between 1 and 10 URIs",
+    "redirectUriRejected": "Redirect URI rejected (HTTPS required, HTTP only on loopback, no fragment)",
+    "grantTypesMissingCode": "grant_types must include authorization_code",
+    "responseTypesMissingCode": "response_types must include code",
+    "unsupportedResponseType": "Only response_type=code is supported",
+    "codeChallengeRequired": "code_challenge required (PKCE)",
+    "codeChallengeMethodRequired": "code_challenge_method=S256 required",
+    "codeChallengeInvalid": "Invalid code_challenge",
+    "unknownResource": "Unknown resource",
+    "clientIdRequired": "client_id required",
+    "unknownClient": "Unknown client",
+    "unsupportedGrantType": "Unsupported grant_type",
+    "codeRequired": "code required",
+    "codeVerifierRequired": "code_verifier required (PKCE)",
+    "invalidCode": "Invalid code",
+    "codeAlreadyUsed": "Code already used",
+    "codeExpired": "Code expired",
+    "redirectUriMismatch": "redirect_uri differs from the authorisation request",
+    "pkceFailed": "PKCE verification failed",
+    "accountIneligible": "Account disabled or without MCP permission",
+    "refreshTokenRequired": "refresh_token required",
+    "invalidRefreshToken": "Invalid refresh token",
+    "refreshTokenRevoked": "Refresh token revoked",
+    "refreshTokenExpired": "Refresh token expired",
+    "accessDenied": "Access denied by the user",
+    "accountNotAllowed": "This account is not allowed to use the MCP connector"
+  }
+}

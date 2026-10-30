@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an idea or an improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! For an early idea that needs discussing first, you can also start a conversation in [Discussions](https://github.com/Malfhas/HumblePlanning/discussions/categories/ideas).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would it solve?
+      description: Describe the need from the point of view of the people using the schedule, rather than the solution.
+      placeholder: "When I plan a team for several weeks, I have to…"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How you imagine it working. Mock-ups and screenshots are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you use today, or other ways to solve it.
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you like to work on it?
+      options:
+        - "No"
+        - Yes, with some guidance
+        - Yes, I can open a pull request

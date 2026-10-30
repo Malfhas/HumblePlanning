@@ -1,0 +1,77 @@
+{
+  "maintenance": {
+    "authBadge": "Planificación en modo mantenimiento"
+  },
+  "demo": {
+    "banner": "Demostración: los datos se restablecen cada noche a las {time}. Administración, envíos y asistente de IA desactivados."
+  },
+  "nav": {
+    "home": "Inicio",
+    "planning": "Planificación",
+    "tasks": "Tareas",
+    "assistant": "Asistente de IA",
+    "businessUnits": "Business Units",
+    "team": "Equipo",
+    "users": "Usuarios",
+    "teams": "Equipos",
+    "qualifications": "Habilitaciones",
+    "laborTypes": "Tipos de MO",
+    "worksites": "Obras",
+    "projects": "Proyectos",
+    "projectGroups": "Grupos de proyectos",
+    "statuses": "Estados",
+    "logistics": "Logística",
+    "vehicles": "Vehículos",
+    "vehicleTypes": "Tipos de vehículos",
+    "resources": "Recursos",
+    "resourceTypes": "Tipos de recursos",
+    "analysis": "Análisis",
+    "statsUsers": "Estad. de usuarios",
+    "statsProjects": "Estad. de proyectos",
+    "audit": "Auditoría",
+    "logs": "Registros",
+    "export": "Exportar",
+    "administration": "Administración",
+    "settings": "Configuración",
+    "roles": "Roles",
+    "holidays": "Días festivos",
+    "files": "Archivos"
+  },
+  "sidebar": {
+    "expand": "Expandir",
+    "collapse": "Contraer"
+  },
+  "footer": {
+    "privacy": "Privacidad"
+  },
+  "userMenu": {
+    "fallbackName": "Usuario",
+    "account": "Mi cuenta",
+    "logOut": "Cerrar sesión",
+    "ariaLabel": "Menú de la cuenta"
+  },
+  "bu": {
+    "all": "Todas las BU",
+    "allLong": "Todas las Business Units",
+    "selectedCount": "{count, plural, one {# BU seleccionada} other {# BU seleccionadas}}",
+    "searchPlaceholder": "Buscar una BU…",
+    "empty": "Ninguna Business Unit",
+    "ownOnly": "Acceso limitado a su Business Unit"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Página no encontrada",
+      "subtitle": "Vaya, esta página no existe",
+      "description": "La página que busca no existe o se ha movido. Compruebe la dirección o vuelva al inicio.",
+      "footer": "Error 404"
+    },
+    "server": {
+      "title": "Error inesperado",
+      "subtitle": "Vaya, algo ha salido mal",
+      "description": "Se ha producido un error al cargar esta página. Inténtelo de nuevo o vuelva al inicio.",
+      "reference": "Referencia: {digest}",
+      "retry": "Reintentar",
+      "footer": "Error del servidor"
+    }
+  }
+}

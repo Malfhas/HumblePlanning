@@ -1,0 +1,786 @@
+/* ============================================================================
+   AI chat: design system of the original project (tokens aligned with Plane.so),
+   ported as is and isolated behind the `ai-` prefix so as not to collide
+   with the application shadcn tokens (`text-primary` is a
+   button background there, `text-secondary` a background…). 13 px density, blue accent
+   #006399 / #2893CC, very light shadows. Dark theme: `.dark` class.
+   ========================================================================== */
+
+:root {
+  /* --- Semantic aliases (light) --- */
+  --ai-bg-canvas: oklch(0.9543 0.001 230.67); /* #EFF0F0 */
+  --ai-bg-surface: oklch(1 0 0); /* #FFFFFF */
+  --ai-bg-surface-hover: oklch(0.1472 0.0034 230.83 / 0.05); /* black 5% */
+  --ai-bg-raised: oklch(1 0 0);
+  --ai-bg-sunken: oklch(0.9696 0.0007 230.67); /* #F4F5F5 */
+  --ai-bg-overlay: oklch(0.1472 0.0034 230.83 / 0.35);
+  --ai-bg-selected: oklch(0.1472 0.0034 230.83 / 0.08); /* black 8% */
+  --ai-bg-accent: oklch(0.4799 0.1158 242.91); /* #006399 */
+  --ai-bg-accent-hover: oklch(0.4347 0.1041 242.48); /* #005685 */
+  --ai-bg-accent-soft: oklch(0.9715 0.0167 230.9); /* #EBF8FF */
+  --ai-bg-danger-solid: #e7000b;
+  --ai-bg-danger-solid-hover: #c10007;
+  /* Solid orange: reversible actions (archive) rather than destructive ones */
+  --ai-bg-warning-solid: #e17100;
+  --ai-bg-warning-solid-hover: #bb4d00;
+
+  --ai-text-primary: oklch(0.2378 0.0029 230.83); /* #1D1F20 */
+  --ai-text-secondary: oklch(0.4377 0.0066 230.87); /* #4E5355 */
+  --ai-text-muted: oklch(0.5288 0.0083 230.88); /* #676C6F */
+  --ai-text-placeholder: oklch(0.6161 0.0092 230.87); /* #80868A */
+  --ai-text-on-accent: oklch(1 0 0);
+  --ai-text-accent: oklch(0.4799 0.1158 242.91);
+  --ai-text-link: oklch(0.4799 0.1158 242.91);
+
+  --ai-border-subtle: oklch(0.9389 0.0014 230.68); /* #EAEBEB */
+  --ai-border-default: oklch(0.9235 0.0017 230.69); /* #E4E6E7 */
+  --ai-border-strong: oklch(0.8612 0.0032 230.71); /* #CFD2D3 */
+  --ai-border-focus: oklch(0.4799 0.1158 242.91);
+
+  --ai-status-success: #00a63e;
+  --ai-status-success-soft: #dcfce7;
+  --ai-status-warning: #e17100;
+  --ai-status-warning-soft: #fef3c6;
+  --ai-status-danger: #e7000b;
+  --ai-status-danger-soft: #ffe2e2;
+  --ai-status-info: #2060df;
+  --ai-status-info-soft: #e4ecfb;
+
+  /* Priorities (same in light/dark, Plane values) */
+  --ai-priority-urgent: #ce433c;
+  --ai-priority-high: #e57525;
+  --ai-priority-medium: #e9b035;
+  --ai-priority-low: #3b73e3;
+  --ai-priority-none: #848d92;
+
+  --ai-shadow-raised: 0px 1px 6px -1px #292f3d08, 0px 1px 4px 0px #292f3d0a;
+  --ai-shadow-overlay: 0px 1px 2px -1px #292f3d0f, 0px 1px 3px 0px #292f3d0d;
+  --ai-shadow-modal: 0px 10px 10px -10px #292f3d0a, 0px 30px 60px -12px #292f3d1a;
+
+  --ai-scrollbar-thumb: oklch(0.1472 0.0034 230.83 / 0.15);
+  --ai-scrollbar-thumb-hover: oklch(0.1472 0.0034 230.83 / 0.3);
+
+  --ai-selection-bg: oklch(0.4799 0.1158 242.91 / 0.22);
+}
+
+.dark {
+  --ai-bg-canvas: oklch(0.1689 0.0021 230.81); /* #0E0F10 */
+  --ai-bg-surface: oklch(0.1932 0.002 230.81); /* #141515 */
+  --ai-bg-surface-hover: oklch(1 0 0 / 0.05); /* white 5% */
+  --ai-bg-raised: oklch(0.2378 0.0029 230.83); /* #1D1F20 */
+  --ai-bg-sunken: oklch(0.2158 0.0025 230.82); /* #181A1B */
+  --ai-bg-overlay: oklch(0.1472 0.0034 230.83 / 0.7);
+  --ai-bg-selected: oklch(1 0 0 / 0.09); /* white 9% */
+  --ai-bg-accent: oklch(0.6311 0.1263 238.01); /* #2893CC */
+  --ai-bg-accent-hover: oklch(0.4511 0.087 237.37); /* #195C80 */
+  --ai-bg-accent-soft: oklch(0.2513 0.0418 234.6); /* #0A2533 */
+  --ai-bg-danger-solid: #c10007;
+  --ai-bg-danger-solid-hover: #9f0712;
+  --ai-bg-warning-solid: #bb4d00;
+  --ai-bg-warning-solid-hover: #973c00;
+
+  --ai-text-primary: oklch(0.9235 0.0017 230.69); /* #E4E6E7 */
+  --ai-text-secondary: oklch(0.8455 0.0035 230.72); /* #CACDCE */
+  --ai-text-muted: oklch(0.7655 0.0054 230.76); /* #AFB3B6 */
+  --ai-text-placeholder: oklch(0.6835 0.0074 230.81); /* #959A9D */
+  --ai-text-on-accent: oklch(1 0 0);
+  --ai-text-accent: oklch(0.6311 0.1263 238.01);
+  --ai-text-link: oklch(0.6311 0.1263 238.01);
+
+  --ai-border-subtle: oklch(0.2593 0.0033 230.84); /* #222425 */
+  --ai-border-default: oklch(0.3011 0.0041 230.85); /* #2C2E30 */
+  --ai-border-strong: oklch(0.3999 0.0059 230.87); /* #45484A */
+  --ai-border-focus: oklch(0.6311 0.1263 238.01);
+
+  --ai-status-success: #05df72;
+  --ai-status-success-soft: #033016;
+  --ai-status-warning: #ffb900;
+  --ai-status-warning-soft: #501d01;
+  --ai-status-danger: #ff6467;
+  --ai-status-danger-soft: #450d0e;
+  --ai-status-info: #5586e7;
+  --ai-status-info-soft: #091b3e;
+
+  --ai-shadow-raised: 0px 1px 6px -1px #00000030, 0px 1px 4px 0px #00000038;
+  --ai-shadow-overlay: 0px 1px 2px -1px #00000050, 0px 1px 3px 0px #00000048;
+  --ai-shadow-modal: 0px 10px 10px -10px #00000060, 0px 30px 60px -12px #00000080;
+
+  --ai-scrollbar-thumb: oklch(1 0 0 / 0.14);
+  --ai-scrollbar-thumb-hover: oklch(1 0 0 / 0.28);
+
+  --ai-selection-bg: oklch(0.6311 0.1263 238.01 / 0.32);
+}
+
+@theme inline {
+  --color-ai-canvas: var(--ai-bg-canvas);
+  --color-ai-surface: var(--ai-bg-surface);
+  --color-ai-surface-hover: var(--ai-bg-surface-hover);
+  --color-ai-raised: var(--ai-bg-raised);
+  --color-ai-sunken: var(--ai-bg-sunken);
+  --color-ai-overlay: var(--ai-bg-overlay);
+  --color-ai-selected: var(--ai-bg-selected);
+  --color-ai-accent: var(--ai-bg-accent);
+  --color-ai-accent-hover: var(--ai-bg-accent-hover);
+  --color-ai-accent-soft: var(--ai-bg-accent-soft);
+  --color-ai-warning-solid: var(--ai-bg-warning-solid);
+  --color-ai-warning-solid-hover: var(--ai-bg-warning-solid-hover);
+  --color-ai-danger-solid: var(--ai-bg-danger-solid);
+  --color-ai-danger-solid-hover: var(--ai-bg-danger-solid-hover);
+  --color-ai-primary: var(--ai-text-primary);
+  --color-ai-secondary: var(--ai-text-secondary);
+  --color-ai-muted: var(--ai-text-muted);
+  --color-ai-placeholder: var(--ai-text-placeholder);
+  --color-ai-on-accent: var(--ai-text-on-accent);
+  --color-ai-link: var(--ai-text-link);
+  --color-ai-border-subtle: var(--ai-border-subtle);
+  --color-ai-border-default: var(--ai-border-default);
+  --color-ai-border-strong: var(--ai-border-strong);
+  --color-ai-border-focus: var(--ai-border-focus);
+  --color-ai-success: var(--ai-status-success);
+  --color-ai-success-soft: var(--ai-status-success-soft);
+  --color-ai-warning: var(--ai-status-warning);
+  --color-ai-warning-soft: var(--ai-status-warning-soft);
+  --color-ai-danger: var(--ai-status-danger);
+  --color-ai-danger-soft: var(--ai-status-danger-soft);
+  --color-ai-info: var(--ai-status-info);
+  --color-ai-info-soft: var(--ai-status-info-soft);
+
+  /* Plane density: sm = 13px (body), xs = 11px (menus, chips) */
+  --text-ai-xs: 0.6875rem;
+  --text-ai-xs--line-height: 1rem;
+  --text-ai-sm: 0.8125rem;
+  --text-ai-sm--line-height: 1.25rem;
+
+  --radius-ai-xs: 0.125rem;
+  --radius-ai-sm: 0.25rem;
+  --radius-ai-md: 0.375rem;
+  --radius-ai-lg: 0.5rem;
+  --radius-ai-xl: 0.75rem;
+
+  --shadow-ai-raised: var(--ai-shadow-raised);
+  --shadow-ai-overlay: var(--ai-shadow-overlay);
+  --shadow-ai-modal: var(--ai-shadow-modal);
+
+  --font-ai-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* --- Base, limited to the chat (the page, the sphere and what they portal) --- */
+.ai-chat-root,
+.ai-chat-portal {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ai-text-primary);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.ai-chat-root input::placeholder,
+.ai-chat-root textarea::placeholder,
+.ai-chat-portal input::placeholder,
+.ai-chat-portal textarea::placeholder {
+  color: var(--ai-text-placeholder);
+}
+.ai-chat-root ::selection,
+.ai-chat-portal ::selection {
+  background-color: var(--ai-selection-bg);
+  color: var(--ai-text-primary);
+}
+:is(.ai-chat-root, .ai-chat-portal) :is(button, [role='button']):not(:disabled) {
+  cursor: pointer;
+}
+/* Consistent visible focus; the frame lights up, not the field it contains (composer) */
+.ai-chat-root :focus-visible,
+.ai-chat-portal :focus-visible {
+  outline: 2px solid var(--ai-border-focus);
+  outline-offset: 1px;
+}
+.ai-chat-root .focus-cadre:focus,
+.ai-chat-root .focus-cadre:focus-visible,
+.ai-chat-portal .focus-cadre:focus,
+.ai-chat-portal .focus-cadre:focus-visible {
+  outline: none;
+}
+.ai-chat-root .font-ai-mono,
+.ai-chat-root .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+/* A tooltip is read, not clicked: neither it nor the Radix wrapper captures the pointer */
+[data-radix-popper-content-wrapper]:has(> .ai-chat-portal.pointer-events-none) {
+  pointer-events: none;
+}
+/* Phone: controls are tapped with a finger, without double-tap delay */
+@media (width < 768px) {
+  :is(.ai-chat-root, .ai-chat-portal) :is(button, [role='button'], a) {
+    touch-action: manipulation;
+  }
+}
+
+/* Thin scrollbars (translucent thumb, invisible track - Plane finish) */
+
+.ai-chat-root,
+.ai-chat-root *,
+.ai-chat-portal,
+.ai-chat-portal * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ai-scrollbar-thumb) transparent;
+}
+.ai-chat-root ::-webkit-scrollbar,
+.ai-chat-portal ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ai-chat-root ::-webkit-scrollbar-thumb,
+.ai-chat-portal ::-webkit-scrollbar-thumb {
+  background: var(--ai-scrollbar-thumb);
+  border-radius: 9999px;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+.ai-chat-root ::-webkit-scrollbar-thumb:hover,
+.ai-chat-portal ::-webkit-scrollbar-thumb:hover {
+  background: var(--ai-scrollbar-thumb-hover);
+}
+.ai-chat-root ::-webkit-scrollbar-track,
+.ai-chat-portal ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* AI tools: animated purple gradient on AiButton hover + overlay halo */
+@keyframes ai-sheen {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+.ai-button:hover {
+  background-image: linear-gradient(110deg, #6a3de8, #9c6bff, #7c4dff, #b388ff, #6a3de8);
+  background-size: 220% 100%;
+  animation: ai-sheen 2.2s linear infinite;
+}
+
+/* The rail star: on hover, it is the icon STROKE that turns purple and
+   breathes, not its tile - which keeps the grey shared by all entries.
+   A gradient does not apply to an SVG stroke; so the color itself is
+   animated, which lucide paints as `currentColor`. The hover is carried by the
+   group so the label triggers the effect as much as the icon. */
+@keyframes ai-etincelle {
+  0%,
+  100% {
+    color: #7c4dff;
+  }
+  50% {
+    color: #c4a6ff;
+  }
+}
+.group:hover .ai-etincelle {
+  animation: ai-etincelle 1.8s ease-in-out infinite;
+}
+
+/* Reasoning in progress: the label takes the same purple sheen as the AI
+   buttons, applied to the text itself. The motion says "working" without
+   adding a counter or a spinning wheel. */
+.ai-reflexion {
+  background-image: linear-gradient(110deg, #6a3de8, #9c6bff, #d9c4ff, #9c6bff, #6a3de8);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ai-sheen 2.2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-reflexion {
+    animation: none;
+  }
+}
+
+/* The assistant is replying: three breathing dots, in the same purple. The
+   same mark is used in the thread (with the phase in plain words) and next to the title
+   of a conversation whose reply is finishing in the background. */
+@keyframes ia-point {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+.ia-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.ia-points > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #9c6bff;
+  animation: ia-point 1.2s ease-in-out infinite;
+}
+.ia-points > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ia-points > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.ia-points--petit {
+  gap: 2px;
+}
+.ia-points--petit > span {
+  width: 3px;
+  height: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ia-points > span {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* --- Assistant sphere ---------------------------------------------
+   Four blurred color masses drift inside a masked shape, at different
+   speeds and along different paths: their overlaps create a
+   matter that never quite repeats. The silhouette itself slowly
+   deforms - that is what makes it organic rather than geometric.
+   On top, a sweep and a highlight give volume; below, a halo
+   breathes. Everything is CSS: no image, no library. */
+.sphere-ia {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  /* The blurs and shadows below are in cqw, a fraction of the sphere
+     width: tuned for 160 px, they scale down with it. In fixed pixels, the
+     48 px floating assistant sphere looked dull: a 10 px blur
+     drowned the colors and the bottom shadow covered half the body. */
+  container-type: size;
+}
+.sphere-ia__halo {
+  position: absolute;
+  inset: -20%;
+  border-radius: 54% 46% 51% 49% / 48% 52% 48% 52%;
+  background: radial-gradient(circle, rgba(124, 77, 255, 0.45) 0%, rgba(124, 77, 255, 0) 68%);
+  animation:
+    sphere-halo 2.6s ease-in-out infinite,
+    sphere-morph 8s ease-in-out infinite;
+}
+.sphere-ia__corps {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* Uneven, animated radii: the silhouette is never quite round */
+  border-radius: 58% 42% 47% 53% / 52% 46% 54% 48%;
+  /* Brisk pace at all times: it is the state we want to see on arrival */
+  box-shadow:
+    0 16cqw 40cqw -8cqw rgba(124, 77, 255, 0.75),
+    inset 0 0 35cqw rgba(179, 136, 255, 0.45);
+  filter: saturate(1.25) brightness(1.08);
+  animation:
+    sphere-morph 5s ease-in-out infinite,
+    sphere-souffle 2.8s ease-in-out infinite;
+  transition:
+    box-shadow 0.5s ease,
+    transform 0.5s ease,
+    filter 0.5s ease;
+}
+/* Deliberately dark background: it is what makes the colors pop. On
+   a pseudo-element so it can fade out (glass mode). */
+.sphere-ia__corps::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 60%, #1e1450 0%, #140d33 72%, #0b0720 100%);
+  transition: opacity 0.6s ease;
+}
+.sphere-ia__halo,
+.sphere-ia__nebuleuse,
+.sphere-ia__eclat {
+  transition: opacity 0.6s ease;
+}
+
+/* Hover only adds a zoom-in and a bit more glow: the sphere
+   is already fully animated at rest. */
+.sphere-ia {
+  transition: transform 0.5s ease;
+}
+.sphere-ia:hover {
+  transform: scale(1.06);
+}
+.sphere-ia:hover .sphere-ia__corps {
+  box-shadow:
+    0 19cqw 45cqw -6cqw rgba(124, 77, 255, 0.85),
+    inset 0 0 39cqw rgba(179, 136, 255, 0.55);
+}
+
+/* Glass mode: the matter, the background, the halo and the sweep fade out; only
+   the silhouette, a rim and the highlight remain, to read through it. */
+.sphere-ia.sphere-ia--verre .sphere-ia__corps::before,
+.sphere-ia.sphere-ia--verre .sphere-ia__halo,
+.sphere-ia.sphere-ia--verre .sphere-ia__nebuleuse,
+.sphere-ia.sphere-ia--verre .sphere-ia__eclat {
+  opacity: 0;
+}
+.sphere-ia.sphere-ia--verre .sphere-ia__corps {
+  box-shadow:
+    inset 0 0 0 1px rgba(124, 77, 255, 0.55),
+    0 6cqw 16cqw -8cqw rgba(124, 77, 255, 0.35);
+  filter: none;
+}
+.sphere-ia.sphere-ia--verre .sphere-ia__verre {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.55),
+    inset 0 -8cqw 16cqw -10cqw rgba(124, 77, 255, 0.3);
+}
+.sphere-ia.sphere-ia--verre .sphere-ia__onde {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+/* Concentric, continuous waves, following the deformed silhouette */
+.sphere-ia__onde {
+  position: absolute;
+  inset: 0;
+  border-radius: 58% 42% 47% 53% / 52% 46% 54% 48%;
+  border: 1px solid rgba(179, 136, 255, 0.55);
+  opacity: 0;
+  animation:
+    sphere-onde 2.2s ease-out infinite,
+    sphere-morph 5s ease-in-out infinite;
+}
+.sphere-ia__onde--retard {
+  animation-delay: 1.1s;
+}
+/* Overall rotation: the drifts combine with it, so that the
+   pattern never passes twice through the same spot. */
+.sphere-ia__nebuleuse {
+  position: absolute;
+  inset: 0;
+  animation: sphere-rotation 14s linear infinite;
+}
+.sphere-ia__masse {
+  position: absolute;
+  height: 88%;
+  width: 88%;
+  border-radius: 9999px;
+  filter: blur(6cqw);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+/* Light sweep, like a reflection gliding over glass */
+.sphere-ia__eclat {
+  position: absolute;
+  inset: -25%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.16) 40deg,
+    transparent 110deg,
+    transparent 360deg
+  );
+  animation: sphere-rotation 2.4s linear infinite;
+}
+.sphere-ia__masse--a {
+  background: radial-gradient(circle, #8b5cff 0%, rgba(139, 92, 255, 0) 62%);
+  animation: sphere-derive-a 4s ease-in-out infinite;
+}
+.sphere-ia__masse--b {
+  background: radial-gradient(circle, #d9a8ff 0%, rgba(217, 168, 255, 0) 60%);
+  animation: sphere-derive-b 5.2s ease-in-out infinite;
+}
+.sphere-ia__masse--c {
+  background: radial-gradient(circle, #3ec8ff 0%, rgba(62, 200, 255, 0) 58%);
+  animation: sphere-derive-c 6.1s ease-in-out infinite;
+}
+.sphere-ia__masse--d {
+  background: radial-gradient(circle, #ff7ae0 0%, rgba(255, 122, 224, 0) 55%);
+  animation: sphere-derive-b 7.4s ease-in-out infinite reverse;
+}
+/* Subtle specular highlight + rim: they give volume without crushing the
+   color, unlike the large flat white patch of the first attempt. */
+.sphere-ia__verre {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 32% 24%,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0) 26%
+  );
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -14cqw 25cqw -12cqw rgba(0, 0, 0, 0.75);
+}
+
+@keyframes sphere-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Silhouette deformation: four intermediate states are enough to suggest
+   continuous motion, without ever going back through a perfect circle. */
+@keyframes sphere-morph {
+  0%,
+  100% {
+    border-radius: 63% 37% 44% 56% / 55% 42% 58% 45%;
+  }
+  20% {
+    border-radius: 40% 60% 68% 32% / 36% 62% 38% 64%;
+  }
+  45% {
+    border-radius: 57% 43% 33% 67% / 66% 38% 62% 34%;
+  }
+  70% {
+    border-radius: 35% 65% 58% 42% / 47% 70% 30% 53%;
+  }
+  85% {
+    border-radius: 68% 32% 52% 48% / 40% 50% 50% 60%;
+  }
+}
+/* The wave starts invisible: frozen at rest, it must not draw a ring */
+@keyframes sphere-onde {
+  0% {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+@keyframes sphere-souffle {
+  0%,
+  100% {
+    transform: rotate(-4deg) scale(1);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.04);
+  }
+}
+@keyframes sphere-halo {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.25;
+  }
+}
+@keyframes sphere-derive-a {
+  0%,
+  100% {
+    transform: translate(-14%, -10%) scale(1);
+  }
+  33% {
+    transform: translate(16%, 6%) scale(1.18);
+  }
+  66% {
+    transform: translate(-4%, 18%) scale(0.92);
+  }
+}
+@keyframes sphere-derive-b {
+  0%,
+  100% {
+    transform: translate(18%, 12%) scale(1.05);
+  }
+  40% {
+    transform: translate(-16%, 4%) scale(0.88);
+  }
+  75% {
+    transform: translate(6%, -18%) scale(1.2);
+  }
+}
+@keyframes sphere-derive-c {
+  0%,
+  100% {
+    transform: translate(4%, 20%) scale(0.9);
+  }
+  45% {
+    transform: translate(-18%, -14%) scale(1.12);
+  }
+  80% {
+    transform: translate(14%, -4%) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sphere-ia__halo,
+  .sphere-ia__corps,
+  .sphere-ia__masse,
+  .sphere-ia__eclat,
+  .sphere-ia__onde,
+  .ai-button:hover,
+  .group:hover .ai-etincelle {
+    animation: none;
+  }
+}
+
+/* Toasts (sonner): the close cross at the top right, in the theme
+   tokens. Sonner puts it at the top left and paints it black and white. Its rule
+   targets `[data-sonner-toaster][dir=ltr]` and its stylesheet is injected after
+   ours: three attributes are needed to beat it, not one. */
+[data-sonner-toaster][dir='ltr'][data-x-position] {
+  --toast-close-button-start: unset;
+  --toast-close-button-end: 0;
+  --toast-close-button-transform: translate(35%, -35%);
+}
+[data-sonner-toast] [data-close-button] {
+  background: var(--ai-bg-raised);
+  border: 0.5px solid var(--ai-border-subtle);
+  color: var(--ai-text-secondary);
+}
+[data-sonner-toast] [data-close-button]:hover {
+  background: var(--ai-bg-surface-hover);
+  color: var(--ai-text-primary);
+}
+
+/* Drawers and sheets: a short entrance from the edge, without bounce. */
+@keyframes tiroir-depuis-gauche {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes tiroir-depuis-droite {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes tiroir-depuis-bas {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes tiroir-voile {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Declared as utilities, not as bare classes, so that variants
+   (`max-md:tiroir-bas` on a dialog) do produce a rule. */
+@utility tiroir-gauche {
+  &[data-state='open'] {
+    animation: tiroir-depuis-gauche 180ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+@utility tiroir-droite {
+  &[data-state='open'] {
+    animation: tiroir-depuis-droite 180ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+@utility tiroir-bas {
+  &[data-state='open'] {
+    animation: tiroir-depuis-bas 200ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+@utility tiroir-voile {
+  &[data-state='open'] {
+    animation: tiroir-voile 150ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+/* Sphere radial menu (long press) */
+.ai-menu-voile {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--ai-menu-x, 90%) var(--ai-menu-y, 90%),
+    rgba(124, 77, 255, 0.12),
+    transparent 40%
+  );
+  animation: ai-menu-apparition 0.25s ease-out;
+}
+.ai-menu-entree {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  animation: ai-menu-pop 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+.ai-menu-icone {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background: var(--ai-bg-raised, #fff);
+  color: #7c4dff;
+  border: 1px solid rgba(124, 77, 255, 0.35);
+  box-shadow:
+    0 10px 30px -10px rgba(124, 77, 255, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.ai-menu-libelle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ai-text-primary, #1c2733);
+  background: var(--ai-bg-raised, #fff);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--ai-border-subtle, #dbe3ec);
+  white-space: nowrap;
+}
+.ai-menu-entree--survol .ai-menu-icone {
+  transform: scale(1.18);
+  background: #7c4dff;
+  color: #fff;
+}
+.ai-menu-fantome {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(124, 77, 255, 0.55));
+}
+@keyframes ai-menu-pop {
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes ai-menu-apparition {
+  from {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "banner": {
+    "update": "Update verfügbar",
+    "security": "Sicherheitsupdate",
+    "details": "v{version} · Details anzeigen",
+    "dismiss": "Bis zur nächsten Version ausblenden",
+    "withVersion": "{title}: v{version}"
+  },
+  "panel": {
+    "title": "Version",
+    "installed": "Installierte Version",
+    "latest": "Neueste verfügbare Version",
+    "lastCheck": "Letzte Prüfung",
+    "publishedOn": "Veröffentlicht am {date}",
+    "checkNow": "Jetzt prüfen",
+    "checking": "Wird geprüft…",
+    "checkFailed": "Die Prüfung konnte nicht gestartet werden: {message}",
+    "checkNowDisabled": "Die Prüfung ist deaktiviert",
+    "checkNowForbidden": "Nur für Benutzer, die die Einstellungen bearbeiten dürfen",
+    "loading": "Update-Status wird geladen…",
+    "loadError": "Der Update-Status kann nicht geladen werden.",
+    "status": {
+      "up_to_date": "Aktuell",
+      "update_available": "Update verfügbar",
+      "security_update": "Sicherheitsupdate verfügbar",
+      "disabled": "Prüfung deaktiviert",
+      "no_release": "Keine veröffentlichte Version",
+      "error": "Prüfung derzeit nicht möglich"
+    },
+    "hint": {
+      "upToDate": "Sie verwenden die neueste veröffentlichte Version.",
+      "updateAvailable": "{count, plural, =0 {Version {version} ist verfügbar.} =1 {Version {version} ist verfügbar.} other {Version {version} ist verfügbar: Seit Ihrer Version sind # Versionen erschienen.}}",
+      "securityUpdate": "Eine neuere Version behebt ein Sicherheitsproblem: Installieren Sie sie zeitnah.",
+      "disabled": "Der Server kontaktiert GitHub nicht. Aktivieren Sie unten die Prüfung, um über neue Versionen informiert zu werden.",
+      "noRelease": "Im Repository {repo} wurde noch keine Version veröffentlicht.",
+      "knownData": "Die folgenden Informationen stammen von der letzten erfolgreichen Prüfung am {date}."
+    },
+    "errors": {
+      "network": "Der Server konnte GitHub nicht erreichen (Netzwerk oder Firewall).",
+      "timeout": "GitHub hat nicht rechtzeitig geantwortet.",
+      "rate_limited": "Das Anfragelimit der GitHub-API ist erreicht. Versuchen Sie es in einer Stunde erneut.",
+      "not_found": "Das Repository {repo} wurde auf GitHub nicht gefunden oder ist nicht öffentlich.",
+      "http": "GitHub hat einen Fehler zurückgegeben.",
+      "invalid_response": "Die Antwort von GitHub ist nicht lesbar.",
+      "invalid_repo": "Die Variable HUMBLE_UPDATE_REPO ist ungültig (erwartetes Format: Inhaber/Repository)."
+    },
+    "commandUpdate": "Um Version {version} zu installieren, führen Sie diesen Befehl auf dem Server aus:",
+    "commandIdle": "Updates werden mit diesem Befehl auf dem Server installiert:",
+    "commandHelp": "Er sichert die Datenbank, wendet die Migrationen an und kehrt bei einem Fehler zur vorherigen Version zurück. Das Administrationspanel installiert selbst nichts.",
+    "copied": "Kopiert",
+    "source": "Quelle:",
+    "releaseNotes": "Versionshinweise — v{version}",
+    "viewOnGithub": "Auf GitHub ansehen",
+    "history": "Versionsverlauf",
+    "historyCount": "{count, plural, one {# Version} other {# Versionen}}",
+    "badges": {
+      "security": "Sicherheit",
+      "new": "Neu",
+      "installed": "Installiert",
+      "prerelease": "Vorabversion"
+    },
+    "noNotes": "Keine Versionshinweise."
+  }
+}

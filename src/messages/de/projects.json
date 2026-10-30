@@ -1,0 +1,178 @@
+{
+  "permissionDenied": "Unzureichende Berechtigung",
+  "fields": {
+    "businessNumber": "Auftragsnummer",
+    "businessNumberShort": "Auftragsnr.",
+    "name": "Name",
+    "status": "Status",
+    "group": "Gruppe",
+    "businessUnit": "Business Unit",
+    "owner": "Verantwortlicher",
+    "color": "Farbe",
+    "description": "Beschreibung",
+    "initials": "Kürzel",
+    "displayMode": "Anzeigemodus",
+    "style": "Stil",
+    "sortOrder": "Reihenfolge"
+  },
+  "validation": {
+    "nameRequired": "Der Name ist erforderlich",
+    "businessUnitRequired": "Die Business Unit ist erforderlich",
+    "ownerRequired": "Der Verantwortliche ist erforderlich",
+    "initialsRequired": "Das Kürzel ist erforderlich"
+  },
+  "status": {
+    "todo": "Zu erledigen",
+    "in_progress": "In Bearbeitung",
+    "done": "Erledigt",
+    "archived": "Archiviert"
+  },
+  "list": {
+    "searchPlaceholder": "Projekt suchen...",
+    "archivedToggle": "Archiviert",
+    "count": "{count, plural, one {# Projekt} other {# Projekte}}",
+    "actions": {
+      "laborBudgets": "Arbeitskräftebudgets"
+    }
+  },
+  "dialog": {
+    "createTitle": "Neues Projekt",
+    "editTitle": "Projekt bearbeiten",
+    "duplicateTitle": "Projekt duplizieren",
+    "createDescription": "Füllen Sie die Angaben aus, um ein Projekt zu erstellen.",
+    "editDescription": "Bearbeiten Sie die Angaben des Projekts.",
+    "duplicateDescription": "Die allgemeinen Felder wurden vorausgefüllt (Gruppe, Verantwortlicher, BU, Farbe, Arbeitskräftebudgets). Geben Sie Name und Auftragsnummer ein, um das Projekt zu erstellen."
+  },
+  "archiveDialog": {
+    "archiveTitle": "Projekt archivieren",
+    "unarchiveTitle": "Archivierung des Projekts aufheben",
+    "archiveDescription": "Das Projekt wird standardmäßig ausgeblendet. Seine vorhandenen Aufgaben bleiben erhalten und zugänglich.",
+    "unarchiveDescription": "Das Projekt ist wieder in der aktiven Liste sichtbar und kann Aufgaben erhalten."
+  },
+  "confirmDelete": {
+    "title": "Projekt löschen",
+    "noTasks": "Dieser Vorgang kann nicht rückgängig gemacht werden. Möchten Sie fortfahren?",
+    "withTasks": "{count, plural, one {Dieses Projekt enthält # Aufgabe.} other {Dieses Projekt enthält # Aufgaben.}} Beim Löschen werden alle zugehörigen Aufgaben vernichtet. Sie können das Projekt archivieren, um es auszublenden und die Aufgaben zu behalten."
+  },
+  "form": {
+    "createdOn": "Erstellt am {date}",
+    "group": {
+      "none": "Keine Gruppe",
+      "searchPlaceholder": "Gruppe suchen...",
+      "empty": "Keine Gruppe gefunden",
+      "applyColor": "Farbe der Gruppe übernehmen"
+    },
+    "businessUnit": {
+      "placeholder": "Business Unit auswählen",
+      "searchPlaceholder": "Business Unit suchen...",
+      "empty": "Keine Business Unit gefunden"
+    },
+    "owner": {
+      "placeholder": "Verantwortlichen auswählen",
+      "searchPlaceholder": "Benutzer suchen...",
+      "empty": "Kein Benutzer gefunden"
+    },
+    "addressNotLocated": "Bitte wählen Sie eine Adresse aus der Liste, um den Punkt auf der Karte zu setzen, oder leeren Sie das Adressfeld"
+  },
+  "laborBudget": {
+    "title": "Arbeitskräftebudgets",
+    "dialogTitle": "Arbeitskräftebudgets — {name}",
+    "projectFallback": "Projekt",
+    "empty": "Für dieses Projekt ist kein Arbeitskräftebudget definiert.",
+    "columns": {
+      "type": "Typ",
+      "planned": "Geplant",
+      "consumed": "Verbraucht",
+      "upcoming": "Anstehend",
+      "remaining": "Verbleibend",
+      "actualProgress": "Ist-Fortschritt",
+      "forecastProgress": "Plan-Fortschritt"
+    },
+    "hours": "{value}h",
+    "legend": {
+      "actualLow": "Ist (<80%)",
+      "actualHigh": "Ist (80-100%)",
+      "overrun": "Überschreitung",
+      "forecast": "Prognose"
+    },
+    "noTypes": "Kein Arbeitskräftetyp definiert. Legen Sie diese unter Team > Arbeitskräftetypen an.",
+    "selectType": "Typ auswählen",
+    "noTypeAvailable": "Kein Typ verfügbar",
+    "hoursPlaceholder": "0,0",
+    "hoursUnit": "h",
+    "addType": "Typ hinzufügen",
+    "removeLine": "Zeile entfernen",
+    "incomplete": "Bitte vervollständigen oder löschen Sie die unvollständigen Zeilen"
+  },
+  "groups": {
+    "noBu": "Ohne BU",
+    "empty": "Keine Gruppen.",
+    "noProjects": "Keine Projekte",
+    "reorderAriaLabel": "Gruppe neu anordnen",
+    "reorderProjectAriaLabel": "Projekt neu anordnen",
+    "dialog": {
+      "createTitle": "Gruppe hinzufügen",
+      "editTitle": "Gruppe bearbeiten",
+      "createDescription": "Eine neue Projektgruppe erstellen.",
+      "editDescription": "Die Angaben der Gruppe bearbeiten."
+    },
+    "confirmDelete": {
+      "title": "Projektgruppe löschen",
+      "description": "Dieser Vorgang kann nicht rückgängig gemacht werden. Die dieser Gruppe zugeordneten Projekte werden von ihr gelöst, aber beibehalten."
+    },
+    "form": {
+      "buPlaceholder": "BU auswählen",
+      "buEmpty": "Keine Business Unit"
+    }
+  },
+  "statuses": {
+    "searchPlaceholder": "Status suchen...",
+    "displayModes": {
+      "tp": "Titel + %",
+      "t": "Titel",
+      "p": "%"
+    },
+    "dialog": {
+      "createTitle": "Neuer Status",
+      "editTitle": "Status bearbeiten",
+      "createDescription": "Füllen Sie die Angaben aus, um einen neuen Status zu erstellen.",
+      "editDescription": "Bearbeiten Sie die Angaben des Status."
+    },
+    "confirmDelete": {
+      "title": "Status löschen"
+    },
+    "form": {
+      "namePlaceholder": "Name des Status",
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "underline": "Unterstrichen",
+      "strikethrough": "Durchgestrichen",
+      "percentage": "Prozentsatz",
+      "isDefault": "Standard"
+    }
+  },
+  "laborTypes": {
+    "searchPlaceholder": "Typ suchen...",
+    "dialog": {
+      "createTitle": "Neuer Arbeitskräftetyp",
+      "editTitle": "Typ bearbeiten",
+      "createDescription": "Definieren Sie einen neuen Arbeitskräftetyp.",
+      "editDescription": "Bearbeiten Sie die Angaben."
+    },
+    "confirmDelete": {
+      "title": "Arbeitskräftetyp löschen",
+      "cascadeWarning": "Die diesem Typ zugeordneten Budgets werden ebenfalls gelöscht."
+    },
+    "form": {
+      "namePlaceholder": "Z. B. Projektleiter",
+      "initialsPlaceholder": "Z. B. PL"
+    }
+  },
+  "errors": {
+    "notFound": "Projekt nicht gefunden",
+    "notAllowed": "Bearbeitung nicht erlaubt",
+    "groupNotFound": "Gruppe nicht gefunden",
+    "statusNotFound": "Status nicht gefunden",
+    "laborTypeNotFound": "Arbeitskräftetyp nicht gefunden"
+  }
+}

@@ -1,0 +1,543 @@
+{
+  "errors": {
+    "unavailable": "AI assistant unavailable",
+    "modelListUnavailable": "Model list unavailable",
+    "fixedScope": "The scope of this conversation is fixed: start a new one to change it",
+    "modelNotAllowed": "This model is not allowed by the administrator",
+    "projectInaccessible": "Project not accessible",
+    "replyInProgress": "A reply is already in progress in this conversation: wait for it to finish or stop it.",
+    "tooManyReplies": "{count, plural, =1 {1 reply is already in progress: wait or stop it.} other {# replies are already in progress: wait or stop one of them.}}",
+    "conversationNotFound": "Conversation not found",
+    "quotaReached": "Your monthly AI chat quota has been reached: it will reset on {date}.",
+    "userNotFound": "User not found"
+  },
+  "replyErrors": {
+    "serverRestarted": "Server restarted during the reply",
+    "maxDuration": "Maximum duration of {minutes, plural, one {# minute} other {# minutes}} exceeded",
+    "reasoningMandatory": "The model {model} requires reasoning: “none” is not accepted. Choose “short” or more in the settings."
+  },
+  "notifications": {
+    "replyDone": "The assistant has replied",
+    "replyFailed": "The assistant’s reply failed",
+    "replyInterrupted": "The assistant’s reply was interrupted"
+  },
+  "attachments": {
+    "sheetHeading": "# Sheet: {name}",
+    "errors": {
+      "unreadableWorkbook": "{name}: unreadable Excel workbook ({detail}). Open it in Excel and save it again, or check that it is not password-protected.",
+      "tooLarge": "File too large (20 MB maximum)",
+      "unsupportedFormat": "Unsupported format (PDF, Word, Excel, CSV, text or image)",
+      "noText": "No readable text in this file"
+    }
+  },
+  "conversations": {
+    "defaultTitle": "New conversation",
+    "renameAriaLabel": "New conversation title",
+    "new": "New conversation"
+  },
+  "actions": {
+    "tools": {
+      "createTask": "Create a task",
+      "updateTask": "Edit a task",
+      "deleteTask": "Delete a task",
+      "moveTask": "Move a task",
+      "copyTask": "Duplicate a task",
+      "createProject": "Create a project",
+      "updateProject": "Edit a project"
+    },
+    "fields": {
+      "taskId": "Task",
+      "projectId": "Project",
+      "userIds": "Assignees",
+      "statusId": "Status",
+      "placeId": "Location",
+      "resourceId": "Resource",
+      "ownerId": "Owner",
+      "groupId": "Group",
+      "businessUnitId": "Business unit",
+      "title": "Title",
+      "notes": "Notes",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "duration": "Duration",
+      "name": "Name",
+      "color": "Colour",
+      "description": "Description",
+      "businessNumber": "Project number",
+      "status": "Status",
+      "budgetTime": "Budget in hours",
+      "budgetAmount": "Budget",
+      "deliveryDate": "Delivery date",
+      "address": "Address"
+    },
+    "values": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "done": "Done",
+      "archived": "Archived"
+    },
+    "boolean": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "labels": {
+      "notVisible": "item not visible",
+      "untitledTask": "Untitled task"
+    }
+  },
+  "quota": {
+    "unlimited": "Unlimited quota",
+    "used": "{percent}% of the monthly quota used",
+    "resetOn": "Resets on {date}"
+  },
+  "phase": {
+    "tools": "The assistant is looking up the data…",
+    "toolsNamed": "The assistant is looking up the data ({tool})…",
+    "writing": "The assistant is writing…",
+    "thinking": "The assistant is thinking…"
+  },
+  "http": {
+    "s400": "The request was rejected: a value sent is not accepted.",
+    "s401": "Your session has expired. Please sign in again.",
+    "s403": "You do not have the rights required for this action.",
+    "s404": "Item not found - it may have been deleted in the meantime.",
+    "s409": "Conflict: this value is already in use, or the data has changed in the meantime.",
+    "s413": "File too large to be sent.",
+    "s415": "Unsupported file format.",
+    "s429": "Too many requests in a short time. Please wait a moment.",
+    "s500": "The server encountered an unexpected error. Please try again.",
+    "s502": "The server cannot be reached. Try again in a moment.",
+    "s503": "The service is temporarily unavailable. Try again in a moment.",
+    "s504": "The server took too long to respond.",
+    "generic": "The request failed (error {status})."
+  },
+  "select": {
+    "placeholder": "Select…",
+    "selectedCount": "{count, plural, one {# selected} other {# selected}}"
+  },
+  "scope": {
+    "global": {
+      "name": "Whole planning",
+      "description": "All the projects you can see"
+    },
+    "none": "No scope",
+    "followsNavigation": "follows navigation",
+    "lockedTooltip": "The scope is fixed at the first question: the replies already given depend on it. Start a new conversation to change project.",
+    "choose": "Choose a scope…",
+    "useDataFrom": "Use data from:",
+    "searchProject": "Search for a project…",
+    "noProject": "No project",
+    "projects": "Projects"
+  },
+  "browserNotifications": {
+    "unsupported": "Your browser cannot display notifications from this page.",
+    "displayFailed": "The browser could not display the notification: check that notifications are allowed for it in the system settings.",
+    "denied": "Your browser has blocked notifications. You can allow them again in its site settings.",
+    "dismissed": "The permission request was closed without an answer. Click again, then choose “Allow” in the browser window.",
+    "enabled": {
+      "title": "Notifications enabled",
+      "body": "You will be notified as soon as a reply is ready, if you have left this tab."
+    },
+    "replyTitle": "Assistant reply"
+  },
+  "dictation": {
+    "transcriptionFailed": "Transcription failed: {detail}",
+    "unknownError": "unknown error",
+    "engineUnavailable": "Dictation engine unavailable: {detail}",
+    "loadFailed": "could not be loaded",
+    "noMicrophoneApi": "This browser does not provide access to the microphone",
+    "microphoneBlocked": "This site is blocked from using the microphone. Open the browser settings → Privacy → Microphone, remove this site from the blocked sites, then reload the page.",
+    "microphoneDenied": "Microphone denied - allow it for this site in the browser settings",
+    "noMicrophone": "No microphone detected",
+    "microphoneUnavailable": "Microphone unavailable"
+  },
+  "unavailable": {
+    "title": "AI assistant unavailable",
+    "detail": "The assistant cannot be reached at the moment. Reload the page or contact an administrator."
+  },
+  "list": {
+    "title": "Conversations",
+    "toast": {
+      "deleted": "{count, plural, =0 {Conversation deleted} one {Conversation deleted} other {# conversations deleted}}"
+    },
+    "lastExchange": "Last message: {date}",
+    "lastExchangeFloating": "Last message: {date} · opened from the floating assistant",
+    "openedFromFloating": "Opened from the floating assistant",
+    "actionsOn": "Actions on {title}",
+    "rename": "Rename",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "search": {
+      "ariaLabel": "Search conversations",
+      "tooltip": "Search in conversations",
+      "placeholder": "Search conversations…"
+    },
+    "sections": {
+      "pinned": "Pinned",
+      "recent": "Recent"
+    },
+    "noMatch": "No conversation matches.",
+    "deleteAll": "Delete all",
+    "deleteAllTooltip": "Deletes every conversation in the list, after confirmation",
+    "confirmDelete": {
+      "title": "Delete this conversation?",
+      "description": "“{title}” and all its messages will be deleted."
+    },
+    "confirmDeleteAll": {
+      "title": "Delete all your conversations?",
+      "description": "{count, plural, =0 {Your conversations and all their messages will be deleted.} one {Your conversation and all its messages will be deleted.} other {Your # conversations and all their messages will be deleted.}} This action cannot be undone."
+    }
+  },
+  "floating": {
+    "title": "AI assistant",
+    "openChat": "Open the AI chat",
+    "replying": "The assistant is replying…",
+    "replyReady": "Reply ready",
+    "hide": {
+      "ariaLabel": "Hide the assistant",
+      "tooltip": "Hide the assistant until the page is next loaded"
+    },
+    "scope": "Scope: {scope}",
+    "history": {
+      "ariaLabel": "Conversation history",
+      "tooltip": "Resume a previous conversation",
+      "title": "Assistant conversations",
+      "empty": "No conversations."
+    },
+    "fullPage": {
+      "ariaLabel": "Open full page",
+      "tooltip": "Open this conversation in the Assistant page"
+    },
+    "collapse": {
+      "ariaLabel": "Collapse the assistant",
+      "tooltip": "Collapse"
+    }
+  },
+  "notify": {
+    "ariaLabel": "Notify me when a reply is ready",
+    "pending": "The browser is asking for permission to show notifications: answer its prompt",
+    "active": "You will get a browser notification as soon as a reply is ready, if you have left this tab. Click to stop.",
+    "inactive": "Notify me with a browser notification as soon as a reply is ready, if I have left this tab"
+  },
+  "thread": {
+    "quotaReached": "Your monthly AI chat quota has been reached. It will reset on {date}.",
+    "toast": {
+      "unfinished": "The assistant could not finish its reply: {error}",
+      "attachmentsNotSent": "{names} - not sent: {model} cannot read this content. Choose a capable model to analyse it.",
+      "attachmentsRemoved": "{names} - removed: {model} cannot read this content."
+    },
+    "openList": "Open the conversation list",
+    "welcome": "What can I do for you?",
+    "suggestions": {
+      "title": "Suggestions",
+      "project": {
+        "progress": "How is this project going? Planned, used and remaining hours.",
+        "whoThisWeek": "Who is working on this project this week?",
+        "lateOrUnassigned": "Which tasks in this project are overdue or unassigned?",
+        "conflicts": "Are there any vehicle or resource conflicts on this project?"
+      },
+      "global": {
+        "availableNextWeek": "Who is available next week?",
+        "summaryByTeam": "Summarise this week’s planning by team.",
+        "overBudget": "Which projects use the most hours compared with their budget?",
+        "unassigned": "Which tasks have nobody assigned?"
+      }
+    },
+    "disclaimer": "The assistant can make mistakes: check important figures.",
+    "disclaimerReadOnly": "The assistant can make mistakes: check important figures. In read-only mode, it never changes your data.",
+    "renameTooltip": "Click to rename the conversation",
+    "untitled": "Conversation",
+    "readOnly": "Read-only",
+    "attachment": "Attachment",
+    "sentToModel": "Sent to the model",
+    "interrupted": "Reply interrupted: {error}",
+    "failed": "The assistant could not reply: {error}"
+  },
+  "message": {
+    "copyFailed": "Copy failed - the browser refused it",
+    "copied": "Copied",
+    "copy": "Copy the text",
+    "resend": "Resend this question",
+    "regenerate": {
+      "ariaLabel": "Regenerate the reply",
+      "tooltip": "Regenerate the reply, with the same model or another one",
+      "with": "Regenerate with"
+    }
+  },
+  "document": {
+    "extracted": "Extracted text · {size}",
+    "chars": "{count, plural, one {# character} other {# characters}}",
+    "thousandChars": "{count}k characters"
+  },
+  "reasoning": {
+    "inProgress": "The model is thinking…",
+    "title": "Model reasoning"
+  },
+  "approval": {
+    "title": "Your approval is required",
+    "request": "The assistant is asking to <b>{action}</b> in your planning.",
+    "note": "Nothing is written until you approve. The change will be recorded under your name.",
+    "approve": "Approve",
+    "reject": "Decline",
+    "technicalDetails": "Technical details"
+  },
+  "unavailability": {
+    "disabled": {
+      "title": "AI chat disabled",
+      "detail": "An administrator can enable it in Settings → AI → AI chat."
+    },
+    "forbidden": {
+      "title": "Access denied",
+      "detail": "Your role does not give access to the AI assistant."
+    },
+    "notConfigured": {
+      "title": "Chat not configured",
+      "detail": "The provider API key is missing (Settings → AI → AI chat)."
+    }
+  },
+  "reasoningLevels": {
+    "none": {
+      "short": "Direct",
+      "label": "No reasoning",
+      "description": "Immediate reply, the cheapest"
+    },
+    "low": {
+      "short": "Quick",
+      "label": "Short reasoning",
+      "description": "A minimal amount of analysis"
+    },
+    "medium": {
+      "short": "Medium",
+      "label": "Medium reasoning",
+      "description": "A balance between accuracy and speed"
+    },
+    "high": {
+      "short": "Deep",
+      "label": "Deep reasoning",
+      "description": "Long analyses, tricky estimates"
+    }
+  },
+  "composer": {
+    "piece": {
+      "thousandCharsRead": "{count}k characters read",
+      "charsRead": "{count, plural, one {# character read} other {# characters read}}",
+      "image": "Image",
+      "imageUnread": "Image - not read by this model",
+      "pdfNative": "PDF - read directly by the model",
+      "pdfNoText": "PDF without text - this model will not be able to read it",
+      "remove": "Remove {name}"
+    },
+    "errors": {
+      "imagesUnsupported": "{name} - {model} does not read images",
+      "readFailed": "could not be read",
+      "pdfNoText": "{name} - PDF without text, unreadable for {model}"
+    },
+    "dropFiles": "Drop your files",
+    "readingDocument": "Reading the document…",
+    "attachmentsPending": "{count, plural, one {# attachment - it will be sent with your next message.} other {# attachments - they will be sent with your next message.}}",
+    "placeholder": {
+      "dictating": "Speak, I’m writing…",
+      "default": "How can I help you?",
+      "noScope": "Choose a scope first…"
+    },
+    "attach": {
+      "tooltip": "Attach a document or an image (PDF, Word, Excel, CSV)",
+      "tooltipNoImages": "Attach a document (PDF, Word, Excel, CSV) - {model} does not read images",
+      "ariaLabel": "Attach a file"
+    },
+    "noImagesTooltip": "This model does not read images. Documents are still analysed: their text is extracted before sending.",
+    "dictation": {
+      "stopTooltip": "Finish dictation and transcribe",
+      "tooltip": "Dictate the question - transcribed locally, no audio is sent",
+      "tooltipGpu": "Dictate the question - transcribed locally, no audio is sent · GPU-accelerated (high-accuracy model)",
+      "tooltipCpu": "Dictate the question - transcribed locally, no audio is sent · processor computing (standard model)",
+      "stopAriaLabel": "Stop dictation",
+      "startAriaLabel": "Dictate the question",
+      "listening": "I’m listening…",
+      "speak": "Speak - dictation stops on its own after a silence",
+      "downloadingWhileSpeaking": "Downloading the {precision, select, high {high-accuracy} other {standard}} model ({percent}%) - the text will appear afterwards",
+      "micRequested": "Microphone permission requested from the browser…",
+      "downloading": "Downloading the {precision, select, high {high-accuracy} other {standard}} dictation model ({percent}%) - only once, then it stays in the cache. Transcription will follow.",
+      "transcribing": "Transcribing…"
+    },
+    "stopReply": "Stop the reply"
+  },
+  "settings": {
+    "reasons": {
+      "missing_api_key": "OpenRouter key missing",
+      "no_model": "No model selected",
+      "disabled": "Chat disabled (switch turned off)"
+    },
+    "loadError": "AI chat settings unavailable",
+    "loading": "Loading AI chat settings…",
+    "saved": "AI chat saved",
+    "status": {
+      "active": "AI chat active",
+      "inactive": "The AI chat is not active: {reasons}",
+      "inactiveHidden": "Until the chat is active, it is hidden for everyone: no sphere, no menu entry, no page."
+    },
+    "chat": {
+      "title": "AI chat",
+      "description": "Built-in conversational assistant, backed by the MCP server tools: it only sees what the user is allowed to see.",
+      "enable": "Enable the AI chat for the whole instance",
+      "note": "When unticked, the assistant disappears from the menu and the sphere is no longer offered, for everyone. Individual access is set by role: “Use the AI assistant” (read) and “Allow changes by the AI assistant” (write, always subject to the user’s confirmation).",
+      "apiKey": {
+        "label": "OpenRouter API key",
+        "envManaged": "Set in .env",
+        "placeholderConfigured": "•••••••• (saved: leave empty to keep it)",
+        "help": "The chat goes through OpenRouter only: routing, privacy and PDF reading depend on it. Recommended: set OPENROUTER_API_KEY in the .env file (the database stores it in plain text)."
+      },
+      "dictation": "Voice dictation (Whisper, local transcription; the model is downloaded from HuggingFace)"
+    },
+    "widget": {
+      "title": "Floating assistant",
+      "description": "The sphere at the bottom right of every screen: the same chat, in a panel, whose tools follow the open page.",
+      "enable": "Offer the floating assistant on every page",
+      "closable": "Let the user hide the sphere, until the page is next loaded",
+      "note": "The sphere only appears to people with access to the AI chat: chat enabled above, and a role that grants it. Hiding the sphere is not stored anywhere: it comes back when the page is reloaded."
+    },
+    "models": {
+      "title": "Models",
+      "description": "The default model applies to new conversations; users can choose from the allowed list. Model changes are saved immediately.",
+      "load": {
+        "label": "Load from OpenRouter",
+        "tooltip": "Fetches the list of models available on OpenRouter"
+      },
+      "loaded": "{count, plural, one {# model available} other {# models available}}",
+      "loadFailed": "Model list unavailable - enter the identifier manually",
+      "default": {
+        "label": "Default model",
+        "placeholder": "Choose a model",
+        "placeholderEmpty": "Add an allowed model first"
+      },
+      "allowed": "Allowed models ({count})",
+      "remove": {
+        "ariaLabel": "Remove {model}",
+        "tooltip": "Remove from the list"
+      },
+      "none": "No allowed model.",
+      "add": "Add a model",
+      "saved": "Models saved"
+    },
+    "privacy": {
+      "title": "Privacy and routing",
+      "description": "OpenRouter-specific options: they decide who processes your exchanges and what they may keep.",
+      "dataCollection": {
+        "label": "Data collection",
+        "deny": "Denied - providers that do not train on your data",
+        "allow": "Allowed",
+        "help": "Denied by default: providers that retain exchanges are excluded from routing."
+      },
+      "zdr": {
+        "label": "Zero data retention (ZDR)",
+        "help": "Only uses endpoints that retain no prompt. This is the strongest guarantee offered by OpenRouter; it narrows the choice of providers and may exclude some models."
+      },
+      "nitro": "Nitro routing - favours the fastest providers, often at a higher cost"
+    },
+    "generation": {
+      "title": "Generation",
+      "description": "These settings affect the length of replies and the reasoning time, and therefore the cost of each exchange.",
+      "reasoning": {
+        "label": "Default reasoning",
+        "options": {
+          "none": "None - immediate reply (cheapest, fastest)",
+          "low": "Short - a minimal amount of analysis",
+          "medium": "Medium - a balance between accuracy and speed",
+          "high": "Deep - long analyses, tricky calculations"
+        },
+        "help": "Before replying, some models reason separately: the higher the level, the more reliable the reply on a calculation or a variance to explain, and the slower and more expensive it is - reasoning tokens are billed. Users can change this level in the chat; a model that cannot reason simply ignores the setting."
+      },
+      "maxTokens": {
+        "label": "Maximum length of a reply",
+        "help": "In tokens - about three quarters of a word each. 8,192 is a very long reply; it is a safety ceiling, not a target. It does not limit the conversation, only each reply."
+      },
+      "temperature": {
+        "label": "Temperature",
+        "help": "The model’s freedom, from 0 to 2. Low, it stays factual and reproducible; high, it becomes inventive. On planning data, 0.3 is a good compromise - avoid going higher."
+      },
+      "maxDuration": {
+        "label": "Maximum duration of a reply (minutes)",
+        "help": "From 1 to 30 minutes. A reply continues and finishes on the server even if the user leaves the page; past this limit, it is interrupted and what has been written is kept."
+      },
+      "concurrent": {
+        "label": "Simultaneous replies per user",
+        "help": "From 1 to 20, across all conversations. Beyond that, a new question is refused until a reply has finished or been stopped. A conversation never has more than one reply in progress at a time."
+      }
+    },
+    "prompt": {
+      "title": "System prompt",
+      "description": "It keeps the assistant within the scope of the planning: outside your data, it refuses. Written in English; the assistant replies in the user’s language.",
+      "resetTooltip": "Revert to the original prompt (remember to save)",
+      "original": "Original prompt",
+      "help": "is replaced by the application title. The typography rule (no em dash) is always added, even with a custom prompt."
+    }
+  },
+  "quotas": {
+    "title": "AI chat quotas",
+    "description": "Monthly cap per person, measured on the actual cost of replies, shared by the Assistant page and the floating assistant. Users only see a gauge, never an amount.",
+    "loading": "Loading quotas…",
+    "toast": {
+      "saved": "AI chat quotas saved",
+      "resetAll": "Quotas reset for everyone",
+      "resetOne": "Quota reset for {name}",
+      "resetOneUnnamed": "Quota reset for this account",
+      "unlimitedOn": "Quota lifted for this account",
+      "unlimitedOff": "Quota restored for this account"
+    },
+    "columns": {
+      "user": "User",
+      "usage": "Usage",
+      "status": "Status"
+    },
+    "resetOn": "Reset on {date}",
+    "unlimited": "Unlimited",
+    "percent": "{percent}%",
+    "reached": "Reached",
+    "noQuota": "No quota",
+    "unlimitedTooltip": "Unlimited quota for this account",
+    "unlimitedAriaLabel": "Unlimited quota for {name}",
+    "resetOneTooltip": "Reset: sets this account’s usage back to zero",
+    "resetOneAriaLabel": "Reset the quota of {name}",
+    "csv": {
+      "name": "Name",
+      "email": "Email",
+      "usage": "Usage (USD)",
+      "percent": "Percentage",
+      "unlimited": "Unlimited",
+      "lastReset": "Last individual reset",
+      "yes": "yes",
+      "no": "no"
+    },
+    "settings": {
+      "title": "Settings",
+      "period": "Current period since {start} · next reset on {next}.",
+      "enableAriaLabel": "Enable the quota",
+      "amount": {
+        "label": "Monthly amount per person",
+        "unit": "$ per month",
+        "help": "In dollars, as OpenRouter bills. 0 lifts the quota for everyone."
+      },
+      "resetDay": {
+        "label": "Reset day",
+        "help": "From the 1st to the 28th of the month, at midnight (instance time zone): that way the day exists every month."
+      },
+      "resetAll": {
+        "label": "Reset for everyone",
+        "tooltip": "Starts again from zero for every account, without waiting for the reset day"
+      },
+      "lastGlobalReset": "Last general reset: {date}."
+    },
+    "searchPlaceholder": "Search for a user…",
+    "exportCsv": "Export (CSV)",
+    "confirmResetAll": {
+      "title": "Reset everyone’s quotas?",
+      "description": "Every account’s usage starts again from zero right now, whatever the reset day. Replies in progress run to completion. The operation is recorded in the log."
+    },
+    "confirmResetOne": {
+      "title": "Reset this account’s quota?",
+      "description": "The usage of <b>{name}</b> starts again from zero right now. The operation is recorded in the log."
+    }
+  }
+}

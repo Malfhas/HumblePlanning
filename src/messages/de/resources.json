@@ -1,0 +1,157 @@
+{
+  "status": {
+    "available": "Verfügbar",
+    "maintenance": "Wartung",
+    "inMaintenance": "In Wartung",
+    "outOfService": "Außer Betrieb"
+  },
+  "assignmentTypes": {
+    "reservation": "Reservierung",
+    "maintenance": "Wartung"
+  },
+  "list": {
+    "permissionDenied": "Unzureichende Berechtigung",
+    "outOfService": "Außer Betrieb",
+    "columns": {
+      "name": "Name",
+      "type": "Typ",
+      "businessUnit": "Business Unit",
+      "status": "Status",
+      "serialNumber": "Seriennr.",
+      "registrationNumber": "Kennzeichen"
+    }
+  },
+  "form": {
+    "nameLabel": "Name *",
+    "typeLabel": "Typ",
+    "businessUnitLabel": "Business Unit",
+    "iconLabel": "Symbol *",
+    "colorLabel": "Farbe *",
+    "statusLabel": "Status",
+    "commentLabel": "Kommentar",
+    "commentPlaceholder": "Optionaler Kommentar…",
+    "preview": "Vorschau",
+    "typePreviewFallback": "Typ",
+    "noBusinessUnit": "Keine",
+    "searchBusinessUnit": "Business Unit suchen…",
+    "noBusinessUnitFound": "Keine Business Unit gefunden",
+    "nameRequired": "Der Name ist erforderlich",
+    "businessUnitRequired": "Die Business Unit ist erforderlich"
+  },
+  "resources": {
+    "searchPlaceholder": "Ressource suchen…",
+    "count": "{count, plural, one {# Ressource} other {# Ressourcen}}",
+    "dialog": {
+      "createTitle": "Neue Ressource",
+      "editTitle": "Ressource bearbeiten",
+      "createDescription": "Füllen Sie die Angaben aus, um eine Ressource zu erstellen.",
+      "editDescription": "Bearbeiten Sie die Angaben der Ressource."
+    },
+    "confirmDelete": {
+      "title": "Ressource löschen",
+      "description": "Dieser Vorgang kann nicht rückgängig gemacht werden. Alle Zuweisungen dieser Ressource werden gelöscht."
+    },
+    "form": {
+      "namePlaceholder": "Name der Ressource",
+      "serialLabel": "Seriennr.",
+      "serialPlaceholder": "Z. B. SN-2024-001",
+      "previewFallback": "Ressource"
+    }
+  },
+  "resourceTypes": {
+    "searchPlaceholder": "Typ suchen…",
+    "dialog": {
+      "createTitle": "Neuer Ressourcentyp",
+      "editTitle": "Typ bearbeiten",
+      "createDescription": "Erstellen Sie einen neuen Ressourcentyp.",
+      "editDescription": "Bearbeiten Sie die Angaben des Typs."
+    },
+    "confirmDelete": {
+      "title": "Ressourcentyp löschen",
+      "description": "Die Ressourcen dieses Typs werden nicht gelöscht, haben aber keinen zugeordneten Typ mehr."
+    }
+  },
+  "vehicles": {
+    "searchPlaceholder": "Fahrzeug suchen…",
+    "count": "{count, plural, one {# Fahrzeug} other {# Fahrzeuge}}",
+    "dialog": {
+      "createTitle": "Neues Fahrzeug",
+      "editTitle": "Fahrzeug bearbeiten",
+      "createDescription": "Füllen Sie die Angaben aus, um ein Fahrzeug zu erstellen.",
+      "editDescription": "Bearbeiten Sie die Angaben des Fahrzeugs."
+    },
+    "confirmDelete": {
+      "title": "Fahrzeug löschen",
+      "description": "Dieser Vorgang kann nicht rückgängig gemacht werden. Alle Zuweisungen dieses Fahrzeugs werden gelöscht."
+    },
+    "form": {
+      "namePlaceholder": "Name des Fahrzeugs",
+      "registrationLabel": "Kennzeichen",
+      "registrationPlaceholder": "Z. B. AB-123-CD",
+      "previewFallback": "Fahrzeug"
+    }
+  },
+  "vehicleTypes": {
+    "searchPlaceholder": "Typ suchen…",
+    "dialog": {
+      "createTitle": "Neuer Fahrzeugtyp",
+      "editTitle": "Typ bearbeiten",
+      "createDescription": "Füllen Sie die Angaben aus, um einen Fahrzeugtyp zu erstellen.",
+      "editDescription": "Bearbeiten Sie die Angaben des Fahrzeugtyps."
+    },
+    "confirmDelete": {
+      "title": "Fahrzeugtyp löschen",
+      "description": "Dieser Vorgang kann nicht rückgängig gemacht werden. Die Fahrzeuge dieses Typs werden nicht gelöscht, aber ihr Typ wird entfernt."
+    }
+  },
+  "assignments": {
+    "locked": "Diese Reservierung ist gesperrt",
+    "willLock": "Wird beim Speichern gesperrt",
+    "willUnlock": "Wird beim Speichern entsperrt",
+    "resourceLabel": "Ressource *",
+    "vehicleLabel": "Fahrzeug *",
+    "typeLabel": "Typ *",
+    "startDateLabel": "Startdatum *",
+    "endDateLabel": "Enddatum *",
+    "durationLabel": "Dauer (Tage) *",
+    "daysPlaceholder": "Anzahl Tage",
+    "startTimeLabel": "Startzeit",
+    "endTimeLabel": "Endzeit",
+    "projectLabel": "Projekt",
+    "searchProject": "Projekt suchen…",
+    "noProjectFound": "Kein Projekt gefunden",
+    "dayProjects": "Projekte des Tages",
+    "allProjects": "Alle Projekte",
+    "notesLabel": "Notizen",
+    "notesRequiredPlaceholder": "Erforderlich, wenn kein Projekt ausgewählt ist",
+    "notesPlaceholder": "Optionale Notizen…",
+    "conflictTitle": "Reservierungskonflikt",
+    "conflictResource": "Diese Ressource ist in diesem Zeitraum bereits reserviert:",
+    "conflictVehicle": "Dieses Fahrzeug ist in diesem Zeitraum bereits reserviert:",
+    "confirmDelete": "Bestätigen?",
+    "lock": "Sperren",
+    "unlock": "Entsperren",
+    "resourceDialog": {
+      "createTitle": "Ressource zuweisen",
+      "editTitle": "Zuweisung bearbeiten",
+      "createDescription": "Erstellen Sie eine Zuweisung oder einen Wartungszeitraum.",
+      "editDescription": "Bearbeiten Sie die Angaben der Zuweisung."
+    },
+    "vehicleDialog": {
+      "createTitle": "Fahrzeug reservieren",
+      "editTitle": "Reservierung bearbeiten",
+      "createDescription": "Erstellen Sie eine Reservierung oder einen Wartungszeitraum.",
+      "editDescription": "Bearbeiten Sie die Angaben der Reservierung."
+    }
+  },
+  "errors": {
+    "resourceNotFound": "Ressource nicht gefunden",
+    "resourceTypeNotFound": "Typ nicht gefunden",
+    "resourceAssignmentNotFound": "Zuweisung nicht gefunden",
+    "vehicleNotFound": "Fahrzeug nicht gefunden",
+    "vehicleTypeNotFound": "Fahrzeugtyp nicht gefunden",
+    "vehicleAssignmentNotFound": "Zuweisung nicht gefunden",
+    "placeNotFound": "Ort nicht gefunden",
+    "reservationLocked": "Diese Reservierung ist gesperrt"
+  }
+}

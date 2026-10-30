@@ -1,0 +1,104 @@
+# Humble Planning — production stack (managed by install.sh).
+#
+# Every setting lives in the .env file next to this file: it is read by
+# Compose for the ${…} variables below and passed to the app containers.
+# Optional services are enabled with COMPOSE_PROFILES in .env:
+#   db      built-in PostgreSQL container (omit it to use an external server)
+#   caddy   Caddy reverse proxy with automatic HTTPS (ports 80/443)
+#
+# The project name comes from COMPOSE_PROJECT_NAME in .env (install.sh sets
+# "humbleplanning"), so run Compose from this directory.
+# Day-to-day management: the `humble-planning` command (status, logs, update,
+# rollback, backup…), which runs Docker Compose in this directory.
+
+x-app: &app
+  # The installed version (HUMBLE_VERSION) is managed by `humble-planning update`.
+  image: ${HUMBLE_IMAGE:-ghcr.io/malfhas/humble-planning}:${HUMBLE_VERSION:?HUMBLE_VERSION must be set in .env}
+  restart: unless-stopped
+  init: true
+  env_file: .env
+  volumes:
+    - uploads:/app/uploads
+    - data:/app/data
+  networks: [backend]
+  extra_hosts:
+    # Lets an external database running on the Docker host be reached as
+    # host.docker.internal.
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    db:
+      condition: service_healthy
+      required: false # the db service is disabled with an external database
+
+services:
+  app:
+    <<: *app
+    command: ["web"]
+    environment:
+      SOCKET_URL: http://socket:3001
+      CLOUDFLARE_API_TOKEN: "" # only Caddy needs it
+    ports:
+      # Loopback only: reached through Caddy or an existing reverse proxy.
+      - "127.0.0.1:${HP_APP_PORT:-3000}:3000"
+
+  socket:
+    <<: *app
+    command: ["socket"]
+    environment:
+      CLOUDFLARE_API_TOKEN: ""
+    ports:
+      - "127.0.0.1:${HP_SOCKET_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "docker-entrypoint.sh", "healthcheck", "socket"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  db:
+    image: postgres:18-alpine
+    profiles: [db]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-humbleplanning}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-humble_planning}
+    volumes:
+      # PostgreSQL 18+ keeps its data in /var/lib/postgresql/<major>/docker:
+      # mount the parent directory so that future major upgrades fit in.
+      - db_data:/var/lib/postgresql
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+
+  caddy:
+    image: ${HUMBLE_CADDY_IMAGE:-ghcr.io/malfhas/humble-planning-caddy}:${HUMBLE_VERSION:?HUMBLE_VERSION must be set in .env}
+    profiles: [caddy]
+    restart: unless-stopped
+    environment:
+      # Used by the Caddyfile as {env.CLOUDFLARE_API_TOKEN} (DNS challenge).
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+    ports:
+      - "${HP_HTTP_PORT:-80}:80"
+      - "${HP_HTTPS_PORT:-443}:443"
+      - "${HP_HTTPS_PORT:-443}:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificates: keep this volume
+      - caddy_config:/config
+    networks: [backend]
+    depends_on: [app, socket]
+
+networks:
+  backend: {}
+
+volumes:
+  db_data: {}
+  uploads: {}
+  data: {}
+  caddy_data: {}
+  caddy_config: {}

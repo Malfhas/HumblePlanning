@@ -1,0 +1,185 @@
+{
+  "accessDenied": "Zugriff verweigert",
+  "empty": "Keine Daten verfügbar",
+  "noTeam": "Ohne Team",
+  "axis": {
+    "hours": "Stunden",
+    "period": "Zeitraum",
+    "euros": "Euro (€)",
+    "laborType": "Arbeitskräftetyp"
+  },
+  "columns": {
+    "project": "Projekt",
+    "status": "Status",
+    "budgetHours": "Budget (h)",
+    "consumedHours": "Verbraucht (h)",
+    "upcomingHours": "Anstehend (h)",
+    "completionPercent": "Fortschritt (%)",
+    "period": "Zeitraum",
+    "count": "Anzahl",
+    "hours": "Stunden",
+    "hoursPerPeriod": "Stunden / Zeitraum",
+    "cumulative": "Kumuliert",
+    "user": "Benutzer",
+    "team": "Team",
+    "plannedHours": "Geplante Stunden",
+    "planned": "Geplant",
+    "capacity": "Kapazität",
+    "occupancyPercent": "Auslastung (%)",
+    "users": "Benutzer",
+    "projects": "Projekte",
+    "laborType": "Arbeitskräftetyp",
+    "initials": "Kürzel",
+    "month": "Monat",
+    "budgetEur": "Budget (€)",
+    "laborCostEur": "Arbeitskosten (€)",
+    "profitEur": "Gewinn (€)",
+    "marginPercent": "Marge (%)",
+    "costEur": "Kosten (€)",
+    "cumulativeEur": "Kumuliert (€)",
+    "avgRate": "Ø Satz (€/h)"
+  },
+  "chart": {
+    "fullscreen": "Vollbild",
+    "exitFullscreen": "Vollbild beenden",
+    "exportCsv": "CSV exportieren",
+    "exportExcel": "Excel exportieren",
+    "sheetName": "Daten"
+  },
+  "filters": {
+    "start": "Beginn",
+    "end": "Ende",
+    "clearAll": "Alle zurücksetzen",
+    "presets": {
+      "month": "Monat",
+      "quarter": "Quartal",
+      "year": "Jahr",
+      "last12Months": "12 Monate"
+    },
+    "granularity": {
+      "day": "Tag",
+      "week": "Woche",
+      "month": "Monat"
+    },
+    "laborTypes": "Arbeitskräftetypen",
+    "weekends": "Wochenenden",
+    "holidays": "Feiertage"
+  },
+  "users": {
+    "title": "Benutzerstatistik",
+    "kpis": {
+      "activeUsers": "Aktive Benutzer",
+      "plannedHours": "Geplante Stunden",
+      "avgPerUser": "Durchschnitt / Benutzer",
+      "avgOccupancy": "Durchschnittliche Auslastung",
+      "capacityPerUser": "Kapazität / Benutzer",
+      "totalCapacity": "Gesamtkapazität"
+    },
+    "series": {
+      "planned": "Geplant",
+      "capacity": "Kapazität",
+      "occupancy": "Auslastung",
+      "hours": "Stunden"
+    },
+    "chargeVsCapacity": {
+      "title": "Geplante Auslastung vs. Kapazität",
+      "description": "Vergleich der geplanten Stunden mit der theoretischen Kapazität pro Benutzer"
+    },
+    "occupancy": {
+      "title": "Auslastung",
+      "description": "Prozentsatz der genutzten theoretischen Kapazität"
+    },
+    "detail": {
+      "title": "Details pro Benutzer",
+      "description": "Geplante Stunden, Kapazität und Auslastung",
+      "available": "Verfügb.",
+      "occupancy": "Auslastung"
+    },
+    "occupancyLevel": {
+      "overload": "Überlastet",
+      "high": "Hoch",
+      "normal": "Normal",
+      "low": "Niedrig"
+    },
+    "timeline": {
+      "title": "Zeitliche Verteilung",
+      "description": "Verteilung der Auslastung über die Zeit"
+    },
+    "byTeam": {
+      "title": "Verteilung nach Team"
+    },
+    "byLaborType": {
+      "title": "Stunden nach Arbeitskräftetyp"
+    }
+  },
+  "projects": {
+    "title": "Projektstatistik",
+    "kpis": {
+      "projects": "Projekte",
+      "activeProjects": "Aktive Projekte",
+      "plannedHours": "Geplante Stunden",
+      "globalCompletion": "Gesamtfortschritt"
+    },
+    "series": {
+      "consumed": "Verbraucht",
+      "upcoming": "Anstehend",
+      "remaining": "Verbleibend",
+      "hoursPerPeriod": "Stunden / Zeitraum",
+      "cumulative": "Kumuliert"
+    },
+    "progress": {
+      "title": "Fortschritt pro Projekt",
+      "description": "Verbrauchte, anstehende und verbleibende Stunden"
+    },
+    "monthly": {
+      "title": "Monatliche Stunden pro Projekt"
+    },
+    "byStatus": {
+      "title": "Projekte nach Status",
+      "count": "{count, plural, one {# Projekt} other {# Projekte}}"
+    },
+    "cumulative": {
+      "title": "Kumulierte Stunden",
+      "description": "Entwicklung der verbrauchten Stunden über die Zeit"
+    }
+  },
+  "roi": {
+    "title": "ROI",
+    "kpis": {
+      "revenue": "Umsatz",
+      "totalLaborCost": "Arbeitskosten gesamt",
+      "grossProfit": "Bruttogewinn",
+      "avgMargin": "Durchschnittliche Marge"
+    },
+    "series": {
+      "budget": "Budget",
+      "cost": "Kosten",
+      "costPerMonth": "Kosten / Monat",
+      "cumulative": "Kumuliert"
+    },
+    "profitByProject": {
+      "title": "Rentabilität pro Projekt",
+      "description": "Kundenbudget vs. tatsächliche Kosten"
+    },
+    "costTimeline": {
+      "title": "Kostenentwicklung",
+      "description": "Monatliche und kumulierte Kosten"
+    },
+    "costByLaborType": {
+      "title": "Kosten nach Arbeitskräftetyp"
+    },
+    "costByUser": {
+      "title": "Top-Benutzer nach Kosten"
+    },
+    "summary": {
+      "title": "Übersichtstabelle",
+      "columns": {
+        "project": "Projekt",
+        "budget": "Budget",
+        "laborCost": "Arbeitskosten",
+        "profit": "Gewinn",
+        "margin": "Marge"
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "maintenance": {
+    "authBadge": "Planung im Wartungsmodus"
+  },
+  "demo": {
+    "banner": "Demo: Die Daten werden jede Nacht um {time} Uhr zurückgesetzt. Verwaltung, Versand und KI-Assistent sind deaktiviert."
+  },
+  "nav": {
+    "home": "Startseite",
+    "planning": "Planung",
+    "tasks": "Aufgaben",
+    "assistant": "KI-Assistent",
+    "businessUnits": "Business Units",
+    "team": "Team",
+    "users": "Benutzer",
+    "teams": "Teams",
+    "qualifications": "Qualifikationen",
+    "laborTypes": "Arbeitskräftetypen",
+    "worksites": "Baustellen",
+    "projects": "Projekte",
+    "projectGroups": "Projektgruppen",
+    "statuses": "Status",
+    "logistics": "Logistik",
+    "vehicles": "Fahrzeuge",
+    "vehicleTypes": "Fahrzeugtypen",
+    "resources": "Ressourcen",
+    "resourceTypes": "Ressourcentypen",
+    "analysis": "Analyse",
+    "statsUsers": "Benutzerstatistik",
+    "statsProjects": "Projektstatistik",
+    "audit": "Audit",
+    "logs": "Protokolle",
+    "export": "Export",
+    "administration": "Verwaltung",
+    "settings": "Einstellungen",
+    "roles": "Rollen",
+    "holidays": "Feiertage",
+    "files": "Dateien"
+  },
+  "sidebar": {
+    "expand": "Ausklappen",
+    "collapse": "Einklappen"
+  },
+  "footer": {
+    "privacy": "Datenschutz"
+  },
+  "userMenu": {
+    "fallbackName": "Benutzer",
+    "account": "Mein Konto",
+    "logOut": "Abmelden",
+    "ariaLabel": "Kontomenü"
+  },
+  "bu": {
+    "all": "Alle BUs",
+    "allLong": "Alle Business Units",
+    "selectedCount": "{count, plural, one {# BU ausgewählt} other {# BUs ausgewählt}}",
+    "searchPlaceholder": "BU suchen…",
+    "empty": "Keine Business Units",
+    "ownOnly": "Zugriff auf Ihre Business Unit beschränkt"
+  },
+  "errorPages": {
+    "notFound": {
+      "title": "Seite nicht gefunden",
+      "subtitle": "Hoppla, diese Seite existiert nicht",
+      "description": "Die gesuchte Seite existiert nicht oder wurde verschoben. Prüfen Sie die Adresse oder kehren Sie zur Startseite zurück.",
+      "footer": "Fehler 404"
+    },
+    "server": {
+      "title": "Unerwarteter Fehler",
+      "subtitle": "Hoppla, etwas ist schiefgelaufen",
+      "description": "Beim Laden dieser Seite ist ein Fehler aufgetreten. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück.",
+      "reference": "Referenz: {digest}",
+      "retry": "Erneut versuchen",
+      "footer": "Serverfehler"
+    }
+  }
+}

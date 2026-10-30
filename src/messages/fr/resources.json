@@ -1,0 +1,157 @@
+{
+  "status": {
+    "available": "Disponible",
+    "maintenance": "Maintenance",
+    "inMaintenance": "En maintenance",
+    "outOfService": "Hors service"
+  },
+  "assignmentTypes": {
+    "reservation": "Réservation",
+    "maintenance": "Maintenance"
+  },
+  "list": {
+    "permissionDenied": "Permission insuffisante",
+    "outOfService": "Hors service",
+    "columns": {
+      "name": "Nom",
+      "type": "Type",
+      "businessUnit": "Business Unit",
+      "status": "Statut",
+      "serialNumber": "N° série",
+      "registrationNumber": "Immatriculation"
+    }
+  },
+  "form": {
+    "nameLabel": "Nom *",
+    "typeLabel": "Type",
+    "businessUnitLabel": "Business Unit",
+    "iconLabel": "Icône *",
+    "colorLabel": "Couleur *",
+    "statusLabel": "Statut",
+    "commentLabel": "Commentaire",
+    "commentPlaceholder": "Commentaire optionnel…",
+    "preview": "Aperçu",
+    "typePreviewFallback": "Type",
+    "noBusinessUnit": "Aucune",
+    "searchBusinessUnit": "Rechercher une business unit…",
+    "noBusinessUnitFound": "Aucune business unit trouvée",
+    "nameRequired": "Le nom est obligatoire",
+    "businessUnitRequired": "La Business Unit est obligatoire"
+  },
+  "resources": {
+    "searchPlaceholder": "Rechercher une ressource…",
+    "count": "{count, plural, one {# ressource} other {# ressources}}",
+    "dialog": {
+      "createTitle": "Nouvelle ressource",
+      "editTitle": "Modifier la ressource",
+      "createDescription": "Remplissez les informations pour créer une ressource.",
+      "editDescription": "Modifiez les informations de la ressource."
+    },
+    "confirmDelete": {
+      "title": "Supprimer la ressource",
+      "description": "Cette action est irréversible. Toutes les affectations de cette ressource seront supprimées."
+    },
+    "form": {
+      "namePlaceholder": "Nom de la ressource",
+      "serialLabel": "N° série",
+      "serialPlaceholder": "Ex : SN-2024-001",
+      "previewFallback": "Ressource"
+    }
+  },
+  "resourceTypes": {
+    "searchPlaceholder": "Rechercher un type…",
+    "dialog": {
+      "createTitle": "Nouveau type de ressource",
+      "editTitle": "Modifier le type",
+      "createDescription": "Créez un nouveau type de ressource.",
+      "editDescription": "Modifiez les informations du type."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le type de ressource",
+      "description": "Les ressources de ce type ne seront pas supprimées mais n'auront plus de type associé."
+    }
+  },
+  "vehicles": {
+    "searchPlaceholder": "Rechercher un véhicule…",
+    "count": "{count, plural, one {# véhicule} other {# véhicules}}",
+    "dialog": {
+      "createTitle": "Nouveau véhicule",
+      "editTitle": "Modifier le véhicule",
+      "createDescription": "Remplissez les informations pour créer un véhicule.",
+      "editDescription": "Modifiez les informations du véhicule."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le véhicule",
+      "description": "Cette action est irréversible. Toutes les assignations de ce véhicule seront supprimées."
+    },
+    "form": {
+      "namePlaceholder": "Nom du véhicule",
+      "registrationLabel": "Immatriculation",
+      "registrationPlaceholder": "Ex : AB-123-CD",
+      "previewFallback": "Véhicule"
+    }
+  },
+  "vehicleTypes": {
+    "searchPlaceholder": "Rechercher un type…",
+    "dialog": {
+      "createTitle": "Nouveau type de véhicule",
+      "editTitle": "Modifier le type",
+      "createDescription": "Remplissez les informations pour créer un type de véhicule.",
+      "editDescription": "Modifiez les informations du type de véhicule."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le type de véhicule",
+      "description": "Cette action est irréversible. Les véhicules de ce type ne seront pas supprimés mais leur type sera retiré."
+    }
+  },
+  "assignments": {
+    "locked": "Cette réservation est verrouillée",
+    "willLock": "Sera verrouillée à l'enregistrement",
+    "willUnlock": "Sera déverrouillée à l'enregistrement",
+    "resourceLabel": "Ressource *",
+    "vehicleLabel": "Véhicule *",
+    "typeLabel": "Type *",
+    "startDateLabel": "Date début *",
+    "endDateLabel": "Date fin *",
+    "durationLabel": "Durée (jours) *",
+    "daysPlaceholder": "Nombre de jours",
+    "startTimeLabel": "Heure début",
+    "endTimeLabel": "Heure fin",
+    "projectLabel": "Projet",
+    "searchProject": "Rechercher un projet…",
+    "noProjectFound": "Aucun projet trouvé",
+    "dayProjects": "Projets du jour",
+    "allProjects": "Tous les projets",
+    "notesLabel": "Notes",
+    "notesRequiredPlaceholder": "Obligatoire sans projet sélectionné",
+    "notesPlaceholder": "Notes optionnelles…",
+    "conflictTitle": "Conflit de réservation",
+    "conflictResource": "Cette ressource est déjà réservée sur cette période :",
+    "conflictVehicle": "Ce véhicule est déjà réservé sur cette période :",
+    "confirmDelete": "Confirmer ?",
+    "lock": "Verrouiller",
+    "unlock": "Déverrouiller",
+    "resourceDialog": {
+      "createTitle": "Affecter une ressource",
+      "editTitle": "Modifier l'affectation",
+      "createDescription": "Créez une affectation ou une période de maintenance.",
+      "editDescription": "Modifiez les informations de l'affectation."
+    },
+    "vehicleDialog": {
+      "createTitle": "Réserver un véhicule",
+      "editTitle": "Modifier la réservation",
+      "createDescription": "Créez une réservation ou une période de maintenance.",
+      "editDescription": "Modifiez les informations de la réservation."
+    }
+  },
+  "errors": {
+    "resourceNotFound": "Ressource non trouvée",
+    "resourceTypeNotFound": "Type introuvable",
+    "resourceAssignmentNotFound": "Assignation introuvable",
+    "vehicleNotFound": "Véhicule non trouvé",
+    "vehicleTypeNotFound": "Type de véhicule non trouvé",
+    "vehicleAssignmentNotFound": "Assignation non trouvée",
+    "placeNotFound": "Lieu non trouvé",
+    "reservationLocked": "Cette réservation est verrouillée"
+  }
+}

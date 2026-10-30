@@ -1,0 +1,532 @@
+{
+  "system": {
+    "superAdmin": "Super Administrateur"
+  },
+  "list": {
+    "title": "Rôles",
+    "accessDenied": "Accès refusé",
+    "searchPlaceholder": "Rechercher un rôle...",
+    "insufficientPermission": "Permission insuffisante",
+    "columns": {
+      "role": "Rôle",
+      "description": "Description",
+      "type": "Type",
+      "permissions": "Permissions",
+      "users": "Utilisateurs"
+    },
+    "types": {
+      "system": "Système",
+      "custom": "Custom"
+    },
+    "allPermissions": "Toutes",
+    "dialog": {
+      "editTitle": "Modifier le rôle",
+      "duplicateTitle": "Dupliquer un rôle",
+      "createTitle": "Nouveau rôle",
+      "editDescription": "Modifiez les informations et permissions du rôle.",
+      "duplicateDescription": "Les permissions et la couleur ont été copiées. Ajustez le nom et validez pour créer le nouveau rôle.",
+      "createDescription": "Configurez le nom et les permissions du nouveau rôle."
+    },
+    "delete": {
+      "title": "Supprimer le rôle",
+      "description": "Le rôle \"{name}\" sera définitivement supprimé. Cette action est irréversible."
+    },
+    "blocked": {
+      "title": "Suppression impossible",
+      "description": "Le rôle <b>{name}</b> est encore utilisé par {count, plural, one {# utilisateur} other {# utilisateurs}}. Réassignez-les à un autre rôle depuis la page <b>Utilisateurs</b>, puis revenez ici pour supprimer le rôle."
+    }
+  },
+  "form": {
+    "name": "Nom *",
+    "color": "Couleur",
+    "description": "Description",
+    "descriptionPlaceholder": "Description optionnelle...",
+    "preview": "Aperçu",
+    "previewFallback": "Rôle",
+    "nameRequired": "Le nom est obligatoire",
+    "permissions": "Permissions",
+    "adminBypass": "(accès total — bypass)",
+    "copyName": "{name} (copie)",
+    "mutexHint": "(1 choix maximum)",
+    "blocks": {
+      "pages": {
+        "title": "Pages accessibles",
+        "subtitle": "Contrôle la visibilité du menu de gauche et l'accès aux routes. Les pages non cochées renvoient un 403."
+      },
+      "actions": {
+        "title": "Actions administratives",
+        "subtitle": "Boutons Créer / Modifier / Supprimer sur les pages de listes et autres actions globales. Ces permissions sont indépendantes du scope planning."
+      },
+      "scope": {
+        "title": "Scope d'affichage et contrôle du planning",
+        "subtitle": "Définit ce que l'utilisateur voit et ce qu'il peut modifier sur le planning et toutes les vues dérivées (liste des tâches, liste des projets, dropdowns). Les 3 premiers groupes sont mutuellement exclusifs — un seul choix par groupe."
+      }
+    }
+  },
+  "categories": {
+    "pages": "Accès aux pages",
+    "projects": "Projets — actions",
+    "users_teams": "Utilisateurs & équipes — actions",
+    "logistics": "Logistique — actions",
+    "referentials": "Référentiels — actions",
+    "audit_export": "Audit, fichiers & exports — actions",
+    "admin": "Administration & sécurité — actions",
+    "integrations": "Intégrations IA (MCP) — actions",
+    "ai_chat": "Assistant IA (chat intégré) — actions",
+    "scope_projects": "Scope du planning — Projets visibles",
+    "scope_users": "Scope du planning — Utilisateurs visibles",
+    "scope_modify": "Scope du planning — Niveau de modification",
+    "scope_bu": "Business Units accessibles",
+    "planning_views": "Scope du planning — Vues autorisées",
+    "task_actions": "Scope du planning — Actions sur les tâches"
+  },
+  "permissions": {
+    "pages": {
+      "home": {
+        "label": "Accueil",
+        "description": "Accéder à la page d'accueil et au tableau de bord personnel."
+      },
+      "planning": {
+        "label": "Planning",
+        "description": "Accéder à la vue planning (Gantt). Ce qui est visible sur le planning dépend du scope défini dans le bloc « Scope du planning »."
+      },
+      "tasks": {
+        "label": "Liste des tâches",
+        "description": "Accéder à la page qui liste toutes les tâches en mode tableau."
+      },
+      "projects": {
+        "label": "Projets",
+        "description": "Accéder à la page des projets ainsi qu'à ses sous-sections (groupes de projets, statuts de tâches)."
+      },
+      "users": {
+        "label": "Utilisateurs",
+        "description": "Accéder à la liste des utilisateurs."
+      },
+      "teams": {
+        "label": "Équipes",
+        "description": "Accéder à la liste des équipes et à leur composition."
+      },
+      "business_units": {
+        "label": "Business Units",
+        "description": "Accéder à la page des Business Units et à leurs adresses."
+      },
+      "qualifications": {
+        "label": "Habilitations",
+        "description": "Accéder à la page des habilitations (CACES, SST, etc.) attribuées aux utilisateurs."
+      },
+      "vehicles": {
+        "label": "Véhicules",
+        "description": "Accéder à la liste des véhicules."
+      },
+      "vehicle_types": {
+        "label": "Types de véhicules",
+        "description": "Accéder à la liste des types de véhicules (fourgon, camion, nacelle...)."
+      },
+      "resources": {
+        "label": "Ressources",
+        "description": "Accéder à la liste des ressources matérielles."
+      },
+      "resource_types": {
+        "label": "Types de ressources",
+        "description": "Accéder à la liste des types de ressources."
+      },
+      "labor_types": {
+        "label": "Types de main-d'œuvre",
+        "description": "Accéder à la liste des types de main-d'œuvre et leurs taux horaires."
+      },
+      "places": {
+        "label": "Lieux",
+        "description": "Accéder à la liste des lieux (adresses réutilisables dans les tâches)."
+      },
+      "holidays": {
+        "label": "Jours fériés",
+        "description": "Accéder à la liste des jours fériés et les importer depuis Nager.date."
+      },
+      "files": {
+        "label": "Gestion des fichiers",
+        "description": "Accéder à la page qui liste tous les fichiers uploadés sur les tâches."
+      },
+      "audit": {
+        "label": "Audit & historiques",
+        "description": "Accéder au journal d'audit, aux logs système et à l'historique des tâches."
+      },
+      "stats_users": {
+        "label": "Stats utilisateurs",
+        "description": "Accéder aux statistiques d'activité des utilisateurs."
+      },
+      "stats_projects": {
+        "label": "Stats projets",
+        "description": "Accéder aux statistiques d'activité et d'avancement des projets."
+      },
+      "stats_roi": {
+        "label": "ROI projets",
+        "description": "Accéder à la page de ROI (retour sur investissement) des projets."
+      },
+      "settings": {
+        "label": "Paramètres",
+        "description": "Accéder à la page des paramètres généraux de l'application."
+      },
+      "roles": {
+        "label": "Rôles",
+        "description": "Accéder à la liste des rôles et de leurs permissions."
+      },
+      "backups": {
+        "label": "Sauvegardes",
+        "description": "Accéder à l'historique des sauvegardes dans les paramètres."
+      }
+    },
+    "projects": {
+      "create": {
+        "label": "Créer des projets",
+        "description": "Créer de nouveaux projets depuis la page Projets ou le formulaire de tâche."
+      },
+      "edit": {
+        "label": "Modifier les projets",
+        "description": "Modifier les informations des projets visibles (nom, couleur, dates, responsable...). Limité au scope projets du bloc 3."
+      },
+      "delete": {
+        "label": "Supprimer des projets",
+        "description": "Supprimer définitivement des projets ainsi que leurs tâches."
+      },
+      "archive": {
+        "label": "Archiver des projets",
+        "description": "Archiver et désarchiver des projets."
+      }
+    },
+    "groups": {
+      "edit": {
+        "label": "Gérer les groupes de projets",
+        "description": "Créer, modifier et supprimer les groupes de projets."
+      }
+    },
+    "statuses": {
+      "edit": {
+        "label": "Gérer les statuts de tâches",
+        "description": "Créer, modifier et supprimer les statuts utilisés pour typer les tâches."
+      }
+    },
+    "users": {
+      "create": {
+        "label": "Créer des utilisateurs",
+        "description": "Créer de nouveaux comptes utilisateur."
+      },
+      "edit": {
+        "label": "Modifier le profil des utilisateurs",
+        "description": "Modifier les informations des utilisateurs visibles (nom, email, habilitations, équipe...). Limité au scope utilisateurs du bloc 3."
+      },
+      "delete": {
+        "label": "Supprimer des utilisateurs",
+        "description": "Supprimer définitivement des comptes utilisateur."
+      }
+    },
+    "teams": {
+      "edit": {
+        "label": "Gérer les équipes",
+        "description": "Créer, modifier et supprimer des équipes et réorganiser leurs membres."
+      }
+    },
+    "business_units": {
+      "create": {
+        "label": "Créer des Business Units",
+        "description": "Créer de nouvelles Business Units."
+      },
+      "edit": {
+        "label": "Modifier les Business Units",
+        "description": "Modifier les informations des Business Units existantes (nom, adresse, couleur...)."
+      },
+      "delete": {
+        "label": "Supprimer des Business Units",
+        "description": "Supprimer définitivement des Business Units."
+      }
+    },
+    "qualifications": {
+      "edit": {
+        "label": "Gérer les habilitations",
+        "description": "Créer, modifier et supprimer les habilitations attribuables aux utilisateurs."
+      }
+    },
+    "vehicles": {
+      "create": {
+        "label": "Créer des véhicules",
+        "description": "Créer de nouveaux véhicules."
+      },
+      "edit": {
+        "label": "Modifier les véhicules",
+        "description": "Modifier les informations des véhicules."
+      },
+      "delete": {
+        "label": "Supprimer des véhicules",
+        "description": "Supprimer définitivement des véhicules."
+      }
+    },
+    "vehicle_types": {
+      "create": {
+        "label": "Créer des types de véhicules",
+        "description": "Créer de nouveaux types de véhicules."
+      },
+      "edit": {
+        "label": "Modifier les types de véhicules",
+        "description": "Modifier les types de véhicules existants."
+      },
+      "delete": {
+        "label": "Supprimer des types de véhicules",
+        "description": "Supprimer définitivement des types de véhicules."
+      }
+    },
+    "resources": {
+      "create": {
+        "label": "Créer des ressources",
+        "description": "Créer de nouvelles ressources matérielles."
+      },
+      "edit": {
+        "label": "Modifier les ressources",
+        "description": "Modifier les informations des ressources matérielles."
+      },
+      "delete": {
+        "label": "Supprimer des ressources",
+        "description": "Supprimer définitivement des ressources matérielles."
+      }
+    },
+    "resource_types": {
+      "edit": {
+        "label": "Gérer les types de ressources",
+        "description": "Créer, modifier et supprimer les types de ressources."
+      }
+    },
+    "labor_types": {
+      "edit": {
+        "label": "Gérer les types de main-d'œuvre",
+        "description": "Créer, modifier et supprimer les types de main-d'œuvre et leurs taux."
+      }
+    },
+    "places": {
+      "edit": {
+        "label": "Gérer les lieux",
+        "description": "Créer, modifier et supprimer les lieux (adresses réutilisables dans les tâches)."
+      }
+    },
+    "holidays": {
+      "edit": {
+        "label": "Gérer les jours fériés",
+        "description": "Créer, modifier, supprimer et importer des jours fériés depuis Nager.date."
+      }
+    },
+    "files": {
+      "view": {
+        "label": "Voir les fichiers",
+        "description": "Voir les fichiers joints aux tâches dans le planning et la page fichiers."
+      },
+      "upload": {
+        "label": "Ajouter des fichiers",
+        "description": "Ajouter des pièces jointes sur les tâches."
+      },
+      "delete": {
+        "label": "Supprimer des fichiers",
+        "description": "Supprimer des pièces jointes sur les tâches."
+      },
+      "purge": {
+        "label": "Purger les fichiers",
+        "description": "Purger définitivement les fichiers orphelins ou trop anciens de la base de données."
+      }
+    },
+    "audit": {
+      "restore": {
+        "label": "Restaurer depuis l'audit",
+        "description": "Restaurer une entité (tâche, projet, etc.) à un état antérieur via le journal d'audit."
+      },
+      "purge": {
+        "label": "Purger le journal d'audit",
+        "description": "Supprimer définitivement les entrées du journal d'audit antérieures à une date."
+      }
+    },
+    "export": {
+      "use": {
+        "label": "Utiliser les exports",
+        "description": "Exporter les données du planning en Excel, PDF, CSV ou iCal."
+      }
+    },
+    "settings": {
+      "edit": {
+        "label": "Modifier les paramètres",
+        "description": "Modifier les paramètres généraux de l'application (branding, email, SMS, cache...)."
+      }
+    },
+    "roles": {
+      "create": {
+        "label": "Créer des rôles",
+        "description": "Créer de nouveaux rôles personnalisés."
+      },
+      "edit": {
+        "label": "Modifier les rôles",
+        "description": "Modifier les rôles existants ainsi que leurs permissions."
+      },
+      "delete": {
+        "label": "Supprimer des rôles",
+        "description": "Supprimer des rôles personnalisés (les rôles système restent insuppressibles)."
+      }
+    },
+    "backups": {
+      "create": {
+        "label": "Créer une sauvegarde",
+        "description": "Créer manuellement une sauvegarde de la base de données."
+      },
+      "download": {
+        "label": "Télécharger une sauvegarde",
+        "description": "Télécharger une sauvegarde existante."
+      },
+      "delete": {
+        "label": "Supprimer une sauvegarde",
+        "description": "Supprimer un fichier de sauvegarde."
+      }
+    },
+    "maintenance": {
+      "bypass": {
+        "label": "Contourner le mode maintenance",
+        "description": "Accéder au planning même lorsque le mode maintenance est activé globalement."
+      }
+    },
+    "notifications": {
+      "view": {
+        "label": "Recevoir les notifications",
+        "description": "Recevoir les notifications via la cloche d'en-tête et le flux temps réel."
+      }
+    },
+    "mcp": {
+      "use": {
+        "label": "Utiliser le connecteur MCP",
+        "description": "Autoriser un assistant IA (Claude, ChatGPT...) à lire les données du planning via le connecteur MCP."
+      },
+      "write": {
+        "label": "Autoriser les écritures MCP",
+        "description": "Autoriser le connecteur MCP à créer, modifier ou supprimer des données (en plus de la lecture)."
+      }
+    },
+    "ai_chat": {
+      "use": {
+        "label": "Utiliser l'assistant IA",
+        "description": "Accéder au chat IA (page Assistant et sphère flottante). L'assistant consulte le planning avec les droits de l'utilisateur."
+      },
+      "write": {
+        "label": "Autoriser les modifications par l'assistant IA",
+        "description": "L'assistant peut proposer de créer, modifier, déplacer, dupliquer ou supprimer des tâches et des projets. Chaque modification exige toujours la confirmation explicite de l'utilisateur. Nécessite « Utiliser l'assistant IA »."
+      }
+    },
+    "scope": {
+      "projects_all": {
+        "label": "Tous les projets",
+        "description": "Voir les tâches de tous les projets sur le planning, sans restriction."
+      },
+      "projects_bu": {
+        "label": "Projets de sa Business Unit",
+        "description": "Voir uniquement les tâches des projets qui appartiennent à sa propre Business Unit."
+      },
+      "projects_team": {
+        "label": "Projets de son équipe",
+        "description": "Voir uniquement les tâches des projets dont le propriétaire est un membre de son équipe."
+      },
+      "projects_own": {
+        "label": "Projets auxquels il participe",
+        "description": "Voir uniquement les tâches des projets dont il est le propriétaire ou auxquels il participe via une tâche assignée."
+      },
+      "projects_assigned_only": {
+        "label": "Tâches qui lui sont assignées",
+        "description": "Voir uniquement les tâches qui lui sont directement assignées, indépendamment du projet."
+      },
+      "users_all": {
+        "label": "Tous les utilisateurs",
+        "description": "Voir les lignes de tous les utilisateurs sur le planning."
+      },
+      "users_bu": {
+        "label": "Utilisateurs de sa Business Unit",
+        "description": "Voir uniquement les utilisateurs appartenant à sa propre Business Unit."
+      },
+      "users_team": {
+        "label": "Utilisateurs de son équipe",
+        "description": "Voir uniquement les membres de son équipe sur le planning."
+      },
+      "users_self": {
+        "label": "Uniquement lui-même",
+        "description": "Voir uniquement sa propre ligne sur le planning."
+      },
+      "modify_readonly": {
+        "label": "Lecture seule",
+        "description": "Aucune modification n'est possible sur le planning. Les actions comme déplacer, redimensionner, créer ou supprimer des tâches sont désactivées, quelles que soient les actions cochées ci-dessous."
+      },
+      "modify_all": {
+        "label": "Tout modifier",
+        "description": "Peut modifier toutes les tâches visibles, sans restriction autre que la visibilité."
+      },
+      "modify_team": {
+        "label": "Tâches de son équipe",
+        "description": "Peut modifier uniquement les tâches assignées à un membre de son équipe."
+      },
+      "modify_own_project": {
+        "label": "Tâches de ses projets",
+        "description": "Peut modifier uniquement les tâches appartenant aux projets dont il est le propriétaire."
+      },
+      "modify_own": {
+        "label": "Ses propres tâches",
+        "description": "Peut modifier uniquement ses propres tâches assignées ou celles qu'il a créées."
+      },
+      "bu_all": {
+        "label": "Toutes les Business Units",
+        "description": "L'utilisateur peut sélectionner n'importe quelle Business Unit dans le sélecteur global et voir les données de toutes les BU."
+      },
+      "bu_own": {
+        "label": "Sa propre Business Unit uniquement",
+        "description": "L'utilisateur voit uniquement les données de sa propre Business Unit. Le sélecteur global est désactivé."
+      }
+    },
+    "planning": {
+      "view_calendar": {
+        "label": "Calendrier personnel",
+        "description": "Autorise l'accès à la vue « Calendrier perso » qui affiche les tâches de l'utilisateur connecté dans un format calendrier journalier."
+      },
+      "view_team_day": {
+        "label": "Vue équipe / jour",
+        "description": "Autorise l'accès à la vue « Équipe/jour » qui affiche les tâches de l'équipe heure par heure sur une journée."
+      },
+      "view_vehicles": {
+        "label": "Vue véhicules",
+        "description": "Autorise l'accès à la vue « Véhicules » qui affiche le planning d'affectation des véhicules."
+      },
+      "view_resources": {
+        "label": "Vue ressources",
+        "description": "Autorise l'accès à la vue « Ressources » qui affiche le planning d'affectation des ressources matérielles."
+      }
+    },
+    "tasks": {
+      "create": {
+        "label": "Créer des tâches",
+        "description": "Peut créer de nouvelles tâches. Les utilisateurs et projets cibles sont limités au scope défini ci-dessus."
+      },
+      "delete": {
+        "label": "Supprimer des tâches",
+        "description": "Peut supprimer des tâches existantes, dans la limite de son niveau de modification."
+      },
+      "assign": {
+        "label": "Assigner des utilisateurs",
+        "description": "Peut ajouter ou retirer des utilisateurs d'une tâche. Les utilisateurs cibles sont limités au scope utilisateurs."
+      },
+      "move": {
+        "label": "Déplacer les tâches",
+        "description": "Peut déplacer des tâches par drag & drop sur le planning (changer la date ou l'utilisateur assigné)."
+      },
+      "resize": {
+        "label": "Redimensionner les tâches",
+        "description": "Peut redimensionner la durée des tâches en tirant leur bord droit sur le planning."
+      },
+      "lock": {
+        "label": "Verrouiller les tâches",
+        "description": "Peut verrouiller et déverrouiller des tâches pour empêcher leur modification accidentelle."
+      }
+    }
+  },
+  "errors": {
+    "notFound": "Rôle introuvable",
+    "cannotRenameSuperAdmin": "Impossible de renommer le rôle Super Administrateur",
+    "cannotEditSuperAdminPermissions": "Impossible de modifier les permissions du rôle Super Administrateur",
+    "cannotDeleteSystem": "Impossible de supprimer un rôle système",
+    "hasUsers": "Impossible de supprimer ce rôle : {count, plural, one {# utilisateur y est encore associé} other {# utilisateurs y sont encore associés}}. Réassignez-les à un autre rôle avant de réessayer."
+  }
+}

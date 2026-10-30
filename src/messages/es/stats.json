@@ -1,0 +1,185 @@
+{
+  "accessDenied": "Acceso denegado",
+  "empty": "No hay datos disponibles",
+  "noTeam": "Sin equipo",
+  "axis": {
+    "hours": "Horas",
+    "period": "Periodo",
+    "euros": "Euros (€)",
+    "laborType": "Tipo de mano de obra"
+  },
+  "columns": {
+    "project": "Proyecto",
+    "status": "Estado",
+    "budgetHours": "Presupuesto (h)",
+    "consumedHours": "Consumido (h)",
+    "upcomingHours": "Por venir (h)",
+    "completionPercent": "Avance (%)",
+    "period": "Periodo",
+    "count": "Número",
+    "hours": "Horas",
+    "hoursPerPeriod": "Horas / periodo",
+    "cumulative": "Acumulado",
+    "user": "Usuario",
+    "team": "Equipo",
+    "plannedHours": "Horas planificadas",
+    "planned": "Planificado",
+    "capacity": "Capacidad",
+    "occupancyPercent": "Ocupación (%)",
+    "users": "Usuarios",
+    "projects": "Proyectos",
+    "laborType": "Tipo de mano de obra",
+    "initials": "Iniciales",
+    "month": "Mes",
+    "budgetEur": "Presupuesto (€)",
+    "laborCostEur": "Coste de MO (€)",
+    "profitEur": "Beneficio (€)",
+    "marginPercent": "Margen (%)",
+    "costEur": "Coste (€)",
+    "cumulativeEur": "Acumulado (€)",
+    "avgRate": "Tarifa media (€/h)"
+  },
+  "chart": {
+    "fullscreen": "Pantalla completa",
+    "exitFullscreen": "Reducir",
+    "exportCsv": "Exportar CSV",
+    "exportExcel": "Exportar Excel",
+    "sheetName": "Datos"
+  },
+  "filters": {
+    "start": "Inicio",
+    "end": "Fin",
+    "clearAll": "Borrar todo",
+    "presets": {
+      "month": "Mes",
+      "quarter": "Trim.",
+      "year": "Año",
+      "last12Months": "12 meses"
+    },
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes"
+    },
+    "laborTypes": "Tipos de mano de obra",
+    "weekends": "Fines de semana",
+    "holidays": "Días festivos"
+  },
+  "users": {
+    "title": "Estadísticas de usuarios",
+    "kpis": {
+      "activeUsers": "Usuarios activos",
+      "plannedHours": "Horas planificadas",
+      "avgPerUser": "Media / usuario",
+      "avgOccupancy": "Ocupación media",
+      "capacityPerUser": "Capacidad / usuario",
+      "totalCapacity": "Capacidad total"
+    },
+    "series": {
+      "planned": "Planificado",
+      "capacity": "Capacidad",
+      "occupancy": "Ocupación",
+      "hours": "Horas"
+    },
+    "chargeVsCapacity": {
+      "title": "Carga planificada frente a capacidad",
+      "description": "Comparación de las horas planificadas y la capacidad teórica por usuario"
+    },
+    "occupancy": {
+      "title": "Ocupación",
+      "description": "Porcentaje de la capacidad teórica utilizada"
+    },
+    "detail": {
+      "title": "Detalle por usuario",
+      "description": "Carga, capacidad y ocupación",
+      "available": "Disp.",
+      "occupancy": "Ocupación"
+    },
+    "occupancyLevel": {
+      "overload": "Sobrecarga",
+      "high": "Alta",
+      "normal": "Normal",
+      "low": "Baja"
+    },
+    "timeline": {
+      "title": "Distribución temporal",
+      "description": "Reparto de la carga en el tiempo"
+    },
+    "byTeam": {
+      "title": "Reparto por equipo"
+    },
+    "byLaborType": {
+      "title": "Horas por tipo de mano de obra"
+    }
+  },
+  "projects": {
+    "title": "Estadísticas de proyectos",
+    "kpis": {
+      "projects": "Proyectos",
+      "activeProjects": "Proyectos activos",
+      "plannedHours": "Horas planificadas",
+      "globalCompletion": "Avance global"
+    },
+    "series": {
+      "consumed": "Consumido",
+      "upcoming": "Por venir",
+      "remaining": "Restante",
+      "hoursPerPeriod": "Horas / periodo",
+      "cumulative": "Acumulado"
+    },
+    "progress": {
+      "title": "Avance por proyecto",
+      "description": "Horas consumidas, por venir y restantes"
+    },
+    "monthly": {
+      "title": "Horas mensuales por proyecto"
+    },
+    "byStatus": {
+      "title": "Proyectos por estado",
+      "count": "{count, plural, one {# proyecto} other {# proyectos}}"
+    },
+    "cumulative": {
+      "title": "Horas acumuladas",
+      "description": "Evolución de las horas consumidas en el tiempo"
+    }
+  },
+  "roi": {
+    "title": "ROI",
+    "kpis": {
+      "revenue": "Facturación",
+      "totalLaborCost": "Coste total de mano de obra",
+      "grossProfit": "Beneficio bruto",
+      "avgMargin": "Margen medio"
+    },
+    "series": {
+      "budget": "Presupuesto",
+      "cost": "Coste",
+      "costPerMonth": "Coste / mes",
+      "cumulative": "Acumulado"
+    },
+    "profitByProject": {
+      "title": "Rentabilidad por proyecto",
+      "description": "Presupuesto del cliente frente a coste real"
+    },
+    "costTimeline": {
+      "title": "Evolución de los costes",
+      "description": "Costes mensuales y acumulado"
+    },
+    "costByLaborType": {
+      "title": "Coste por tipo de mano de obra"
+    },
+    "costByUser": {
+      "title": "Usuarios con mayor coste"
+    },
+    "summary": {
+      "title": "Tabla resumen",
+      "columns": {
+        "project": "Proyecto",
+        "budget": "Presupuesto",
+        "laborCost": "Coste de MO",
+        "profit": "Beneficio",
+        "margin": "Margen"
+      }
+    }
+  }
+}

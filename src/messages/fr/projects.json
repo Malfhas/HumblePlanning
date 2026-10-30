@@ -1,0 +1,178 @@
+{
+  "permissionDenied": "Permission insuffisante",
+  "fields": {
+    "businessNumber": "Numéro d'affaire",
+    "businessNumberShort": "N° affaire",
+    "name": "Nom",
+    "status": "Statut",
+    "group": "Groupe",
+    "businessUnit": "Business Unit",
+    "owner": "Responsable",
+    "color": "Couleur",
+    "description": "Description",
+    "initials": "Initiales",
+    "displayMode": "Mode d'affichage",
+    "style": "Style",
+    "sortOrder": "Ordre"
+  },
+  "validation": {
+    "nameRequired": "Le nom est obligatoire",
+    "businessUnitRequired": "La Business Unit est obligatoire",
+    "ownerRequired": "Le responsable est obligatoire",
+    "initialsRequired": "Les initiales sont obligatoires"
+  },
+  "status": {
+    "todo": "À faire",
+    "in_progress": "En cours",
+    "done": "Terminé",
+    "archived": "Archivé"
+  },
+  "list": {
+    "searchPlaceholder": "Rechercher un projet...",
+    "archivedToggle": "Archivés",
+    "count": "{count, plural, one {# projet} other {# projets}}",
+    "actions": {
+      "laborBudgets": "Budgets main-d'œuvre"
+    }
+  },
+  "dialog": {
+    "createTitle": "Nouveau projet",
+    "editTitle": "Modifier le projet",
+    "duplicateTitle": "Dupliquer un projet",
+    "createDescription": "Remplissez les informations pour créer un projet.",
+    "editDescription": "Modifiez les informations du projet.",
+    "duplicateDescription": "Les champs généraux ont été pré-remplis (groupe, responsable, BU, couleur, budgets main-d'œuvre). Renseignez le nom et le numéro d'affaire pour créer le projet."
+  },
+  "archiveDialog": {
+    "archiveTitle": "Archiver le projet",
+    "unarchiveTitle": "Désarchiver le projet",
+    "archiveDescription": "Le projet sera masqué par défaut. Ses tâches existantes sont conservées et restent accessibles.",
+    "unarchiveDescription": "Le projet sera à nouveau visible dans la liste active et pourra recevoir des tâches."
+  },
+  "confirmDelete": {
+    "title": "Supprimer le projet",
+    "noTasks": "Cette action est irréversible. Voulez-vous continuer ?",
+    "withTasks": "{count, plural, one {Ce projet contient # tâche.} other {Ce projet contient # tâches.}} La suppression détruira toutes les tâches associées. Vous pouvez archiver le projet pour le masquer tout en conservant les tâches."
+  },
+  "form": {
+    "createdOn": "Créé le {date}",
+    "group": {
+      "none": "Aucun groupe",
+      "searchPlaceholder": "Rechercher un groupe...",
+      "empty": "Aucun groupe trouvé",
+      "applyColor": "Appliquer la couleur du groupe"
+    },
+    "businessUnit": {
+      "placeholder": "Sélectionner une business unit",
+      "searchPlaceholder": "Rechercher une business unit...",
+      "empty": "Aucune business unit trouvée"
+    },
+    "owner": {
+      "placeholder": "Sélectionner un responsable",
+      "searchPlaceholder": "Rechercher un utilisateur...",
+      "empty": "Aucun utilisateur trouvé"
+    },
+    "addressNotLocated": "Veuillez sélectionner une adresse dans la liste pour placer le point sur la carte, ou videz le champ adresse"
+  },
+  "laborBudget": {
+    "title": "Budgets main-d'œuvre",
+    "dialogTitle": "Budgets main-d'œuvre — {name}",
+    "projectFallback": "Projet",
+    "empty": "Aucun budget main-d'œuvre défini pour ce projet.",
+    "columns": {
+      "type": "Type",
+      "planned": "Prévu",
+      "consumed": "Consommé",
+      "upcoming": "À venir",
+      "remaining": "Restant",
+      "actualProgress": "Avancement réel",
+      "forecastProgress": "Avancement prévu"
+    },
+    "hours": "{value}h",
+    "legend": {
+      "actualLow": "Réel (<80%)",
+      "actualHigh": "Réel (80-100%)",
+      "overrun": "Dépassement",
+      "forecast": "Prévisionnel"
+    },
+    "noTypes": "Aucun type de main-d'œuvre défini. Configurez-les dans Équipe > Types MO.",
+    "selectType": "Sélectionner un type",
+    "noTypeAvailable": "Aucun type disponible",
+    "hoursPlaceholder": "0,0",
+    "hoursUnit": "h",
+    "addType": "Ajouter un type",
+    "removeLine": "Retirer la ligne",
+    "incomplete": "Veuillez compléter ou supprimer les lignes incomplètes"
+  },
+  "groups": {
+    "noBu": "Hors BU",
+    "empty": "Aucun groupe.",
+    "noProjects": "Aucun projet",
+    "reorderAriaLabel": "Réordonner le groupe",
+    "reorderProjectAriaLabel": "Réordonner le projet",
+    "dialog": {
+      "createTitle": "Ajouter un groupe",
+      "editTitle": "Modifier le groupe",
+      "createDescription": "Créer un nouveau groupe projet.",
+      "editDescription": "Modifier les informations du groupe."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le groupe de projets",
+      "description": "Cette action est irréversible. Les projets associés à ce groupe seront dissociés mais conservés."
+    },
+    "form": {
+      "buPlaceholder": "Sélectionner une BU",
+      "buEmpty": "Aucune Business Unit"
+    }
+  },
+  "statuses": {
+    "searchPlaceholder": "Rechercher un statut...",
+    "displayModes": {
+      "tp": "Titre + %",
+      "t": "Titre",
+      "p": "%"
+    },
+    "dialog": {
+      "createTitle": "Nouveau statut",
+      "editTitle": "Modifier le statut",
+      "createDescription": "Remplissez les informations pour créer un nouveau statut.",
+      "editDescription": "Modifiez les informations du statut."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le statut"
+    },
+    "form": {
+      "namePlaceholder": "Nom du statut",
+      "bold": "Gras",
+      "italic": "Italique",
+      "underline": "Souligné",
+      "strikethrough": "Barré",
+      "percentage": "Pourcentage",
+      "isDefault": "Par défaut"
+    }
+  },
+  "laborTypes": {
+    "searchPlaceholder": "Rechercher un type...",
+    "dialog": {
+      "createTitle": "Nouveau type de main-d'œuvre",
+      "editTitle": "Modifier le type",
+      "createDescription": "Définissez un nouveau type de main-d'œuvre.",
+      "editDescription": "Modifiez les informations."
+    },
+    "confirmDelete": {
+      "title": "Supprimer le type de main-d'œuvre",
+      "cascadeWarning": "Les budgets associés à ce type seront également supprimés."
+    },
+    "form": {
+      "namePlaceholder": "Ex : Responsable d'affaires",
+      "initialsPlaceholder": "Ex : RA"
+    }
+  },
+  "errors": {
+    "notFound": "Projet non trouvé",
+    "notAllowed": "Modification non autorisée",
+    "groupNotFound": "Groupe non trouvé",
+    "statusNotFound": "Statut non trouvé",
+    "laborTypeNotFound": "Type de main-d'œuvre non trouvé"
+  }
+}

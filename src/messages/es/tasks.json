@@ -1,0 +1,96 @@
+{
+  "permissionDenied": "Permiso insuficiente",
+  "list": {
+    "title": "Tareas",
+    "columns": {
+      "project": "Proyecto",
+      "title": "Título",
+      "users": "Usuarios",
+      "dates": "Fechas",
+      "times": "Horarios",
+      "status": "Estado",
+      "place": "Lugar"
+    },
+    "defaultHoursTooltip": "Horario laboral predeterminado (configuración)",
+    "actions": {
+      "viewDetails": "Ver los detalles"
+    },
+    "filters": {
+      "project": "Proyecto",
+      "status": "Estado",
+      "user": "Usuario",
+      "team": "Equipo"
+    },
+    "searchPlaceholder": "Buscar una tarea...",
+    "count": "{count, plural, one {# tarea} other {# tareas}}",
+    "limited": "(limitado a {limit, number})",
+    "notLoaded": "{count, plural, one {# tarea adicional no cargada} other {# tareas adicionales no cargadas}} — aumente el límite para verlo todo."
+  },
+  "dialogs": {
+    "delete": {
+      "title": "Eliminar la tarea"
+    },
+    "multiDelete": {
+      "title": "Tarea asignada a varios usuarios",
+      "description": "{count, plural, one {Esta tarea está asignada a # usuario: {names}.} other {Esta tarea está asignada a # usuarios: {names}.}}",
+      "confirm": "Eliminar para todos",
+      "removeUser": "Quitar un usuario"
+    },
+    "removeUser": {
+      "title": "Quitar un usuario",
+      "description": "Seleccione el usuario que desea quitar de esta tarea."
+    }
+  },
+  "detail": {
+    "untitled": "Sin título",
+    "srDescription": "Detalles de la tarea",
+    "preview": "Vista previa",
+    "recurrence": {
+      "occurrence": "Repetición de una tarea recurrente",
+      "rule": "{type, select, daily {Diaria — {freq, plural, one {todos los días} other {cada # días}}} weekly {Semanal — {freq, plural, one {todas las semanas} other {cada # semanas}}} monthly {Mensual — {freq, plural, one {todos los meses} other {cada # meses}}} other {{type}}}"
+    },
+    "fields": {
+      "project": "Proyecto",
+      "status": "Estado",
+      "dates": "Fechas",
+      "times": "Horarios",
+      "users": "{count, plural, one {Usuario} other {Usuarios (#)}}",
+      "place": "Lugar",
+      "resource": "Recurso",
+      "vehicles": "Vehículos",
+      "linkedResources": "Recursos asociados",
+      "sameSite": "En la misma obra ({count, number})",
+      "siteAddress": "Dirección de la obra",
+      "recurrence": "Recurrencia",
+      "notes": "Notas",
+      "files": "Archivos ({count, number})",
+      "createdBy": "Creado por",
+      "modifiedBy": "Modificado por"
+    }
+  },
+  "errors": {
+    "notFound": "Tarea no encontrada",
+    "projectNotFound": "Proyecto no encontrado",
+    "notAllowed": "Modificación no autorizada",
+    "deleteNotAllowed": "Eliminación no autorizada",
+    "locked": "Esta tarea está bloqueada",
+    "assignForbidden": "No tiene permiso para asignar usuarios",
+    "updateOutOfScope": "Las modificaciones solicitadas quedan fuera de su ámbito autorizado",
+    "moveOutOfScope": "El desplazamiento solicitado queda fuera de su ámbito autorizado",
+    "createForUsersForbidden": "No tiene permiso para crear tareas para estos usuarios",
+    "copyForbidden": "Permiso insuficiente para copiar esta tarea",
+    "insufficientPermission": "Permiso insuficiente",
+    "repeatChildOccurrence": "No se puede convertir en recurrente una repetición de una serie",
+    "recurrenceEndBeforeStart": "La fecha de fin de la recurrencia debe ser posterior a la fecha de inicio",
+    "dailyLimitReached": "Límite alcanzado: {limit, plural, one {# tarea} other {# tareas}} como máximo por usuario y por día (conflicto el {day})",
+    "addFilesForbidden": "Permiso insuficiente para añadir archivos",
+    "deleteFilesForbidden": "Permiso insuficiente para eliminar archivos",
+    "filesDisabled": "La gestión de archivos está desactivada",
+    "maxFilesReached": "{max, plural, one {Se ha alcanzado el máximo de # archivo por tarea} other {Se ha alcanzado el máximo de # archivos por tarea}}",
+    "extensionNotAllowed": "Extensión .{ext} no autorizada. Extensiones autorizadas: {allowed}",
+    "fileTooLarge": "Archivo demasiado grande. Máximo: {max, number} MB",
+    "totalSizeExceeded": "Tamaño total superado. Máximo: {max, number} MB por tarea",
+    "fileIdRequired": "Se requiere fileId",
+    "fileNotFound": "Archivo no encontrado"
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "common": {
+    "permissionDenied": "Permiso insuficiente",
+    "perPage": "Por página",
+    "total": "{count, plural, one {# elemento} other {# elementos}}",
+    "unnamedUser": "Sin nombre"
+  },
+  "audit": {
+    "title": "Registro de auditoría",
+    "purge": "Purgar",
+    "clearFilters": "Borrar todo",
+    "filters": {
+      "type": "Tipo",
+      "action": "Acción",
+      "user": "Usuario",
+      "source": "Origen",
+      "start": "Inicio",
+      "end": "Fin"
+    },
+    "entityFilter": {
+      "task": "Tareas",
+      "project": "Proyectos",
+      "user": "Usuarios",
+      "team": "Equipos",
+      "status": "Estados",
+      "holiday": "Días festivos",
+      "qualification": "Habilitaciones",
+      "vehicle": "Vehículos",
+      "vehicle_type": "Tipos de vehículos",
+      "resource": "Recursos",
+      "resource_type": "Tipos de recursos",
+      "labor_type": "Tipos de mano de obra",
+      "project_group": "Grupos de proyectos",
+      "role": "Roles",
+      "place": "Lugares",
+      "config": "Configuración",
+      "api_key": "Claves de API",
+      "mcp_key": "Claves MCP",
+      "session": "Sesiones"
+    },
+    "sources": {
+      "all": "Todos los orígenes",
+      "web": "Web",
+      "mcp": "MCP",
+      "api": "API"
+    },
+    "columns": {
+      "date": "Fecha",
+      "action": "Acción",
+      "type": "Tipo",
+      "item": "Elemento",
+      "summary": "Resumen",
+      "concerned": "Afectados",
+      "by": "Por"
+    },
+    "purgeDialog": {
+      "title": "Purgar los registros de auditoría",
+      "description": "Eliminar definitivamente todos los registros anteriores a la fecha seleccionada.",
+      "datePlaceholder": "Seleccionar una fecha"
+    },
+    "errors": {
+      "moduleDisabled": "Módulo de auditoría desactivado",
+      "notFound": "Registro no encontrado",
+      "nothingToRestore": "No hay valores que restaurar",
+      "missingEntityId": "Falta el ID de la entidad",
+      "unsupportedEntityType": "Tipo de entidad no compatible con la restauración: {entityType}"
+    }
+  },
+  "auditDetail": {
+    "details": "Detalles",
+    "email": "Correo electrónico:",
+    "ip": "IP:",
+    "userAgent": "Agente:",
+    "type": "Tipo:",
+    "recipients": "Destinatarios:",
+    "file": "Archivo:",
+    "columns": {
+      "field": "Campo",
+      "before": "Antes",
+      "after": "Después",
+      "value": "Valor"
+    }
+  },
+  "restore": {
+    "title": "Confirmar la restauración",
+    "entityLine": "{entity}: {name}",
+    "project": "Proyecto: {name}",
+    "assignedTo": "Asignado a: {names}",
+    "cascade": "{count, plural, one {También se deshará # acción más reciente:} other {También se desharán # acciones más recientes:}}",
+    "columns": {
+      "field": "Campo",
+      "current": "Estado actual",
+      "restored": "Estado restaurado"
+    },
+    "deleted": "Eliminado",
+    "noChanges": "No se ha detectado ningún cambio"
+  },
+  "files": {
+    "title": "Gestión de archivos",
+    "purge": "Purgar",
+    "searchPlaceholder": "Buscar un archivo...",
+    "types": {
+      "placeholder": "Tipo",
+      "all": "Todos los tipos",
+      "image": "Imágenes",
+      "pdf": "PDF",
+      "other": "Otros"
+    },
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de fin",
+    "empty": "No se ha encontrado ningún archivo",
+    "columns": {
+      "name": "Nombre",
+      "task": "Tarea",
+      "project": "Proyecto",
+      "uploadedBy": "Subido por",
+      "date": "Fecha",
+      "hash": "Hash",
+      "size": "Tamaño"
+    },
+    "size": {
+      "bytes": "{value} B",
+      "kb": "{value} KB",
+      "mb": "{value} MB",
+      "gb": "{value} GB"
+    },
+    "viewTask": "Ver la tarea",
+    "deleteDialog": {
+      "title": "Eliminar el archivo",
+      "description": "¿Está seguro de que desea eliminar «{name}»? Esta acción es irreversible."
+    },
+    "purgeDialog": {
+      "title": "Purgar los archivos",
+      "description": "Eliminar definitivamente todos los archivos subidos antes de la fecha seleccionada. Esta acción es irreversible.",
+      "datePlaceholder": "Seleccionar una fecha"
+    },
+    "previewTitle": "Vista previa del archivo",
+    "errors": {
+      "notFound": "Archivo no encontrado"
+    }
+  },
+  "filters": {
+    "errors": {
+      "notFound": "Filtro no encontrado"
+    }
+  },
+  "holidays": {
+    "title": "Días festivos",
+    "searchPlaceholder": "Buscar un día festivo...",
+    "columns": {
+      "date": "Fecha",
+      "label": "Nombre",
+      "color": "Color"
+    },
+    "dialog": {
+      "createTitle": "Añadir un día festivo",
+      "editTitle": "Editar el día festivo",
+      "createDescription": "Crear un nuevo día festivo.",
+      "editDescription": "Editar la información del día festivo."
+    },
+    "deleteTitle": "Eliminar el día festivo",
+    "form": {
+      "date": "Fecha",
+      "datePlaceholder": "Seleccionar una fecha",
+      "label": "Nombre",
+      "color": "Color"
+    },
+    "import": {
+      "title": "Importar días festivos",
+      "description": "Importe automáticamente los días festivos de un país mediante Nager.Date.",
+      "unavailable": "El servicio Nager.Date no está disponible en este momento. Inténtelo de nuevo más tarde.",
+      "checkingService": "Comprobando el servicio...",
+      "country": "País",
+      "countryPlaceholder": "Seleccionar un país",
+      "countrySearch": "Buscar un país...",
+      "countryEmpty": "No se ha encontrado ningún país",
+      "year": "Año",
+      "labelSource": "Nombres importados",
+      "labelSourceLocal": "Nombre local (idioma del país)",
+      "labelSourceEnglish": "Nombre en inglés",
+      "loadingHolidays": "Cargando los días festivos...",
+      "columns": {
+        "date": "Fecha",
+        "label": "Nombre"
+      },
+      "empty": "No se ha encontrado ningún día festivo para este país y este año.",
+      "result": "{count, plural, one {<b>#</b> día festivo importado} other {<b>#</b> días festivos importados}}.",
+      "resultWithSkipped": "{count, plural, one {<b>#</b> día festivo importado} other {<b>#</b> días festivos importados}}, {skipped, plural, one {<b>#</b> omitido (ya existente)} other {<b>#</b> omitidos (ya existentes)}}.",
+      "importing": "Importando...",
+      "importButton": "{count, plural, =0 {Importar} one {Importar # día festivo} other {Importar # días festivos}}"
+    },
+    "errors": {
+      "notFound": "Día festivo no encontrado",
+      "nagerParamsRequired": "Los parámetros country y year son obligatorios",
+      "nagerInvalidType": "Tipo no válido (status, countries o holidays)"
+    }
+  },
+  "logs": {
+    "title": "Registros del sistema",
+    "entries": "{count, plural, one {# entrada} other {# entradas}}",
+    "clear": "Vaciar",
+    "levelPlaceholder": "Nivel",
+    "allLevels": "Todos los niveles",
+    "categoryPlaceholder": "Categoría",
+    "allCategories": "Todas",
+    "loading": "Cargando los registros...",
+    "empty": "Ningún registro",
+    "clearDialog": {
+      "title": "Vaciar los registros del sistema",
+      "description": "Esta acción eliminará todos los registros en memoria. Los registros no se conservan y se perderán definitivamente."
+    }
+  }
+}

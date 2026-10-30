@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "description": "Resource planning tool"
+  },
+  "actions": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "create": "Create",
+    "creating": "Creating…",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "continue": "Continue",
+    "finish": "Finish",
+    "search": "Search",
+    "reset": "Reset",
+    "clear": "Clear",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "download": "Download",
+    "import": "Import",
+    "export": "Export",
+    "send": "Send",
+    "select": "Select",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "collapse": "Collapse",
+    "disable": "Disable",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "restore": "Restore",
+    "test": "Test",
+    "logIn": "Sign in",
+    "searchPlaceholder": "Search…"
+  },
+  "states": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "noResults": "No results",
+    "none": "None",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "unknown": "Unknown",
+    "comingSoon": "Coming soon",
+    "noResultsFor": "No results for “{search}”",
+    "sending": "Sending…"
+  },
+  "status": {
+    "error": "Error"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}"
+  },
+  "table": {
+    "noResults": "No results.",
+    "actions": "Actions",
+    "selectedRows": "{count, plural, =0 {No rows selected} one {# row selected} other {# rows selected}}",
+    "total": "Total"
+  },
+  "confirm": {
+    "title": "Are you sure?",
+    "deleteTitle": "Confirm deletion"
+  },
+  "toast": {
+    "error": "Something went wrong"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "hours": "{count, plural, one {# hour} other {# hours}}",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "weeks": "{count, plural, one {# week} other {# weeks}}",
+    "months": "{count, plural, one {# month} other {# months}}",
+    "never": "Never"
+  },
+  "entities": {
+    "projects": "Projects",
+    "projectGroups": "Project groups",
+    "statuses": "Statuses",
+    "users": "Users",
+    "teams": "Teams",
+    "businessUnits": "Business units",
+    "qualifications": "Qualifications",
+    "laborTypes": "Labour types",
+    "resources": "Resources",
+    "resourceTypes": "Resource types",
+    "vehicles": "Vehicles",
+    "vehicleTypes": "Vehicle types"
+  },
+  "locale": {
+    "label": "Language",
+    "auto": "Automatic",
+    "autoWithLanguage": "Automatic ({language})",
+    "changeError": "Could not change the language"
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "system": "Automatic theme"
+  },
+  "a11y": {
+    "close": "Close",
+    "openMenu": "Open menu",
+    "loading": "Loading"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "layout": {
+    "viewPlanning": "Ver la planificación"
+  },
+  "common": {
+    "greeting": "Hola, <b>{name}</b>:"
+  },
+  "actor": {
+    "system": "Sistema",
+    "unknown": "Desconocido"
+  },
+  "task": {
+    "project": "Proyecto",
+    "dates": "Fechas",
+    "notes": "Notas"
+  },
+  "taskCreated": {
+    "subject": "[{appTitle}] Nueva tarea: {title}",
+    "heading": "Nueva tarea",
+    "intro": "<b>{actor}</b> le ha asignado la tarea <b>{title}</b>."
+  },
+  "taskUpdated": {
+    "subject": "[{appTitle}] Tarea modificada: {title}",
+    "heading": "Tarea modificada",
+    "intro": "<b>{actor}</b> ha modificado la tarea <b>{title}</b>.",
+    "changesLabel": "Modificaciones:"
+  },
+  "taskDeleted": {
+    "subject": "[{appTitle}] Tarea eliminada: {title}",
+    "heading": "Tarea eliminada",
+    "intro": "<b>{actor}</b> ha eliminado la tarea <b>{title}</b>."
+  },
+  "changes": {
+    "field": "{label}: {before} → {after}",
+    "empty": "(vacío)",
+    "fields": {
+      "title": "Título",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "startTime": "Hora de inicio",
+      "endTime": "Hora de fin",
+      "statusId": "Estado",
+      "projectId": "Proyecto",
+      "notes": "Notas"
+    },
+    "usersAdded": "{count, plural, one {Usuario añadido: #} other {Usuarios añadidos: #}}",
+    "usersRemoved": "{count, plural, one {Usuario retirado: #} other {Usuarios retirados: #}}",
+    "fileAdded": "Archivo añadido: {fileName}",
+    "fileDeleted": "Archivo eliminado: {fileName}"
+  },
+  "randomPassword": {
+    "subject": "[{appTitle}] Su contraseña",
+    "heading": "Sus credenciales de acceso",
+    "intro": "Estas son sus credenciales de acceso:",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "changeNotice": "Se le pedirá que cambie su contraseña la próxima vez que inicie sesión."
+  },
+  "passwordReset": {
+    "subject": "[{appTitle}] Cambio de contraseña",
+    "heading": "Solicitud de cambio de contraseña",
+    "intro": "Se ha solicitado un cambio de contraseña para su cuenta. Haga clic en el botón siguiente para definir una nueva contraseña:",
+    "button": "Cambiar mi contraseña",
+    "linkFallback": "Si el botón no funciona, copie y pegue este enlace en su navegador:",
+    "expiry": "Este enlace caduca dentro de <b>{minutes, plural, one {# minuto} other {# minutos}}</b>. Pasado este plazo, tendrá que realizar una nueva solicitud.",
+    "ignore": "Si no ha realizado usted esta solicitud, puede ignorar este correo electrónico."
+  },
+  "weeklySummary": {
+    "subject": "[{appTitle}] Resumen de su semana del {start} al {end}",
+    "heading": "Resumen de la semana",
+    "greeting": "Hola, {name}:",
+    "intro": "Esta es su programación del <b>{start}</b> al <b>{end}</b>.",
+    "noTasks": "Ninguna tarea",
+    "attachments": "{count, plural, one {# archivo adjunto} other {# archivos adjuntos}}"
+  },
+  "test": {
+    "subject": "[{appTitle}] Prueba de conexión del correo electrónico",
+    "heading": "Prueba de conexión del correo electrónico",
+    "body": "Si recibe este correo electrónico, la configuración de correo de <b>{appTitle}</b> funciona correctamente.",
+    "sentAt": "Enviado el {date}"
+  }
+}

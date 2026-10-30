@@ -1,0 +1,137 @@
+{
+  "recurringDelete": {
+    "title": "Eliminar una tarea recurrente",
+    "description": "Esta tarea forma parte de una serie recurrente. ¿Qué desea eliminar?",
+    "single": "Este evento",
+    "after": "Este y los siguientes",
+    "all": "Toda la serie"
+  },
+  "location": {
+    "title": "Ubicación",
+    "projectSite": "Obra del proyecto «{name}»",
+    "noProjectAddress": "No hay ninguna dirección registrada para este proyecto — introduzca un lugar a continuación"
+  },
+  "history": {
+    "unnamed": "Sin nombre",
+    "empty": "Sin historial",
+    "restoreConfirm": "¿Restaurar?"
+  },
+  "recurrence": {
+    "enable": "Repetir esta tarea",
+    "type": {
+      "label": "Tipo",
+      "daily": "Todos los días",
+      "weekly": "Todas las semanas",
+      "monthly": "Todos los meses"
+    },
+    "frequency": "Cada",
+    "unit": {
+      "days": "{count, plural, one {día} other {días}}",
+      "weeks": "{count, plural, one {semana} other {semanas}}",
+      "months": "{count, plural, one {mes} other {meses}}"
+    },
+    "dayOfWeek": "Día de la semana",
+    "endDate": {
+      "label": "Fecha de fin",
+      "placeholder": "Seleccionar una fecha de fin"
+    },
+    "exception": {
+      "label": "Días festivos / fines de semana",
+      "skip": "Ignorar (no crear)",
+      "shift": "Trasladar al siguiente día laborable",
+      "include": "Crear de todos modos"
+    }
+  },
+  "contextMenu": {
+    "permissionDenied": "Permiso insuficiente",
+    "cut": "Cortar",
+    "lock": "Bloquear",
+    "unlock": "Desbloquear",
+    "confirmDelete": "¿Confirmar?",
+    "newTask": "Nueva tarea",
+    "paste": "Pegar"
+  },
+  "dropMenu": {
+    "addUser": "Añadir este usuario",
+    "moveThisUser": "Mover (este usuario)",
+    "moveAll": "Mover (todos)",
+    "move": "Mover"
+  },
+  "dialog": {
+    "title": {
+      "create": "Nueva tarea",
+      "edit": "Editar la tarea"
+    },
+    "description": {
+      "create": "Formulario de creación de una tarea",
+      "edit": "Formulario de modificación de una tarea"
+    },
+    "lock": {
+      "willLock": "La tarea se bloqueará al guardar",
+      "willUnlock": "La tarea se desbloqueará al guardar",
+      "locked": "Esta tarea está bloqueada",
+      "lockTask": "Bloquear la tarea",
+      "unlockTask": "Desbloquear la tarea"
+    },
+    "fields": {
+      "title": {
+        "label": "Título",
+        "placeholder": "Título de la tarea"
+      },
+      "project": {
+        "label": "Proyecto *",
+        "required": "El proyecto es obligatorio",
+        "searchPlaceholder": "Buscar un proyecto...",
+        "empty": "No se ha encontrado ningún proyecto"
+      },
+      "users": {
+        "label": "Usuarios *",
+        "required": "Se requiere al menos un usuario",
+        "count": "{count, plural, one {# usuario} other {# usuarios}}"
+      },
+      "status": {
+        "label": "Estado *"
+      },
+      "startDate": {
+        "label": "Fecha de inicio *",
+        "required": "La fecha de inicio es obligatoria"
+      },
+      "endDate": {
+        "label": "Fecha de fin",
+        "durationLabel": "Duración (días)",
+        "daysPlaceholder": "Número de días"
+      },
+      "startTime": {
+        "label": "Hora de inicio"
+      },
+      "endTime": {
+        "label": "Hora de fin"
+      },
+      "notes": {
+        "label": "Notas",
+        "placeholder": "Notas..."
+      }
+    },
+    "morning": "Mañana",
+    "afternoon": "Tarde",
+    "recurringOccurrence": "Repetición de una tarea recurrente",
+    "files": {
+      "title": "Archivos adjuntos",
+      "add": "Añadir un archivo",
+      "uploading": "Subiendo…",
+      "uploadingShort": "Subiendo…"
+    },
+    "confirmDelete": "¿Confirmar?",
+    "permissionDenied": "Permiso insuficiente",
+    "history": {
+      "tooltip": "Historiales",
+      "permissionRequired": "Se requiere el permiso «Auditoría e historiales»"
+    },
+    "multiDelete": {
+      "title": "Tarea asignada a varios usuarios",
+      "description": "{count, plural, one {Esta tarea está asignada a # usuario.} other {Esta tarea está asignada a # usuarios.}}",
+      "confirm": "Eliminar para todos",
+      "removeUser": "Quitar este usuario"
+    }
+  }
+}

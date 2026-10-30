@@ -1,0 +1,151 @@
+{
+  "search": {
+    "close": "Suche schließen"
+  },
+  "dataTable": {
+    "perPage": "Pro Seite",
+    "count": "{count, plural, one {# Element} other {# Elemente}}",
+    "selectedOf": "{selected} von {count, plural, one {# Element} other {# Elementen}}"
+  },
+  "deleteConfirm": {
+    "description": "Dieser Vorgang kann nicht rückgängig gemacht werden. Möchten Sie fortfahren?"
+  },
+  "dateRange": {
+    "previousPeriod": "Vorheriger Zeitraum",
+    "nextPeriod": "Nächster Zeitraum",
+    "todayShort": "Heute",
+    "shortcuts": "Schnellauswahl — Zeitraum ab heute",
+    "upcoming": "Kommend",
+    "past": "Vergangen",
+    "presets": {
+      "weeks": "{count, plural, one {# Wo.} other {# Wo.}}",
+      "months": "{count, plural, one {# Monat} other {# Monate}}"
+    },
+    "startPicked": "Beginn: <b>{date}</b> — wählen Sie nun das Enddatum",
+    "hint": "Wählen Sie das Start- und dann das Enddatum, um den Zeitraum festzulegen"
+  },
+  "errorState": {
+    "forbidden": {
+      "title": "Zugriff verweigert",
+      "description": "Sie haben nicht die erforderlichen Berechtigungen, um auf diese Seite zuzugreifen. Wenden Sie sich an Ihren Administrator, wenn Sie glauben, dass es sich um einen Fehler handelt."
+    },
+    "unauthenticated": {
+      "title": "Nicht angemeldet",
+      "description": "Sie müssen angemeldet sein, um auf diese Seite zuzugreifen."
+    },
+    "unavailable": {
+      "title": "Dienst nicht verfügbar",
+      "description": "Dieser Dienst ist vorübergehend nicht verfügbar. Versuchen Sie es in Kürze erneut."
+    },
+    "badGateway": {
+      "title": "Gateway-Fehler",
+      "description": "Auf dem Server ist ein vorübergehender Fehler aufgetreten. Versuchen Sie es in Kürze erneut."
+    },
+    "rateLimited": {
+      "title": "Zu viele Anfragen",
+      "description": "Sie haben zu viele Anfragen gestellt. Warten Sie einen Moment, bevor Sie es erneut versuchen."
+    },
+    "unknown": {
+      "code": "Fehler",
+      "title": "Ein Fehler ist aufgetreten",
+      "description": "Ein unerwarteter Fehler ist aufgetreten. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück."
+    }
+  },
+  "fileUpload": {
+    "dropzone": "Dateien hierher ziehen oder klicken",
+    "limits": "{extensions} — max. {maxSize, number} MB/Datei, {maxTotal, number} MB gesamt",
+    "errors": {
+      "extension": "{name}: Dateiendung .{ext} nicht erlaubt",
+      "tooLarge": "{name}: zu groß ({size}, max. {max, number} MB)",
+      "maxFiles": "{name}: maximale Anzahl an Dateien erreicht ({max, number})",
+      "totalSize": "{name}: Gesamtgröße überschritten (max. {max, number} MB)"
+    },
+    "pending": "Ausstehend",
+    "preview": "Dateivorschau",
+    "counter": "{count, number}/{max, number} Dateien — {size}/{maxTotal, number} MB",
+    "size": {
+      "bytes": "{n, number} B",
+      "kb": "{n, number} KB",
+      "mb": "{n, number} MB"
+    }
+  },
+  "filter": {
+    "selectedCount": "{count, plural, one {# ausgewählt} other {# ausgewählt}}",
+    "clear": "Filter zurücksetzen"
+  },
+  "maintenance": {
+    "title": "Wartung läuft",
+    "description": "Die Planung ist wegen Wartungsarbeiten vorübergehend nicht verfügbar. Wir arbeiten daran, Ihr Nutzungserlebnis zu verbessern.",
+    "retryLater": "Bitte versuchen Sie es später erneut"
+  },
+  "permission": {
+    "denied": "Unzureichende Berechtigung"
+  },
+  "phone": {
+    "searchCountry": "Land suchen…",
+    "noCountry": "Kein Land"
+  },
+  "richText": {
+    "placeholder": "Beginnen Sie zu schreiben…",
+    "linkPrompt": "URL des Links",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "heading1": "Überschrift 1",
+    "heading2": "Überschrift 2",
+    "heading3": "Überschrift 3",
+    "bulletList": "Aufzählung",
+    "orderedList": "Nummerierte Liste",
+    "link": "Link",
+    "divider": "Trennlinie",
+    "alignLeft": "Linksbündig",
+    "alignCenter": "Zentrieren",
+    "alignRight": "Rechtsbündig",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "expand": "Vergrößern"
+  },
+  "timePicker": {
+    "hour": "Stunde",
+    "minutes": "Min."
+  },
+  "addressMap": {
+    "loading": "Initialisierung…",
+    "label": "Adresse",
+    "searchPlaceholder": "Adresse, Ort oder Unternehmen suchen…",
+    "satelliteView": "Satellitenansicht",
+    "mapView": "Kartenansicht",
+    "coordinates": "Breite: {lat}, Länge: {lng} — Verschieben Sie die Karte, um die Position anzupassen"
+  },
+  "iconPicker": {
+    "searchPlaceholder": "Symbol suchen…",
+    "categories": {
+      "general": "Allgemein",
+      "technical": "Technik",
+      "transport": "Transport",
+      "health": "Gesundheit",
+      "training": "Schulung",
+      "team": "Team",
+      "security": "Sicherheit",
+      "communication": "Kommunikation",
+      "environment": "Umwelt",
+      "creative": "Kreativ",
+      "development": "Entwicklung",
+      "finance": "Finanzen",
+      "time": "Zeit",
+      "location": "Standort",
+      "organisation": "Organisation",
+      "food": "Lebensmittel",
+      "construction": "Baustelle / Bau",
+      "sport": "Sport",
+      "daily": "Alltag"
+    }
+  },
+  "moduleGuard": {
+    "title": {
+      "resources": "Modul Ressourcen deaktiviert",
+      "vehicles": "Modul Fahrzeuge deaktiviert"
+    },
+    "description": "Dieses Modul wurde vom Administrator in den Einstellungen der Anwendung deaktiviert."
+  }
+}

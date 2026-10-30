@@ -1,0 +1,72 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please search the [existing issues](https://github.com/Malfhas/HumblePlanning/issues) first.
+        **Security vulnerabilities must not be reported here**: follow the [security policy](https://github.com/Malfhas/HumblePlanning/security/policy) instead.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. Screenshots or a short video help a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the schedule
+        2. Drag a task to another day
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Humble Planning version
+      description: Shown in *Settings → Version*, at the bottom of the sidebar, or by `humble-planning status`.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      options:
+        - Installer (install.sh, Docker)
+        - Docker Compose, set up manually
+        - From source (bun run dev / start)
+        - Public demo instance
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: "Firefox 140 on Windows 11, Safari on iPhone…"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant output of `humble-planning logs`, of the browser console or of the server. Remove any personal data, password or token first.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and this bug is not reported yet.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

@@ -1,0 +1,178 @@
+{
+  "permissionDenied": "Permiso insuficiente",
+  "fields": {
+    "businessNumber": "Número de expediente",
+    "businessNumberShort": "N.º exp.",
+    "name": "Nombre",
+    "status": "Estado",
+    "group": "Grupo",
+    "businessUnit": "Business Unit",
+    "owner": "Responsable",
+    "color": "Color",
+    "description": "Descripción",
+    "initials": "Iniciales",
+    "displayMode": "Modo de visualización",
+    "style": "Estilo",
+    "sortOrder": "Orden"
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "businessUnitRequired": "La Business Unit es obligatoria",
+    "ownerRequired": "El responsable es obligatorio",
+    "initialsRequired": "Las iniciales son obligatorias"
+  },
+  "status": {
+    "todo": "Por hacer",
+    "in_progress": "En curso",
+    "done": "Terminado",
+    "archived": "Archivado"
+  },
+  "list": {
+    "searchPlaceholder": "Buscar un proyecto...",
+    "archivedToggle": "Archivados",
+    "count": "{count, plural, one {# proyecto} other {# proyectos}}",
+    "actions": {
+      "laborBudgets": "Presupuestos de mano de obra"
+    }
+  },
+  "dialog": {
+    "createTitle": "Nuevo proyecto",
+    "editTitle": "Editar el proyecto",
+    "duplicateTitle": "Duplicar un proyecto",
+    "createDescription": "Rellene la información para crear un proyecto.",
+    "editDescription": "Modifique la información del proyecto.",
+    "duplicateDescription": "Los campos generales se han rellenado previamente (grupo, responsable, BU, color, presupuestos de mano de obra). Indique el nombre y el número de expediente para crear el proyecto."
+  },
+  "archiveDialog": {
+    "archiveTitle": "Archivar el proyecto",
+    "unarchiveTitle": "Desarchivar el proyecto",
+    "archiveDescription": "El proyecto quedará oculto de forma predeterminada. Sus tareas existentes se conservan y siguen siendo accesibles.",
+    "unarchiveDescription": "El proyecto volverá a estar visible en la lista activa y podrá recibir tareas."
+  },
+  "confirmDelete": {
+    "title": "Eliminar el proyecto",
+    "noTasks": "Esta acción es irreversible. ¿Desea continuar?",
+    "withTasks": "{count, plural, one {Este proyecto contiene # tarea.} other {Este proyecto contiene # tareas.}} La eliminación destruirá todas las tareas asociadas. Puede archivar el proyecto para ocultarlo y conservar las tareas."
+  },
+  "form": {
+    "createdOn": "Creado el {date}",
+    "group": {
+      "none": "Ningún grupo",
+      "searchPlaceholder": "Buscar un grupo...",
+      "empty": "No se ha encontrado ningún grupo",
+      "applyColor": "Aplicar el color del grupo"
+    },
+    "businessUnit": {
+      "placeholder": "Seleccionar una business unit",
+      "searchPlaceholder": "Buscar una business unit...",
+      "empty": "No se ha encontrado ninguna business unit"
+    },
+    "owner": {
+      "placeholder": "Seleccionar un responsable",
+      "searchPlaceholder": "Buscar un usuario...",
+      "empty": "No se ha encontrado ningún usuario"
+    },
+    "addressNotLocated": "Seleccione una dirección de la lista para situar el punto en el mapa, o vacíe el campo de dirección"
+  },
+  "laborBudget": {
+    "title": "Presupuestos de mano de obra",
+    "dialogTitle": "Presupuestos de mano de obra — {name}",
+    "projectFallback": "Proyecto",
+    "empty": "No hay ningún presupuesto de mano de obra definido para este proyecto.",
+    "columns": {
+      "type": "Tipo",
+      "planned": "Previsto",
+      "consumed": "Consumido",
+      "upcoming": "Por venir",
+      "remaining": "Restante",
+      "actualProgress": "Avance real",
+      "forecastProgress": "Avance previsto"
+    },
+    "hours": "{value} h",
+    "legend": {
+      "actualLow": "Real (<80%)",
+      "actualHigh": "Real (80-100%)",
+      "overrun": "Exceso",
+      "forecast": "Previsión"
+    },
+    "noTypes": "No hay ningún tipo de mano de obra definido. Configúrelos en Equipo > Tipos de mano de obra.",
+    "selectType": "Seleccionar un tipo",
+    "noTypeAvailable": "Ningún tipo disponible",
+    "hoursPlaceholder": "0,0",
+    "hoursUnit": "h",
+    "addType": "Añadir un tipo",
+    "removeLine": "Quitar la línea",
+    "incomplete": "Complete o elimine las líneas incompletas"
+  },
+  "groups": {
+    "noBu": "Sin BU",
+    "empty": "Ningún grupo.",
+    "noProjects": "Ningún proyecto",
+    "reorderAriaLabel": "Reordenar el grupo",
+    "reorderProjectAriaLabel": "Reordenar el proyecto",
+    "dialog": {
+      "createTitle": "Añadir un grupo",
+      "editTitle": "Editar el grupo",
+      "createDescription": "Crear un nuevo grupo de proyectos.",
+      "editDescription": "Modificar la información del grupo."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el grupo de proyectos",
+      "description": "Esta acción es irreversible. Los proyectos asociados a este grupo se desvincularán, pero se conservarán."
+    },
+    "form": {
+      "buPlaceholder": "Seleccionar una BU",
+      "buEmpty": "Ninguna Business Unit"
+    }
+  },
+  "statuses": {
+    "searchPlaceholder": "Buscar un estado...",
+    "displayModes": {
+      "tp": "Título + %",
+      "t": "Título",
+      "p": "%"
+    },
+    "dialog": {
+      "createTitle": "Nuevo estado",
+      "editTitle": "Editar el estado",
+      "createDescription": "Rellene la información para crear un nuevo estado.",
+      "editDescription": "Modifique la información del estado."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el estado"
+    },
+    "form": {
+      "namePlaceholder": "Nombre del estado",
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "underline": "Subrayado",
+      "strikethrough": "Tachado",
+      "percentage": "Porcentaje",
+      "isDefault": "Predeterminado"
+    }
+  },
+  "laborTypes": {
+    "searchPlaceholder": "Buscar un tipo...",
+    "dialog": {
+      "createTitle": "Nuevo tipo de mano de obra",
+      "editTitle": "Editar el tipo",
+      "createDescription": "Defina un nuevo tipo de mano de obra.",
+      "editDescription": "Modifique la información."
+    },
+    "confirmDelete": {
+      "title": "Eliminar el tipo de mano de obra",
+      "cascadeWarning": "También se eliminarán los presupuestos asociados a este tipo."
+    },
+    "form": {
+      "namePlaceholder": "Ej.: Jefe de proyecto",
+      "initialsPlaceholder": "Ej.: JP"
+    }
+  },
+  "errors": {
+    "notFound": "Proyecto no encontrado",
+    "notAllowed": "Modificación no autorizada",
+    "groupNotFound": "Grupo no encontrado",
+    "statusNotFound": "Estado no encontrado",
+    "laborTypeNotFound": "Tipo de mano de obra no encontrado"
+  }
+}

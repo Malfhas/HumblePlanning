@@ -1,0 +1,64 @@
+{
+  "banner": {
+    "update": "Mise à jour disponible",
+    "security": "Mise à jour de sécurité",
+    "details": "v{version} · Voir les détails",
+    "dismiss": "Masquer jusqu'à la prochaine version",
+    "withVersion": "{title} : v{version}"
+  },
+  "panel": {
+    "title": "Version",
+    "installed": "Version installée",
+    "latest": "Dernière version disponible",
+    "lastCheck": "Dernière vérification",
+    "publishedOn": "Publiée le {date}",
+    "checkNow": "Vérifier maintenant",
+    "checking": "Vérification…",
+    "checkFailed": "La vérification n'a pas pu être lancée : {message}",
+    "checkNowDisabled": "La vérification est désactivée",
+    "checkNowForbidden": "Réservé aux utilisateurs autorisés à modifier les paramètres",
+    "loading": "Chargement de l'état des mises à jour…",
+    "loadError": "Impossible de charger l'état des mises à jour.",
+    "status": {
+      "up_to_date": "À jour",
+      "update_available": "Mise à jour disponible",
+      "security_update": "Mise à jour de sécurité disponible",
+      "disabled": "Vérification désactivée",
+      "no_release": "Aucune version publiée",
+      "error": "Impossible de vérifier pour le moment"
+    },
+    "hint": {
+      "upToDate": "Vous utilisez la dernière version publiée.",
+      "updateAvailable": "{count, plural, =0 {La version {version} est disponible.} =1 {La version {version} est disponible.} other {La version {version} est disponible : # versions sont sorties depuis la vôtre.}}",
+      "securityUpdate": "Une version plus récente corrige un problème de sécurité : installez-la rapidement.",
+      "disabled": "Le serveur ne contacte pas GitHub. Activez la vérification ci-dessous pour être informé des nouvelles versions.",
+      "noRelease": "Aucune version n'est encore publiée sur le dépôt {repo}.",
+      "knownData": "Les informations ci-dessous datent de la dernière vérification réussie, le {date}."
+    },
+    "errors": {
+      "network": "Le serveur n'a pas pu joindre GitHub (réseau ou pare-feu).",
+      "timeout": "GitHub n'a pas répondu à temps.",
+      "rate_limited": "La limite de requêtes de l'API GitHub est atteinte. Réessayez dans une heure.",
+      "not_found": "Le dépôt {repo} est introuvable sur GitHub, ou n'est pas public.",
+      "http": "GitHub a renvoyé une erreur.",
+      "invalid_response": "La réponse de GitHub est illisible.",
+      "invalid_repo": "La variable HUMBLE_UPDATE_REPO est invalide (format attendu : propriétaire/dépôt)."
+    },
+    "commandUpdate": "Pour installer la version {version}, exécutez cette commande sur le serveur :",
+    "commandIdle": "Les mises à jour s'installent sur le serveur, avec cette commande :",
+    "commandHelp": "Elle sauvegarde la base de données, applique les migrations et revient à la version précédente en cas d'échec. Le panneau d'administration n'installe rien lui-même.",
+    "copied": "Copié",
+    "source": "Source :",
+    "releaseNotes": "Notes de version — v{version}",
+    "viewOnGithub": "Voir sur GitHub",
+    "history": "Historique des versions",
+    "historyCount": "{count, plural, one {# version} other {# versions}}",
+    "badges": {
+      "security": "Sécurité",
+      "new": "Nouvelle",
+      "installed": "Installée",
+      "prerelease": "Pré-version"
+    },
+    "noNotes": "Aucune note de version."
+  }
+}

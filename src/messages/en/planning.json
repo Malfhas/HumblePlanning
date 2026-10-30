@@ -1,0 +1,198 @@
+{
+  "canvas": {
+    "weekAbbr": "Wk",
+    "weekPrefix": "W",
+    "weekLabel": "W{week}",
+    "untitled": "Untitled",
+    "loadError": "Loading error: {message}",
+    "multiDelete": {
+      "title": "Task assigned to several users",
+      "description": "{count, plural, =0 {This task is not assigned to any user.} one {This task is assigned to # user.} other {This task is assigned to # users.}}",
+      "confirm": "Delete for everyone",
+      "archive": "Remove this user"
+    }
+  },
+  "data": {
+    "assignmentTypes": {
+      "task": "Task",
+      "reservation": "Booking",
+      "maintenance": "Maintenance"
+    },
+    "vehicleFallback": "Vehicle",
+    "resourceFallback": "Resource",
+    "holidayFallback": "Public holiday"
+  },
+  "rows": {
+    "noTeam": "No team",
+    "noGroup": "No group",
+    "noType": "No type",
+    "noBu": "No BU"
+  },
+  "clipboard": {
+    "copied": "Copied",
+    "cut": "Cut",
+    "pasted": "Pasted"
+  },
+  "grid": {
+    "taskFallback": "Task",
+    "clipboard": {
+      "copied": "Copied: {title}",
+      "cut": "Cut: {title}",
+      "pastedCopy": "Pasted (copy)",
+      "pastedMove": "Pasted (moved)"
+    },
+    "noVisibleUsers": "No visible users. Check the filters or the view mode.",
+    "allDay": "All day"
+  },
+  "a11y": {
+    "gridLabel": "Schedule grid",
+    "dateRange": "from {start} to {end}",
+    "dateSingle": "on {date}",
+    "timeRange": "from {start} to {end}",
+    "timeSingle": "at {time}",
+    "project": "project {name}",
+    "assignedTo": "assigned to {names}",
+    "locked": "locked"
+  },
+  "skeleton": {
+    "loading": "Loading the schedule…"
+  },
+  "summary": {
+    "tasks": "<b>{count, number}</b> {count, plural, one {task} other {tasks}}",
+    "days": "<b>{count, number}</b> {count, plural, one {day} other {days}}",
+    "hoursTotal": "Total: {count, plural, one {# task} other {# tasks}}"
+  },
+  "liveStatus": {
+    "live": {
+      "label": "Live",
+      "ariaLabel": "Real-time connection active",
+      "tooltip": "The schedule is synchronised in real time. Changes made by other users appear immediately."
+    },
+    "offline": {
+      "label": "Offline",
+      "ariaLabel": "Real-time connection lost",
+      "tooltip": "Real-time connection interrupted. The schedule refreshes automatically every 2 minutes until the connection is restored. You can keep working as usual."
+    }
+  },
+  "tooltips": {
+    "untitled": "Untitled",
+    "task": {
+      "resourceConflict": "Conflict — this resource is already booked for this period",
+      "vehicleConflict": "Conflict — this vehicle is already booked for this period"
+    },
+    "user": {
+      "fallbackName": "User"
+    },
+    "project": {
+      "fallbackName": "Project",
+      "status": {
+        "todo": "To do",
+        "in_progress": "In progress",
+        "done": "Done",
+        "archived": "Archived"
+      }
+    },
+    "vehicle": {
+      "fallbackName": "Vehicle",
+      "status": {
+        "available": "Available",
+        "maintenance": "Under maintenance",
+        "out_of_service": "Out of service"
+      }
+    }
+  },
+  "filters": {
+    "title": "Filters",
+    "activeCount": "{count, plural, one {# active} other {# active}}",
+    "description": "Advanced schedule filters",
+    "search": {
+      "label": "Text search",
+      "placeholder": "Search in tasks..."
+    },
+    "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+    "clearFilter": "Clear this filter",
+    "selectPlaceholder": "Select...",
+    "empty": "No items found",
+    "noTeam": "No team",
+    "noGroup": "No group",
+    "projectGroups": "Project groups",
+    "siteAddresses": "Site addresses",
+    "saved": {
+      "title": "Saved filters",
+      "saveCurrent": "Save the current filter",
+      "namePlaceholder": "Filter name",
+      "saveAriaLabel": "Save the filter",
+      "deleteTitle": "Delete the filter",
+      "deleteDescription": "Delete the filter “{name}”? This action cannot be undone."
+    }
+  },
+  "toolbar": {
+    "viewModes": {
+      "users": "Users",
+      "projects": "Projects"
+    },
+    "calendarModes": {
+      "planning": "Schedule",
+      "personal": "My calendar",
+      "teamDay": "Team/day"
+    },
+    "sort": {
+      "nameAsc": "Name A → Z",
+      "nameDesc": "Name Z → A",
+      "custom": "Manual order (teams and members)",
+      "teamAlphaCustom": "Teams A → Z, manual order of members",
+      "teamNameAsc": "Teams A → Z, members A → Z",
+      "teamNameDesc": "Teams Z → A, members A → Z",
+      "customBu": "BU A → Z, members A → Z",
+      "customBuTeam": "BU A → Z, teams A → Z, manual order of members",
+      "customBuUser": "BU A → Z, manual order (teams and members)",
+      "customGroup": "Manual order (groups and projects)",
+      "groupAlphaCustom": "Groups A → Z, manual order of projects",
+      "groupNameAsc": "Groups A → Z, projects A → Z",
+      "groupNameDesc": "Groups Z → A, projects A → Z",
+      "customBuGroup": "BU A → Z, manual order (groups and projects)",
+      "customBuGroupAlpha": "BU A → Z, groups A → Z, projects A → Z",
+      "typeNameAsc": "By type, name A → Z",
+      "typeNameDesc": "By type, name Z → A"
+    },
+    "cellWidth": {
+      "label": "Column width",
+      "mobileCap": "Capped at {max}px on mobile (your {width}px preference will be restored on a wide screen).",
+      "compact": "Compact",
+      "wide": "Wide"
+    },
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "todayShort": "Today",
+    "permissionDenied": "Insufficient permissions",
+    "calendar": {
+      "selectUser": "Select...",
+      "noUser": "No user",
+      "hoursView": "Hour view",
+      "daysView": "Day view",
+      "daysShort": "{count}d",
+      "showWorkingHours": "Show working hours",
+      "show24h": "Show 24 hours"
+    },
+    "filters": "Filters",
+    "showMenu": "Show the menu",
+    "hideMenu": "Hide the menu",
+    "newTask": "New task",
+    "columnMode": {
+      "hours": "Hours",
+      "days": "Days",
+      "switchToDays": "Day view",
+      "switchToHours": "Hour view"
+    },
+    "sortLabel": "Sort",
+    "export": "Export",
+    "display": {
+      "label": "Display",
+      "tooltip": "Display options",
+      "showSummary": "Show the total at the bottom of the schedule",
+      "userCountIcon": "Multiple users icon",
+      "fileIcon": "Attachment icon",
+      "rowAvatar": "Profile picture"
+    }
+  }
+}
