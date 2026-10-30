@@ -190,6 +190,8 @@ Built with [Next.js](https://nextjs.org/) 16, React 19, TypeScript, [Bun](https:
 
 Bug reports, ideas, translations and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) to set up the project and learn what is checked before a change is merged. Commits are signed off under the [Developer Certificate of Origin](DCO) (`git commit -s`): you keep the copyright of your contribution. Questions and ideas go to [Discussions](https://github.com/Malfhas/HumblePlanning/discussions). Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
+If Humble Planning is useful to you, you can support its development through [GitHub Sponsors](https://github.com/sponsors/Malfhas).
+
 ## Security
 
 Please do not report security vulnerabilities in public issues. Use GitHub's [private vulnerability reporting](https://github.com/Malfhas/HumblePlanning/security/advisories/new) instead, as described in the [security policy](SECURITY.md).
