@@ -31,6 +31,9 @@ jobs:
       - name: Type check
         run: bunx tsc --noEmit
       - name: Unit tests
+        env:
+          # Some modules create the database client when imported; no connection is made.
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test
         run: bun test
       - name: Lint
         run: bun run lint

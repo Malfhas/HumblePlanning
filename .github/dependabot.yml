@@ -13,6 +13,18 @@ updates:
         update-types: [minor, patch]
       major:
         update-types: [major]
+    ignore:
+      # Major upgrades with breaking changes, planned separately
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: drizzle-orm
+        update-types: ["version-update:semver-major"]
+      - dependency-name: drizzle-kit
+        update-types: ["version-update:semver-major"]
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/react-table"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
