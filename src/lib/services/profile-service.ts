@@ -1,14 +1,14 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { accounts, sessions } from "@/db/schema/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import type { UpdateProfile, UpdatePreferences } from "@/lib/validators/profile";
-import { logAudit, computeChanges, pickAuditFields } from "./audit-service";
+import { logAudit, computeChanges } from "./audit-service";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { getConfigValues } from "./config-service";
 import { policyFromConfig, evaluatePassword, PWD_CONFIG_KEYS } from "@/lib/password-policy";
 import { isPasswordReused, isPasswordBlacklisted, addPasswordToHistory } from "./password-history-service";
-import { getUserById, passwordNotCompliantError, passwordRejectedError } from "./user-service";
+import { getUserById, passwordNotCompliantError, passwordRejectedError, userSafeColumns } from "./user-service";
 import { AppError } from "@/lib/errors";
 import { assertNotDemoAccount } from "@/lib/demo";
 
@@ -33,7 +33,7 @@ export async function updateProfile(userId: string, data: UpdateProfile) {
       color: data.color,
     })
     .where(eq(users.id, userId))
-    .returning();
+    .returning(userSafeColumns);
 
   if (user && oldUser) {
     const changes = computeChanges(
@@ -57,7 +57,28 @@ export async function updateProfile(userId: string, data: UpdateProfile) {
   return user;
 }
 
-export async function changeProfilePassword(userId: string, currentPassword: string, newPassword: string) {
+/**
+ * Signs the user out of their other devices after a password change: deletes
+ * every session except the current one. No `session:revoked` socket event,
+ * it would also redirect the tabs of the current session to /login.
+ */
+export async function revokeOtherSessions(userId: string, currentSessionId: string | undefined) {
+  const condition = currentSessionId
+    ? and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId))
+    : eq(sessions.userId, userId);
+  const revoked = await db.delete(sessions).where(condition).returning({ id: sessions.id });
+  if (revoked.length > 0) {
+    logAudit({
+      userId,
+      action: "session_revoke",
+      entityType: "session",
+      entityId: userId,
+      metadata: { targetUserId: userId, reason: "password_change", count: revoked.length },
+    }).catch(() => {});
+  }
+}
+
+export async function changeProfilePassword(userId: string, currentPassword: string, newPassword: string, currentSessionId?: string) {
   assertNotDemoAccount(userId);
 
   // Verify current password
@@ -97,6 +118,8 @@ export async function changeProfilePassword(userId: string, currentPassword: str
 
   // Reset forcePasswordChange
   await db.update(users).set({ forcePasswordChange: false }).where(eq(users.id, userId));
+
+  await revokeOtherSessions(userId, currentSessionId);
 
   const selfUser = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { name: true, username: true } });
   await logAudit({

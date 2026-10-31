@@ -9,22 +9,43 @@ import { verifyCaptcha } from "@/lib/captcha";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
+import { FailureLimiter } from "@/lib/utils/failure-limiter";
 import crypto from "node:crypto";
 
 // Rate limiting is in-memory (per-process). This works for single-instance deployments.
 // For multi-instance/cluster deployments, migrate to Redis-backed rate limiting.
-type AttemptEntry = { count: number; lockedUntil: number | null };
+type AttemptEntry = { count: number; lockedUntil: number | null; lastFailureAt: number };
 const attempts = new Map<string, AttemptEntry>();
+
+// Second lock, per identifier whatever the IP: the client address can be
+// spoofed (TRUSTED_PROXY=cloudflare with the origin reachable directly), which
+// would make the identifier+IP lock alone ineffective.
+const IDENTIFIER_MAX_FAILURES = 20;
+const IDENTIFIER_LOCK_MS = 15 * 60 * 1000;
+const identifierFailures = new FailureLimiter({
+  maxFailures: IDENTIFIER_MAX_FAILURES,
+  windowMs: IDENTIFIER_LOCK_MS,
+  lockMs: IDENTIFIER_LOCK_MS,
+});
+
+/** Unlocked identifier+IP counters idle for this long are forgotten (bounded memory). */
+const STALE_ATTEMPT_MS = 24 * 60 * 60 * 1000;
 
 // Cleanup old entries every 10 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of attempts) {
-    if (entry.lockedUntil && now > entry.lockedUntil + 60_000) {
-      attempts.delete(key);
-    }
+    const expired = entry.lockedUntil
+      ? now > entry.lockedUntil + 60_000
+      : now - entry.lastFailureAt > STALE_ATTEMPT_MS;
+    if (expired) attempts.delete(key);
   }
+  identifierFailures.prune();
 }, 10 * 60 * 1000);
+
+function getIdentifierKey(identifier: string): string {
+  return identifier.trim().toLowerCase();
+}
 
 function getAttemptKey(identifier: string, ip: string): string {
   return `${identifier.toLowerCase()}:${ip}`;
@@ -33,9 +54,11 @@ function getAttemptKey(identifier: string, ip: string): string {
 async function checkBruteforce(identifier: string, ip: string): Promise<{ blocked: boolean; remainingSeconds: number }> {
   const config = await getConfigValues(["BRUTEFORCE_MAX_ATTEMPTS", "BRUTEFORCE_LOCKOUT_SECONDS"]);
   const maxAttempts = parseInt(config.BRUTEFORCE_MAX_ATTEMPTS ?? "5") || 0;
-  const lockoutSeconds = parseInt(config.BRUTEFORCE_LOCKOUT_SECONDS ?? "300") || 300;
 
   if (maxAttempts <= 0) return { blocked: false, remainingSeconds: 0 };
+
+  const identifierLock = identifierFailures.lockedFor(getIdentifierKey(identifier));
+  if (identifierLock > 0) return { blocked: true, remainingSeconds: identifierLock };
 
   const key = getAttemptKey(identifier, ip);
   const entry = attempts.get(key);
@@ -59,22 +82,27 @@ async function recordFailedAttempt(identifier: string, ip: string): Promise<{ lo
 
   if (maxAttempts <= 0) return { locked: false, remainingSeconds: 0 };
 
+  const identifierLock = identifierFailures.recordFailure(getIdentifierKey(identifier));
+
   const key = getAttemptKey(identifier, ip);
-  const entry = attempts.get(key) ?? { count: 0, lockedUntil: null };
+  const entry = attempts.get(key) ?? { count: 0, lockedUntil: null, lastFailureAt: 0 };
   entry.count++;
+  entry.lastFailureAt = Date.now();
 
   if (entry.count >= maxAttempts) {
     entry.lockedUntil = Date.now() + lockoutSeconds * 1000;
     attempts.set(key, entry);
-    return { locked: true, remainingSeconds: lockoutSeconds };
+    return { locked: true, remainingSeconds: Math.max(lockoutSeconds, identifierLock) };
   }
 
   attempts.set(key, entry);
+  if (identifierLock > 0) return { locked: true, remainingSeconds: identifierLock };
   return { locked: false, remainingSeconds: 0 };
 }
 
 function clearAttempts(identifier: string, ip: string) {
   attempts.delete(getAttemptKey(identifier, ip));
+  identifierFailures.clear(getIdentifierKey(identifier));
 }
 
 /** 429 "too many attempts": remaining delay in minutes beyond one minute, otherwise in seconds. */
@@ -113,7 +141,7 @@ export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
   const userAgent = request.headers.get("user-agent") || "unknown";
 
-  if (!identifier || !password) {
+  if (typeof identifier !== "string" || typeof password !== "string" || !identifier || !password) {
     return handleApiError(new AppError("auth.errors.credentialsRequired"));
   }
 

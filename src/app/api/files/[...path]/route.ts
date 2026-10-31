@@ -1,7 +1,10 @@
 import { NextRequest } from "next/server";
-import { join, resolve, extname } from "node:path";
-import { stat, readFile } from "node:fs/promises";
-import { requireAuth, requirePermission, handleApiError, ApiError } from "@/lib/utils/api";
+import { extname } from "node:path";
+import { readFile } from "node:fs/promises";
+import { requireAuth, handleApiError, ApiError, assertUuid } from "@/lib/utils/api";
+import { loadUserPermissions, hasPermission, assertTaskReadable } from "@/lib/services/permission-service";
+import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
+import { contentDisposition } from "@/lib/utils/file-response";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -24,6 +27,11 @@ function getMimeType(ext: string): string {
   return mimeMap[ext.toLowerCase()] || "application/octet-stream";
 }
 
+/**
+ * Task attachment: `/api/files/tasks/{taskId}/{fileName}`, the only URL the UI
+ * builds (avatars and branding have their own routes). The task must be in
+ * the user's read scope and the file listed in its metadata.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -31,59 +39,48 @@ export async function GET(
   try {
     const session = await requireAuth();
     // Allow access with either files:view (task attachments) or pages:files (files page)
-    const { loadUserPermissions, hasPermission } = await import("@/lib/services/permission-service");
     const perms = await loadUserPermissions(session.user.id);
     if (!hasPermission(perms, "files:view") && !hasPermission(perms, "pages:files")) {
       throw new ApiError("errors.forbidden");
     }
     const { path: pathSegments } = await params;
-    const uploadsDir = join(process.cwd(), "uploads");
-
-    let resolvedPath: string;
-
-    // Check if this is a task file request (path: tasks/{taskId}/{fileName})
-    if (pathSegments[0] === "tasks" && pathSegments.length >= 3) {
-      const taskId = pathSegments[1];
-      const fileName = pathSegments.slice(2).join("/");
-
-      // Look up the task's files JSONB for a storageKey
-      const task = await db.query.tasks.findFirst({
-        where: eq(tasks.id, taskId),
-        columns: { files: true },
-      });
-      const files = (task?.files ?? []) as { name?: string; storageKey?: string }[];
-      const fileEntry = files.find(f => f.name === fileName);
-
-      if (fileEntry?.storageKey) {
-        // Content-addressable path
-        resolvedPath = join(uploadsDir, "files", fileEntry.storageKey);
-      } else {
-        // Legacy path (backwards compat)
-        resolvedPath = resolve(uploadsDir, ...pathSegments);
-      }
-    } else {
-      resolvedPath = resolve(uploadsDir, ...pathSegments);
+    if (pathSegments[0] !== "tasks" || pathSegments.length < 3) {
+      throw new ApiError("admin.files.errors.notFound");
     }
+    const taskId = pathSegments[1];
+    const fileName = pathSegments.slice(2).join("/");
+    assertUuid(taskId);
+    await assertTaskReadable(perms, taskId);
 
-    // Security: ensure path is within uploads directory (prevent path traversal)
-    if (!resolvedPath.startsWith(uploadsDir)) {
-      throw new ApiError("errors.forbidden");
-    }
+    const task = await db.query.tasks.findFirst({
+      where: eq(tasks.id, taskId),
+      columns: { files: true },
+    });
+    const files = (task?.files ?? []) as { name?: string; originalName?: string; storageKey?: string }[];
+    const fileEntry = files.find(f => f.name === fileName);
+    if (!fileEntry) throw new ApiError("admin.files.errors.notFound");
 
-    // Check file exists
+    // Content-addressable path, or legacy per-task folder (backwards compat).
+    // Database values only reach the filesystem once confined to their area.
+    const resolvedPath = fileEntry.storageKey
+      ? (isValidStorageKey(fileEntry.storageKey) ? safeUploadPath("files", fileEntry.storageKey) : null)
+      : safeUploadPath(`tasks/${taskId}`, fileName);
+    if (!resolvedPath) throw new ApiError("admin.files.errors.notFound");
+
+    let fileBuffer: Buffer;
     try {
-      await stat(resolvedPath);
+      fileBuffer = await readFile(resolvedPath);
     } catch {
       throw new ApiError("admin.files.errors.notFound");
     }
-
-    const fileBuffer = await readFile(resolvedPath);
-    const ext = extname(resolvedPath);
+    const contentType = getMimeType(extname(resolvedPath));
 
     return new Response(new Uint8Array(fileBuffer), {
       headers: {
-        "Content-Type": getMimeType(ext),
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Type": contentType,
+        // Access-controlled content: never stored by the browser or a shared cache.
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": contentDisposition(contentType, fileEntry.originalName || fileName),
       },
     });
   } catch (error) {

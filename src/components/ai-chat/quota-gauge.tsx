@@ -66,7 +66,7 @@ export function QuotaGauge({
   return (
     <span
       role="img"
-      aria-label={text.replace('\n', ' · ')}
+      aria-label={text.replaceAll('\n', ' · ')}
       data-tooltip={text}
       data-quota={quota.unlimited ? 'unlimited' : quota.percent}
       className={cn('inline-grid shrink-0 place-items-center', className)}

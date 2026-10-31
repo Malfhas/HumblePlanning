@@ -8,6 +8,10 @@ export const SECRET_KEYS = [
   "NUNTLY_WEBHOOK_SECRET",
   "SMTP_PASSWORD",
   "MAILGUN_API_KEY",
+  // SMS / WhatsApp (Sent.dm)
+  "SENT_API_KEY",
+  // Captcha (Turnstile / reCAPTCHA server-side key)
+  "CAPTCHA_SECRET_KEY",
   // AI chat (OpenRouter). Recommended in `.env`: the database stores it in plain text.
   "OPENROUTER_API_KEY",
 ] as const;

@@ -1,4 +1,5 @@
-import { requireAuth, requirePermission, validateBody, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { requireAuth, validateBody, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { loadUserPermissions } from "@/lib/services/permission-service";
 import { executeImport } from "@/lib/services/import-service";
 import { logAudit } from "@/lib/services/audit-service";
 import { logger } from "@/lib/logger";
@@ -14,7 +15,10 @@ export async function POST(request: Request) {
   if (refused) return refused;
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "backups:create");
+    // A replace-mode import rewrites roles and accounts: Super Admin only
+    // (`backups:create` alone would amount to it).
+    const perms = await loadUserPermissions(session.user.id);
+    if (!perms.isAdmin) throw new AppError("errors.forbidden");
 
     const { mode } = await validateBody(request, executeSchema);
     const result = await executeImport(mode, session.user.id);

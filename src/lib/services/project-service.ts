@@ -59,6 +59,11 @@ export async function getProjectById(id: string) {
 export async function createProject(data: CreateProject, creatorId?: string) {
   const [project] = await db.insert(projects).values(data).returning();
 
+  // The new project enters the cached visible projects of its owner and of
+  // the users of its BU: without this, they could not open it or plan tasks
+  // on it until the scope cache expires.
+  invalidateCachePrefix("scope:projects:");
+
   await logAudit({
     userId: creatorId,
     action: "create",

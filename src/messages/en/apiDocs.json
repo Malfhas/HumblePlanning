@@ -192,7 +192,6 @@
     "startTime": "Start time",
     "endTime": "End time",
     "isMilestone": "Mark as a milestone (default: false)",
-    "files": "Metadata of files already uploaded (uploads go through POST /api/tasks/[id]/files, as multipart)",
     "taskIdUnique": "Unique task ID (URL parameter)",
     "taskId": "Task ID (URL parameter)",
     "newTitle": "New title",

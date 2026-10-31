@@ -10,6 +10,7 @@ import { sendPasswordResetSchema } from "@/lib/validators/user";
 import { logger } from "@/lib/logger";
 import { assertNotDemoAccount } from "@/lib/demo";
 import { refuseInDemo } from "@/lib/demo/guard";
+import { assertCanManageUser } from "@/lib/services/user-access";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
@@ -33,10 +34,12 @@ export async function POST(request: Request) {
   if (refused) return refused;
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "users:edit");
+    const perms = await requirePermission(session.user.id, "users:edit");
 
     const { userId } = await validateBody(request, sendPasswordResetSchema);
     assertNotDemoAccount(userId);
+    // Same rule as editing the account: no reset link for a more privileged user or another BU
+    await assertCanManageUser(perms, { targetId: userId });
 
     // Check cooldown
     const lastSent = resetCooldowns.get(userId);

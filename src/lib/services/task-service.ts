@@ -7,8 +7,9 @@ import { scheduleTaskCreated, scheduleTaskUpdated, scheduleTaskDeleted } from ".
 import { schedulePushTaskCreated, schedulePushTaskUpdated, schedulePushTaskDeleted } from "./push-notification-queue";
 import { invalidateCachePrefix } from "@/lib/cache";
 import { rm, unlink } from "node:fs/promises";
-import { join } from "node:path";
 import { USER_SECRET_COLUMNS_EXCLUDED } from "@/lib/utils/user-columns";
+import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
+import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
 
 /**
@@ -94,7 +95,11 @@ export async function isTaskLocked(id: string): Promise<boolean> {
 /** Delete all uploaded files for the given task IDs from the filesystem (legacy task-specific folders) */
 export async function cleanupTaskFiles(taskIds: string[]) {
   for (const id of taskIds) {
-    const dir = join(process.cwd(), "uploads", "tasks", id);
+    const dir = safeUploadPath("tasks", id);
+    if (!dir) {
+      logger.warn("system", "Skipped task folder cleanup: invalid task id", { taskId: id });
+      continue;
+    }
     try {
       await rm(dir, { recursive: true, force: true });
     } catch {
@@ -106,17 +111,22 @@ export async function cleanupTaskFiles(taskIds: string[]) {
 /** Delete content-addressable files, checking reference counts before deleting */
 export async function cleanupTaskFilesContent(files: { storageKey?: string; name?: string }[]) {
   for (const f of files) {
-    if (f.storageKey) {
-      // Check if any other task still references this storageKey
-      const refResult = await db.execute(sql`
-        SELECT count(*)::int AS count FROM tasks
-        WHERE files::text LIKE ${'%' + f.storageKey + '%'}
-      `);
-      const refCount = Number((refResult as any)[0]?.count ?? 0);
-      if (refCount === 0) {
-        const storagePath = join(process.cwd(), "uploads", "files", f.storageKey);
-        try { await unlink(storagePath); } catch {}
-      }
+    if (!f.storageKey) continue;
+    // Metadata comes from the database: never let it reach the filesystem
+    // (nor the LIKE pattern below) unless it is a content-hash key.
+    const storagePath = isValidStorageKey(f.storageKey) ? safeUploadPath("files", f.storageKey) : null;
+    if (!storagePath) {
+      logger.warn("system", "Skipped file cleanup: invalid storage key", { storageKey: String(f.storageKey).slice(0, 100) });
+      continue;
+    }
+    // Check if any other task still references this storageKey
+    const refResult = await db.execute(sql`
+      SELECT count(*)::int AS count FROM tasks
+      WHERE files::text LIKE ${'%' + f.storageKey + '%'}
+    `);
+    const refCount = Number((refResult as any)[0]?.count ?? 0);
+    if (refCount === 0) {
+      try { await unlink(storagePath); } catch {}
     }
   }
 }

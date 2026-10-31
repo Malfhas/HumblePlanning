@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { tasks, taskUsers, holidays } from "@/db/schema";
-import { eq, and, ne, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, or, ne, gte, lte, inArray } from "drizzle-orm";
 import { addDays, addWeeks, addMonths, format } from "date-fns";
 import { getConfigValues } from "./config-service";
 import { cleanupTaskFiles, cleanupTaskFilesContent } from "./task-service";
@@ -201,11 +201,13 @@ export async function deleteRecurringTasks(
       return { deleted: 1 };
     }
     case "all": {
-      // Get all children + root
-      const children = await db.select({ id: tasks.id })
+      // Root + children. Locked occurrences are kept: a lock freezes the task,
+      // as DELETE /api/tasks/[id] enforces for a single one.
+      const rows = await db.select({ id: tasks.id })
         .from(tasks)
-        .where(eq(tasks.parentId, rootId));
-      const allIds = [...children.map(c => c.id), rootId];
+        .where(and(or(eq(tasks.parentId, rootId), eq(tasks.id, rootId)), eq(tasks.isLocked, false)));
+      const allIds = rows.map(r => r.id);
+      if (allIds.length === 0) return { deleted: 0 };
       // Read files metadata BEFORE deletion for content-addressable cleanup
       const allTasksWithFiles = allIds.length > 0
         ? await db.query.tasks.findMany({ where: inArray(tasks.id, allIds), columns: { files: true } })
@@ -230,7 +232,8 @@ export async function deleteRecurringTasks(
         .where(and(
           eq(tasks.parentId, rootId),
           ne(tasks.id, rootId),
-          lte(tasks.startDate, task.startDate)
+          lte(tasks.startDate, task.startDate),
+          eq(tasks.isLocked, false)
         ));
       // Include the current task
       const toDelete = [...ids.map(i => i.id), taskId];
@@ -253,7 +256,8 @@ export async function deleteRecurringTasks(
         .where(and(
           eq(tasks.parentId, rootId),
           ne(tasks.id, rootId),
-          gte(tasks.startDate, task.startDate)
+          gte(tasks.startDate, task.startDate),
+          eq(tasks.isLocked, false)
         ));
       const toDelete = [...ids.map(i => i.id), taskId];
       const uniqueIds = [...new Set(toDelete)];
@@ -325,9 +329,10 @@ export async function propagateTaskUpdate(rootId: string, data: Record<string, u
   }
   if (Object.keys(propagated).length === 0) return;
 
+  // Locked occurrences are frozen: a series edit does not reach them
   await db.update(tasks)
     .set(propagated)
-    .where(and(eq(tasks.parentId, rootId), ne(tasks.id, rootId)));
+    .where(and(eq(tasks.parentId, rootId), ne(tasks.id, rootId), eq(tasks.isLocked, false)));
 }
 
 /** Get the root task ID from any child */

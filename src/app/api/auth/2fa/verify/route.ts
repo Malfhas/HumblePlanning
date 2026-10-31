@@ -6,42 +6,48 @@ import { verifySync } from "otplib";
 import { getConfigValues } from "@/lib/services/config-service";
 import { logAudit } from "@/lib/services/audit-service";
 import { AppError, handleApiError } from "@/lib/utils/api";
+import { createTwoFactorLimiter, TotpReplayGuard } from "@/lib/utils/two-factor-guard";
 
-// In-memory rate limiting for 2FA attempts
-const twoFAAttempts = new Map<string, { count: number; blockedUntil: number | null }>();
-const MAX_2FA_ATTEMPTS = 5;
-const BLOCK_DURATION = 5 * 60 * 1000;
+// In-memory protection (per process): failed codes are counted per user
+// across pending tokens (a new token comes with each password login), and a
+// TOTP time step is accepted only once per user.
+const failures = createTwoFactorLimiter();
+const usedSteps = new TotpReplayGuard();
 
-function check2FARate(token: string): boolean {
-  const entry = twoFAAttempts.get(token);
-  if (!entry) return true;
-  if (entry.blockedUntil && Date.now() < entry.blockedUntil) return false;
-  if (entry.blockedUntil && Date.now() >= entry.blockedUntil) {
-    twoFAAttempts.delete(token);
-    return true;
-  }
-  return entry.count < MAX_2FA_ATTEMPTS;
+/** Records a failed code; 429 once the user's verification gets locked. */
+function failedCode(userId: string, reason: string, code: string): AppError {
+  logAudit({ userId, action: "2fa_fail", entityType: "user", entityId: userId, metadata: { reason } }).catch(() => {});
+  const lockedFor = failures.recordFailure(userId);
+  return lockedFor > 0 ? tooManyAttempts(lockedFor) : new AppError(code);
 }
 
-function record2FAFail(token: string) {
-  const entry = twoFAAttempts.get(token) ?? { count: 0, blockedUntil: null };
-  entry.count++;
-  if (entry.count >= MAX_2FA_ATTEMPTS) {
-    entry.blockedUntil = Date.now() + BLOCK_DURATION;
+function tooManyAttempts(remainingSeconds: number): AppError {
+  return new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(remainingSeconds / 60) } });
+}
+
+/** Time step matched by a TOTP code, or null when the code is invalid (malformed codes included). */
+function matchTotpStep(code: string, secret: string): number | null {
+  try {
+    const result = verifySync({ token: code.trim(), secret });
+    return result.valid && "timeStep" in result ? result.timeStep : null;
+  } catch {
+    return null;
   }
-  twoFAAttempts.set(token, entry);
 }
 
 export async function POST(request: Request) {
+  try {
+    return await verifySecondFactor(request);
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+async function verifySecondFactor(request: Request): Promise<Response> {
   const { pendingToken, code, isBackupCode } = await request.json();
 
-  if (!pendingToken || !code) {
-    return handleApiError(new AppError("auth.errors.missingData"));
-  }
-
-  // Rate limit
-  if (!check2FARate(pendingToken)) {
-    return handleApiError(new AppError("auth.errors.tooManyTwoFactorAttempts", { status: 429 }));
+  if (typeof pendingToken !== "string" || !pendingToken || typeof code !== "string" || !code) {
+    throw new AppError("auth.errors.missingData");
   }
 
   // Validate the pending token
@@ -53,17 +59,21 @@ export async function POST(request: Request) {
   });
 
   if (!verification) {
-    return handleApiError(new AppError("auth.errors.sessionExpired"));
+    throw new AppError("auth.errors.sessionExpired");
   }
 
   let payload: { userId: string; sessionId?: string; sessionCookie?: string | null; rememberMe: boolean };
   try {
     payload = JSON.parse(verification.value);
   } catch {
-    return handleApiError(new AppError("auth.errors.invalidToken"));
+    throw new AppError("auth.errors.invalidToken");
   }
 
   const { userId, sessionId, sessionCookie, rememberMe } = payload;
+
+  // Rate limit: per user, whatever the pending token
+  const lockedFor = failures.lockedFor(userId);
+  if (lockedFor > 0) throw tooManyAttempts(lockedFor);
 
   // Fetch user 2FA data
   const user = await db.query.users.findFirst({
@@ -72,7 +82,7 @@ export async function POST(request: Request) {
   });
 
   if (!user?.twoFactorEnabled || !user.twoFactorSecret) {
-    return handleApiError(new AppError("auth.errors.twoFactorNotConfigured"));
+    throw new AppError("auth.errors.twoFactorNotConfigured");
   }
 
   // Verify code
@@ -81,24 +91,21 @@ export async function POST(request: Request) {
     const normalizedCode = code.trim().toUpperCase();
     const idx = storedCodes.findIndex((c: string) => c.toUpperCase() === normalizedCode);
 
-    if (idx === -1) {
-      record2FAFail(pendingToken);
-      logAudit({ userId, action: "2fa_fail", entityType: "user", entityId: userId, metadata: { reason: "invalid_backup_code" } }).catch(() => {});
-      return handleApiError(new AppError("auth.errors.invalidBackupCode"));
-    }
+    if (idx === -1) throw failedCode(userId, "invalid_backup_code", "auth.errors.invalidBackupCode");
 
     storedCodes.splice(idx, 1);
     await db.update(users).set({
       twoFactorBackupCodes: JSON.stringify(storedCodes),
     }).where(eq(users.id, userId));
   } else {
-    const result = verifySync({ token: code, secret: user.twoFactorSecret });
-    if (!result.valid) {
-      record2FAFail(pendingToken);
-      logAudit({ userId, action: "2fa_fail", entityType: "user", entityId: userId, metadata: { reason: "invalid_totp_code" } }).catch(() => {});
-      return handleApiError(new AppError("auth.errors.invalidCode"));
-    }
+    const step = matchTotpStep(code, user.twoFactorSecret);
+    if (step === null) throw failedCode(userId, "invalid_totp_code", "auth.errors.invalidCode");
+    // Checked and recorded without await in between: concurrent requests
+    // carrying the same code cannot both pass.
+    if (usedSteps.isReplay(userId, step)) throw failedCode(userId, "totp_replay", "auth.errors.codeAlreadyUsed");
+    usedSteps.markUsed(userId, step);
   }
+  failures.clear(userId);
 
   // 2FA verified — deliver the session cookie that was held back
 
@@ -115,7 +122,6 @@ export async function POST(request: Request) {
 
   // Delete the pending token (one-time use)
   await db.delete(verifications).where(eq(verifications.id, verification.id));
-  twoFAAttempts.delete(pendingToken);
 
   // Replay the original Set-Cookie from Better Auth
   const headers = new Headers({ "Content-Type": "application/json" });

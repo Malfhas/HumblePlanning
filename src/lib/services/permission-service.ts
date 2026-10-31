@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { users, projects, taskUsers } from "@/db/schema";
+import { users, projects, tasks, taskUsers } from "@/db/schema";
 import { eq, inArray, or } from "drizzle-orm";
 import { cached, invalidateCache, invalidateCachePrefix } from "@/lib/cache";
 import { withoutDemoBlockedPermissions } from "@/lib/demo";
+import { AppError } from "@/lib/errors";
 
 // ════════════════════════════════════════════════════════════════════════
 // Types
@@ -305,6 +306,80 @@ export function isTaskInAccessScope(
 }
 
 /**
+ * What the read and modify checks need to know about a task. A `getTaskById`
+ * result fits as it is (`project.ownerId`).
+ */
+export interface TaskAccessTarget {
+  projectId: string | null;
+  users: { id: string; teamId?: string | null }[];
+  creatorId?: string | null;
+  projectOwnerId?: string | null;
+  project?: { ownerId?: string | null } | null;
+}
+
+/** Loads the `TaskAccessTarget` fields of one task, or null when it does not exist. */
+async function loadTaskAccessTarget(taskId: string): Promise<TaskAccessTarget | null> {
+  const row = await db.query.tasks.findFirst({
+    where: eq(tasks.id, taskId),
+    columns: { projectId: true, creatorId: true },
+    with: {
+      project: { columns: { ownerId: true } },
+      taskUsers: { columns: { userId: true }, with: { user: { columns: { id: true, teamId: true } } } },
+    },
+  });
+  if (!row) return null;
+  return {
+    projectId: row.projectId,
+    creatorId: row.creatorId,
+    projectOwnerId: row.project?.ownerId ?? null,
+    users: row.taskUsers.map((tu) => tu.user),
+  };
+}
+
+async function resolveTaskTarget(task: string | TaskAccessTarget | null | undefined): Promise<TaskAccessTarget | null> {
+  return typeof task === "string" ? loadTaskAccessTarget(task) : (task ?? null);
+}
+
+/**
+ * Throws `tasks.errors.notFound` (404) unless the task exists and is in the
+ * user's read scope: an out-of-scope task is indistinguishable from a missing
+ * one. Takes a task id or an already-loaded task, and returns the task.
+ */
+export async function assertTaskReadable(perms: UserPermissions, task: string): Promise<TaskAccessTarget>;
+export async function assertTaskReadable<T extends TaskAccessTarget>(perms: UserPermissions, task: T | null | undefined): Promise<T>;
+export async function assertTaskReadable(
+  perms: UserPermissions,
+  task: string | TaskAccessTarget | null | undefined,
+): Promise<TaskAccessTarget> {
+  const target = await resolveTaskTarget(task);
+  if (!target || !isTaskInAccessScope(target, await getTaskAccessScope(perms))) {
+    throw new AppError("tasks.errors.notFound");
+  }
+  return target;
+}
+
+/**
+ * `assertTaskReadable`, then `tasks.errors.notAllowed` (403) when the task is
+ * readable but outside the user's modify scope.
+ */
+export async function assertTaskModifiable(perms: UserPermissions, task: string): Promise<TaskAccessTarget>;
+export async function assertTaskModifiable<T extends TaskAccessTarget>(perms: UserPermissions, task: T | null | undefined): Promise<T>;
+export async function assertTaskModifiable(
+  perms: UserPermissions,
+  task: string | TaskAccessTarget | null | undefined,
+): Promise<TaskAccessTarget> {
+  const target = await resolveTaskTarget(task);
+  const readScope = await getTaskAccessScope(perms);
+  if (!target || !isTaskInAccessScope(target, readScope)) {
+    throw new AppError("tasks.errors.notFound");
+  }
+  if (!canModifyTask(perms, target, readScope)) {
+    throw new AppError("tasks.errors.notAllowed");
+  }
+  return target;
+}
+
+/**
  * Returns the list of Business Unit IDs visible.
  * `null` = all.
  */
@@ -312,6 +387,94 @@ export function getVisibleBusinessUnitIds(perms: UserPermissions): string[] | nu
   const buScope = getBuScope(perms);
   if (buScope === "all") return null;
   return perms.businessUnitId ? [perms.businessUnitId] : [];
+}
+
+/** True if `businessUnitId` is within the user's BU scope (no BU is always allowed). */
+export function isBusinessUnitInScope(perms: UserPermissions, businessUnitId: string | null | undefined): boolean {
+  if (!businessUnitId) return true;
+  const visible = getVisibleBusinessUnitIds(perms);
+  return visible === null || visible.includes(businessUnitId);
+}
+
+/**
+ * Combines an optional client filter with a scope allowlist (`null` = no
+ * restriction). Returns `null` when nothing restricts, otherwise the IDs
+ * allowed by both; an empty array then matches nothing.
+ */
+export function restrictToScope(requested: string[] | null | undefined, allowed: string[] | null): string[] | null {
+  const filter = requested && requested.length > 0 ? requested : null;
+  if (allowed === null) return filter;
+  if (filter === null) return allowed;
+  const allowedSet = new Set(allowed);
+  return filter.filter((id) => allowedSet.has(id));
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Project read scope
+// ════════════════════════════════════════════════════════════════════════
+
+/**
+ * Projects a user can read (detail, update, delete, labor budgets, target of
+ * a new task). Two sources:
+ *   - the planning visibility (`getVisibleProjectIds`);
+ *   - the management pages (`pages:projects`, and the stats filters for the
+ *     list), which work regardless of the planning scope but stay within the
+ *     business-unit scope (`getVisibleBusinessUnitIds`).
+ */
+export interface ProjectReadScope {
+  /** `null` = every project. */
+  visibleProjectIds: string[] | null;
+  /** Business units whose projects are readable through a management page: `null` = every BU, `[]` = none. */
+  managedBusinessUnitIds: string[] | null;
+}
+
+export async function getProjectReadScope(
+  perms: UserPermissions,
+  managementAccess: boolean = hasPermission(perms, "pages:projects"),
+): Promise<ProjectReadScope> {
+  const managedBusinessUnitIds = managementAccess ? getVisibleBusinessUnitIds(perms) : [];
+  // Every BU readable: the planning visibility cannot add anything.
+  if (managedBusinessUnitIds === null) return { visibleProjectIds: null, managedBusinessUnitIds };
+  return { visibleProjectIds: await getVisibleProjectIds(perms), managedBusinessUnitIds };
+}
+
+export function isProjectInReadScope(
+  project: { id: string; businessUnitId: string | null },
+  scope: ProjectReadScope,
+): boolean {
+  if (scope.visibleProjectIds === null || scope.visibleProjectIds.includes(project.id)) return true;
+  if (scope.managedBusinessUnitIds === null) return true;
+  return project.businessUnitId !== null && scope.managedBusinessUnitIds.includes(project.businessUnitId);
+}
+
+/**
+ * The project when it exists and is readable by the user, otherwise null
+ * (callers answer 404 either way, without revealing which).
+ */
+export async function getReadableProject(perms: UserPermissions, projectId: string, managementAccess?: boolean) {
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, projectId),
+    columns: { id: true, ownerId: true, businessUnitId: true },
+  });
+  if (!project) return null;
+  return isProjectInReadScope(project, await getProjectReadScope(perms, managementAccess)) ? project : null;
+}
+
+/** Throws `projects.errors.notFound` (404) unless the project exists and is readable. */
+export async function assertProjectReadable(perms: UserPermissions, projectId: string) {
+  const project = await getReadableProject(perms, projectId);
+  if (!project) throw new AppError("projects.errors.notFound");
+  return project;
+}
+
+/**
+ * `assertProjectReadable`, then `projects.errors.notAllowed` (403) when the
+ * project is readable but the user cannot modify it.
+ */
+export async function assertProjectModifiable(perms: UserPermissions, projectId: string) {
+  const project = await assertProjectReadable(perms, projectId);
+  if (!canModifyProject(perms, project)) throw new AppError("projects.errors.notAllowed");
+  return project;
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -387,11 +550,19 @@ export async function canCreateTask(
  *
  * Rules:
  *   - Admin bypass
+ *   - `readScope` given and the task outside it → false (what the user
+ *     cannot see cannot be modified)
  *   - `scope:modify_readonly` → false
  *   - `scope:modify_all` → true
  *   - `scope:modify_team` → at least one assignee is in the user's team
  *   - `scope:modify_own_project` → project owner is the user
  *   - `scope:modify_own` → user is assigned OR is the task creator
+ *
+ * `readScope` (`getTaskAccessScope`) is what bounds `scope:modify_all`: a
+ * manager limited to their business unit must not reach the tasks of other
+ * BUs. Server-side callers pass it, with the task's `projectId` (or use
+ * `assertTaskModifiable`); without it, only the modify scope is checked and
+ * "all" means every task.
  */
 export function canModifyTask(
   perms: UserPermissions,
@@ -399,9 +570,16 @@ export function canModifyTask(
     users?: { id: string; teamId?: string | null }[] | null;
     creatorId?: string | null;
     projectOwnerId?: string | null;
-  }
+    project?: { ownerId?: string | null } | null;
+    projectId?: string | null;
+  },
+  readScope?: TaskAccessScope,
 ): boolean {
   if (perms.isAdmin) return true;
+
+  if (readScope && !isTaskInAccessScope({ projectId: task.projectId ?? null, users: task.users ?? [] }, readScope)) {
+    return false;
+  }
 
   const scope = getModifyScope(perms);
   if (scope === "readonly") return false;
@@ -413,7 +591,7 @@ export function canModifyTask(
   }
 
   if (scope === "own_project") {
-    return task.projectOwnerId === perms.userId;
+    return (task.projectOwnerId ?? task.project?.ownerId) === perms.userId;
   }
 
   // scope === "own"
@@ -429,10 +607,11 @@ export function canModifyTask(
  * Whether the user can modify the given project.
  *
  * Decoupled from the planning's `scope:modify_*` permission (which only governs
- * task-level modifications on /planning). Visibility of the project is already
- * enforced upstream by `getVisibleProjectIds` when the project is fetched, so
- * if the caller reached this check, they have the right to see the project —
- * and `projects:edit` alone grants the right to modify it.
+ * task-level modifications on /planning). Visibility of the project is
+ * enforced upstream by the project read scope (`assertProjectReadable` /
+ * `assertProjectModifiable`), so if the caller reached this check, they have
+ * the right to see the project — and `projects:edit` alone grants the right
+ * to modify it.
  *
  * The `project` argument is kept for API compatibility (and potential future
  * owner-scoped refinement) but is no longer consulted.

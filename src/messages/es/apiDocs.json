@@ -192,7 +192,6 @@
     "startTime": "Hora de inicio",
     "endTime": "Hora de fin",
     "isMilestone": "Marcar como hito (predeterminado: false)",
-    "files": "Metadatos de archivos ya enviados (el envío se realiza mediante POST /api/tasks/[id]/files, en multipart)",
     "taskIdUnique": "Identificador único de la tarea (parámetro de URL)",
     "taskId": "Identificador de la tarea (parámetro de URL)",
     "newTitle": "Nuevo título",

@@ -8,10 +8,16 @@ import {
   canCreateTask,
   canModifyTask,
   canAssignWithModifyScope,
-  getProjectScope,
-  getVisibleProjectIds,
+  getTaskAccessScope,
+  isTaskInAccessScope,
+  getReadableProject,
+  getProjectReadScope,
+  isProjectInReadScope,
+  isBusinessUnitInScope,
+  getVisibleBusinessUnitIds,
   getVisibleUserIds,
 } from "@/lib/services/permission-service";
+import { userReadFilter } from "@/lib/services/user-access";
 import {
   getTasks,
   getTaskById,
@@ -22,7 +28,6 @@ import {
   copyTask,
   isTaskLocked,
   assertDailyTaskLimit,
-  type TaskAccessScope,
 } from "@/lib/services/task-service";
 import { getProjects, getProjectById, createProject, updateProject } from "@/lib/services/project-service";
 import { getUsers, getUserById } from "@/lib/services/user-service";
@@ -195,28 +200,33 @@ export function registerAllTools(
   };
 
   /** Task visibility scope: same rules as GET /api/tasks (planning). */
-  async function taskScope(): Promise<TaskAccessScope> {
-    if (getProjectScope(perms) === "assigned_only") {
-      return { accessibleProjectIds: null, accessibleUserIds: [perms.userId] };
-    }
-    const [accessibleProjectIds, accessibleUserIds] = await Promise.all([
-      getVisibleProjectIds(perms),
-      getVisibleUserIds(perms),
-    ]);
-    return { accessibleProjectIds, accessibleUserIds };
+  const taskScope = () => getTaskAccessScope(perms);
+
+  /**
+   * The task when it exists and is in the read scope (same rule as
+   * GET /api/tasks/:id), with that scope, which also bounds `canModifyTask`.
+   * Otherwise `taskNotFound`: an out-of-scope task looks like a missing one.
+   */
+  async function readableTask(taskId: string) {
+    const [task, scope] = await Promise.all([getTaskById(taskId), taskScope()]);
+    if (!task || !isTaskInAccessScope(task, scope)) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
+    return { task, scope };
   }
 
-  function isTaskVisible(task: { projectId?: string | null; users?: { id: string }[] }, scope: TaskAccessScope): boolean {
-    if (scope.accessibleProjectIds && !scope.accessibleProjectIds.includes(task.projectId ?? "")) return false;
-    if (scope.accessibleUserIds) {
-      const visible = new Set(scope.accessibleUserIds);
-      return (task.users ?? []).some((u) => visible.has(u.id));
-    }
-    return true;
+  /** The project when it exists and is readable (same rule as /api/projects/:id), otherwise `projectNotFound`. */
+  async function readableProject(projectId: string) {
+    const project = await getReadableProject(perms, projectId);
+    if (!project) throw new ToolDeniedError("mcpTools.errors.projectNotFound");
+    return project;
   }
 
   /** Like GET /api/users: email and phone numbers hidden without `users:edit` (except for oneself). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /** Same visibility as the users page (`GET /api/users?unscoped=true`): null = everyone. */
+  async function userVisibility() {
+    return userReadFilter(await getVisibleUserIds(perms), getVisibleBusinessUnitIds(perms));
+  }
+
   function redactUser(u: any) {
     if (!u || u.id === userId || hasPermission(perms, "users:edit")) return u;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -301,8 +311,7 @@ export function registerAllTools(
     { taskId: z.string().describe("Task ID") },
     async ({ taskId }) => {
       requirePerm(perms, "pages:tasks");
-      const task = await getTaskById(taskId);
-      if (!task || !isTaskVisible(task, await taskScope())) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
+      const { task } = await readableTask(taskId);
       const dailyH = await getDailyHours();
       const enriched = {
         ...task,
@@ -341,12 +350,12 @@ export function registerAllTools(
     },
     async (params) => {
       requireMcpWrite(perms, writePermission);
-      const project = await getProjectById(params.projectId);
-      if (!project) throw new ToolDeniedError("mcpTools.errors.projectNotFound");
+      // Same rule as POST /api/tasks: the target project must be readable.
+      const project = await readableProject(params.projectId);
       const allowed = await canCreateTask(perms, params.userIds, project.ownerId ?? null);
       if (!allowed) throw new ToolDeniedError("mcpTools.errors.createForUsersForbidden");
       await assertDailyTaskLimit({ userIds: params.userIds, startDate: params.startDate, endDate: params.endDate });
-      const task = await createTask({ ...params, isMilestone: false, files: [] }, userId);
+      const task = await createTask({ ...params, isMilestone: false }, userId);
       emitTaskEvent({ action: "created", taskId: task.id, userId });
       await logAudit({ userId, action: "create", entityType: "task", entityId: task.id, metadata: { source: auditSource } });
       return { content: [{ type: "text" as const, text: JSON.stringify(task, null, 2) }] };
@@ -372,13 +381,8 @@ export function registerAllTools(
     },
     async ({ taskId, ...data }) => {
       requireMcpWrite(perms, writePermission);
-      const existing = await getTaskById(taskId);
-      if (!existing) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
-      if (!canModifyTask(perms, {
-        users: (existing as any).users,
-        creatorId: (existing as any).creatorId,
-        projectOwnerId: (existing as any).project?.ownerId,
-      })) throw new ToolDeniedError("mcpTools.errors.updateNotAllowed");
+      const { task: existing, scope } = await readableTask(taskId);
+      if (!canModifyTask(perms, existing, scope)) throw new ToolDeniedError("mcpTools.errors.updateNotAllowed");
       if (await isTaskLocked(taskId)) throw new ToolDeniedError("mcpTools.errors.taskLocked");
       // User reassignment: must respect modifyScope (+ tasks:assign).
       if (!perms.isAdmin && Array.isArray(data.userIds)) {
@@ -406,13 +410,8 @@ export function registerAllTools(
     async ({ taskId }) => {
       requireMcpWrite(perms, writePermission);
       requirePerm(perms, "tasks:delete");
-      const existing = await getTaskById(taskId);
-      if (!existing) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
-      if (!canModifyTask(perms, {
-        users: (existing as any).users,
-        creatorId: (existing as any).creatorId,
-        projectOwnerId: (existing as any).project?.ownerId,
-      })) throw new ToolDeniedError("mcpTools.errors.deleteNotAllowed");
+      const { task: existing, scope } = await readableTask(taskId);
+      if (!canModifyTask(perms, existing, scope)) throw new ToolDeniedError("mcpTools.errors.deleteNotAllowed");
       if (await isTaskLocked(taskId)) throw new ToolDeniedError("mcpTools.errors.taskLocked");
       await deleteTask(taskId, userId);
       emitTaskEvent({ action: "deleted", taskId, userId });
@@ -434,13 +433,8 @@ export function registerAllTools(
     async ({ taskId, ...data }) => {
       requireMcpWrite(perms, writePermission);
       requirePerm(perms, "tasks:move");
-      const existing = await getTaskById(taskId);
-      if (!existing) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
-      if (!canModifyTask(perms, {
-        users: (existing as any).users,
-        creatorId: (existing as any).creatorId,
-        projectOwnerId: (existing as any).project?.ownerId,
-      })) throw new ToolDeniedError("mcpTools.errors.moveNotAllowed");
+      const { task: existing, scope } = await readableTask(taskId);
+      if (!canModifyTask(perms, existing, scope)) throw new ToolDeniedError("mcpTools.errors.moveNotAllowed");
       if (await isTaskLocked(taskId)) throw new ToolDeniedError("mcpTools.errors.taskLocked");
       // Same rule as PUT /api/tasks/:id/move: the target state (assignees, project)
       // must stay within the modify scope.
@@ -454,8 +448,7 @@ export function registerAllTools(
         }
         let targetOwnerId: string | null = existing.project?.ownerId ?? null;
         if (projectChanged) {
-          const target = await getProjectById(data.projectId!);
-          if (!target) throw new ToolDeniedError("mcpTools.errors.projectNotFound");
+          const target = await readableProject(data.projectId!);
           targetOwnerId = target.ownerId ?? null;
         }
         const ok = await canAssignWithModifyScope(perms, usersChanged ? data.userIds! : existingUserIds, targetOwnerId);
@@ -487,10 +480,9 @@ export function registerAllTools(
       if (!hasPermission(perms, "tasks:create")) {
         throw new ToolDeniedError("mcpTools.errors.copyForbidden");
       }
-      // Same rule as POST /api/tasks/:id/copy: the copy must respect the
-      // create scope (assignees + project owner).
-      const source = await getTaskById(taskId);
-      if (!source) throw new ToolDeniedError("mcpTools.errors.taskNotFound");
+      // Same rule as POST /api/tasks/:id/copy: the source must be readable and
+      // the copy must respect the create scope (assignees + project owner).
+      const { task: source } = await readableTask(taskId);
       const sourceUserIds = (source.users ?? []).map((u: { id: string }) => u.id);
       if (!(await canCreateTask(perms, sourceUserIds, source.project?.ownerId ?? null))) {
         throw new ToolDeniedError("mcpTools.errors.copyTaskForbidden");
@@ -593,8 +585,11 @@ export function registerAllTools(
     },
     async ({ search, includeArchived, minimal }) => {
       requirePerm(perms, "pages:projects");
+      // Same list as the /projects page: the project read scope (business units)
+      const readScope = await getProjectReadScope(perms);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await getProjects(search, includeArchived ?? false) as any[];
+      const result = (await getProjects(search, includeArchived ?? false) as any[])
+        .filter((p) => isProjectInReadScope(p, readScope));
       if (minimal) {
         const compact = result.map((p) => ({
           id: p.id,
@@ -617,7 +612,9 @@ export function registerAllTools(
     async ({ projectId }) => {
       requirePerm(perms, "pages:projects");
       const project = await getProjectById(projectId);
-      if (!project) throw new ToolDeniedError("mcpTools.errors.projectNotFound");
+      if (!project || !isProjectInReadScope(project, await getProjectReadScope(perms))) {
+        throw new ToolDeniedError("mcpTools.errors.projectNotFound");
+      }
       return { content: [{ type: "text" as const, text: JSON.stringify(project, null, 2) }] };
     }
   );
@@ -636,6 +633,8 @@ export function registerAllTools(
     async (params) => {
       requireMcpWrite(perms, writePermission);
       requirePerm(perms, "projects:create");
+      // Same rule as POST /api/projects: the business unit must be in the user's scope.
+      if (!isBusinessUnitInScope(perms, params.businessUnitId)) throw new ToolDeniedError("errors.forbidden");
       const project = await createProject({
         name: params.name,
         color: params.color ?? "#3b82f6",
@@ -665,6 +664,12 @@ export function registerAllTools(
     async ({ projectId, ...data }) => {
       requireMcpWrite(perms, writePermission);
       requirePerm(perms, "projects:edit");
+      // Same rules as PUT /api/projects/:id: readable project, target business unit in scope.
+      const existing = await readableProject(projectId);
+      if (data.businessUnitId !== undefined && data.businessUnitId !== existing.businessUnitId
+        && !isBusinessUnitInScope(perms, data.businessUnitId)) {
+        throw new ToolDeniedError("errors.forbidden");
+      }
       // Filter out null values for ownerId since updateProject doesn't accept null
       const updateData: Record<string, unknown> = {};
       if (data.name !== undefined) updateData.name = data.name;
@@ -688,6 +693,8 @@ export function registerAllTools(
     },
     async ({ projectId, groupBy }) => {
       requirePerm(perms, "pages:projects");
+      // Same rule as GET /api/projects/:id/labor-budgets
+      await readableProject(projectId);
 
       if (groupBy === "labor-type") {
         const result = await getProjectLaborBudgetsWithHours(projectId);
@@ -801,9 +808,11 @@ export function registerAllTools(
       const dailyH = await getDailyHours();
       const today = new Date().toISOString().slice(0, 10);
 
-      // Load projects
+      // Load projects (readable ones only, like list-projects)
+      const readScope = await getProjectReadScope(perms);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allProjects = await getProjects(undefined, includeArchived ?? false) as any[];
+      const allProjects = (await getProjects(undefined, includeArchived ?? false) as any[])
+        .filter((p) => isProjectInReadScope(p, readScope));
       const targetProjects = projectIds?.length
         ? allProjects.filter((p) => projectIds.includes(p.id))
         : allProjects;
@@ -949,6 +958,8 @@ export function registerAllTools(
       requirePerm(perms, "pages:users");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let result: any[] = await getUsers(search, !includeInactive);
+      const readable = await userVisibility();
+      if (readable) result = result.filter(readable);
 
       if (teamId) {
         result = result.filter((u) => u.teamId === teamId);
@@ -979,7 +990,8 @@ export function registerAllTools(
     async ({ userId: targetId }) => {
       requirePerm(perms, "pages:users");
       const user = await getUserById(targetId);
-      if (!user) throw new ToolDeniedError("mcpTools.errors.userNotFound");
+      const readable = await userVisibility();
+      if (!user || (readable && !readable(user))) throw new ToolDeniedError("mcpTools.errors.userNotFound");
       return { content: [{ type: "text" as const, text: JSON.stringify(redactUser(user), null, 2) }] };
     }
   );
@@ -1081,7 +1093,10 @@ export function registerAllTools(
     {},
     async () => {
       requirePerm(perms, "pages:teams");
-      const result = (await getTeams()).map((t) => ({ ...t, users: t.users.map(redactUser) }));
+      const readable = await userVisibility();
+      const result = (await getTeams())
+        .filter((t) => isBusinessUnitInScope(perms, t.businessUnitId))
+        .map((t) => ({ ...t, users: (readable ? t.users.filter(readable) : t.users).map(redactUser) }));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1093,8 +1108,10 @@ export function registerAllTools(
     async ({ teamId }) => {
       requirePerm(perms, "pages:teams");
       const team = await getTeamById(teamId);
-      if (!team) throw new ToolDeniedError("mcpTools.errors.teamNotFound");
-      return { content: [{ type: "text" as const, text: JSON.stringify({ ...team, users: team.users.map(redactUser) }, null, 2) }] };
+      if (!team || !isBusinessUnitInScope(perms, team.businessUnitId)) throw new ToolDeniedError("mcpTools.errors.teamNotFound");
+      const readable = await userVisibility();
+      const users = readable ? team.users.filter(readable) : team.users;
+      return { content: [{ type: "text" as const, text: JSON.stringify({ ...team, users: users.map(redactUser) }, null, 2) }] };
     }
   );
 
@@ -1212,7 +1229,8 @@ export function registerAllTools(
     },
     async (params) => {
       requirePerm(perms, "pages:stats_users");
-      const result = await getStatsUsers(params);
+      // Same scope as /api/stats/users: the caller's business units only
+      const result = await getStatsUsers(params, getVisibleBusinessUnitIds(perms));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1228,7 +1246,7 @@ export function registerAllTools(
     },
     async (params) => {
       requirePerm(perms, "pages:stats_projects");
-      const result = await getStatsProjects(params);
+      const result = await getStatsProjects(params, getVisibleBusinessUnitIds(perms));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1243,7 +1261,7 @@ export function registerAllTools(
     },
     async (params) => {
       requirePerm(perms, "pages:stats_roi");
-      const result = await getStatsRoi(params);
+      const result = await getStatsRoi(params, getVisibleBusinessUnitIds(perms));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
