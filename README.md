@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://humbleplanning.com/"><strong>Website</strong></a> ·
-  <a href="http://demo.humbleplanning.app/"><strong>Live demo</strong></a> ·
+  <a href="https://demo.humbleplanning.app/"><strong>Live demo</strong></a> ·
   <a href="#quick-start"><strong>Quick start</strong></a> ·
   <a href="docs/installation.md"><strong>Installation guide</strong></a> ·
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
@@ -139,9 +139,13 @@ To enable it: *Settings → AI → AI chat*, enter an OpenRouter API key (or set
 
 ## Live demo
 
-Try Humble Planning at **[demo.humbleplanning.app](http://demo.humbleplanning.app/)**.
+Try Humble Planning at **[demo.humbleplanning.app](https://demo.humbleplanning.app/)** with the shared demo account:
 
-Demo sign-in details will be published here soon. The demo data is reset every night.
+| Login | Password |
+| --- | --- |
+| `humbledemo` | `humblepass` |
+
+The demo data is reset every night. Administration, e-mails, text messages and the AI assistant are turned off.
 
 To run your own public demo, see [Demo instance](docs/installation.md#demo-instance).
 

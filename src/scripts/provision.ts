@@ -240,6 +240,25 @@ async function cmdCheckDb(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * Settings that are on by default as soon as the installation can honour
+ * them. Added only when absent, at every start: an administrator's choice is
+ * never overwritten. The ALTCHA captcha (self-hosted proof of work) protects
+ * sign-in and password reset; it needs the HMAC secrets the installer writes
+ * in .env, and is not turned on when another provider was chosen.
+ */
+async function ensureDefaultSettings(sql: ReturnType<typeof connect>): Promise<void> {
+  if (!process.env.ALTCHA_HMAC_SECRET || !process.env.ALTCHA_HMAC_KEY_SECRET) return;
+  await sql`insert into app_config (key, value) values ('CAPTCHA_PROVIDER', 'altcha') on conflict (key) do nothing`;
+  const enabled = await sql`
+    insert into app_config (key, value)
+    select 'CAPTCHA_ENABLED', 'true'
+    where (select value from app_config where key = 'CAPTCHA_PROVIDER') = 'altcha'
+    on conflict (key) do nothing
+    returning key`;
+  if (enabled.length > 0) out("OK", "ALTCHA captcha turned on (sign-in and password reset).");
+}
+
 async function cmdMigrate(): Promise<number> {
   const url = process.env.DATABASE_URL;
   const sql = connect(url);
@@ -272,6 +291,7 @@ async function cmdMigrate(): Promise<number> {
       const [seeded] = await sql`select exists(select 1 from app_config) as done`;
       if (seeded.done) {
         out("INFO", "Default data already present: seed skipped.");
+        await ensureDefaultSettings(sql);
         return EXIT.OK;
       }
 
@@ -286,6 +306,7 @@ async function cmdMigrate(): Promise<number> {
       });
       if (code !== 0) throw new ProvisionError("Seeding the default data failed (see the log for details).");
       out("OK", "Default data created (roles, permissions, statuses, settings).");
+      await ensureDefaultSettings(sql);
       return EXIT.OK;
     } finally {
       await sql`select pg_advisory_unlock(hashtext('humble-planning:migrate'))`.catch(() => {});

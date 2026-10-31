@@ -10,7 +10,7 @@ import { policyFromConfig, evaluatePassword, PWD_CONFIG_KEYS } from "@/lib/passw
 import { isPasswordReused, isPasswordBlacklisted, addPasswordToHistory } from "./password-history-service";
 import { getUserById, passwordNotCompliantError, passwordRejectedError, userSafeColumns } from "./user-service";
 import { AppError } from "@/lib/errors";
-import { assertNotDemoAccount } from "@/lib/demo";
+import { assertNotDemoAccount, isDemoAccount } from "@/lib/demo";
 
 export async function getProfile(userId: string) {
   return getUserById(userId);
@@ -178,9 +178,16 @@ export async function deleteAvatar(userId: string) {
   await db.update(users).set({ image: null }).where(eq(users.id, userId));
 }
 
-export async function getUserSessions(userId: string) {
+/**
+ * Active sessions of `userId`. The demo account is shared by every visitor:
+ * only the caller's own session is listed, never the addresses and browsers
+ * of the other visitors.
+ */
+export async function getUserSessions(userId: string, currentSessionId: string) {
   const result = await db.query.sessions.findMany({
-    where: eq(sessions.userId, userId),
+    where: isDemoAccount(userId)
+      ? and(eq(sessions.userId, userId), eq(sessions.id, currentSessionId))
+      : eq(sessions.userId, userId),
     columns: {
       id: true,
       ipAddress: true,
