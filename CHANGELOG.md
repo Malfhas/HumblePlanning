@@ -4,6 +4,16 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-10-31
+
+### Security
+
+- Demo mode: the shared demo account lists only the visitor's own session. The IP addresses and browsers of the other visitors are no longer visible.
+
+### Changed
+
+- The ALTCHA captcha protects sign-in and password reset by default when its secrets are set (the installer generates them). It is turned on at the next start of existing installations too, unless an administrator already chose a setting or another provider.
+
 ## [1.0.0] - 2026-10-31
 
 First open-source release of Humble Planning, under the GNU Affero General Public License v3.0 or later.
@@ -112,4 +122,5 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.0.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.0
