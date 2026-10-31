@@ -150,14 +150,14 @@
       "list": "Obtiene todos los lugares disponibles."
     },
     "resources": {
-      "list": "Obtiene todos los recursos materiales disponibles."
+      "list": "Obtiene los recursos materiales de las Business Units del usuario."
     },
     "holidays": {
       "list": "Obtiene los días festivos de un intervalo de fechas determinado."
     },
     "vehicles": {
-      "list": "Obtiene la lista de todos los vehículos.",
-      "assignments": "Obtiene las asignaciones de vehículos, con filtros opcionales."
+      "list": "Obtiene los vehículos de las Business Units del usuario.",
+      "assignments": "Obtiene las asignaciones de los vehículos del usuario y las de sus proyectos, con filtros opcionales."
     },
     "config": {
       "get": "Obtiene el conjunto de parámetros de configuración de la aplicación (pares clave/valor)."

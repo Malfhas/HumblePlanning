@@ -12,27 +12,18 @@ import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
+import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
+// Cooldowns stored in PostgreSQL (security_counters): shared by every
+// process and kept across restarts.
+
 // Rate limiting: 1 request per IP per 10 seconds (anti-enumeration)
-const ipCooldowns = new Map<string, number>();
 const IP_COOLDOWN_MS = 10_000;
 
 // Rate limiting: 1 reset email per user per 60 seconds
-const userCooldowns = new Map<string, number>();
 const USER_COOLDOWN_MS = 60_000;
-
-// Cleanup every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, ts] of ipCooldowns) {
-    if (now - ts > IP_COOLDOWN_MS + 10_000) ipCooldowns.delete(key);
-  }
-  for (const [key, ts] of userCooldowns) {
-    if (now - ts > USER_COOLDOWN_MS + 10_000) userCooldowns.delete(key);
-  }
-}, 5 * 60 * 1000);
 
 /**
  * Generic response (`auth.forgotPassword.genericResponse`, request
@@ -45,16 +36,16 @@ async function genericResponse(): Promise<Response> {
 }
 
 export async function POST(request: Request) {
+  // User cooldown claimed but no email sent yet: released on error
+  let pendingUserCooldown: string | null = null;
   try {
     const ip = getClientIp(request.headers);
 
     // IP cooldown — prevent rapid enumeration
-    const lastIp = ipCooldowns.get(ip);
-    if (lastIp && Date.now() - lastIp < IP_COOLDOWN_MS) {
+    if (await claimCooldown(`forgot-password:ip:${ip}`, IP_COOLDOWN_MS) > 0) {
       // Always return the generic success message to prevent timing attacks
       return genericResponse();
     }
-    ipCooldowns.set(ip, Date.now());
 
     // Check feature is enabled
     const config = await getConfigValues([
@@ -109,12 +100,14 @@ export async function POST(request: Request) {
       return genericResponse();
     }
 
-    // User cooldown — prevent spamming the same user
-    const lastUser = userCooldowns.get(user.id);
-    if (lastUser && Date.now() - lastUser < USER_COOLDOWN_MS) {
+    // User cooldown — prevent spamming the same user. Claimed before sending:
+    // concurrent requests cannot both send.
+    const userCooldown = `forgot-password:user:${user.id}`;
+    if (await claimCooldown(userCooldown, USER_COOLDOWN_MS) > 0) {
       // Still return generic message (don't reveal that we found the user)
       return genericResponse();
     }
+    pendingUserCooldown = userCooldown;
 
     // Generate reset token (same mechanism as admin send-reset)
     const token = crypto.randomUUID();
@@ -152,8 +145,8 @@ export async function POST(request: Request) {
 
     await sendEmail({ to: user.email!, ...template });
 
-    // Record cooldown
-    userCooldowns.set(user.id, Date.now());
+    // Email sent: the cooldown stays
+    pendingUserCooldown = null;
 
     logger.info("auth", "forgot-password: reset email sent", {
       userId: user.id,
@@ -162,6 +155,7 @@ export async function POST(request: Request) {
 
     return genericResponse();
   } catch (err) {
+    if (pendingUserCooldown) await clearCounters([pendingUserCooldown]).catch(() => {});
     logger.error("auth", "forgot-password error", {
       error: err instanceof Error ? err.message : String(err),
     });

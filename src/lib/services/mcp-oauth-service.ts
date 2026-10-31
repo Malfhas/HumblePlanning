@@ -123,10 +123,13 @@ export const OAUTH_CORS_HEADERS: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
-// ─── Rate limiting (in memory, per process — like /api/auth/login) ───
-// Implementation shared with the REST API (src/lib/utils/rate-limit.ts).
+// ─── Rate limiting ───
+// Stored in PostgreSQL (security_counters, like the /api/auth/login lockouts):
+// shared by every process and kept across restarts. These public endpoints
+// are not called often enough for a write per request to matter.
 
-export { checkRateLimit, getClientIp } from "@/lib/utils/rate-limit";
+export { getClientIp } from "@/lib/utils/rate-limit";
+export { checkPersistentRateLimit } from "@/lib/services/security-counter-service";
 
 // ─── Redirect URI ───
 

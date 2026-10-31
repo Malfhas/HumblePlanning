@@ -150,14 +150,14 @@
       "list": "Ruft alle verfügbaren Orte ab."
     },
     "resources": {
-      "list": "Ruft alle verfügbaren materiellen Ressourcen ab."
+      "list": "Ruft die materiellen Ressourcen der Business Units des Benutzers ab."
     },
     "holidays": {
       "list": "Ruft die Feiertage in einem bestimmten Datumsbereich ab."
     },
     "vehicles": {
-      "list": "Ruft die Liste aller Fahrzeuge ab.",
-      "assignments": "Ruft die Fahrzeugzuweisungen ab, mit optionalen Filtern."
+      "list": "Ruft die Fahrzeuge der Business Units des Benutzers ab.",
+      "assignments": "Ruft die Zuweisungen der Fahrzeuge des Benutzers und die seiner Projekte ab, mit optionalen Filtern."
     },
     "config": {
       "get": "Ruft alle Konfigurationseinstellungen der Anwendung ab (Schlüssel-Wert-Paare)."

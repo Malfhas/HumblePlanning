@@ -1,5 +1,7 @@
 import { requireAuth, requirePermission, validateBody, apiSuccess, handleApiError } from "@/lib/utils/api";
 import { getVehicles, createVehicle } from "@/lib/services/vehicle-service";
+import { loadUserPermissions, getVisibleBusinessUnitIds } from "@/lib/services/permission-service";
+import { assertEquipmentWritable } from "@/lib/services/equipment-scope";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -14,11 +16,13 @@ const createSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireAuth();
-    // Auth-only: vehicles are reference data used by planning/forms.
+    const session = await requireAuth();
+    // No page permission: the planning (rows, filters) and the forms load
+    // them. Limited to the vehicles of the user's business units.
+    const perms = await loadUserPermissions(session.user.id);
     const url = new URL(request.url);
     const includeOutOfService = url.searchParams.get("includeOutOfService") !== "false";
-    const vehicles = await getVehicles(includeOutOfService);
+    const vehicles = await getVehicles(getVisibleBusinessUnitIds(perms), includeOutOfService);
     return apiSuccess(vehicles);
   } catch (error) {
     return handleApiError(error);
@@ -28,8 +32,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "vehicles:create");
+    const perms = await requirePermission(session.user.id, "vehicles:create");
     const data = await validateBody(request, createSchema);
+    // Only in a business unit of the user's scope
+    await assertEquipmentWritable(perms, "vehicle", null, data.businessUnitId);
     const vehicle = await createVehicle(data);
     return apiSuccess(vehicle, 201);
   } catch (error) {

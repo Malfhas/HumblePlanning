@@ -787,7 +787,9 @@ export function PlanningCanvas() {
           endDate: dropInfo.newEndDate || dropInfo.newStartDate,
           startTime: source.startTime || null,
           endTime: source.endTime || null,
-          projectId: source.projectId || null,
+          // Only the project shown on the bar: a booking lent to another BU keeps
+          // its project hidden, and a new booking may only reference a readable one.
+          projectId: source.project?.id || null,
           notes: source.notes || null,
           type: (source as unknown as { vehicleAssignmentType?: string }).vehicleAssignmentType || "reservation",
         });
@@ -804,7 +806,7 @@ export function PlanningCanvas() {
           endDate: dropInfo.newEndDate || dropInfo.newStartDate,
           startTime: source.startTime || null,
           endTime: source.endTime || null,
-          projectId: source.projectId || null,
+          projectId: source.project?.id || null,
           notes: source.notes || null,
           type: (source as unknown as { resourceAssignmentType?: string }).resourceAssignmentType || "reservation",
         });
@@ -1036,7 +1038,7 @@ export function PlanningCanvas() {
             endDate: newEnd,
             startTime: source.startTime || null,
             endTime: source.endTime || null,
-            projectId: source.projectId || null,
+            projectId: source.project?.id || null,
             notes: source.notes || null,
             type: (source as unknown as { vehicleAssignmentType?: string }).vehicleAssignmentType || "reservation",
           });
@@ -1056,7 +1058,7 @@ export function PlanningCanvas() {
             endDate: newEnd,
             startTime: source.startTime || null,
             endTime: source.endTime || null,
-            projectId: source.projectId || null,
+            projectId: source.project?.id || null,
             notes: source.notes || null,
             type: (source as unknown as { resourceAssignmentType?: string }).resourceAssignmentType || "reservation",
           });

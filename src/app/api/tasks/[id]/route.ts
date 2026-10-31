@@ -2,6 +2,7 @@ import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, AppErr
 import { getTaskById, updateTask, deleteTask, isTaskLocked, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { updateTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
+import { assertTaskResourceWritable } from "@/lib/services/equipment-scope";
 import { deleteRecurringTasks, propagateTaskUpdate, getRootTaskId } from "@/lib/services/recurring-task-service";
 import {
   loadUserPermissions,
@@ -87,6 +88,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return apiError("tasks.errors.updateOutOfScope", 403);
       }
     }
+    // A new resource: one of the user's business units (404 otherwise)
+    await assertTaskResourceWritable(perms, data.resourceId, existingTask.resourceId);
 
     // PLANNING_MAX_TASKS_PER_DAY limit: if the assignees or the dates
     // change, check that no day exceeds the limit for the
@@ -114,8 +117,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!task) return apiError("tasks.errors.notFound");
 
     if (applyToAll) {
+      // Only reaches the other occurrences this user could update one by one
       const rootId = await getRootTaskId(id);
-      await propagateTaskUpdate(rootId, data);
+      await propagateTaskUpdate(rootId, data, perms);
     }
 
     emitTaskEvent({ action: "updated", taskId: id, userId: session.user.id });
@@ -147,7 +151,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const scope = url.searchParams.get("scope") as "single" | "all" | "before" | "after" | null;
 
     if (scope && scope !== "single") {
-      const result = await deleteRecurringTasks(id, scope);
+      // Only deletes the occurrences this user could delete one by one
+      const result = await deleteRecurringTasks(id, scope, perms);
       emitTaskEvent({ action: "deleted", taskId: id });
       return apiSuccess(result);
     }

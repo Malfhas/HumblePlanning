@@ -150,14 +150,14 @@
       "list": "Retrieves all available places."
     },
     "resources": {
-      "list": "Retrieves all available equipment resources."
+      "list": "Retrieves the equipment resources of the user's business units."
     },
     "holidays": {
       "list": "Retrieves the public holidays within a given date range."
     },
     "vehicles": {
-      "list": "Retrieves the list of all vehicles.",
-      "assignments": "Retrieves vehicle assignments, with optional filters."
+      "list": "Retrieves the vehicles of the user's business units.",
+      "assignments": "Retrieves the assignments of the user's vehicles and those of their projects, with optional filters."
     },
     "config": {
       "get": "Retrieves all the application configuration settings (key/value pairs)."

@@ -1,9 +1,19 @@
 import { db } from "@/db";
 import { tasks, taskUsers, holidays } from "@/db/schema";
-import { eq, and, or, ne, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, or, ne, gte, lte, inArray, type SQL } from "drizzle-orm";
 import { addDays, addWeeks, addMonths, format } from "date-fns";
 import { getConfigValues } from "./config-service";
 import { cleanupTaskFiles, cleanupTaskFilesContent } from "./task-service";
+import { bulkTaskViolation, loadBulkTaskTargets, type BulkTaskAction, type BulkTaskTarget } from "./task-bulk-service";
+import {
+  canAssignWithModifyScope,
+  getReadableProject,
+  getTaskAccessScope,
+  hasPermission,
+  type TaskAccessScope,
+  type UserPermissions,
+} from "./permission-service";
+import { invalidateCachePrefix } from "@/lib/cache";
 import type { RecurRule } from "@/lib/validators/task";
 
 const MAX_OCCURRENCES = 2555;
@@ -122,14 +132,19 @@ function advanceDate(current: Date, type: string, freq: number, dayOfWeek?: numb
   }
 }
 
-/** Generate recurring task occurrences in DB */
+/**
+ * Generate recurring task occurrences in DB. `skipDates`: start dates already
+ * held by an occurrence kept from a previous rule (`clearSeriesOccurrences`).
+ */
 export async function generateRecurringOccurrences(opts: {
   rootTask: typeof tasks.$inferSelect;
   rule: RecurRule;
   userIds: string[];
+  skipDates?: Set<string>;
 }) {
-  const { rootTask, rule, userIds } = opts;
-  const dates = await generateOccurrenceDates(rootTask.startDate, rule);
+  const { rootTask, rule, userIds, skipDates } = opts;
+  const dates = (await generateOccurrenceDates(rootTask.startDate, rule))
+    .filter((date) => !skipDates?.has(date));
 
   if (dates.length === 0) return [];
 
@@ -181,106 +196,157 @@ export async function generateRecurringOccurrences(opts: {
   return inserted;
 }
 
-/** Delete recurring tasks with different scopes */
+/**
+ * The occurrences of a series that `perms` may act on; the others are left
+ * untouched, like locked ones. Same rules as acting on each occurrence alone
+ * through PUT/DELETE /api/tasks/[id]: `tasks:delete` for a deletion, then
+ * read scope, modify scope and lock (`bulkTaskViolation`). An occurrence was
+ * possibly edited on its own since the series was created (other project,
+ * business unit or assignees), so the occurrence the user clicked proves nothing
+ * about the others.
+ *
+ * `move`, for an update setting `projectId`: the occurrences moving to that
+ * project also need the target-state check of PUT (`canAssignWithModifyScope`
+ * with its owner); `project` is null when it is not readable, which leaves
+ * every moving occurrence out.
+ */
+export async function selectSeriesOccurrences(
+  perms: UserPermissions,
+  occurrences: BulkTaskTarget[],
+  action: BulkTaskAction,
+  readScope: TaskAccessScope,
+  move?: { projectId: string; project: { ownerId: string | null } | null },
+): Promise<BulkTaskTarget[]> {
+  if (action === "delete" && !hasPermission(perms, "tasks:delete")) return [];
+  const allowed = occurrences.filter((t) => bulkTaskViolation(perms, t, action, readScope) === null);
+  if (!move || perms.isAdmin) return allowed;
+  const { projectId, project } = move;
+
+  // One check per distinct set of assignees: the occurrences of a series
+  // mostly share theirs, and the team scope queries the database.
+  const verdicts = new Map<string, Promise<boolean>>();
+  const canMove = (t: BulkTaskTarget): Promise<boolean> => {
+    if (!project) return Promise.resolve(false);
+    const userIds = t.users.map((u) => u.id).sort();
+    const key = userIds.join(",");
+    let verdict = verdicts.get(key);
+    if (!verdict) {
+      verdict = canAssignWithModifyScope(perms, userIds, project.ownerId);
+      verdicts.set(key, verdict);
+    }
+    return verdict;
+  };
+  const results = await Promise.all(
+    allowed.map((t) => (t.projectId === projectId ? true : canMove(t))),
+  );
+  return allowed.filter((_, i) => results[i]);
+}
+
+/**
+ * Unlocked occurrences of the series of `task` covered by `scope`: the whole
+ * series, or the occurrences before / after `task`, which is always included.
+ */
+function seriesScopeCondition(
+  task: { id: string; startDate: string },
+  rootId: string,
+  scope: "all" | "before" | "after",
+): SQL | undefined {
+  const inScope = scope === "all"
+    ? or(eq(tasks.parentId, rootId), eq(tasks.id, rootId))
+    : or(
+        and(
+          eq(tasks.parentId, rootId),
+          ne(tasks.id, rootId),
+          scope === "before" ? lte(tasks.startDate, task.startDate) : gte(tasks.startDate, task.startDate),
+        ),
+        eq(tasks.id, task.id),
+      );
+  return and(inScope, eq(tasks.isLocked, false));
+}
+
+/** Loads the occurrences matching `where` and keeps those `perms` may act on. */
+async function loadAllowedOccurrenceIds(
+  perms: UserPermissions,
+  where: SQL | undefined,
+  action: BulkTaskAction,
+): Promise<string[]> {
+  const occurrences = await loadBulkTaskTargets(where);
+  if (occurrences.length === 0) return [];
+  const allowed = await selectSeriesOccurrences(perms, occurrences, action, await getTaskAccessScope(perms));
+  return allowed.map((t) => t.id);
+}
+
+/** Deletes occurrences with their assignments and files. */
+async function deleteOccurrences(ids: string[]) {
+  if (ids.length === 0) return;
+  // Read files metadata BEFORE deletion for content-addressable cleanup
+  const tasksWithFiles = await db.query.tasks.findMany({ where: inArray(tasks.id, ids), columns: { files: true } });
+  const allTaskFiles = tasksWithFiles.flatMap(t => (t.files as { storageKey?: string; name?: string }[] ?? []));
+  await db.delete(taskUsers).where(inArray(taskUsers.taskId, ids));
+  // Set parentId to null to avoid FK issues, then delete
+  await db.update(tasks).set({ parentId: null }).where(inArray(tasks.id, ids));
+  await db.delete(tasks).where(inArray(tasks.id, ids));
+  await cleanupTaskFilesContent(allTaskFiles);
+  await cleanupTaskFiles(ids);
+  // Former assignees may lose a project from their assigned_only/own scope
+  invalidateCachePrefix("scope:projects:");
+}
+
+/**
+ * Delete recurring tasks with different scopes. Series scopes only delete the
+ * occurrences `perms` may delete (`selectSeriesOccurrences`); `deleted` counts them.
+ */
 export async function deleteRecurringTasks(
   taskId: string,
-  scope: "single" | "all" | "before" | "after"
+  scope: "single" | "all" | "before" | "after",
+  perms: UserPermissions,
 ) {
   const task = await db.query.tasks.findFirst({ where: eq(tasks.id, taskId) });
   if (!task) return { deleted: 0 };
 
-  const rootId = await getRootTaskId(taskId);
-
-  switch (scope) {
-    case "single": {
-      const taskFiles = (task.files as { storageKey?: string; name?: string }[] ?? []);
-      await db.delete(taskUsers).where(eq(taskUsers.taskId, taskId));
-      await db.delete(tasks).where(eq(tasks.id, taskId));
-      await cleanupTaskFilesContent(taskFiles);
-      await cleanupTaskFiles([taskId]);
-      return { deleted: 1 };
-    }
-    case "all": {
-      // Root + children. Locked occurrences are kept: a lock freezes the task,
-      // as DELETE /api/tasks/[id] enforces for a single one.
-      const rows = await db.select({ id: tasks.id })
-        .from(tasks)
-        .where(and(or(eq(tasks.parentId, rootId), eq(tasks.id, rootId)), eq(tasks.isLocked, false)));
-      const allIds = rows.map(r => r.id);
-      if (allIds.length === 0) return { deleted: 0 };
-      // Read files metadata BEFORE deletion for content-addressable cleanup
-      const allTasksWithFiles = allIds.length > 0
-        ? await db.query.tasks.findMany({ where: inArray(tasks.id, allIds), columns: { files: true } })
-        : [];
-      const allTaskFiles = allTasksWithFiles.flatMap(t => (t.files as { storageKey?: string; name?: string }[] ?? []));
-      // Delete task_users first
-      if (allIds.length > 0) {
-        await db.delete(taskUsers).where(inArray(taskUsers.taskId, allIds));
-      }
-      // Set parentId to null to avoid FK issues, then delete
-      await db.update(tasks)
-        .set({ parentId: null })
-        .where(inArray(tasks.id, allIds));
-      await db.delete(tasks).where(inArray(tasks.id, allIds));
-      await cleanupTaskFilesContent(allTaskFiles);
-      await cleanupTaskFiles(allIds);
-      return { deleted: allIds.length };
-    }
-    case "before": {
-      const ids = await db.select({ id: tasks.id })
-        .from(tasks)
-        .where(and(
-          eq(tasks.parentId, rootId),
-          ne(tasks.id, rootId),
-          lte(tasks.startDate, task.startDate),
-          eq(tasks.isLocked, false)
-        ));
-      // Include the current task
-      const toDelete = [...ids.map(i => i.id), taskId];
-      const uniqueIds = [...new Set(toDelete)];
-      if (uniqueIds.length > 0) {
-        // Read files metadata BEFORE deletion for content-addressable cleanup
-        const tasksWithFiles = await db.query.tasks.findMany({ where: inArray(tasks.id, uniqueIds), columns: { files: true } });
-        const allTaskFiles = tasksWithFiles.flatMap(t => (t.files as { storageKey?: string; name?: string }[] ?? []));
-        await db.delete(taskUsers).where(inArray(taskUsers.taskId, uniqueIds));
-        await db.update(tasks).set({ parentId: null }).where(inArray(tasks.id, uniqueIds));
-        await db.delete(tasks).where(inArray(tasks.id, uniqueIds));
-        await cleanupTaskFilesContent(allTaskFiles);
-        await cleanupTaskFiles(uniqueIds);
-      }
-      return { deleted: uniqueIds.length };
-    }
-    case "after": {
-      const ids = await db.select({ id: tasks.id })
-        .from(tasks)
-        .where(and(
-          eq(tasks.parentId, rootId),
-          ne(tasks.id, rootId),
-          gte(tasks.startDate, task.startDate),
-          eq(tasks.isLocked, false)
-        ));
-      const toDelete = [...ids.map(i => i.id), taskId];
-      const uniqueIds = [...new Set(toDelete)];
-      if (uniqueIds.length > 0) {
-        // Read files metadata BEFORE deletion for content-addressable cleanup
-        const tasksWithFiles = await db.query.tasks.findMany({ where: inArray(tasks.id, uniqueIds), columns: { files: true } });
-        const allTaskFiles = tasksWithFiles.flatMap(t => (t.files as { storageKey?: string; name?: string }[] ?? []));
-        await db.delete(taskUsers).where(inArray(taskUsers.taskId, uniqueIds));
-        await db.update(tasks).set({ parentId: null }).where(inArray(tasks.id, uniqueIds));
-        await db.delete(tasks).where(inArray(tasks.id, uniqueIds));
-        await cleanupTaskFilesContent(allTaskFiles);
-        await cleanupTaskFiles(uniqueIds);
-      }
-      return { deleted: uniqueIds.length };
-    }
+  if (scope === "single") {
+    const taskFiles = (task.files as { storageKey?: string; name?: string }[] ?? []);
+    await db.delete(taskUsers).where(eq(taskUsers.taskId, taskId));
+    await db.delete(tasks).where(eq(tasks.id, taskId));
+    await cleanupTaskFilesContent(taskFiles);
+    await cleanupTaskFiles([taskId]);
+    return { deleted: 1 };
   }
+
+  const rootId = await getRootTaskId(taskId);
+  const ids = await loadAllowedOccurrenceIds(perms, seriesScopeCondition(task, rootId, scope), "delete");
+  await deleteOccurrences(ids);
+  return { deleted: ids.length };
 }
 
-/** Remove a user from recurring tasks with scope */
+/**
+ * Before a series is regenerated with a new rule: deletes its occurrences
+ * (the root excepted) that `perms` may delete, under the rules of
+ * `deleteRecurringTasks`, and returns the start dates of the ones kept, which
+ * the new occurrences must not duplicate.
+ */
+export async function clearSeriesOccurrences(rootId: string, perms: UserPermissions): Promise<Set<string>> {
+  const ids = await loadAllowedOccurrenceIds(
+    perms,
+    and(eq(tasks.parentId, rootId), ne(tasks.id, rootId), eq(tasks.isLocked, false)),
+    "delete",
+  );
+  await deleteOccurrences(ids);
+  const kept = await db.select({ startDate: tasks.startDate })
+    .from(tasks)
+    .where(and(eq(tasks.parentId, rootId), ne(tasks.id, rootId)));
+  return new Set(kept.map((r) => r.startDate));
+}
+
+/**
+ * Remove a user from recurring tasks with scope. Series scopes only reach the
+ * occurrences `perms` may modify (`selectSeriesOccurrences`); `removed` counts them.
+ */
 export async function removeUserFromRecurringTasks(
   taskId: string,
   userId: string,
-  scope: "single" | "all" | "after"
+  scope: "single" | "all" | "after",
+  perms: UserPermissions,
 ) {
   if (scope === "single") {
     await db.delete(taskUsers)
@@ -292,35 +358,22 @@ export async function removeUserFromRecurringTasks(
   if (!task) return { removed: 0 };
 
   const rootId = await getRootTaskId(taskId);
-
-  let targetIds: string[];
-  if (scope === "all") {
-    const rows = await db.select({ id: tasks.id })
-      .from(tasks)
-      .where(eq(tasks.parentId, rootId));
-    targetIds = [...rows.map(r => r.id), rootId];
-  } else {
-    // "after"
-    const rows = await db.select({ id: tasks.id })
-      .from(tasks)
-      .where(and(
-        eq(tasks.parentId, rootId),
-        ne(tasks.id, rootId),
-        gte(tasks.startDate, task.startDate)
-      ));
-    targetIds = [...rows.map(r => r.id), taskId];
-  }
-
-  const uniqueIds = [...new Set(targetIds)];
-  if (uniqueIds.length > 0) {
+  const ids = await loadAllowedOccurrenceIds(perms, seriesScopeCondition(task, rootId, scope), "update");
+  if (ids.length > 0) {
     await db.delete(taskUsers)
-      .where(and(inArray(taskUsers.taskId, uniqueIds), eq(taskUsers.userId, userId)));
+      .where(and(inArray(taskUsers.taskId, ids), eq(taskUsers.userId, userId)));
+    // The user may lose a project from their assigned_only/own scope
+    invalidateCachePrefix(`scope:projects:${userId}:`);
   }
-  return { removed: uniqueIds.length };
+  return { removed: ids.length };
 }
 
-/** Propagate updates from root to all children */
-export async function propagateTaskUpdate(rootId: string, data: Record<string, unknown>) {
+/**
+ * Propagate updates from root to all children, limited to the occurrences
+ * `perms` may update (`selectSeriesOccurrences`). Locked occurrences are
+ * frozen: a series edit does not reach them.
+ */
+export async function propagateTaskUpdate(rootId: string, data: Record<string, unknown>, perms: UserPermissions) {
   // Whitelist of fields that can be propagated
   const allowed = ["title", "notes", "statusId", "projectId", "placeId", "resourceId", "isMilestone", "customField", "link"];
   const propagated: Record<string, unknown> = {};
@@ -329,10 +382,25 @@ export async function propagateTaskUpdate(rootId: string, data: Record<string, u
   }
   if (Object.keys(propagated).length === 0) return;
 
-  // Locked occurrences are frozen: a series edit does not reach them
+  const occurrences = await loadBulkTaskTargets(
+    and(eq(tasks.parentId, rootId), ne(tasks.id, rootId), eq(tasks.isLocked, false)),
+  );
+  if (occurrences.length === 0) return;
+
+  // Moving occurrences to another project: as in PUT /api/tasks/[id], the
+  // target project must be readable (looked up once, only if one moves).
+  const projectId = typeof propagated.projectId === "string" ? propagated.projectId : undefined;
+  const move = projectId !== undefined && occurrences.some((t) => t.projectId !== projectId)
+    ? { projectId, project: await getReadableProject(perms, projectId) }
+    : undefined;
+
+  const ids = (await selectSeriesOccurrences(perms, occurrences, "update", await getTaskAccessScope(perms), move))
+    .map((t) => t.id);
+  if (ids.length === 0) return;
   await db.update(tasks)
     .set(propagated)
-    .where(and(eq(tasks.parentId, rootId), ne(tasks.id, rootId), eq(tasks.isLocked, false)));
+    .where(inArray(tasks.id, ids));
+  if (move) invalidateCachePrefix("scope:projects:");
 }
 
 /** Get the root task ID from any child */

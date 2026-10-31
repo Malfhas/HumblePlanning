@@ -40,6 +40,7 @@ Out of scope: vulnerabilities that require a compromised server or administrator
 ## Hardening recommendations
 
 - Serve Humble Planning over HTTPS only, behind the provided Caddy reverse proxy or your own.
-- Make sure your reverse proxy overwrites the `X-Real-IP` header. Set `TRUSTED_PROXY=cloudflare` only when the server accepts traffic from Cloudflare alone.
+- Make sure your reverse proxy overwrites the `X-Real-IP` header with the client address. Behind the Cloudflare proxy, the provided Caddy reads the client address from Cloudflare's own servers only and needs no `TRUSTED_PROXY`; with your own reverse proxy, resolve the client address there (for example nginx `real_ip` with Cloudflare's ranges), or set `TRUSTED_PROXY=cloudflare` only when the server accepts traffic from Cloudflare alone.
+- Connect the application to PostgreSQL with a role that owns its database but is not a superuser (the installer does it for the built-in database and warns otherwise).
 - Enable two-factor authentication for administrators and keep the password policy strict.
 - Keep backups encrypted and store the backup encryption key outside the server.

@@ -9,46 +9,44 @@ import { verifyCaptcha } from "@/lib/captcha";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
-import { FailureLimiter } from "@/lib/utils/failure-limiter";
+import { getDemoCredentials } from "@/lib/demo";
+import { clearCounters, lockedFor, recordFailure } from "@/lib/services/security-counter-service";
+import type { CounterPolicy } from "@/lib/utils/security-counter";
 import crypto from "node:crypto";
 
-// Rate limiting is in-memory (per-process). This works for single-instance deployments.
-// For multi-instance/cluster deployments, migrate to Redis-backed rate limiting.
-type AttemptEntry = { count: number; lockedUntil: number | null; lastFailureAt: number };
-const attempts = new Map<string, AttemptEntry>();
+// Lockouts stored in PostgreSQL (security_counters): shared by every process
+// and kept across restarts.
+
+// First lock, per identifier+IP: BRUTEFORCE_MAX_ATTEMPTS failures lock for
+// BRUTEFORCE_LOCKOUT_SECONDS; the count starts over after a day without failure.
+const ATTEMPT_IDLE_MS = 24 * 60 * 60 * 1000;
 
 // Second lock, per identifier whatever the IP: the client address can be
 // spoofed (TRUSTED_PROXY=cloudflare with the origin reachable directly), which
 // would make the identifier+IP lock alone ineffective.
 const IDENTIFIER_MAX_FAILURES = 20;
 const IDENTIFIER_LOCK_MS = 15 * 60 * 1000;
-const identifierFailures = new FailureLimiter({
-  maxFailures: IDENTIFIER_MAX_FAILURES,
+const IDENTIFIER_POLICY: CounterPolicy = {
+  max: IDENTIFIER_MAX_FAILURES,
   windowMs: IDENTIFIER_LOCK_MS,
   lockMs: IDENTIFIER_LOCK_MS,
-});
+};
 
-/** Unlocked identifier+IP counters idle for this long are forgotten (bounded memory). */
-const STALE_ATTEMPT_MS = 24 * 60 * 60 * 1000;
-
-// Cleanup old entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of attempts) {
-    const expired = entry.lockedUntil
-      ? now > entry.lockedUntil + 60_000
-      : now - entry.lastFailureAt > STALE_ATTEMPT_MS;
-    if (expired) attempts.delete(key);
-  }
-  identifierFailures.prune();
-}, 10 * 60 * 1000);
+/**
+ * The identifier lock protects a secret password. The demo account's password
+ * is public: that lock would only let anyone lock every visitor out.
+ */
+function hasIdentifierLock(identifier: string): boolean {
+  const demo = getDemoCredentials();
+  return !demo || identifier.trim().toLowerCase() !== demo.login.trim().toLowerCase();
+}
 
 function getIdentifierKey(identifier: string): string {
-  return identifier.trim().toLowerCase();
+  return `login:id:${identifier.trim().toLowerCase()}`;
 }
 
 function getAttemptKey(identifier: string, ip: string): string {
-  return `${identifier.toLowerCase()}:${ip}`;
+  return `login:ip:${identifier.toLowerCase()}:${ip}`;
 }
 
 async function checkBruteforce(identifier: string, ip: string): Promise<{ blocked: boolean; remainingSeconds: number }> {
@@ -57,22 +55,11 @@ async function checkBruteforce(identifier: string, ip: string): Promise<{ blocke
 
   if (maxAttempts <= 0) return { blocked: false, remainingSeconds: 0 };
 
-  const identifierLock = identifierFailures.lockedFor(getIdentifierKey(identifier));
+  const identifierLock = hasIdentifierLock(identifier) ? await lockedFor(getIdentifierKey(identifier)) : 0;
   if (identifierLock > 0) return { blocked: true, remainingSeconds: identifierLock };
 
-  const key = getAttemptKey(identifier, ip);
-  const entry = attempts.get(key);
-
-  if (!entry) return { blocked: false, remainingSeconds: 0 };
-
-  if (entry.lockedUntil) {
-    const remaining = Math.ceil((entry.lockedUntil - Date.now()) / 1000);
-    if (remaining > 0) return { blocked: true, remainingSeconds: remaining };
-    attempts.delete(key);
-    return { blocked: false, remainingSeconds: 0 };
-  }
-
-  return { blocked: false, remainingSeconds: 0 };
+  const attemptLock = await lockedFor(getAttemptKey(identifier, ip));
+  return { blocked: attemptLock > 0, remainingSeconds: attemptLock };
 }
 
 async function recordFailedAttempt(identifier: string, ip: string): Promise<{ locked: boolean; remainingSeconds: number }> {
@@ -82,27 +69,21 @@ async function recordFailedAttempt(identifier: string, ip: string): Promise<{ lo
 
   if (maxAttempts <= 0) return { locked: false, remainingSeconds: 0 };
 
-  const identifierLock = identifierFailures.recordFailure(getIdentifierKey(identifier));
-
-  const key = getAttemptKey(identifier, ip);
-  const entry = attempts.get(key) ?? { count: 0, lockedUntil: null, lastFailureAt: 0 };
-  entry.count++;
-  entry.lastFailureAt = Date.now();
-
-  if (entry.count >= maxAttempts) {
-    entry.lockedUntil = Date.now() + lockoutSeconds * 1000;
-    attempts.set(key, entry);
-    return { locked: true, remainingSeconds: Math.max(lockoutSeconds, identifierLock) };
-  }
-
-  attempts.set(key, entry);
-  if (identifierLock > 0) return { locked: true, remainingSeconds: identifierLock };
-  return { locked: false, remainingSeconds: 0 };
+  const [identifierLock, attemptLock] = await Promise.all([
+    hasIdentifierLock(identifier) ? recordFailure(getIdentifierKey(identifier), IDENTIFIER_POLICY) : 0,
+    recordFailure(getAttemptKey(identifier, ip), {
+      max: maxAttempts,
+      windowMs: ATTEMPT_IDLE_MS,
+      lockMs: lockoutSeconds * 1000,
+      slidingWindow: true,
+    }),
+  ]);
+  const remainingSeconds = Math.max(identifierLock, attemptLock);
+  return { locked: remainingSeconds > 0, remainingSeconds };
 }
 
-function clearAttempts(identifier: string, ip: string) {
-  attempts.delete(getAttemptKey(identifier, ip));
-  identifierFailures.clear(getIdentifierKey(identifier));
+async function clearAttempts(identifier: string, ip: string): Promise<void> {
+  await clearCounters([getIdentifierKey(identifier), getAttemptKey(identifier, ip)]);
 }
 
 /** 429 "too many attempts": remaining delay in minutes beyond one minute, otherwise in seconds. */
@@ -184,7 +165,7 @@ export async function POST(request: Request) {
     }
 
     // Success — clear attempts
-    clearAttempts(identifier, ip);
+    await clearAttempts(identifier, ip);
 
     // Extract user and session info
     const cloned = response.clone();

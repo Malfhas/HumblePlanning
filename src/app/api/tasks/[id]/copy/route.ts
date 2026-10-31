@@ -2,6 +2,7 @@ import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assert
 import { copyTask, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { copyTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
+import { assertTaskResourceWritable } from "@/lib/services/equipment-scope";
 import { loadUserPermissions, canCreateTask, assertTaskReadable, getReadableProject } from "@/lib/services/permission-service";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +30,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const allowed = await canCreateTask(perms, effectiveUserIds, project.ownerId);
     if (!allowed) return apiError("tasks.errors.copyForbidden", 403);
+    // Copied to another resource: one of the user's business units (404 otherwise)
+    await assertTaskResourceWritable(perms, data.resourceId);
 
     // PLANNING_MAX_TASKS_PER_DAY limit: block if the target day is already full
     try {

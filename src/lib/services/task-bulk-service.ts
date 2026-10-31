@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { tasks, taskUsers } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, type SQL } from "drizzle-orm";
 import { logAudit, computeChanges, pickAuditFields } from "./audit-service";
 import { cleanupTaskFiles, cleanupTaskFilesContent } from "./task-service";
 import {
@@ -54,6 +54,26 @@ export function bulkTaskViolation(
   return null;
 }
 
+/** Loads the `BulkTaskTarget` fields of the tasks matching `where`, in one query. */
+export async function loadBulkTaskTargets(where: SQL | undefined): Promise<BulkTaskTarget[]> {
+  const rows = await db.query.tasks.findMany({
+    where,
+    columns: { id: true, projectId: true, isLocked: true, creatorId: true },
+    with: {
+      project: { columns: { ownerId: true } },
+      taskUsers: { with: { user: { columns: { id: true, teamId: true } } } },
+    },
+  });
+  return rows.map((t) => ({
+    id: t.id,
+    projectId: t.projectId,
+    isLocked: t.isLocked,
+    creatorId: t.creatorId,
+    projectOwnerId: t.project?.ownerId ?? null,
+    users: t.taskUsers.map((tu) => tu.user).filter(Boolean),
+  }));
+}
+
 /**
  * Throws unless `perms` may apply `action` to every task of `ids`: the whole
  * request is refused as soon as one task is missing or not allowed.
@@ -65,24 +85,9 @@ export async function assertBulkTasksAllowed(
   action: BulkTaskAction,
   data: BulkTaskUpdate = {},
 ) {
-  const rows = await db.query.tasks.findMany({
-    where: inArray(tasks.id, ids),
-    columns: { id: true, projectId: true, isLocked: true, creatorId: true },
-    with: {
-      project: { columns: { ownerId: true } },
-      taskUsers: { with: { user: { columns: { id: true, teamId: true } } } },
-    },
-  });
-  if (rows.length !== new Set(ids).size) throw new AppError("tasks.errors.notFound");
+  const targets = await loadBulkTaskTargets(inArray(tasks.id, ids));
+  if (targets.length !== new Set(ids).size) throw new AppError("tasks.errors.notFound");
 
-  const targets: BulkTaskTarget[] = rows.map((t) => ({
-    id: t.id,
-    projectId: t.projectId,
-    isLocked: t.isLocked,
-    creatorId: t.creatorId,
-    projectOwnerId: t.project?.ownerId ?? null,
-    users: t.taskUsers.map((tu) => tu.user).filter(Boolean),
-  }));
   const readScope = await getTaskAccessScope(perms);
   for (const task of targets) {
     const code = bulkTaskViolation(perms, task, action, readScope);

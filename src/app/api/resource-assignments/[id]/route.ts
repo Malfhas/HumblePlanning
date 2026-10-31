@@ -1,5 +1,6 @@
 import { requireAuth, requirePermission, validateBody, apiSuccess, apiError, handleApiError, ApiError, assertUuid } from "@/lib/utils/api";
 import { getResourceAssignmentById, updateResourceAssignment, deleteResourceAssignment, isResourceAssignmentLocked } from "@/lib/services/resource-assignment-service";
+import { getEquipmentScope, assertBookingWritable } from "@/lib/services/equipment-scope";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -17,10 +18,11 @@ const updateSchema = z.object({
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "pages:resources");
+    const perms = await requirePermission(session.user.id, "pages:resources");
     const { id } = await params;
     const uuidErr = assertUuid(id); if (uuidErr) return uuidErr;
-    const result = await getResourceAssignmentById(id);
+    // Outside the scope it answers like a missing one
+    const result = await getResourceAssignmentById(id, await getEquipmentScope(perms));
     if (!result) throw new ApiError("resources.errors.resourceAssignmentNotFound", 404);
     return apiSuccess(result);
   } catch (error) {
@@ -31,10 +33,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "resources:edit");
+    const perms = await requirePermission(session.user.id, "resources:edit");
     const { id } = await params;
     const uuidErr = assertUuid(id); if (uuidErr) return uuidErr;
     const data = await validateBody(request, updateSchema);
+    // 404 unless on a resource of the user's business units; new references in scope
+    await assertBookingWritable(perms, "resource", id, { equipmentId: data.resourceId, projectId: data.projectId });
     if (!("isLocked" in data) && await isResourceAssignmentLocked(id)) {
       return apiError("resources.errors.reservationLocked", 403);
     }
@@ -50,9 +54,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "resources:delete");
+    const perms = await requirePermission(session.user.id, "resources:delete");
     const { id } = await params;
     const uuidErr = assertUuid(id); if (uuidErr) return uuidErr;
+    await assertBookingWritable(perms, "resource", id, {});
     if (await isResourceAssignmentLocked(id)) {
       return apiError("resources.errors.reservationLocked", 403);
     }

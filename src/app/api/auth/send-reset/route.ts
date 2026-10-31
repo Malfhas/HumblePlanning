@@ -12,26 +12,19 @@ import { assertNotDemoAccount } from "@/lib/demo";
 import { refuseInDemo } from "@/lib/demo/guard";
 import { assertCanManageUser } from "@/lib/services/user-access";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
+import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
-// Rate limiting: 1 reset email per user per 60 seconds
-const resetCooldowns = new Map<string, number>();
+// Rate limiting: 1 reset email per user per 60 seconds, stored in PostgreSQL
+// (security_counters): shared by every process and kept across restarts.
 const COOLDOWN_SECONDS = 60;
-
-// Cleanup every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, timestamp] of resetCooldowns) {
-    if (now - timestamp > COOLDOWN_SECONDS * 1000 + 10_000) {
-      resetCooldowns.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);
 
 export async function POST(request: Request) {
   const refused = await refuseInDemo(request);
   if (refused) return refused;
+  // Cooldown claimed but no email sent yet: released on error
+  let pendingCooldown: string | null = null;
   try {
     const session = await requireAuth();
     const perms = await requirePermission(session.user.id, "users:edit");
@@ -41,15 +34,13 @@ export async function POST(request: Request) {
     // Same rule as editing the account: no reset link for a more privileged user or another BU
     await assertCanManageUser(perms, { targetId: userId });
 
-    // Check cooldown
-    const lastSent = resetCooldowns.get(userId);
-    if (lastSent) {
-      const elapsed = Math.floor((Date.now() - lastSent) / 1000);
-      if (elapsed < COOLDOWN_SECONDS) {
-        const remaining = COOLDOWN_SECONDS - elapsed;
-        throw new AppError("auth.errors.resetAlreadySent", { status: 429, params: { count: remaining } });
-      }
+    // Cooldown, claimed before sending: concurrent requests cannot both send
+    const cooldown = `send-reset:user:${userId}`;
+    const remaining = await claimCooldown(cooldown, COOLDOWN_SECONDS * 1000);
+    if (remaining > 0) {
+      throw new AppError("auth.errors.resetAlreadySent", { status: 429, params: { count: remaining } });
     }
+    pendingCooldown = cooldown;
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -91,11 +82,12 @@ export async function POST(request: Request) {
 
     await sendEmail({ to: user.email, ...template });
 
-    // Record cooldown after successful send
-    resetCooldowns.set(userId, Date.now());
+    // Email sent: the cooldown stays
+    pendingCooldown = null;
 
     return apiSuccess({ success: true });
   } catch (err) {
+    if (pendingCooldown) await clearCounters([pendingCooldown]).catch(() => {});
     // Coded errors (missing session, permission denied…): translated by handleApiError.
     if (err instanceof AppError) return handleApiError(err);
     logger.error("auth", "send-reset error", { error: err instanceof Error ? err.message : String(err) });

@@ -366,7 +366,7 @@ export async function GET(request: NextRequest) {
     // Dispatch data fetching based on calendar mode
     const isVehicleMode = filters.viewMode === "vehicles";
     const data = isVehicleMode
-      ? await getVehicleExportData(filters, session.user.name, i18n)
+      ? await getVehicleExportData(filters, session.user.name, i18n, perms)
       : await getExportData(filters, session.user.name, i18n, perms);
 
     const workbook = new ExcelJS.Workbook();

@@ -53,6 +53,9 @@ export const users = pgTable("users", {
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   twoFactorSecret: text("two_factor_secret"),
   twoFactorBackupCodes: text("two_factor_backup_codes"),
+  // Last TOTP time step accepted at login: a code is valid for its whole
+  // 30-second step, so only a newer step is accepted (replay protection).
+  twoFactorLastStep: integer("two_factor_last_step"),
   icalToken: uuid("ical_token"),
   defaultHourlyRate: decimal("default_hourly_rate", { precision: 10, scale: 2 }),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),

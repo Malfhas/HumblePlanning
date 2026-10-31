@@ -1,6 +1,12 @@
 import { db } from "@/db";
 import { vehicleAssignments } from "@/db/schema";
-import { eq, and, lte, gte, ne, or } from "drizzle-orm";
+import { eq, and, lte, gte, ne } from "drizzle-orm";
+import {
+  BOOKING_PROJECT_RELATION,
+  BOOKING_TASK_RELATION,
+  scopeBookings,
+  type EquipmentScope,
+} from "./equipment-scope";
 
 export async function isVehicleAssignmentLocked(id: string): Promise<boolean> {
   const a = await db.query.vehicleAssignments.findFirst({
@@ -12,21 +18,22 @@ export async function isVehicleAssignmentLocked(id: string): Promise<boolean> {
 
 const WITH_VA_RELATIONS = {
   vehicle: {
-    columns: { id: true, name: true, color: true },
+    columns: { id: true, name: true, color: true, businessUnitId: true },
     with: {
       vehicleType: {
         columns: { id: true, name: true, icon: true, color: true },
       },
     },
   },
-  task: { columns: { id: true, title: true } },
-  project: { columns: { id: true, name: true, color: true } },
+  task: BOOKING_TASK_RELATION,
+  project: BOOKING_PROJECT_RELATION,
   assignedByUser: { columns: { id: true, name: true, firstName: true } },
   lastModifier: { columns: { id: true, name: true, firstName: true } },
 } as const;
 
-export async function getVehicleAssignments(vehicleId?: string, startDate?: string, endDate?: string) {
-  return db.query.vehicleAssignments.findMany({
+/** Assignments visible within `scope` (`getEquipmentScope`), optionally of one vehicle / period. */
+export async function getVehicleAssignments(scope: EquipmentScope, vehicleId?: string, startDate?: string, endDate?: string) {
+  const rows = await db.query.vehicleAssignments.findMany({
     where: and(
       vehicleId ? eq(vehicleAssignments.vehicleId, vehicleId) : undefined,
       startDate ? lte(vehicleAssignments.startDate, endDate || startDate) : undefined,
@@ -35,13 +42,16 @@ export async function getVehicleAssignments(vehicleId?: string, startDate?: stri
     with: WITH_VA_RELATIONS,
     orderBy: (va, { asc }) => [asc(va.startDate)],
   });
+  return scopeBookings(rows, scope, (a) => a.vehicle);
 }
 
-export async function getVehicleAssignmentById(id: string) {
-  return db.query.vehicleAssignments.findFirst({
+/** The assignment when it exists and is visible within `scope`, otherwise null. */
+export async function getVehicleAssignmentById(id: string, scope: EquipmentScope) {
+  const row = await db.query.vehicleAssignments.findFirst({
     where: eq(vehicleAssignments.id, id),
     with: WITH_VA_RELATIONS,
   });
+  return row ? scopeBookings([row], scope, (a) => a.vehicle)[0] ?? null : null;
 }
 
 export async function getAssignmentsForTask(taskId: string) {
@@ -60,7 +70,9 @@ export async function getAssignmentsForTask(taskId: string) {
   });
 }
 
+/** Assignments of a vehicle overlapping a period, task / project details within `scope`. */
 export async function checkConflicts(
+  scope: EquipmentScope,
   vehicleId: string,
   startDate: string,
   endDate: string,
@@ -74,10 +86,12 @@ export async function checkConflicts(
       excludeId ? ne(vehicleAssignments.id, excludeId) : undefined,
     ),
     with: {
-      task: { columns: { id: true, title: true } },
+      vehicle: { columns: { businessUnitId: true } },
+      task: BOOKING_TASK_RELATION,
+      project: BOOKING_PROJECT_RELATION,
     },
   });
-  return conflicts;
+  return scopeBookings(conflicts, scope, (a) => a.vehicle);
 }
 
 export async function createVehicleAssignment(data: {

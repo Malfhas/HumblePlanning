@@ -10,7 +10,7 @@ import {
   createAuthorizationCode,
   buildAccessDeniedRedirect,
   buildCodeRedirect,
-  checkRateLimit,
+  checkPersistentRateLimit,
   getPublicBaseUrl,
 } from "@/lib/services/mcp-oauth-service";
 import { validateOrigin } from "@/lib/utils/csrf";
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
     const userId = session.user.id;
 
-    if (!checkRateLimit(`mcp-consent:${userId}`, 30, 10 * 60 * 1000)) {
+    if (!(await checkPersistentRateLimit(`mcp-consent:${userId}`, 30, 10 * 60 * 1000))) {
       return handleApiError(new AppError("mcp.errors.consentRateLimited", { status: 429 }));
     }
 

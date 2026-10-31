@@ -6,12 +6,20 @@ import { getConfigValues } from "@/lib/services/config-service";
 import { holidays as holidaysTable } from "@/db/schema/holidays";
 import { eq, ne, and, gte, lte, inArray, sql, type SQL } from "drizzle-orm";
 import {
+  getProjectReadScope,
   getTaskAccessScope,
+  getVisibleBusinessUnitIds,
   getVisibleProjectIds,
   getVisibleUserIds,
+  hasPermission,
+  isProjectInReadScope,
+  restrictToScope,
+  type ProjectReadScope,
   type TaskAccessScope,
   type UserPermissions,
 } from "@/lib/services/permission-service";
+import { AppError } from "@/lib/errors";
+import { isEquipmentVisible } from "@/lib/services/equipment-scope";
 import type { SortMode, ViewMode, CalendarMode } from "@/lib/types/planning";
 import { sortAndGroupRows, type PlanningRow, type GridRow, type NoneGroupLabels } from "@/lib/utils/sort-rows";
 import { INTL_TAG, type AppLocale } from "@/i18n/config";
@@ -536,9 +544,10 @@ export async function getExportData(filters: ExportFilters, exportedBy: string, 
       break;
     }
     case "vehicles": {
-      const { vehicles: vehiclesTable } = await import("@/db/schema");
-      const allVehicles = await db.select().from(vehiclesTable);
+      const businessUnitIds = getVehicleExportBusinessUnits(filters, perms);
+      const allVehicles = await db.select().from(vehicles);
       planningRows = allVehicles
+        .filter(v => isEquipmentVisible(v, businessUnitIds))
         .map(v => ({ id: v.id, name: v.name, type: "row" as const, color: v.color }));
       break;
     }
@@ -609,60 +618,107 @@ function emptyResult(filters: ExportFilters, exportedBy: string): ExportData {
   };
 }
 
-export async function getVehicleExportData(filters: ExportFilters, exportedBy: string, i18n: ExportI18n): Promise<ExportData> {
+// ── Vehicles ─────────────────────────────────────────────────────────────────
+
+/**
+ * Business units whose vehicles the caller may export, as on the planning
+ * vehicle view: the selected ones (`filters.businessUnitIds`) within the
+ * caller's BU scope (`isEquipmentVisible`); `null` = every vehicle. That view
+ * needs `planning:view_vehicles`, so does its export.
+ */
+export function getVehicleExportBusinessUnits(filters: ExportFilters, perms: UserPermissions): string[] | null {
+  if (!hasPermission(perms, "planning:view_vehicles")) throw new AppError("errors.forbidden");
+  return restrictToScope(filters.businessUnitIds, getVisibleBusinessUnitIds(perms));
+}
+
+/** A vehicle assignment as loaded by `getVehicleExportData`. */
+export interface VehicleAssignmentRow {
+  id: string;
+  vehicleId: string;
+  type: string;
+  notes: string | null;
+  startDate: string;
+  endDate: string;
+  startTime: string | null;
+  endTime: string | null;
+  vehicle: { name: string; vehicleType: { name: string } | null } | null;
+  project: { id: string; name: string; color: string | null; businessUnitId: string | null } | null;
+  assignedByUser: { id: string; name: string; username: string | null } | null;
+}
+
+/**
+ * Export row of a vehicle assignment. A vehicle of the caller's scope can be
+ * booked for a project of another business unit: that project (name, colour)
+ * only shows when the caller may read it, otherwise the row reads like a
+ * booking without project.
+ */
+export function mapVehicleAssignment(
+  a: VehicleAssignmentRow,
+  assignmentTypeLabel: ExportI18n["assignmentTypeLabel"],
+  projectScope: ProjectReadScope,
+): ExportTask {
+  const project = a.project && isProjectInReadScope(a.project, projectScope) ? a.project : null;
+  const typeLabel = assignmentTypeLabel(a.type);
+  const title = project ? project.name : `${typeLabel}${a.notes ? ` — ${a.notes}` : ""}`;
+
+  return {
+    id: a.id,
+    title,
+    startDate: a.startDate,
+    endDate: a.endDate,
+    startTime: a.startTime,
+    endTime: a.endTime,
+    notes: a.notes,
+    link: null,
+    isMilestone: false,
+    files: null,
+    project: project ? { id: project.id, name: project.name, color: project.color } : null,
+    status: null,
+    place: null,
+    resource: null,
+    users: a.assignedByUser ? [{ id: a.assignedByUser.id, name: a.assignedByUser.name, username: a.assignedByUser.username ?? null }] : [],
+    // Extra fields for vehicle export
+    vehicleId: a.vehicleId,
+    vehicleName: a.vehicle?.name ?? "",
+    vehicleTypeName: a.vehicle?.vehicleType?.name ?? "",
+    assignmentType: a.type,
+  };
+}
+
+/**
+ * Vehicle export data, restricted like the planning vehicle view: the vehicles
+ * of `getVehicleExportBusinessUnits`, their assignments only, and the projects
+ * the caller may read (`mapVehicleAssignment`).
+ */
+export async function getVehicleExportData(filters: ExportFilters, exportedBy: string, i18n: ExportI18n, perms: UserPermissions): Promise<ExportData> {
   const effectiveStartDate = filters.startDate;
   const effectiveEndDate = filters.endDate;
+  const businessUnitIds = getVehicleExportBusinessUnits(filters, perms);
+  const projectScope = await getProjectReadScope(perms);
 
-  // Fetch vehicle assignments overlapping the date range
-  const conditions = [
-    lte(vehicleAssignments.startDate, effectiveEndDate),
-    gte(vehicleAssignments.endDate, effectiveStartDate),
-  ];
+  // Vehicle rows (a small table: filtered here with the rule above)
+  const allVehicles = (await db.query.vehicles.findMany({
+    with: { vehicleType: true },
+    orderBy: (v, { asc }) => [asc(v.name)],
+  })).filter(v => isEquipmentVisible(v, businessUnitIds));
+  const vehicleIds = allVehicles.map(v => v.id);
 
-  const rawAssignments = await db.query.vehicleAssignments.findMany({
-    where: and(...conditions),
+  // Assignments of those vehicles overlapping the date range
+  const rawAssignments = vehicleIds.length === 0 ? [] : await db.query.vehicleAssignments.findMany({
+    where: and(
+      lte(vehicleAssignments.startDate, effectiveEndDate),
+      gte(vehicleAssignments.endDate, effectiveStartDate),
+      inArray(vehicleAssignments.vehicleId, vehicleIds),
+    ),
     with: {
-      vehicle: { with: { vehicleType: true } },
-      project: true,
-      assignedByUser: true,
+      vehicle: { columns: { name: true }, with: { vehicleType: { columns: { name: true } } } },
+      project: { columns: { id: true, name: true, color: true, businessUnitId: true } },
+      assignedByUser: { columns: { id: true, name: true, username: true } },
     },
     orderBy: (va, { asc }) => [asc(va.startDate)],
   });
 
-  // Map assignments to ExportTask format
-  const exportTasks: ExportTask[] = rawAssignments.map(a => {
-    const typeLabel = i18n.assignmentTypeLabel(a.type);
-    const title = a.project ? a.project.name : `${typeLabel}${a.notes ? ` — ${a.notes}` : ""}`;
-
-    return {
-      id: a.id,
-      title,
-      startDate: a.startDate,
-      endDate: a.endDate,
-      startTime: a.startTime,
-      endTime: a.endTime,
-      notes: a.notes,
-      link: null,
-      isMilestone: false,
-      files: null,
-      project: a.project ? { id: a.project.id, name: a.project.name, color: a.project.color } : null,
-      status: null,
-      place: null,
-      resource: null,
-      users: a.assignedByUser ? [{ id: a.assignedByUser.id, name: a.assignedByUser.name, username: a.assignedByUser.username ?? null }] : [],
-      // Extra fields for vehicle export
-      vehicleId: a.vehicleId,
-      vehicleName: a.vehicle?.name ?? "",
-      vehicleTypeName: a.vehicle?.vehicleType?.name ?? "",
-      assignmentType: a.type,
-    };
-  });
-
-  // Build vehicle rows
-  const allVehicles = await db.query.vehicles.findMany({
-    with: { vehicleType: true },
-    orderBy: (v, { asc }) => [asc(v.name)],
-  });
+  const exportTasks: ExportTask[] = rawAssignments.map(a => mapVehicleAssignment(a, i18n.assignmentTypeLabel, projectScope));
 
   const sortMode = filters.sortMode || "name-asc";
   const sortedVehicles = [...allVehicles];

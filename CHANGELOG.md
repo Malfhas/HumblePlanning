@@ -4,7 +4,7 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-10-30
+## [1.0.0] - 2026-10-31
 
 First open-source release of Humble Planning, under the GNU Affero General Public License v3.0 or later.
 
@@ -79,10 +79,11 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 
 ### Security and compliance
 
-- Argon2id password hashing, configurable password policy and brute-force protection.
-- Two-factor authentication (TOTP) with backup codes, enforceable per user.
+- Argon2id password hashing, configurable password policy and brute-force protection, with lockouts per address and per identifier stored in the database (they survive restarts).
+- Two-factor authentication (TOTP) with backup codes, enforceable per user; each code is accepted only once.
 - Captcha on sign-in and password reset: ALTCHA, Cloudflare Turnstile or Google reCAPTCHA.
 - Sign-in always goes through the captcha, brute-force and two-factor checks: only the session and sign-out endpoints of the authentication library are exposed, and self sign-up is disabled.
+- Role scopes enforced on every path to the data: schedule, recurring series, vehicles and resources, exports, statistics, files, REST API, MCP server and AI assistant.
 - Session management, audit trail of every change with restore, and configurable retention.
 - GDPR tools: privacy policy, cookie banner and data purge.
 
@@ -105,6 +106,8 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 ### Installation and operations
 
 - One-command installer for Ubuntu and Debian (amd64 and arm64) that sets up Docker, PostgreSQL 18, optional Caddy with automatic HTTPS (including the Cloudflare DNS challenge) and the administrator account.
+- The application connects to PostgreSQL with a dedicated role that owns its database but is not a superuser.
+- Behind the Cloudflare proxy, Caddy takes the visitor's address only from Cloudflare's own servers.
 - `humble-planning` command to check the status, read the logs, back up, update and roll back.
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
