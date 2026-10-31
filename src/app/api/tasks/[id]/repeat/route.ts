@@ -1,5 +1,5 @@
 import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assertUuid } from "@/lib/utils/api";
-import { loadUserPermissions, hasPermission, canModifyTask } from "@/lib/services/permission-service";
+import { loadUserPermissions, hasPermission, assertTaskModifiable } from "@/lib/services/permission-service";
 import { repeatTaskSchema } from "@/lib/validators/task";
 import { getTaskById } from "@/lib/services/task-service";
 import { generateRecurringOccurrences } from "@/lib/services/recurring-task-service";
@@ -21,16 +21,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const rule = await validateBody(request, repeatTaskSchema);
 
     const task = await getTaskById(id);
-    if (!task) return apiError("tasks.errors.notFound");
-
-    // Scope check over source task
-    if (!canModifyTask(perms, {
-      users: task.users,
-      creatorId: task.creatorId,
-      projectOwnerId: task.project?.ownerId,
-    })) {
-      return apiError("tasks.errors.notAllowed");
-    }
+    // Scope check over source task: 404 outside the read scope, 403 outside the modify scope
+    await assertTaskModifiable(perms, task);
 
     // Cannot repeat a child task
     if (task.parentId && task.parentId !== task.id) {

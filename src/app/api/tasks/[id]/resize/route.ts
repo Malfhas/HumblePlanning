@@ -1,8 +1,8 @@
 import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assertUuid } from "@/lib/utils/api";
-import { resizeTask, isTaskLocked, getTaskById } from "@/lib/services/task-service";
+import { resizeTask, isTaskLocked } from "@/lib/services/task-service";
 import { resizeTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
-import { loadUserPermissions, hasPermission, canModifyTask } from "@/lib/services/permission-service";
+import { loadUserPermissions, hasPermission, assertTaskModifiable } from "@/lib/services/permission-service";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,15 +13,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!hasPermission(perms, "tasks:resize")) {
       return apiError("errors.forbidden");
     }
-    const existingTask = await getTaskById(id);
-    if (!existingTask) return apiError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      return apiError("tasks.errors.notAllowed");
-    }
+    // 404 outside the read scope, 403 outside the modify scope
+    await assertTaskModifiable(perms, id);
     if (await isTaskLocked(id)) {
       return apiError("tasks.errors.locked", 403);
     }

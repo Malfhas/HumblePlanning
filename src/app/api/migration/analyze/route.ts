@@ -1,11 +1,14 @@
-import { requireAuth, requirePermission, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { requireAuth, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { loadUserPermissions } from "@/lib/services/permission-service";
 import { analyzeMigration } from "@/lib/services/migration-service";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "backups:create");
+    // A migration creates accounts and assigns them roles: Super Admin only.
+    const perms = await loadUserPermissions(session.user.id);
+    if (!perms.isAdmin) throw new AppError("errors.forbidden");
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

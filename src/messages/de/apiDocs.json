@@ -192,7 +192,6 @@
     "startTime": "Startzeit",
     "endTime": "Endzeit",
     "isMilestone": "Als Meilenstein markieren (Standard: false)",
-    "files": "Metadaten bereits hochgeladener Dateien (der Upload erfolgt über POST /api/tasks/[id]/files, als Multipart)",
     "taskIdUnique": "Eindeutige Aufgaben-ID (URL-Parameter)",
     "taskId": "Aufgaben-ID (URL-Parameter)",
     "newTitle": "Neuer Titel",

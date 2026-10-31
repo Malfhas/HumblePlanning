@@ -6,22 +6,12 @@ import { formatTime, formatDate, dateSettingsFromConfig } from "@/lib/utils/date
 import { getConfigValues } from "@/lib/services/config-service";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
-
-function escapeCSV(value: string | null | undefined): string {
-  if (value == null) return "";
-  const str = String(value);
-  if (str.includes(";") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-}
-
-
+import { escapeCsvCell } from "@/lib/utils/csv";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "export:use");
+    const perms = await requirePermission(session.user.id, "export:use");
 
     // Load date/time format config for server-side formatting
     // (passed explicitly: no global state on the server)
@@ -35,7 +25,7 @@ export async function GET(request: NextRequest) {
     const isVehicleMode = filters.viewMode === "vehicles";
     const data = isVehicleMode
       ? await getVehicleExportData(filters, session.user.name, i18n)
-      : await getExportData(filters, session.user.name, i18n);
+      : await getExportData(filters, session.user.name, i18n, perms);
 
     const headers = isVehicleMode
       ? [
@@ -56,32 +46,32 @@ export async function GET(request: NextRequest) {
 
     const rows = data.tasks.map(task => isVehicleMode
       ? [
-          escapeCSV(task.title),
-          escapeCSV(task.project?.name),
-          escapeCSV(task.vehicleName),
-          escapeCSV(task.vehicleTypeName),
-          escapeCSV(task.assignmentType ? i18n.assignmentTypeLabel(task.assignmentType) : task.assignmentType),
-          escapeCSV(formatDate(task.startDate, locale, dates.dateFormat)),
-          escapeCSV(task.endDate ? formatDate(task.endDate, locale, dates.dateFormat) : ""),
-          escapeCSV(formatTime(task.startTime, locale, dates.timeFormat)),
-          escapeCSV(formatTime(task.endTime, locale, dates.timeFormat)),
-          escapeCSV(task.users.map(u => u.name).join(", ")),
-          escapeCSV(task.notes),
+          escapeCsvCell(task.title),
+          escapeCsvCell(task.project?.name),
+          escapeCsvCell(task.vehicleName),
+          escapeCsvCell(task.vehicleTypeName),
+          escapeCsvCell(task.assignmentType ? i18n.assignmentTypeLabel(task.assignmentType) : task.assignmentType),
+          escapeCsvCell(formatDate(task.startDate, locale, dates.dateFormat)),
+          escapeCsvCell(task.endDate ? formatDate(task.endDate, locale, dates.dateFormat) : ""),
+          escapeCsvCell(formatTime(task.startTime, locale, dates.timeFormat)),
+          escapeCsvCell(formatTime(task.endTime, locale, dates.timeFormat)),
+          escapeCsvCell(task.users.map(u => u.name).join(", ")),
+          escapeCsvCell(task.notes),
         ]
       : [
-          escapeCSV(task.title),
-          escapeCSV(task.project?.name),
-          escapeCSV(formatDate(task.startDate, locale, dates.dateFormat)),
-          escapeCSV(task.endDate ? formatDate(task.endDate, locale, dates.dateFormat) : ""),
-          escapeCSV(formatTime(task.startTime, locale, dates.timeFormat)),
-          escapeCSV(formatTime(task.endTime, locale, dates.timeFormat)),
-          escapeCSV(task.users.map(u => u.name).join(", ")),
-          escapeCSV(task.status?.name),
-          escapeCSV(task.place?.name),
-          escapeCSV(task.resource?.name),
-          escapeCSV(task.notes),
-          escapeCSV(task.isMilestone ? t("common.boolean.yes") : t("common.boolean.no")),
-          escapeCSV(task.link),
+          escapeCsvCell(task.title),
+          escapeCsvCell(task.project?.name),
+          escapeCsvCell(formatDate(task.startDate, locale, dates.dateFormat)),
+          escapeCsvCell(task.endDate ? formatDate(task.endDate, locale, dates.dateFormat) : ""),
+          escapeCsvCell(formatTime(task.startTime, locale, dates.timeFormat)),
+          escapeCsvCell(formatTime(task.endTime, locale, dates.timeFormat)),
+          escapeCsvCell(task.users.map(u => u.name).join(", ")),
+          escapeCsvCell(task.status?.name),
+          escapeCsvCell(task.place?.name),
+          escapeCsvCell(task.resource?.name),
+          escapeCsvCell(task.notes),
+          escapeCsvCell(task.isMilestone ? t("common.boolean.yes") : t("common.boolean.no")),
+          escapeCsvCell(task.link),
         ]);
 
     const csv = "\uFEFF" + [headers.join(";"), ...rows.map(r => r.join(";"))].join("\r\n");

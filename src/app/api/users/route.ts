@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { requireAuth, requirePermission, validateBody, apiSuccess, apiError, handleApiError } from "@/lib/utils/api";
-import { getUsers, createUser } from "@/lib/services/user-service";
+import { getUsers, createUser, withoutContactFields } from "@/lib/services/user-service";
 import { createUserSchema } from "@/lib/validators/user";
-import { loadUserPermissions, getVisibleUserIds, hasPermission } from "@/lib/services/permission-service";
+import { loadUserPermissions, getVisibleUserIds, getVisibleBusinessUnitIds, hasPermission } from "@/lib/services/permission-service";
+import { assertCanManageUser, userReadFilter } from "@/lib/services/user-access";
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     // Bypass userScope filtering. Honored if the caller has pages:users
     // (/users management), pages:projects (project-form owner picker), or
     // any stats page (filter bars need the full user list for selection).
+    // The list then stays within the business-unit scope (scope:bu_*).
     const unscoped =
       request.nextUrl.searchParams.get("unscoped") === "true" &&
       (hasPermission(perms, "pages:users") ||
@@ -34,23 +36,17 @@ export async function GET(request: NextRequest) {
         hasPermission(perms, "pages:stats_roi"));
     let users = await getUsers(search, activeOnly, planningOnly);
 
-    // Apply permission-based visibility filtering (unless explicitly bypassed)
-    if (!unscoped) {
-      const visibleIds = await getVisibleUserIds(perms);
-      if (visibleIds) {
-        const visibleSet = new Set(visibleIds);
-        users = users.filter((u: { id: string }) => visibleSet.has(u.id));
-      }
-    }
+    // Permission-based visibility, extended to the business units in scope when bypassed
+    const readable = userReadFilter(
+      await getVisibleUserIds(perms),
+      unscoped ? getVisibleBusinessUnitIds(perms) : [],
+    );
+    if (readable) users = users.filter(readable);
 
-    // Strip sensitive fields (email, mobile, phone) for users without users:edit permission
+    // Strip contact fields (email, phone, mobile, address) for users without users:edit permission
     if (!hasPermission(perms, "users:edit")) {
-      users = users.map((u: any) => {
-        // Self: keep all fields
-        if (u.id === session.user.id) return u;
-        const { email, mobile, phone, ...safeUser } = u;
-        return safeUser;
-      });
+      // Self: keep all fields
+      users = users.map((u: { id: string }) => (u.id === session.user.id ? u : withoutContactFields(u)));
     }
 
     return apiSuccess(users);
@@ -62,8 +58,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "users:create");
+    const perms = await requirePermission(session.user.id, "users:create");
     const data = await validateBody(request, createUserSchema);
+    // Role and business unit within the creator's own rights
+    await assertCanManageUser(perms, { roleId: data.roleId, businessUnitId: data.businessUnitId ?? null });
     const user = await createUser(data, session.user.id);
     return apiSuccess(user, 201);
   } catch (error) {

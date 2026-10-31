@@ -5,13 +5,11 @@ import {
   canCreateTask,
   hasPermission,
   getTaskAccessScope,
+  getReadableProject,
 } from "@/lib/services/permission-service";
 import { getTasks, createTask, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { createTaskSchema, taskFiltersSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
-import { db } from "@/db";
-import { projects } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,10 +39,8 @@ export async function POST(request: Request) {
 
     // Check granular create permission based on modifyScope + assigned users + project owner
     const perms = await loadUserPermissions(session.user.id);
-    const project = await db.query.projects.findFirst({
-      where: eq(projects.id, data.projectId),
-      columns: { ownerId: true },
-    });
+    // Target project: outside the read scope it answers like a missing one.
+    const project = await getReadableProject(perms, data.projectId);
     if (!project) return apiError("tasks.errors.projectNotFound", 404);
     const allowed = await canCreateTask(perms, data.userIds ?? [], project.ownerId);
     if (!allowed) {

@@ -1,4 +1,5 @@
-import { requireAuth, requirePermission, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { requireAuth, apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
+import { loadUserPermissions } from "@/lib/services/permission-service";
 import {
   analyzeImportFromDisk,
   ensureImportDirExported,
@@ -23,7 +24,10 @@ export async function POST(request: Request) {
 
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "backups:create");
+    // A replace-mode import rewrites roles and accounts: Super Admin only
+    // (`backups:create` alone would amount to it).
+    const perms = await loadUserPermissions(session.user.id);
+    if (!perms.isAdmin) throw new AppError("errors.forbidden");
 
     // Content-Length pre-check if the client sends it (fast rejection without writing).
     const contentLength = Number(request.headers.get("content-length") ?? "0");

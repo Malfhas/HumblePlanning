@@ -2,10 +2,13 @@ import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assert
 import { moveTask, isTaskLocked, getTaskById, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { moveTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
-import { loadUserPermissions, hasPermission, canModifyTask, canAssignWithModifyScope } from "@/lib/services/permission-service";
-import { db } from "@/db";
-import { projects } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  loadUserPermissions,
+  hasPermission,
+  assertTaskModifiable,
+  canAssignWithModifyScope,
+  getReadableProject,
+} from "@/lib/services/permission-service";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,14 +20,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return apiError("errors.forbidden");
     }
     const existingTask = await getTaskById(id);
-    if (!existingTask) return apiError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      return apiError("tasks.errors.notAllowed");
-    }
+    // 404 outside the read scope, 403 outside the modify scope
+    await assertTaskModifiable(perms, existingTask);
     if (await isTaskLocked(id)) {
       return apiError("tasks.errors.locked", 403);
     }
@@ -47,10 +44,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       const targetUserIds = usersChanged ? (data.userIds as string[]) : existingUserIds;
       let targetProjectOwnerId: string | null = existingTask.project?.ownerId ?? null;
       if (projectChanged) {
-        const newProject = await db.query.projects.findFirst({
-          where: eq(projects.id, data.projectId!),
-          columns: { ownerId: true },
-        });
+        // Target project: outside the read scope it answers like a missing one.
+        const newProject = await getReadableProject(perms, data.projectId!);
         if (!newProject) return apiError("tasks.errors.projectNotFound", 404);
         targetProjectOwnerId = newProject.ownerId;
       }

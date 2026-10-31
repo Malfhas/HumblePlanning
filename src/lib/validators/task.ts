@@ -23,17 +23,11 @@ export const createTaskSchema = z.object({
   endTime: z.string().optional(),
   breakDuration: z.string().optional(),
   customField: z.string().max(255).optional(),
-  files: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    originalName: z.string(),
-    size: z.number(),
-    mimeType: z.string(),
-    uploadedAt: z.string(),
-  })).default([]),
+  // No `files` here: attachments only go through /api/tasks/[id]/files, which
+  // stores server-generated metadata (client metadata reaches the disk on deletion).
 });
 
-export const updateTaskSchema = createTaskSchema.omit({ files: true }).partial().extend({
+export const updateTaskSchema = createTaskSchema.partial().extend({
   isLocked: z.boolean().optional(),
 });
 

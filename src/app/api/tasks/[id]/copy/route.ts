@@ -2,10 +2,7 @@ import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assert
 import { copyTask, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { copyTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
-import { loadUserPermissions, canCreateTask } from "@/lib/services/permission-service";
-import { db } from "@/db";
-import { projects, tasks, taskUsers } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { loadUserPermissions, canCreateTask, assertTaskReadable, getReadableProject } from "@/lib/services/permission-service";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -14,29 +11,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     assertUuid(id);
     const data = await validateBody(request, copyTaskSchema);
 
+    // The source task must be readable (404 otherwise, like a missing task).
+    const perms = await loadUserPermissions(session.user.id);
+    const originalTask = await assertTaskReadable(perms, id);
+
     // Resolve the effective userIds and projectId (override or reuse of the original)
     // to check the create right with the modify scope.
-    const perms = await loadUserPermissions(session.user.id);
-    const originalTask = await db.query.tasks.findFirst({
-      where: eq(tasks.id, id),
-      columns: { projectId: true },
-    });
-    if (!originalTask) return apiError("tasks.errors.notFound");
-
     const effectiveProjectId = data.projectId ?? originalTask.projectId;
     let effectiveUserIds = data.userIds ?? [];
     if (effectiveUserIds.length === 0) {
-      const originalAssignees = await db
-        .select({ userId: taskUsers.userId })
-        .from(taskUsers)
-        .where(eq(taskUsers.taskId, id));
-      effectiveUserIds = originalAssignees.map((r) => r.userId);
+      effectiveUserIds = originalTask.users.map((u) => u.id);
     }
 
-    const project = await db.query.projects.findFirst({
-      where: eq(projects.id, effectiveProjectId),
-      columns: { ownerId: true },
-    });
+    // Target project: outside the read scope it answers like a missing one.
+    const project = effectiveProjectId ? await getReadableProject(perms, effectiveProjectId) : null;
     if (!project) return apiError("tasks.errors.projectNotFound", 404);
 
     const allowed = await canCreateTask(perms, effectiveUserIds, project.ownerId);

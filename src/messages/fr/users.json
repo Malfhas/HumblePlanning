@@ -227,6 +227,10 @@
     "noEmail": "L'utilisateur n'a pas d'adresse email",
     "teamNotFound": "Équipe non trouvée",
     "businessUnitNotFound": "Business Unit non trouvée",
-    "qualificationNotFound": "Habilitation non trouvée"
+    "qualificationNotFound": "Habilitation non trouvée",
+    "roleNotGrantable": "Vous ne pouvez pas attribuer un rôle qui accorde des droits que vous n'avez pas.",
+    "userTooPrivileged": "Vous ne pouvez pas gérer un utilisateur dont le rôle accorde des droits que vous n'avez pas.",
+    "userOutOfScope": "Vous ne pouvez gérer que les utilisateurs de votre Business Unit.",
+    "businessUnitOutOfScope": "Vous ne pouvez rattacher un utilisateur qu'à votre Business Unit."
   }
 }

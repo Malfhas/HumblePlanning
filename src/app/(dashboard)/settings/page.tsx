@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, lazy, Suspense } from "react";
+import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -102,8 +102,9 @@ interface ConfigField {
 // Sidebar navigation per tab — entries shown in the left nav.
 // `id`: stable identifier (state, comparisons, label settings.nav.<id>);
 // `section`: id of the field section where the entry starts (default = id);
-// `disabled`: grayed-out entry, reason settings.navDisabledReason.
-type NavItem = { id: string; section?: string; disabled?: boolean };
+// `disabled`: grayed-out entry, reason settings.navDisabledReason;
+// `adminOnly`: shown to Super Admins only (the API refuses everyone else).
+type NavItem = { id: string; section?: string; disabled?: boolean; adminOnly?: boolean };
 const CATEGORY_NAV: Record<string, NavItem[]> = {
   general: [
     { id: "application" },
@@ -142,13 +143,23 @@ const CATEGORY_NAV: Record<string, NavItem[]> = {
   ],
   "backup-import": [
     { id: "backup" },
-    { id: "import" },
-    { id: "migration" },
+    // Importing replaces roles and accounts: Super Admins only
+    { id: "import", adminOnly: true },
+    { id: "migration", adminOnly: true },
   ],
   version: [
     { id: "version" },
   ],
 };
+
+/** Navigation entries the current user may see (drops `adminOnly` entries for non-admins). */
+function useCategoryNav(): Record<string, NavItem[]> {
+  const { isAdmin } = usePermissions();
+  return useMemo(
+    () => Object.fromEntries(Object.entries(CATEGORY_NAV).map(([id, items]) => [id, items.filter((n) => isAdmin || !n.adminOnly)])),
+    [isAdmin],
+  );
+}
 
 /** Former `?tab=` values (French category ids): still accepted so bookmarks keep working. */
 const LEGACY_TAB_IDS: Record<string, string> = { systeme: "system", ia: "ai", "sauvegarde-import": "backup-import" };
@@ -636,7 +647,8 @@ function SettingsMobileNav({
   const [open, setOpen] = useState(false);
   const activeCategory = CONFIG_CATEGORIES.find((c) => c.id === activeTab);
   const activeNavId = activeSubSection[activeTab];
-  const activeNavLabel = activeNavId && CATEGORY_NAV[activeTab]?.some((n) => n.id === activeNavId) ? tDyn(t, `nav.${activeNavId}`) : "";
+  const categoryNav = useCategoryNav();
+  const activeNavLabel = activeNavId && categoryNav[activeTab]?.some((n) => n.id === activeNavId) ? tDyn(t, `nav.${activeNavId}`) : "";
 
   return (
     <div className="mt-3 md:hidden">
@@ -665,7 +677,7 @@ function SettingsMobileNav({
           <div className="flex-1 overflow-y-auto overscroll-contain py-2">
             {CONFIG_CATEGORIES.map((cat) => {
               const isActiveCat = cat.id === activeTab;
-              const navItems = CATEGORY_NAV[cat.id] ?? [];
+              const navItems = categoryNav[cat.id] ?? [];
               const hasSubs = navItems.length > 1;
               return (
                 <div key={cat.id} className="px-2">
@@ -1672,6 +1684,7 @@ function SettingsContent() {
 
   const queryClient = useQueryClient();
   const { can, isLoading: permLoading } = usePermissions();
+  const categoryNav = useCategoryNav();
 
   const setValue = (key: string, value: string) => {
     setValues((prev) => {
@@ -1932,7 +1945,7 @@ function SettingsContent() {
               if (subId) {
                 next[catId] = subId;
               } else {
-                const navItems = CATEGORY_NAV[catId];
+                const navItems = categoryNav[catId];
                 if (navItems?.[0]) next[catId] = navItems[0].id;
               }
               return next;
@@ -1949,10 +1962,12 @@ function SettingsContent() {
       </div>
 
         {CONFIG_CATEGORIES.map((cat) => {
-          const navItems = CATEGORY_NAV[cat.id] ?? [];
+          const navItems = categoryNav[cat.id] ?? [];
           const showNav = navItems.length > 1;
-          // id of the active nav entry (stable identifier, never a label)
-          const activeNav = activeSubSection[cat.id] ?? navItems[0]?.id ?? "";
+          // id of the active nav entry (stable identifier, never a label); an
+          // entry the user cannot see (e.g. from the URL) falls back to the first one
+          const requestedNav = activeSubSection[cat.id];
+          const activeNav = navItems.some((n) => n.id === requestedNav) ? requestedNav : navItems[0]?.id ?? "";
 
           // Partition fields: only show fields belonging to the active nav section
           const navStartSections = navItems.map(n => n.section ?? n.id);

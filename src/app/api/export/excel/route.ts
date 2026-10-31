@@ -347,7 +347,7 @@ function buildStatsWorksheet(
 export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "export:use");
+    const perms = await requirePermission(session.user.id, "export:use");
 
     // Load date/time format config for server-side formatting
     // (passed explicitly: no global state on the server)
@@ -367,7 +367,7 @@ export async function GET(request: NextRequest) {
     const isVehicleMode = filters.viewMode === "vehicles";
     const data = isVehicleMode
       ? await getVehicleExportData(filters, session.user.name, i18n)
-      : await getExportData(filters, session.user.name, i18n);
+      : await getExportData(filters, session.user.name, i18n, perms);
 
     const workbook = new ExcelJS.Workbook();
     const totalCols = 1 + data.dateRange.days.length;
@@ -641,7 +641,7 @@ export async function GET(request: NextRequest) {
 
     // === Sheet 3 (optional): Project / user stats ===
     if (filters.includeStats && !isVehicleMode) {
-      const stats = await getProjectStatsForExport(filters, i18n);
+      const stats = await getProjectStatsForExport(filters, i18n, perms);
       buildStatsWorksheet(workbook, stats, filters.startDate, filters.endDate, t, locale, dates);
     }
 

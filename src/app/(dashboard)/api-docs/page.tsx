@@ -229,11 +229,6 @@ const CATEGORIES: EndpointCategory[] = [
             type: "boolean",
             desc: "isMilestone",
           },
-          {
-            name: "files",
-            type: "object[]",
-            desc: "files",
-          },
         ],
         responseExample: `{
   "id": "clx1abc...",

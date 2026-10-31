@@ -4,7 +4,14 @@ import { calculateTaskHours, calculateTaskHoursInPeriod } from "@/lib/utils/hour
 import { getTodayInTimezone, formatWithLocale, parseISO } from "@/lib/utils/dates";
 import { getConfigValues } from "@/lib/services/config-service";
 import { holidays as holidaysTable } from "@/db/schema/holidays";
-import { eq, ne, and, gte, lte, inArray, sql } from "drizzle-orm";
+import { eq, ne, and, gte, lte, inArray, sql, type SQL } from "drizzle-orm";
+import {
+  getTaskAccessScope,
+  getVisibleProjectIds,
+  getVisibleUserIds,
+  type TaskAccessScope,
+  type UserPermissions,
+} from "@/lib/services/permission-service";
 import type { SortMode, ViewMode, CalendarMode } from "@/lib/types/planning";
 import { sortAndGroupRows, type PlanningRow, type GridRow, type NoneGroupLabels } from "@/lib/utils/sort-rows";
 import { INTL_TAG, type AppLocale } from "@/i18n/config";
@@ -247,7 +254,58 @@ function mapTaskWithUsers(task: RawTaskWithRelations): ExportTask {
   };
 }
 
-export async function getExportData(filters: ExportFilters, exportedBy: string, i18n: ExportI18n): Promise<ExportData> {
+/**
+ * What an export may contain for the caller: the tasks of `GET /api/tasks`
+ * and the rows of the planning (visible users / projects). `null` = no restriction.
+ */
+interface ExportScope {
+  taskScope: TaskAccessScope;
+  userIds: Set<string> | null;
+  projectIds: Set<string> | null;
+}
+
+async function getExportScope(perms: UserPermissions): Promise<ExportScope> {
+  const [taskScope, userIds, projectIds] = await Promise.all([
+    getTaskAccessScope(perms),
+    getVisibleUserIds(perms),
+    getVisibleProjectIds(perms),
+  ]);
+  return {
+    taskScope,
+    userIds: userIds && new Set(userIds),
+    projectIds: projectIds && new Set(projectIds),
+  };
+}
+
+/** SQL conditions keeping the tasks of the read scope (same rule as `getTasks`). */
+function taskScopeConditions(scope: TaskAccessScope): SQL[] {
+  const conditions: SQL[] = [];
+  if (scope.accessibleProjectIds !== null) {
+    if (scope.accessibleProjectIds.length === 0) return [sql`false`];
+    conditions.push(inArray(tasks.projectId, scope.accessibleProjectIds));
+  }
+  if (scope.accessibleUserIds !== null) {
+    if (scope.accessibleUserIds.length === 0) return [sql`false`];
+    // At least one visible assignee (a task without assignees stays hidden)
+    conditions.push(inArray(
+      tasks.id,
+      db.select({ id: taskUsers.taskId }).from(taskUsers).where(inArray(taskUsers.userId, scope.accessibleUserIds)),
+    ));
+  }
+  return conditions;
+}
+
+/** True if `id` is allowed by a visibility set (`null` = everything). */
+function isVisible(visibleIds: Set<string> | null, id: string): boolean {
+  return visibleIds === null || visibleIds.has(id);
+}
+
+/**
+ * Planning export data. `perms` restricts it to what the caller sees on the
+ * planning: readable tasks, visible user / project rows.
+ */
+export async function getExportData(filters: ExportFilters, exportedBy: string, i18n: ExportI18n, perms: UserPermissions): Promise<ExportData> {
+  const scope = await getExportScope(perms);
   // Override date range for calendar modes
   let effectiveStartDate = filters.startDate;
   let effectiveEndDate = filters.endDate;
@@ -262,6 +320,7 @@ export async function getExportData(filters: ExportFilters, exportedBy: string, 
   const conditions = [
     lte(tasks.startDate, effectiveEndDate),
     sql`COALESCE(${tasks.endDate}, ${tasks.startDate}) >= ${effectiveStartDate}`,
+    ...taskScopeConditions(scope.taskScope),
   ];
 
   if (filters.projectIds?.length) {
@@ -279,6 +338,9 @@ export async function getExportData(filters: ExportFilters, exportedBy: string, 
 
   // Filter by calendarUserId for personal calendar mode
   if (filters.calendarMode === "personal" && filters.calendarUserId) {
+    if (!isVisible(scope.userIds, filters.calendarUserId)) {
+      return emptyResult({ ...filters, startDate: effectiveStartDate, endDate: effectiveEndDate }, exportedBy);
+    }
     const userTaskRows = await db.select({ taskId: taskUsers.taskId })
       .from(taskUsers)
       .where(eq(taskUsers.userId, filters.calendarUserId));
@@ -398,6 +460,7 @@ export async function getExportData(filters: ExportFilters, exportedBy: string, 
 
       planningRows = allUsers
         .filter(u => {
+          if (!isVisible(scope.userIds, u.id)) return false;
           if (filters.userIds?.length && !filters.userIds.includes(u.id)) return false;
           if (filters.teamIds?.length && (!u.teamId || !filters.teamIds.includes(u.teamId))) return false;
           // BU filter — strict: user must belong to selected BU (users without BU are hidden)
@@ -438,6 +501,7 @@ export async function getExportData(filters: ExportFilters, exportedBy: string, 
 
       planningRows = allProjects
         .filter(p => {
+          if (!isVisible(scope.projectIds, p.id)) return false;
           if (filters.projectIds?.length && !filters.projectIds.includes(p.id)) return false;
           // BU filter — strict: project must belong to selected BU (projects without BU are hidden)
           if (filters.businessUnitIds?.length && (!p.businessUnitId || !filters.businessUnitIds.includes(p.businessUnitId))) return false;
@@ -671,10 +735,14 @@ export function getTasksForRowAndDay(
  * period, plus lifetime budget info per project labor type.
  *
  * Applies the same filters as the main planning export (projectIds, teamIds,
- * userIds, businessUnitIds, statusIds) so the stats match what's visible on
- * the planning grid.
+ * userIds, businessUnitIds, statusIds) and the caller's task read scope, so
+ * the stats match what's visible on the planning grid.
  */
-export async function getProjectStatsForExport(filters: ExportFilters, i18n: Pick<ExportI18n, "collatorLocale">): Promise<ExportStatsData> {
+export async function getProjectStatsForExport(
+  filters: ExportFilters,
+  i18n: Pick<ExportI18n, "collatorLocale">,
+  perms: UserPermissions,
+): Promise<ExportStatsData> {
   const config = await getConfigValues(["DURATION_DAY", "TIMEZONE"]);
   const durationDay = config.DURATION_DAY || "07:30";
   const [dh, dm] = durationDay.split(":").map(Number);
@@ -718,6 +786,7 @@ export async function getProjectStatsForExport(filters: ExportFilters, i18n: Pic
   const taskConditions = [
     lte(tasks.startDate, filters.endDate),
     sql`COALESCE(${tasks.endDate}, ${tasks.startDate}) >= ${filters.startDate}`,
+    ...taskScopeConditions(await getTaskAccessScope(perms)),
   ];
   if (filters.projectIds?.length) taskConditions.push(inArray(tasks.projectId, filters.projectIds));
   if (filters.statusIds?.length) taskConditions.push(inArray(tasks.statusId, filters.statusIds));

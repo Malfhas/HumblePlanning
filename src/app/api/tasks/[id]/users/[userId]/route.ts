@@ -1,8 +1,8 @@
 import { requireAuth, apiSuccess, apiError, handleApiError, assertUuid } from "@/lib/utils/api";
-import { removeUserFromTask, getTaskById } from "@/lib/services/task-service";
+import { removeUserFromTask } from "@/lib/services/task-service";
 import { removeUserFromRecurringTasks } from "@/lib/services/recurring-task-service";
 import { emitTaskEvent } from "@/lib/socket-events";
-import { loadUserPermissions, hasPermission, canModifyTask } from "@/lib/services/permission-service";
+import { loadUserPermissions, hasPermission, assertTaskModifiable } from "@/lib/services/permission-service";
 
 export async function DELETE(
   request: Request,
@@ -17,15 +17,8 @@ export async function DELETE(
     const { id, userId } = await params;
     assertUuid(id);
     assertUuid(userId);
-    const existingTask = await getTaskById(id);
-    if (!existingTask) return apiError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      return apiError("tasks.errors.notAllowed");
-    }
+    // 404 outside the read scope, 403 outside the modify scope
+    await assertTaskModifiable(perms, id);
     const url = new URL(request.url);
     const scope = url.searchParams.get("scope") as "single" | "all" | "after" | null;
 

@@ -4,6 +4,13 @@ import { eq, and, gte, lte, inArray, sql, ne } from "drizzle-orm";
 import { getConfigValues } from "./config-service";
 import { calculateTaskHours } from "@/lib/utils/hours";
 import { getTodayInTimezone } from "@/lib/utils/dates";
+import { restrictToScope } from "./permission-service";
+
+/**
+ * Business units the caller may see (`getVisibleBusinessUnitIds`): `null` =
+ * every BU. Required by every statistic, so none aggregates other BUs.
+ */
+export type StatsBusinessUnitScope = string[] | null;
 
 interface StatsFilters {
   startDate: string;
@@ -63,7 +70,8 @@ function toPeriod(dateStr: string, granularity: string): string {
 }
 
 // ─── Load task data with users ───
-async function loadTaskData(filters: StatsFilters, opts?: { skipBuFilter?: boolean }) {
+/** `assigneeBuIds`: keep only assignees of these BUs (`null` = no BU filter). */
+async function loadTaskData(filters: StatsFilters, assigneeBuIds: string[] | null) {
   const conditions: any[] = [
     gte(tasks.startDate, filters.startDate),
     lte(tasks.startDate, filters.endDate),
@@ -100,7 +108,7 @@ async function loadTaskData(filters: StatsFilters, opts?: { skipBuFilter?: boole
   if (filters.userIds?.length) filtered = filtered.filter((t) => filters.userIds!.includes(t.userId));
   if (filters.teamIds?.length) filtered = filtered.filter((t) => t.teamId && filters.teamIds!.includes(t.teamId));
   if (filters.laborTypeIds?.length) filtered = filtered.filter((t) => t.laborTypeId && filters.laborTypeIds!.includes(t.laborTypeId));
-  if (!opts?.skipBuFilter && filters.businessUnitIds?.length) filtered = filtered.filter((t) => t.businessUnitId && filters.businessUnitIds!.includes(t.businessUnitId));
+  if (assigneeBuIds) filtered = filtered.filter((t) => t.businessUnitId && assigneeBuIds.includes(t.businessUnitId));
 
   return filtered;
 }
@@ -108,14 +116,15 @@ async function loadTaskData(filters: StatsFilters, opts?: { skipBuFilter?: boole
 // ═══════════════════════════════════════════════════════
 // STATS USERS
 // ═══════════════════════════════════════════════════════
-export async function getStatsUsers(filters: StatsFilters) {
+export async function getStatsUsers(filters: StatsFilters, buScope: StatsBusinessUnitScope) {
   const config = await getDailyHours();
   const dailyHours = config.dailyHours;
   const granularity = filters.granularity || "month";
   // Filters override config defaults
   const includeWeekends = filters.includeWeekends ?? config.includeWeekends;
   const includeHolidays = filters.includeHolidays ?? config.includeHolidays;
-  const taskData = await loadTaskData(filters);
+  // Users are attached to the BU they belong to
+  const taskData = await loadTaskData(filters, restrictToScope(filters.businessUnitIds, buScope));
 
   // Load holidays for capacity calculation
   const allHolidays = await db.select({ date: holidays.date }).from(holidays);
@@ -257,17 +266,18 @@ export async function getStatsUsers(filters: StatsFilters) {
 // ═══════════════════════════════════════════════════════
 // STATS PROJECTS
 // ═══════════════════════════════════════════════════════
-export async function getStatsProjects(filters: StatsFilters) {
+export async function getStatsProjects(filters: StatsFilters, buScope: StatsBusinessUnitScope) {
   const { dailyHours, timezone } = await getDailyHours();
   const granularity = filters.granularity || "month";
   const today = getTodayInTimezone(timezone);
-  // Skip user-BU filter in loadTaskData — we filter by project BU below
-  const taskData = await loadTaskData(filters, { skipBuFilter: !!filters.businessUnitIds?.length });
+  // No user-BU filter in loadTaskData — we filter by project BU below
+  const taskData = await loadTaskData(filters, null);
 
-  // Load projects (filtered by BU if specified)
+  // Load projects (filtered by BU if specified, always within the BU scope)
+  const projectBuIds = restrictToScope(filters.businessUnitIds, buScope);
   let allProjects = await db.select().from(projects).where(ne(projects.status, "archived"));
-  if (filters.businessUnitIds?.length) {
-    allProjects = allProjects.filter((p) => p.businessUnitId && filters.businessUnitIds!.includes(p.businessUnitId));
+  if (projectBuIds) {
+    allProjects = allProjects.filter((p) => p.businessUnitId && projectBuIds.includes(p.businessUnitId));
   }
   const projectMap = new Map(allProjects.map((p) => [p.id, p]));
 
@@ -388,17 +398,20 @@ export async function getStatsProjects(filters: StatsFilters) {
 // ═══════════════════════════════════════════════════════
 // STATS ROI
 // ═══════════════════════════════════════════════════════
-export async function getStatsRoi(filters: StatsFilters) {
+export async function getStatsRoi(filters: StatsFilters, buScope: StatsBusinessUnitScope) {
   const { dailyHours } = await getDailyHours();
   const granularity = filters.granularity || "month";
-  const taskData = await loadTaskData(filters);
+  const taskData = await loadTaskData(filters, null);
 
-  // Load projects with budget
-  const allProjects = await db.select().from(projects);
+  // Load projects with budget, within the BU scope (by project BU)
+  let allProjects = await db.select().from(projects);
+  if (buScope) {
+    allProjects = allProjects.filter((p) => p.businessUnitId && buScope.includes(p.businessUnitId));
+  }
   const projectMap = new Map(allProjects.map((p) => [p.id, p]));
 
   // Calculate cost per task-user (user's default hourly rate)
-  const entries = taskData.map((t) => {
+  const entries = taskData.filter((t) => !buScope || projectMap.has(t.projectId)).map((t) => {
     const hours = Math.round(calculateTaskHours(t as any, dailyHours) * 100) / 100;
     const rate = t.defaultHourlyRate ? parseFloat(t.defaultHourlyRate) : 0;
     return {

@@ -33,10 +33,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === "holidays") {
-      if (!country || !year) {
+      // Strict formats: the values end up in the URL path of the external API
+      if (!country || !year || !/^\d{4}$/.test(year) || !/^[A-Za-z]{2}$/.test(country)) {
         return apiError("admin.holidays.errors.nagerParamsRequired");
       }
-      const res = await fetch(`${NAGER_BASE}/PublicHolidays/${year}/${country}`);
+      const res = await fetch(`${NAGER_BASE}/PublicHolidays/${encodeURIComponent(year)}/${encodeURIComponent(country.toUpperCase())}`);
       if (!res.ok) return apiSuccess([]);
       const data = await res.json();
       return apiSuccess(data);

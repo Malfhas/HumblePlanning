@@ -5,6 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 import pngToIco from "png-to-ico";
+import { sanitizeSvg } from "@/lib/utils/sanitize-html";
 import { refuseInDemo } from "@/lib/demo/guard";
 
 const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif", "avif", "svg"];
@@ -92,15 +93,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (uploadType === "logo") {
-      // SVG: sanitize before saving (strip script tags, event handlers, external references)
+      // SVG: sanitized with DOMPurify before saving (no script, event handler or external reference)
       if (ext === "svg") {
-        let svgContent = buffer.toString("utf-8");
-        svgContent = svgContent
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-          .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, "")
-          .replace(/\bon\w+\s*=\s*[^\s>]*/gi, "")
-          .replace(/javascript\s*:/gi, "")
-          .replace(/<foreignObject\b[^>]*>[\s\S]*?<\/foreignObject>/gi, "");
+        const svgContent = sanitizeSvg(buffer.toString("utf-8"));
         const svgName = buildFilename(uploadType, uploadVariant, "svg");
         await writeFile(join(uploadDir, svgName), svgContent);
         const path = `branding/${svgName}`;

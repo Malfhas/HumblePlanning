@@ -192,7 +192,6 @@
     "startTime": "Heure de début",
     "endTime": "Heure de fin",
     "isMilestone": "Marquer comme jalon (défaut : false)",
-    "files": "Métadonnées de fichiers déjà envoyés (l'envoi se fait via POST /api/tasks/[id]/files, en multipart)",
     "taskIdUnique": "Identifiant unique de la tâche (paramètre d'URL)",
     "taskId": "Identifiant de la tâche (paramètre d'URL)",
     "newTitle": "Nouveau titre",

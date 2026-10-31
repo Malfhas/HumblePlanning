@@ -228,7 +228,7 @@ function drawCoverPage(ctx: PageContext, logoPng: Buffer | null, info: CoverInfo
 export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth();
-    await requirePermission(session.user.id, "export:use");
+    const perms = await requirePermission(session.user.id, "export:use");
     const params = request.nextUrl.searchParams;
     const filters = parseExportFilters(params);
 
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
     const isVehicleMode = filters.viewMode === "vehicles";
     const data = isVehicleMode
       ? await getVehicleExportData(filters, session.user.name, i18n)
-      : await getExportData(filters, session.user.name, i18n);
+      : await getExportData(filters, session.user.name, i18n, perms);
 
     const size = PAGE_SIZES[paperSize] || PAGE_SIZES.A4;
     const [w, h] = orientation === "landscape" ? [size[1], size[0]] : size;
@@ -334,7 +334,7 @@ export async function GET(request: NextRequest) {
 
     // ── Optional: stats pages at the end ──
     if (filters.includeStats && !isVehicleMode) {
-      const stats = await getProjectStatsForExport(filters, i18n);
+      const stats = await getProjectStatsForExport(filters, i18n, perms);
       drawStatsPages(ctx, stats);
     }
 

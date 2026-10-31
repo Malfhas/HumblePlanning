@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireAuth, handleApiError, AppError, apiSuccess, assertUuid } from "@/lib/utils/api";
-import { loadUserPermissions, hasPermission, canModifyTask } from "@/lib/services/permission-service";
-import { getTaskById } from "@/lib/services/task-service";
+import { loadUserPermissions, hasPermission, assertTaskReadable, assertTaskModifiable } from "@/lib/services/permission-service";
+import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -63,6 +63,7 @@ export async function GET(
     }
     const { id } = await params;
     assertUuid(id);
+    await assertTaskReadable(perms, id);
 
     const task = await db.query.tasks.findFirst({
       where: eq(tasks.id, id),
@@ -88,15 +89,7 @@ export async function POST(
     if (!hasPermission(perms, "files:upload")) {
       throw new AppError("tasks.errors.addFilesForbidden", { status: 403 });
     }
-    const existingTask = await getTaskById(id);
-    if (!existingTask) throw new AppError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      throw new AppError("tasks.errors.notAllowed");
-    }
+    await assertTaskModifiable(perms, id);
 
     // Get config
     const config = await getConfigValues(["ENABLE_FILE_UPLOAD", "WHITELIST_UPLOAD", "MAX_UPLOAD_SIZE_MB", "MAX_TOTAL_SIZE_MB", "MAX_FILES_PER_TASK"]);
@@ -270,15 +263,7 @@ export async function DELETE(
     if (!hasPermission(perms, "files:delete")) {
       throw new AppError("tasks.errors.deleteFilesForbidden", { status: 403 });
     }
-    const existingTask = await getTaskById(id);
-    if (!existingTask) throw new AppError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      throw new AppError("tasks.errors.notAllowed");
-    }
+    await assertTaskModifiable(perms, id);
 
     const enableConfig = await getConfigValues(["ENABLE_FILE_UPLOAD"]);
     if (enableConfig.ENABLE_FILE_UPLOAD === "false") {
@@ -303,26 +288,32 @@ export async function DELETE(
     const fileToDelete = currentFiles.find(f => f.id === fileId);
     if (!fileToDelete) throw new AppError("tasks.errors.fileNotFound", { status: 404 });
 
-    // Delete from filesystem
+    // Delete from filesystem. The metadata comes from the database: a path
+    // that does not resolve inside its uploads area is never touched (the
+    // entry is still removed from the task).
     const storageKey = fileToDelete.storageKey;
     if (storageKey) {
-      // Content-addressable: check if any other task references this storageKey
-      const refResult = await db.execute(sql`
-        SELECT count(*)::int AS count FROM tasks
-        WHERE id != ${id}
-        AND files::text LIKE ${'%' + storageKey + '%'}
-      `);
-      const refCount = Number((refResult as any)[0]?.count ?? 0);
-      if (refCount === 0) {
-        // No other task uses this file, safe to delete from disk
-        const storagePath = join(process.cwd(), "uploads", "files", storageKey);
-        try { await unlink(storagePath); } catch {}
+      const storagePath = isValidStorageKey(storageKey) ? safeUploadPath("files", storageKey) : null;
+      if (storagePath) {
+        // Content-addressable: check if any other task references this storageKey
+        const refResult = await db.execute(sql`
+          SELECT count(*)::int AS count FROM tasks
+          WHERE id != ${id}
+          AND files::text LIKE ${'%' + storageKey + '%'}
+        `);
+        const refCount = Number((refResult as any)[0]?.count ?? 0);
+        if (refCount === 0) {
+          // No other task uses this file, safe to delete from disk
+          try { await unlink(storagePath); } catch {}
+        }
+        // If refCount > 0, just remove from JSONB but keep file on disk
       }
-      // If refCount > 0, just remove from JSONB but keep file on disk
     } else {
       // Legacy: delete from task-specific folder
-      const filePath = join(process.cwd(), "uploads", "tasks", id, fileToDelete.name);
-      try { await unlink(filePath); } catch {}
+      const filePath = safeUploadPath(`tasks/${id}`, fileToDelete.name);
+      if (filePath) {
+        try { await unlink(filePath); } catch {}
+      }
     }
 
     // Update task

@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { users, userQualifications, projects, tasks, taskUsers } from "@/db/schema";
 import { accounts, sessions } from "@/db/schema";
-import { eq, and as drizzleAnd, ne, notInArray, sql } from "drizzle-orm";
+import { eq, and as drizzleAnd, ne, sql, getTableColumns } from "drizzle-orm";
 import type { CreateUser, UpdateUser } from "@/lib/validators/user";
 import { logAudit, computeChanges, pickAuditFields } from "./audit-service";
 import { hashPassword } from "@/lib/password";
@@ -18,6 +18,25 @@ import { AppError, type FieldErrorSpec } from "@/lib/errors";
 import { assertNotDemoAccount } from "@/lib/demo";
 import { resolveRecipientLocale, resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator, translateKey } from "@/i18n/server-translator";
+
+type UserSafeColumns = Omit<ReturnType<typeof getTableColumns<typeof users>>, keyof typeof USER_SECRET_COLUMNS_EXCLUDED>;
+
+/**
+ * Columns of `users` without the secrets of USER_SECRET_COLUMNS_EXCLUDED: pass
+ * to `.returning()` / `select()` whenever the row can reach a response.
+ */
+export const userSafeColumns = Object.fromEntries(
+  Object.entries(getTableColumns(users)).filter(([key]) => !(key in USER_SECRET_COLUMNS_EXCLUDED)),
+) as UserSafeColumns;
+
+const CONTACT_FIELDS = ["email", "phone", "mobile", "address"] as const;
+
+/** Contact details hidden from users without `users:edit` (their own account excepted). */
+export function withoutContactFields<T extends object>(user: T): Omit<T, (typeof CONTACT_FIELDS)[number]> {
+  const copy = { ...user } as Record<string, unknown>;
+  for (const field of CONTACT_FIELDS) delete copy[field];
+  return copy as Omit<T, (typeof CONTACT_FIELDS)[number]>;
+}
 
 function mapUserWithQualifications(user: any) {
   if (!user) return user;
@@ -190,7 +209,7 @@ export async function createUser(data: CreateUser & { qualificationIds?: string[
     pushNotifications: userData.pushNotifications !== undefined ? userData.pushNotifications : defaultPushNotifications,
     smsNotifications: userData.smsNotifications !== undefined ? userData.smsNotifications : defaultSmsNotifications,
   };
-  const [user] = await db.insert(users).values(userValues).returning();
+  const [user] = await db.insert(users).values(userValues).returning(userSafeColumns);
 
   // Generate random password and send by email
   if (generateRandomPassword && userData.email) {
@@ -252,6 +271,17 @@ export async function createUser(data: CreateUser & { qualificationIds?: string[
 export async function updateUser(id: string, data: UpdateUser & { qualificationIds?: string[] }, modifierId?: string) {
   assertNotDemoAccount(id);
   const { password, qualificationIds, generateRandomPassword, forcePasswordChange, forceTwoFactor, ...userData } = data;
+
+  const oldUser = await db.query.users.findFirst({
+    where: eq(users.id, id),
+    with: { role: { columns: { isAdmin: true } } },
+  });
+  if (!oldUser) return null;
+
+  // Same protection as archiveUser: `active` can also be set through this route
+  if (userData.active === false && oldUser.active && oldUser.role?.isAdmin) {
+    throw new AppError("users.errors.cannotDeactivateSuperAdmin");
+  }
 
   if (userData.username !== undefined || userData.email !== undefined) {
     await checkUniqueness(userData.username ?? "", userData.email, id);
@@ -350,14 +380,15 @@ export async function updateUser(id: string, data: UpdateUser & { qualificationI
     await invalidateUserSessions(id);
   }
 
-  const oldUser = await db.query.users.findFirst({ where: eq(users.id, id) });
-
   // Invalidate sessions if user is being deactivated
-  if (userData.active === false && oldUser?.active === true) {
+  if (userData.active === false && oldUser.active === true) {
     await invalidateUserSessions(id);
   }
 
-  const [user] = await db.update(users).set(updateValues).where(eq(users.id, id)).returning();
+  // Partial update: a request may only carry a password or qualifications
+  const [user] = Object.keys(updateValues).length > 0
+    ? await db.update(users).set(updateValues).where(eq(users.id, id)).returning(userSafeColumns)
+    : await db.select(userSafeColumns).from(users).where(eq(users.id, id));
 
   // Invalidate the permissions cache if one of its fields changed.
   // loadUserPermissions caches: roleId, teamId, businessUnitId, isAdmin, permissions[].
@@ -416,7 +447,7 @@ export async function archiveUser(id: string, active: boolean, modifierId?: stri
     throw new AppError("users.errors.cannotDeactivateSuperAdmin");
   }
 
-  const [user] = await db.update(users).set({ active }).where(eq(users.id, id)).returning();
+  const [user] = await db.update(users).set({ active }).where(eq(users.id, id)).returning(userSafeColumns);
 
   // The active status affects the effective permissions and the visible scope
   // (a deactivated user must no longer appear in scoped lists).
@@ -448,8 +479,10 @@ export async function archiveUser(id: string, active: boolean, modifierId?: stri
 
 export async function deleteUser(id: string, deleterId?: string) {
   assertNotDemoAccount(id);
+  // Returned to the client: without the secret columns
   const oldUser = await db.query.users.findFirst({
     where: eq(users.id, id),
+    columns: USER_SECRET_COLUMNS_EXCLUDED,
     with: { role: { columns: { isAdmin: true } } },
   });
   if (!oldUser) return null;
@@ -522,6 +555,7 @@ export async function deleteUser(id: string, deleterId?: string) {
 export async function getPlanningUsers() {
   return db.query.users.findMany({
     where: (users, { and, eq }) => and(eq(users.active, true), eq(users.visibleOnPlanning, true)),
+    columns: USER_SECRET_COLUMNS_EXCLUDED,
     with: { team: true },
     orderBy: (users, { asc }) => [asc(users.name)],
   });

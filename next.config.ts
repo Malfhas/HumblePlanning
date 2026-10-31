@@ -99,7 +99,15 @@ const nextConfig: NextConfig = {
         value: "max-age=31536000; includeSubDomains; preload",
       });
     }
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      // Branding files (logos may be SVG documents): if one is opened directly,
+      // nothing in it may run. Listed last so that it overrides the CSP above.
+      {
+        source: "/api/branding/:path*",
+        headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox" }],
+      },
+    ];
   },
 };
 

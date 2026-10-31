@@ -3,10 +3,17 @@ import { getTaskById, updateTask, deleteTask, isTaskLocked, assertDailyTaskLimit
 import { updateTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
 import { deleteRecurringTasks, propagateTaskUpdate, getRootTaskId } from "@/lib/services/recurring-task-service";
-import { loadUserPermissions, hasPermission, canModifyTask, canAssignWithModifyScope, getTaskAccessScope, isTaskInAccessScope } from "@/lib/services/permission-service";
-import { db } from "@/db";
-import { projects } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  loadUserPermissions,
+  hasPermission,
+  canModifyTask,
+  canAssignWithModifyScope,
+  getTaskAccessScope,
+  isTaskInAccessScope,
+  assertTaskReadable,
+  assertTaskModifiable,
+  getReadableProject,
+} from "@/lib/services/permission-service";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -36,20 +43,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     assertUuid(id);
     const perms = await loadUserPermissions(session.user.id);
     const existingTask = await getTaskById(id);
-    if (!existingTask) return apiError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
-      return apiError("tasks.errors.notAllowed");
-    }
+    // 404 outside the read scope, 403 outside the modify scope
+    await assertTaskModifiable(perms, existingTask);
     const url = new URL(request.url);
     const applyToAll = url.searchParams.get("applyToAll") === "true";
     const data = await validateBody(request, updateTaskSchema);
 
-    // Block modifications on locked tasks, unless the request includes a lock toggle (user has lock permission)
-    const includesLockChange = "isLocked" in data;
+    // Locking needs `tasks:lock` (client: canLockTask). A locked task can only
+    // be changed together with a lock toggle, hence only by someone allowed to lock.
+    const includesLockChange = data.isLocked !== undefined;
+    if (includesLockChange && !hasPermission(perms, "tasks:lock")) {
+      return apiError("tasks.errors.insufficientPermission", 403);
+    }
     if (!includesLockChange && await isTaskLocked(id)) {
       return apiError("tasks.errors.locked", 403);
     }
@@ -72,10 +77,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       const targetUserIds = usersChanged ? (data.userIds as string[]) : existingUserIds;
       let targetProjectOwnerId: string | null = existingTask.project?.ownerId ?? null;
       if (projectChanged) {
-        const newProject = await db.query.projects.findFirst({
-          where: eq(projects.id, data.projectId!),
-          columns: { ownerId: true },
-        });
+        // Target project: outside the read scope it answers like a missing one.
+        const newProject = await getReadableProject(perms, data.projectId!);
         if (!newProject) return apiError("tasks.errors.projectNotFound", 404);
         targetProjectOwnerId = newProject.ownerId;
       }
@@ -132,12 +135,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       return apiError("errors.forbidden");
     }
     const existingTask = await getTaskById(id);
-    if (!existingTask) return apiError("tasks.errors.notFound");
-    if (!canModifyTask(perms, {
-      users: existingTask.users,
-      creatorId: existingTask.creatorId,
-      projectOwnerId: existingTask.project?.ownerId,
-    })) {
+    await assertTaskReadable(perms, existingTask);
+    if (!canModifyTask(perms, existingTask, await getTaskAccessScope(perms))) {
       return apiError("tasks.errors.deleteNotAllowed", 403);
     }
     if (await isTaskLocked(id)) {

@@ -1,9 +1,13 @@
 import { db } from "@/db";
-import { tasks } from "@/db/schema";
-import { sql, eq } from "drizzle-orm";
+import { tasks, taskUsers } from "@/db/schema";
+import { sql, eq, inArray, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { unlink } from "node:fs/promises";
-import { join } from "node:path";
+import { basename } from "node:path";
 import { getConfigValue } from "./config-service";
+import type { TaskAccessScope } from "./permission-service";
+import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
+import { logger } from "@/lib/logger";
 
 export interface FileEntry {
   fileId: string;
@@ -31,7 +35,34 @@ interface FileFilters {
   limit: number;
 }
 
-export async function getAllFiles(filters: FileFilters): Promise<{
+/** `tasks` under the `t` alias of the raw queries of `getAllFiles`. */
+const taskAlias = alias(tasks, "t");
+
+/**
+ * Conditions keeping the tasks of the read scope, same rule as `getTasks`:
+ * allowed project and at least one visible assignee.
+ */
+function readScopeConditions(scope: TaskAccessScope): SQL[] {
+  const conditions: SQL[] = [];
+  if (scope.accessibleProjectIds !== null) {
+    if (scope.accessibleProjectIds.length === 0) return [sql`false`];
+    conditions.push(inArray(taskAlias.projectId, scope.accessibleProjectIds));
+  }
+  if (scope.accessibleUserIds !== null) {
+    if (scope.accessibleUserIds.length === 0) return [sql`false`];
+    conditions.push(inArray(
+      taskAlias.id,
+      db.select({ id: taskUsers.taskId }).from(taskUsers).where(inArray(taskUsers.userId, scope.accessibleUserIds)),
+    ));
+  }
+  return conditions;
+}
+
+/**
+ * Attachments of the tasks in `scope` (`getTaskAccessScope`): the files page
+ * lists only what the user can download (`/api/files/tasks/...`).
+ */
+export async function getAllFiles(filters: FileFilters, scope: TaskAccessScope): Promise<{
   data: FileEntry[];
   total: number;
   page: number;
@@ -41,7 +72,7 @@ export async function getAllFiles(filters: FileFilters): Promise<{
   const offset = (page - 1) * limit;
 
   // Build dynamic WHERE fragments
-  const conditions: ReturnType<typeof sql>[] = [];
+  const conditions: SQL[] = readScopeConditions(scope);
 
   if (search) {
     conditions.push(sql`(f->>'originalName' ILIKE ${'%' + search + '%'} OR f->>'storageKey' ILIKE ${'%' + search + '%'})`);
@@ -133,9 +164,15 @@ export async function purgeFilesBefore(before: Date): Promise<{ deleted: number 
     const toDelete = allFiles.filter(f => new Date(f.uploadedAt) < before);
     const toKeep = allFiles.filter(f => new Date(f.uploadedAt) >= before);
 
-    // Delete physical files
+    // Delete physical files. The metadata comes from the database: invalid
+    // keys or names (e.g. `../`) are skipped, never resolved on disk.
     for (const file of toDelete) {
       if (file.storageKey) {
+        const storagePath = isValidStorageKey(file.storageKey) ? safeUploadPath("files", file.storageKey) : null;
+        if (!storagePath) {
+          logger.warn("system", "File retention: skipped invalid storage key", { taskId: row.id });
+          continue;
+        }
         // Content-addressable: check if any other task references this storageKey
         // (excluding files we're about to remove from this task's JSONB)
         const refResult = await db.execute(sql`
@@ -145,12 +182,17 @@ export async function purgeFilesBefore(before: Date): Promise<{ deleted: number 
         `);
         const refCount = Number((refResult as any)[0]?.count ?? 0);
         if (refCount === 0) {
-          const storagePath = join(process.cwd(), "uploads", "files", file.storageKey);
           try { await unlink(storagePath); } catch {}
         }
       } else {
-        // Legacy: delete from task-specific folder
-        const filePath = join(process.cwd(), "uploads", "tasks", row.id, file.name);
+        // Legacy: delete from task-specific folder (single file name, no path)
+        const filePath = typeof file.name === "string" && basename(file.name) === file.name
+          ? safeUploadPath("tasks", row.id, file.name)
+          : null;
+        if (!filePath) {
+          logger.warn("system", "File retention: skipped invalid legacy file name", { taskId: row.id });
+          continue;
+        }
         try { await unlink(filePath); } catch {}
       }
     }

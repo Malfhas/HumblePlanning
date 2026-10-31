@@ -227,6 +227,10 @@
     "noEmail": "The user has no email address",
     "teamNotFound": "Team not found",
     "businessUnitNotFound": "Business unit not found",
-    "qualificationNotFound": "Qualification not found"
+    "qualificationNotFound": "Qualification not found",
+    "roleNotGrantable": "You cannot assign a role that grants rights you do not have.",
+    "userTooPrivileged": "You cannot manage a user whose role grants rights you do not have.",
+    "userOutOfScope": "You can only manage the users of your Business Unit.",
+    "businessUnitOutOfScope": "You can only assign a user to your own Business Unit."
   }
 }
