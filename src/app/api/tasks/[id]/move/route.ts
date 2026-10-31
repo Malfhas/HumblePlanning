@@ -2,6 +2,7 @@ import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, assert
 import { moveTask, isTaskLocked, getTaskById, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { moveTaskSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
+import { assertTaskResourceWritable } from "@/lib/services/equipment-scope";
 import {
   loadUserPermissions,
   hasPermission,
@@ -54,6 +55,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return apiError("tasks.errors.moveOutOfScope", 403);
       }
     }
+    // Moved to another resource row: one of the user's business units (404 otherwise)
+    await assertTaskResourceWritable(perms, data.resourceId, existingTask.resourceId);
 
     // PLANNING_MAX_TASKS_PER_DAY limit: check before the move
     try {

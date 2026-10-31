@@ -14,7 +14,7 @@ The installer:
 
 - installs Docker Engine and Docker Compose from the official Docker repository when needed (any Linux distribution works if Docker 24+ and Compose 2.20+ are already installed);
 - asks for the public URL, the installation directory (`/opt/humble-planning`), the instance type (production, or a public [demo instance](#demo-instance) reset every night), the database (built-in PostgreSQL 18 container, or an external PostgreSQL 16+ server), whether to install Caddy as a reverse proxy (automatic HTTPS with Let's Encrypt, optionally through the Cloudflare DNS challenge), whether the site is served through the Cloudflare proxy, and whether to enable automatic updates (off by default);
-- generates `.env` with fresh secrets, applies the database migrations, creates the administrator account (the password is typed twice and checked against the password policy) or, for a demo instance, loads the demo data, then starts the stack.
+- generates `.env` with fresh secrets, sets up the [database user](#database-user) of the application, applies the database migrations, creates the administrator account (the password is typed twice and checked against the password policy) or, for a demo instance, loads the demo data, then starts the stack.
 
 The installation directory contains `docker-compose.yml`, `.env` (mode 600) and the `Caddyfile`. Data is kept in Docker volumes (`db_data`, `uploads`, `data`, `caddy_data`). At the end, the installer displays the `BACKUP_ENCRYPTION_KEY` once: store it safely, backups cannot be restored without it.
 
@@ -77,14 +77,14 @@ curl -fsSL https://raw.githubusercontent.com/Malfhas/HumblePlanning/main/install
 | `HP_DEMO_FORCE_RESET` | `0` | `1` lets the demo erase a database that holds data it did not create |
 | `HP_DB_MODE` | `builtin` | `builtin` (PostgreSQL container) or `external` |
 | `HP_DB_HOST`, `HP_DB_PORT` | —, `5432` | External server (`localhost` is mapped to the Docker host) |
-| `HP_DB_NAME`, `HP_DB_USER` | `humble_planning`, `humbleplanning` | Database and user |
+| `HP_DB_NAME`, `HP_DB_USER` | `humble_planning`, `humbleplanning` | Database and application user, which owns the database and is not a superuser (see [Database user](#database-user)) |
 | `HP_DB_PASSWORD` | — | External server password |
 | `HP_DB_SSL` | `require` | `require` or `disable` |
 | `HP_CADDY` | `1` for a domain name | `1` installs Caddy (ports 80/443), `0` publishes the app on 127.0.0.1 only |
 | `HP_ACME_EMAIL` | — | Optional e-mail address for Let's Encrypt |
 | `HP_CLOUDFLARE` | `0` | `1` uses the Cloudflare DNS challenge |
 | `HP_CLOUDFLARE_API_TOKEN` | — | Cloudflare API token with `Zone.Zone:Read` and `Zone.DNS:Edit` |
-| `HP_CLOUDFLARE_PROXY` | `0` | `1` when the site is served through the Cloudflare proxy: the visitor address is read from `CF-Connecting-IP` (`TRUSTED_PROXY=cloudflare` in `.env`) |
+| `HP_CLOUDFLARE_PROXY` | `0` | `1` when the site is served through the Cloudflare proxy: the visitor address is read from `CF-Connecting-IP` (see [Behind the Cloudflare proxy](#behind-the-cloudflare-proxy)) |
 | `HP_ADMIN_USER` | `admin` | Administrator username |
 | `HP_ADMIN_PASSWORD` | — (required) | Administrator password, checked against the password policy (not used by a demo instance) |
 | `HP_AUTO_UPDATE` | `0` | `1` enables the nightly automatic updates (patch releases only) |
@@ -156,8 +156,34 @@ server {
 }
 ```
 
-The application reads the visitor address (rate limits, brute-force lockout, audit log) from `X-Real-IP`: your proxy must overwrite it with the address of the connection, as above. Behind the Cloudflare proxy, set `TRUSTED_PROXY=cloudflare` in `.env` so that `CF-Connecting-IP` is used instead, and only accept traffic from Cloudflare on the server; without that setting, the header is ignored because any client can send it.
+The application reads the visitor address (rate limits, brute-force lockout, audit log) from `X-Real-IP`: your proxy must overwrite it with the address of the connection, as above. Behind the Cloudflare proxy, see below.
+
+## Behind the Cloudflare proxy
+
+With the Cloudflare proxy (orange cloud), visitors reach the server through Cloudflare, which sends their address in the `CF-Connecting-IP` header. Any client that reaches the server directly can send that header too, so it must only be believed on connections coming from [Cloudflare's IP ranges](https://www.cloudflare.com/ips/); otherwise a forged value would bypass the per-address limits of the sign-in page.
+
+- **With Caddy** (answer *yes* to the Cloudflare proxy question, or `HP_CLOUDFLARE_PROXY=1`): Caddy reads `CF-Connecting-IP` only on connections from Cloudflare's ranges (`trusted_proxies` and `client_ip_headers` in the `Caddyfile`) and passes the result to the application in `X-Real-IP`; any other connection keeps its own address. The ranges are shipped with the Caddy image and updated with each release. `TRUSTED_PROXY` must stay unset in `.env`: the installer removes it.
+- **With your own reverse proxy**: the installer sets `TRUSTED_PROXY=cloudflare` in `.env`, so that the application reads `CF-Connecting-IP`. The server must then only accept HTTP(S) traffic from Cloudflare's ranges (firewall), since the application cannot tell where a connection came from. Alternatively, let your proxy resolve the visitor address itself and remove `TRUSTED_PROXY`; with nginx, for example: `real_ip_header CF-Connecting-IP;` plus one `set_real_ip_from <range>;` per Cloudflare range, and keep `proxy_set_header X-Real-IP $remote_addr;`.
+
+The installer never sets `TRUSTED_PROXY` without the Cloudflare proxy: the header is then ignored.
+
+## Database user
+
+The application never needs to be a PostgreSQL superuser, and must not be one: a superuser can run programs on the database server (`COPY … FROM PROGRAM`) and read its files, which would turn any SQL injection into a compromise of the server. It connects as the user of `DATABASE_URL`, which owns the application database and its `public` schema, is not a superuser, cannot create roles, and has the `CREATEDB` privilege for the in-app import (it restores the file into a temporary database before replacing the data).
+
+**Built-in database.** The `postgres` superuser (`POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env`) is only used inside the `db` container: the application containers never receive its password. The installer creates the application user (`humbleplanning` by default, password in `DATABASE_URL`) and checks its privileges and ownerships again at every run. For a superuser session: `cd /opt/humble-planning && sudo docker compose exec db psql -U postgres -d humble_planning`.
+
+**External database.** Create the user and the database before running the installer, for example with `psql` as a superuser of your server:
+
+```sql
+CREATE ROLE humbleplanning LOGIN PASSWORD 'a-long-random-password' NOSUPERUSER NOCREATEROLE CREATEDB;
+CREATE DATABASE humble_planning OWNER humbleplanning;
+\connect humble_planning
+ALTER SCHEMA public OWNER TO humbleplanning;
+```
+
+Owning the database lets the migrations create the tables and the restores (`humble-planning update` and `rollback`, in-app import) drop and recreate the `public` and `drizzle` schemas. Without `CREATEDB`, everything works except the in-app import. The installer tests the connection and warns when the user is a superuser or lacks `CREATEDB` (`provision check-db`).
 
 ## Docker images
 
-The release workflow publishes multi-arch images (amd64, arm64) for every `v*` tag: `ghcr.io/malfhas/humble-planning` (Bun 1.4.4, PostgreSQL 18 client) and `ghcr.io/malfhas/humble-planning-caddy` (Caddy 2.11.7 with the [Cloudflare DNS module](https://github.com/caddy-dns/cloudflare)). To build them yourself: `docker build -t humble-planning .` and `docker build -t humble-planning-caddy deploy/caddy`.
+The release workflow publishes multi-arch images (amd64, arm64) for every `v*` tag: `ghcr.io/malfhas/humble-planning` (Bun 1.4.4, PostgreSQL 18 client) and `ghcr.io/malfhas/humble-planning-caddy` (Caddy 2.11.7 with the [Cloudflare DNS module](https://github.com/caddy-dns/cloudflare) and the list of Cloudflare's IP ranges, `/etc/caddy/cloudflare-ips.caddy`). To build them yourself: `docker build -t humble-planning .` and `docker build -t humble-planning-caddy deploy/caddy`.

@@ -1,6 +1,9 @@
 // Brute-force and replay protection of the second login step
-// (/api/auth/2fa/verify). In memory, per process, like the password lockout.
-import { FailureLimiter } from "./failure-limiter";
+// (/api/auth/2fa/verify): pure pieces. The failures are counted in
+// PostgreSQL (security_counters), the last accepted TOTP step is stored on
+// the user (users.two_factor_last_step).
+import { verifySync } from "otplib";
+import type { CounterPolicy } from "./security-counter";
 
 export const TWO_FACTOR_MAX_FAILURES = 5;
 export const TWO_FACTOR_LOCK_MS = 15 * 60 * 1000;
@@ -10,45 +13,26 @@ export const TWO_FACTOR_LOCK_MS = 15 * 60 * 1000;
  * password login creates a new token, so a per-token counter would leave
  * TOTP guesses unlimited.
  */
-export function createTwoFactorLimiter(now?: () => number): FailureLimiter {
-  return new FailureLimiter({
-    maxFailures: TWO_FACTOR_MAX_FAILURES,
-    windowMs: TWO_FACTOR_LOCK_MS,
-    lockMs: TWO_FACTOR_LOCK_MS,
-    now,
-  });
+export const TWO_FACTOR_POLICY: CounterPolicy = {
+  max: TWO_FACTOR_MAX_FAILURES,
+  windowMs: TWO_FACTOR_LOCK_MS,
+  lockMs: TWO_FACTOR_LOCK_MS,
+};
+
+export function twoFactorFailureKey(userId: string): string {
+  return `2fa:${userId}`;
 }
 
 /**
- * Last TOTP time step accepted per user: a code is valid for its whole
- * 30-second step, so without this record it could be replayed.
+ * Time step matched by a TOTP code, or null when the code is invalid
+ * (malformed codes included). A code is valid for its whole 30-second step:
+ * the caller accepts a step only if it is newer than the last one accepted.
  */
-export class TotpReplayGuard {
-  private readonly used = new Map<string, { step: number; at: number }>();
-  private readonly now: () => number;
-
-  /** `retentionMs` must exceed the validity of a step (30 s, no tolerance). */
-  constructor(private readonly retentionMs = 5 * 60 * 1000, now?: () => number) {
-    this.now = now ?? Date.now;
-  }
-
-  /** True when `step` is not newer than the last step accepted for the user. */
-  isReplay(userId: string, step: number): boolean {
-    const entry = this.used.get(userId);
-    if (!entry) return false;
-    if (this.now() - entry.at >= this.retentionMs) {
-      this.used.delete(userId);
-      return false;
-    }
-    return step <= entry.step;
-  }
-
-  markUsed(userId: string, step: number): void {
-    const now = this.now();
-    for (const [id, entry] of this.used) {
-      if (now - entry.at >= this.retentionMs) this.used.delete(id);
-    }
-    const previous = this.used.get(userId);
-    this.used.set(userId, { step: Math.max(step, previous?.step ?? step), at: now });
+export function matchTotpStep(code: string, secret: string): number | null {
+  try {
+    const result = verifySync({ token: code.trim(), secret });
+    return result.valid && "timeStep" in result ? result.timeStep : null;
+  } catch {
+    return null;
   }
 }

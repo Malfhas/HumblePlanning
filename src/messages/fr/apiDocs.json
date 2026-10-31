@@ -150,14 +150,14 @@
       "list": "Récupère tous les lieux disponibles."
     },
     "resources": {
-      "list": "Récupère toutes les ressources matérielles disponibles."
+      "list": "Récupère les ressources matérielles des Business Units de l'utilisateur."
     },
     "holidays": {
       "list": "Récupère les jours fériés dans une plage de dates donnée."
     },
     "vehicles": {
-      "list": "Récupère la liste de tous les véhicules.",
-      "assignments": "Récupère les affectations de véhicules, avec filtres optionnels."
+      "list": "Récupère les véhicules des Business Units de l'utilisateur.",
+      "assignments": "Récupère les affectations des véhicules de l'utilisateur et celles de ses projets, avec filtres optionnels."
     },
     "config": {
       "get": "Récupère l'ensemble des paramètres de configuration de l'application (paires clé/valeur)."

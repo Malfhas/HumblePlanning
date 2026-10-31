@@ -1,0 +1,60 @@
+name: Cloudflare IP ranges
+
+# The Caddy image trusts CF-Connecting-IP only from Cloudflare's IP ranges,
+# shipped as a static list in deploy/caddy/Dockerfile. Every Monday, this
+# workflow compares that list with the one Cloudflare publishes and opens an
+# issue when they differ. Run it by hand before a release:
+#   gh workflow run cloudflare-ips.yml
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  compare:
+    name: Compare with Cloudflare's list
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compare the ranges
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          grep -E '^trusted_proxies static ' deploy/caddy/Dockerfile | tr ' ' '\n' | grep / | sort >shipped.txt
+          { curl -fsS --retry 3 https://www.cloudflare.com/ips-v4; echo; curl -fsS --retry 3 https://www.cloudflare.com/ips-v6; echo; } |
+            tr -d '\r' | grep / >published.txt
+          sort published.txt >published-sorted.txt
+
+          if diff -u shipped.txt published-sorted.txt >ranges.diff; then
+            echo "The ranges shipped in the Caddy image match Cloudflare's list."
+            exit 0
+          fi
+          cat ranges.diff
+
+          title="Cloudflare IP ranges changed"
+          if [ -n "$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[].number')" ]; then
+            echo "::warning::The ranges differ and an issue is already open."
+            exit 0
+          fi
+          {
+            echo "Cloudflare's published IP ranges (https://www.cloudflare.com/ips/) differ from the list shipped in \`deploy/caddy/Dockerfile\`. Visitors coming through a missing range appear with a Cloudflare address instead of their own."
+            echo
+            echo '```diff'
+            cat ranges.diff
+            echo '```'
+            echo
+            echo "Replace the \`trusted_proxies\` line of \`deploy/caddy/Dockerfile\` with:"
+            echo
+            echo '```'
+            echo "trusted_proxies static $(paste -sd' ' published.txt)"
+            echo '```'
+          } >issue.md
+          gh issue create --repo "$REPO" --title "$title" --body-file issue.md
+          echo "::warning::The ranges differ: issue opened."

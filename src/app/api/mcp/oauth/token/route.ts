@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getConfigValue } from "@/lib/services/config-service";
-import { handleTokenRequest, checkRateLimit, getClientIp, OAUTH_CORS_HEADERS } from "@/lib/services/mcp-oauth-service";
+import { handleTokenRequest, checkPersistentRateLimit, getClientIp, OAUTH_CORS_HEADERS } from "@/lib/services/mcp-oauth-service";
 import { logger } from "@/lib/logger";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     const ip = getClientIp(request.headers);
-    if (!checkRateLimit(`mcp-token:${ip}`, 120, 60 * 1000)) {
+    if (!(await checkPersistentRateLimit(`mcp-token:${ip}`, 120, 60 * 1000))) {
       return NextResponse.json({ error: "slow_down", error_description: t("mcpTools.oauth.tokenRateLimited") }, { status: 429, headers: HEADERS });
     }
 

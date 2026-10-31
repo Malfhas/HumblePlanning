@@ -4,16 +4,32 @@
 # install.sh renders this file into the installation directory:
 #   __SITE_ADDRESS__  domain of the public URL, or ":80" for plain HTTP
 #   __ACME_EMAIL__    optional e-mail address for Let's Encrypt
-# Blocks between "#@<name>" and "#@end" are kept only when enabled:
-#   acme_email  an e-mail address was given
-#   cloudflare  ACME DNS-01 challenge through Cloudflare (token in .env)
-#   https       the site is served over HTTPS
+# Blocks between "#@<name>" and "#@end" are kept only when enabled (a block
+# nested in a skipped block is skipped too):
+#   global            global options: acme_email or cloudflare_proxy is enabled
+#   acme_email        an e-mail address was given
+#   cloudflare_proxy  the site is served through the Cloudflare proxy
+#   cloudflare        ACME DNS-01 challenge through Cloudflare (token in .env)
+#   https             the site is served over HTTPS
 # The Cloudflare token is never written here: Caddy reads it from the
 # CLOUDFLARE_API_TOKEN environment variable.
 #@end
-#@acme_email
+#@global
 {
+	#@acme_email
 	email __ACME_EMAIL__
+	#@end
+	#@cloudflare_proxy
+	# Behind the Cloudflare proxy, the client address ({client_ip} below) is
+	# read from CF-Connecting-IP, but only on connections coming from
+	# Cloudflare's IP ranges: anyone else reaching this server directly cannot
+	# forge it. The ranges are shipped with the Humble Planning Caddy image and
+	# updated with each release (deploy/caddy/Dockerfile).
+	servers {
+		import /etc/caddy/cloudflare-ips.caddy
+		client_ip_headers CF-Connecting-IP
+	}
+	#@end
 }
 #@end
 
@@ -39,11 +55,15 @@ __SITE_ADDRESS__ {
 	}
 
 	# Socket.io (real-time updates) goes to the socket server, everything else
-	# to the Next.js application. X-Real-IP is overwritten with the address of
-	# the connection: the application reads the client address from it, so a
-	# client cannot forge it.
+	# to the Next.js application. X-Real-IP is overwritten with the client
+	# address resolved by Caddy ({client_ip}: the address of the connection,
+	# or CF-Connecting-IP when the connection comes from a trusted proxy): the
+	# application reads the client address from it, so a client cannot forge
+	# it. CF-Connecting-IP itself is not passed on: the application never sees
+	# an unchecked value.
 	reverse_proxy /socket.io/* socket:3001
 	reverse_proxy app:3000 {
-		header_up X-Real-IP {remote_host}
+		header_up X-Real-IP {client_ip}
+		header_up -CF-Connecting-IP
 	}
 }

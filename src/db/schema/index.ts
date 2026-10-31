@@ -19,6 +19,7 @@ export { roles } from "./roles";
 export { rolePermissions } from "./role-permissions";
 export { sessions, accounts, verifications } from "./auth";
 export { passwordHistory } from "./password-history";
+export { securityCounters } from "./security-counters";
 export { mcpClients, mcpAuthorizationCodes, mcpTokens } from "./mcp";
 export { apiKeys } from "./api-keys";
 export { vehicleTypes } from "./vehicle-types";

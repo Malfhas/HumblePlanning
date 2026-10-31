@@ -1,16 +1,18 @@
 import { db } from "@/db";
 import { resources } from "@/db/schema";
-import { eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { logAudit } from "@/lib/services/audit-service";
+import { isEquipmentVisible } from "./equipment-scope";
 
-export async function getResources(includeOutOfService = true) {
-  const result = await db.query.resources.findMany({
+/** Resources of `businessUnitIds` (`getEquipmentScope`, `null` = every resource). */
+export async function getResources(businessUnitIds: string[] | null, includeOutOfService = true) {
+  const result = (await db.query.resources.findMany({
     with: {
       resourceType: { columns: { id: true, name: true, icon: true, color: true } },
       businessUnit: { columns: { id: true, name: true } },
     },
     orderBy: (r, { asc }) => [asc(r.name)],
-  });
+  })).filter((r) => isEquipmentVisible(r, businessUnitIds));
   if (!includeOutOfService) {
     return result.filter((r) => r.status !== "out_of_service");
   }

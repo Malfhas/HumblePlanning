@@ -4,6 +4,9 @@
 # Compose for the ${…} variables below and passed to the app containers.
 # Optional services are enabled with COMPOSE_PROFILES in .env:
 #   db      built-in PostgreSQL container (omit it to use an external server)
+#           POSTGRES_* create its superuser, which never leaves this container;
+#           the application connects with DATABASE_URL as a dedicated user
+#           that owns the database but is not a superuser (set up by install.sh)
 #   caddy   Caddy reverse proxy with automatic HTTPS (ports 80/443)
 #
 # The project name comes from COMPOSE_PROJECT_NAME in .env (install.sh sets
@@ -36,7 +39,9 @@ services:
     command: ["web"]
     environment:
       SOCKET_URL: http://socket:3001
+      # Secrets of the other services, blanked: the application never gets them.
       CLOUDFLARE_API_TOKEN: "" # only Caddy needs it
+      POSTGRES_PASSWORD: "" # PostgreSQL superuser, db container only
     ports:
       # Loopback only: reached through Caddy or an existing reverse proxy.
       - "127.0.0.1:${HP_APP_PORT:-3000}:3000"
@@ -46,6 +51,7 @@ services:
     command: ["socket"]
     environment:
       CLOUDFLARE_API_TOKEN: ""
+      POSTGRES_PASSWORD: ""
     ports:
       - "127.0.0.1:${HP_SOCKET_PORT:-3001}:3001"
     healthcheck:
@@ -60,7 +66,9 @@ services:
     profiles: [db]
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-humbleplanning}
+      # Superuser created on the first start (empty volume). Installations
+      # made before v1.0.0 use it as the application user too.
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
       POSTGRES_DB: ${POSTGRES_DB:-humble_planning}
     volumes:

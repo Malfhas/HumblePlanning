@@ -53,8 +53,8 @@ export async function requireAuth() {
     const { getConfigValue } = await import("@/lib/services/config-service");
     const apiEnabled = await getConfigValue("API_ENABLED");
     if (apiEnabled !== "true") throw new AppError("errors.apiDisabled", { status: 503 });
-    // Rate limiting (in memory, per process): per IP before
-    // validation (slows down random key guessing), then per key.
+    // Throughput limits (in memory, per process, see rate-limit.ts): per IP
+    // before validation (slows down random key guessing), then per key.
     if (!checkRateLimit(`api-ip:${getClientIp(hdrs)}`, API_RATE_LIMIT_PER_IP, API_RATE_WINDOW_MS)) {
       throw new AppError("errors.rateLimited");
     }

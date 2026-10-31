@@ -36,8 +36,9 @@ import { getTeams, getTeamById } from "@/lib/services/team-service";
 import { getStatuses } from "@/lib/services/status-service";
 import { getHolidays } from "@/lib/services/holiday-service";
 import { getPlaces } from "@/lib/services/place-service";
-import { getVehicles } from "@/lib/services/vehicle-service";
+import { getVehicles, getVehicleById } from "@/lib/services/vehicle-service";
 import { getVehicleAssignments, checkConflicts } from "@/lib/services/vehicle-assignment-service";
+import { getEquipmentScope, isEquipmentVisible, assertTaskResourceWritable } from "@/lib/services/equipment-scope";
 import { getConfigValues } from "@/lib/services/config-service";
 import { getProjectLaborBudgetsWithHours } from "@/lib/services/project-labor-budget-service";
 import { getStatsUsers, getStatsProjects, getStatsRoi } from "@/lib/services/stats-service";
@@ -354,6 +355,8 @@ export function registerAllTools(
       const project = await readableProject(params.projectId);
       const allowed = await canCreateTask(perms, params.userIds, project.ownerId ?? null);
       if (!allowed) throw new ToolDeniedError("mcpTools.errors.createForUsersForbidden");
+      // Same rule as POST /api/tasks for its resource
+      await assertTaskResourceWritable(perms, params.resourceId);
       await assertDailyTaskLimit({ userIds: params.userIds, startDate: params.startDate, endDate: params.endDate });
       const task = await createTask({ ...params, isMilestone: false }, userId);
       emitTaskEvent({ action: "created", taskId: task.id, userId });
@@ -396,6 +399,8 @@ export function registerAllTools(
         );
         if (!ok) throw new ToolDeniedError("mcpTools.errors.assigneesOutOfScope");
       }
+      // Same rule as PUT /api/tasks/[id] for a new resource
+      await assertTaskResourceWritable(perms, data.resourceId, (existing as { resourceId?: string | null }).resourceId ?? null);
       const task = await updateTask(taskId, data, userId);
       emitTaskEvent({ action: "updated", taskId, userId });
       await logAudit({ userId, action: "update", entityType: "task", entityId: taskId, metadata: { source: auditSource } });
@@ -1274,7 +1279,8 @@ export function registerAllTools(
     {},
     async () => {
       requirePerm(perms, "pages:vehicles");
-      const result = await getVehicles();
+      // Same scope as GET /api/vehicles (see equipment-scope.ts)
+      const result = await getVehicles(getVisibleBusinessUnitIds(perms));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1289,7 +1295,7 @@ export function registerAllTools(
     },
     async (params) => {
       requirePerm(perms, "pages:vehicles");
-      const result = await getVehicleAssignments(params.vehicleId, params.startDate, params.endDate);
+      const result = await getVehicleAssignments(await getEquipmentScope(perms), params.vehicleId, params.startDate, params.endDate);
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1305,7 +1311,10 @@ export function registerAllTools(
     },
     async (params) => {
       requirePerm(perms, "pages:vehicles");
-      const conflicts = await checkConflicts(params.vehicleId, params.startDate, params.endDate, params.excludeAssignmentId);
+      const scope = await getEquipmentScope(perms);
+      const vehicle = await getVehicleById(params.vehicleId);
+      if (!vehicle || !isEquipmentVisible(vehicle, scope.businessUnitIds)) throw new ToolDeniedError("resources.errors.vehicleNotFound");
+      const conflicts = await checkConflicts(scope, params.vehicleId, params.startDate, params.endDate, params.excludeAssignmentId);
       return { content: [{ type: "text" as const, text: JSON.stringify(conflicts, null, 2) }] };
     }
   );
@@ -1319,7 +1328,8 @@ export function registerAllTools(
     async () => {
       requirePerm(perms, "pages:resources");
       const { getResources: getRes } = await import("@/lib/services/resource-service");
-      const result = await getRes();
+      // Same scope as GET /api/resources (see equipment-scope.ts)
+      const result = await getRes(getVisibleBusinessUnitIds(perms));
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1335,7 +1345,7 @@ export function registerAllTools(
     async (params) => {
       requirePerm(perms, "pages:resources");
       const { getResourceAssignments: getResAssign } = await import("@/lib/services/resource-assignment-service");
-      const result = await getResAssign(params.resourceId, params.startDate, params.endDate);
+      const result = await getResAssign(await getEquipmentScope(perms), params.resourceId, params.startDate, params.endDate);
       return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
     }
   );
@@ -1352,7 +1362,11 @@ export function registerAllTools(
     async (params) => {
       requirePerm(perms, "pages:resources");
       const { checkConflicts: checkResConflicts } = await import("@/lib/services/resource-assignment-service");
-      const conflicts = await checkResConflicts(params.resourceId, params.startDate, params.endDate, params.excludeAssignmentId);
+      const { getResourceById } = await import("@/lib/services/resource-service");
+      const scope = await getEquipmentScope(perms);
+      const resource = await getResourceById(params.resourceId);
+      if (!resource || !isEquipmentVisible(resource, scope.businessUnitIds)) throw new ToolDeniedError("resources.errors.resourceNotFound");
+      const conflicts = await checkResConflicts(scope, params.resourceId, params.startDate, params.endDate, params.excludeAssignmentId);
       return { content: [{ type: "text" as const, text: JSON.stringify(conflicts, null, 2) }] };
     }
   );

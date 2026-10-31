@@ -1,6 +1,9 @@
-// In-memory rate limiting, per process (like the anti-bruteforce lock
-// of /api/auth/login). Shared by the OAuth/MCP endpoints
-// and the key-based REST API: each caller uses its own key prefix.
+// In-memory rate limiting, per process: throughput limit of the key-based
+// REST API, checked on every request (a database write per request would cost
+// more than it protects: keys are 256-bit random values, a restart only resets
+// a one-minute window). Security counters (login and 2FA lockouts, password
+// reset cooldowns, OAuth endpoints) are stored in PostgreSQL instead, see
+// security-counter-service.ts.
 
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 

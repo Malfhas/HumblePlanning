@@ -10,6 +10,7 @@ import {
 import { getTasks, createTask, assertDailyTaskLimit } from "@/lib/services/task-service";
 import { createTaskSchema, taskFiltersSchema } from "@/lib/validators/task";
 import { emitTaskEvent } from "@/lib/socket-events";
+import { assertTaskResourceWritable } from "@/lib/services/equipment-scope";
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
     if (!allowed) {
       return apiError("tasks.errors.createForUsersForbidden", 403);
     }
+    // Its resource: one of the user's business units (404 otherwise)
+    await assertTaskResourceWritable(perms, data.resourceId);
 
     // PLANNING_MAX_TASKS_PER_DAY limit: block if at least one assignee
     // already reaches the limit on a day of the requested range.

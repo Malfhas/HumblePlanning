@@ -132,7 +132,9 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
   // Merge header BU selector with filter store BU filter
   const effectiveBuIds = selectedBuIds.length > 0 ? selectedBuIds : filters.businessUnitIds;
 
-  const { userId: currentUserId, user: currentUser } = usePermissions();
+  const { userId: currentUserId, user: currentUser, can } = usePermissions();
+  // Same gate as the planning view (and the server export)
+  const viewModes = VIEW_MODES.filter((v) => v !== "vehicles" || can("planning:view_vehicles"));
 
   const isPersonalMode = calendarMode === "personal";
   const isTeamDayMode = calendarMode === "team-day";
@@ -320,7 +322,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {VIEW_MODES.map((v) => (
+                    {viewModes.map((v) => (
                       <SelectItem key={v} value={v}>{t(`views.${v}`)}</SelectItem>
                     ))}
                   </SelectContent>

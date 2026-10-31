@@ -193,7 +193,8 @@ async function cmdCheckDb(args: string[]): Promise<number> {
         has_database_privilege(current_database(), 'CREATE') as can_create_schema,
         coalesce((select has_schema_privilege(n.oid, 'CREATE') from pg_namespace n where n.nspname = 'public'), false) as can_create_in_public,
         exists(select 1 from pg_namespace where nspname = 'drizzle') as has_drizzle_schema,
-        coalesce((select rolcreatedb or rolsuper from pg_roles where rolname = current_user), false) as can_create_db
+        coalesce((select rolcreatedb or rolsuper from pg_roles where rolname = current_user), false) as can_create_db,
+        coalesce((select rolsuper from pg_roles where rolname = current_user), false) as is_superuser
     `.then(
       (rows) => rows[0],
       (err) => {
@@ -219,6 +220,13 @@ async function cmdCheckDb(args: string[]): Promise<number> {
     }
 
     out("OK", `Connected to PostgreSQL ${version} (database "${info.database}", user "${info.user}").`);
+    if (info.is_superuser) {
+      out(
+        "WARN",
+        `User "${info.user}" is a PostgreSQL superuser: an SQL injection could then run commands on the database server. ` +
+          `Use a user without superuser rights that owns the database (see docs/installation.md).`,
+      );
+    }
     if (!info.can_create_db) {
       out("WARN", `User "${info.user}" lacks the CREATEDB privilege: importing a backup from the app will not work.`);
     }

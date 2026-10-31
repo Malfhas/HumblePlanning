@@ -2,9 +2,11 @@ import { db } from "@/db";
 import { vehicles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { logAudit } from "@/lib/services/audit-service";
+import { isEquipmentVisible } from "./equipment-scope";
 
-export async function getVehicles(includeOutOfService = true) {
-  const all = await db.query.vehicles.findMany({
+/** Vehicles of `businessUnitIds` (`getEquipmentScope`, `null` = every vehicle). */
+export async function getVehicles(businessUnitIds: string[] | null, includeOutOfService = true) {
+  const all = (await db.query.vehicles.findMany({
     with: {
       vehicleType: {
         columns: { id: true, name: true, icon: true, color: true },
@@ -14,7 +16,7 @@ export async function getVehicles(includeOutOfService = true) {
       },
     },
     orderBy: (v, { asc }) => [asc(v.name)],
-  });
+  })).filter((v) => isEquipmentVisible(v, businessUnitIds));
   if (includeOutOfService) return all;
   return all.filter((v) => v.status !== "out_of_service");
 }

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const filters = parseExportFilters(request.nextUrl.searchParams);
     const isVehicleMode = filters.viewMode === "vehicles";
     const data = isVehicleMode
-      ? await getVehicleExportData(filters, session.user.name, i18n)
+      ? await getVehicleExportData(filters, session.user.name, i18n, perms)
       : await getExportData(filters, session.user.name, i18n, perms);
 
     const headers = isVehicleMode
