@@ -37,6 +37,18 @@ const DEFAULT_UPDATE_REPO = "Malfhas/HumblePlanning";
 const GITHUB_API_URL = "https://api.github.com";
 /** Command shown to the admin: the CLI refuses to run without root. */
 export const UPDATE_COMMAND = "sudo humble-planning update";
+/** Instance names of `install.sh` (HUMBLE_INSTANCE in .env). */
+const INSTANCE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$/;
+
+/**
+ * Update command of this instance: several instances can share a server, so
+ * the command names the instance (HUMBLE_INSTANCE, written by install.sh).
+ * Installations without it get the plain command.
+ */
+export function updateCommandFor(instance: string | undefined): string {
+  const name = instance?.trim();
+  return name && INSTANCE_NAME_PATTERN.test(name) ? `${UPDATE_COMMAND} ${name}` : UPDATE_COMMAND;
+}
 
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 10_000;
@@ -431,7 +443,7 @@ function buildResponse(opts: {
     repo,
     repoUrl,
     sourceUrl: source,
-    updateCommand: UPDATE_COMMAND,
+    updateCommand: updateCommandFor(process.env.HUMBLE_INSTANCE),
   };
 }
 

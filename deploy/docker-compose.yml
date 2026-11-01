@@ -1,4 +1,4 @@
-# Humble Planning — production stack (managed by install.sh).
+# Humble Planning — stack of one instance (managed by install.sh).
 #
 # Every setting lives in the .env file next to this file: it is read by
 # Compose for the ${…} variables below and passed to the app containers.
@@ -7,12 +7,16 @@
 #           POSTGRES_* create its superuser, which never leaves this container;
 #           the application connects with DATABASE_URL as a dedicated user
 #           that owns the database but is not a superuser (set up by install.sh)
-#   caddy   Caddy reverse proxy with automatic HTTPS (ports 80/443)
 #
-# The project name comes from COMPOSE_PROJECT_NAME in .env (install.sh sets
-# "humbleplanning"), so run Compose from this directory.
-# Day-to-day management: the `humble-planning` command (status, logs, update,
-# rollback, backup…), which runs Docker Compose in this directory.
+# Several instances can run on one server, each in its own directory with its
+# own Compose project (COMPOSE_PROJECT_NAME in .env: "humbleplanning-<name>",
+# "humbleplanning" for an installation made with 1.0.x). An instance served by
+# the shared reverse proxy (Caddy, in <base dir>/proxy) also uses
+# docker-compose.proxy.yml, listed in COMPOSE_FILE in .env: run Compose from
+# this directory.
+# Day-to-day management: the `humble-planning` command (list, status, logs,
+# update, rollback, backup, remove…), which runs Docker Compose in this
+# directory.
 
 x-app: &app
   # The installed version (HUMBLE_VERSION) is managed by `humble-planning update`.
@@ -38,17 +42,23 @@ services:
     <<: *app
     command: ["web"]
     environment:
-      SOCKET_URL: http://socket:3001
+      # socket.internal only exists on this instance's backend network. On the
+      # network shared with the reverse proxy, "socket" also names the Socket.io
+      # servers of the other instances.
+      SOCKET_URL: http://socket.internal:3001
       # Secrets of the other services, blanked: the application never gets them.
-      CLOUDFLARE_API_TOKEN: "" # only Caddy needs it
+      CLOUDFLARE_API_TOKEN: "" # only the reverse proxy needs one
       POSTGRES_PASSWORD: "" # PostgreSQL superuser, db container only
     ports:
-      # Loopback only: reached through Caddy or an existing reverse proxy.
+      # Loopback only: reached through the reverse proxy.
       - "127.0.0.1:${HP_APP_PORT:-3000}:3000"
 
   socket:
     <<: *app
     command: ["socket"]
+    networks:
+      backend:
+        aliases: [socket.internal]
     environment:
       CLOUDFLARE_API_TOKEN: ""
       POSTGRES_PASSWORD: ""
@@ -83,24 +93,6 @@ services:
       start_period: 10s
       retries: 20
 
-  caddy:
-    image: ${HUMBLE_CADDY_IMAGE:-ghcr.io/malfhas/humble-planning-caddy}:${HUMBLE_VERSION:?HUMBLE_VERSION must be set in .env}
-    profiles: [caddy]
-    restart: unless-stopped
-    environment:
-      # Used by the Caddyfile as {env.CLOUDFLARE_API_TOKEN} (DNS challenge).
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
-    ports:
-      - "${HP_HTTP_PORT:-80}:80"
-      - "${HP_HTTPS_PORT:-443}:443"
-      - "${HP_HTTPS_PORT:-443}:443/udp" # HTTP/3
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data # certificates: keep this volume
-      - caddy_config:/config
-    networks: [backend]
-    depends_on: [app, socket]
-
 networks:
   backend: {}
 
@@ -108,5 +100,3 @@ volumes:
   db_data: {}
   uploads: {}
   data: {}
-  caddy_data: {}
-  caddy_config: {}

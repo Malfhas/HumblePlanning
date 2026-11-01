@@ -1,0 +1,25 @@
+# Humble Planning — joins an instance to the shared reverse proxy (Caddy).
+#
+# Used on top of docker-compose.yml when the instance is served by the proxy
+# of this server (COMPOSE_FILE in .env, set by install.sh). The web app and
+# the Socket.io server join the proxy network under names unique to the
+# instance (HUMBLE_INSTANCE in .env): <name>-app and <name>-socket, which its
+# site file in <base dir>/proxy/caddy/sites/ points to. The database stays on
+# the private network of the instance.
+
+services:
+  app:
+    networks:
+      proxy:
+        aliases: ["${HUMBLE_INSTANCE:?HUMBLE_INSTANCE must be set in .env}-app"]
+
+  socket:
+    networks:
+      proxy:
+        aliases: ["${HUMBLE_INSTANCE:?HUMBLE_INSTANCE must be set in .env}-socket"]
+
+networks:
+  proxy:
+    # Created by install.sh (docker network create humbleplanning-proxy).
+    name: humbleplanning-proxy
+    external: true
