@@ -34,6 +34,7 @@ humble-planning backup [instance]                 # back up the database into <i
 humble-planning demo-reset [instance] [--force]   # demo instance: reload the demo data now (see below)
 humble-planning auto-update on|off|status [instance]
 humble-planning version [instance]
+humble-planning set-url [instance] <url>          # change the public URL (see below)
 humble-planning remove <instance>                 # remove an instance (see below)
 humble-planning proxy status|logs|restart|reload  # the shared reverse proxy (Caddy)
 humble-planning help
@@ -126,7 +127,28 @@ humble-planning proxy reload    # apply a change made in caddy/sites/ (checked f
 humble-planning proxy restart   # restart the container (all sites are briefly unavailable)
 ```
 
+**Maintenance page.** While the application of an instance does not answer (an update stops it for the backup and the migrations, a restart, a crash), the proxy shows a maintenance page (status 503, `Retry-After`, not cached) instead of an error: it is shipped with the Caddy image, translated, self-contained, and reloads itself once the application answers again. Only pages get it: API, real-time (Socket.io) and other requests get a bare `503` without HTML. Each site imports it with `import /etc/caddy/humble-maintenance*.caddy`; the sites made by 1.1.0 get this line, and nothing else, when the proxy moves to 1.1.1 or when its configuration is applied again (`humble-planning proxy reload`). To do without the page for a site, comment the line out: it is then left as it is.
+
 An instance can still do without Caddy (answer *no*, or `HP_CADDY=0`): it is then served by your own reverse proxy, see [Behind an existing reverse proxy](#behind-an-existing-reverse-proxy).
+
+## Changing the URL of an instance
+
+The public URL of an instance lives in its `.env` (`APP_BASE_URL`, `BETTER_AUTH_URL`): the sign-in, the protection against cross-site requests, the real-time connection and the MCP connections all depend on it, so it is not editable in *Settings*. Change it on the server:
+
+```bash
+sudo humble-planning set-url [instance] https://planning.example.org
+sudo humble-planning set-url dupont https://planning.example.org --yes   # in a script
+```
+
+Point the DNS record of the new domain to the server first. Before changing anything, the command checks the URL (same rules as the installer: `http` or `https`, a host, an optional port, no path), refuses the current URL or a domain already used by another instance, and, with the shared proxy, refuses a port in the URL and an `https` URL on a name that cannot get a public certificate. For a site using the Cloudflare DNS challenge, it checks through the Cloudflare API that the token covers the zone of the new domain; give a new one with `--token-stdin` (`printf '%s\n' "$TOKEN" | sudo humble-planning set-url dupont https://… --token-stdin`).
+
+It then shows the old and new URLs and what will change, and asks for confirmation (`--yes` in a script). Switching between `http` and `https` signs everyone out (the session cookies change), and MCP clients and OAuth connections must reconnect. Then it:
+
+1. writes the new URL in `.env`, and the HTTPS mode of the site in the registry;
+2. with the shared proxy: generates the site of the instance again for the new domain, after saving the current file as `caddy/sites/<name>.caddy.bak-<date>` (and warns when it was changed by hand: carry your changes over), checks the configuration and reloads Caddy without interrupting the other sites; without it: updates `server_name` in `nginx-example.conf` and reminds you to update your own reverse proxy;
+3. recreates the app and socket containers so that they read the new URL, then checks the application (and the site through the proxy).
+
+If a step fails, `.env`, the registry and the proxy site are restored, the proxy is reloaded and the instance is started again on its previous URL; the command then exits with an error and the path of its log.
 
 ## Removing an instance
 

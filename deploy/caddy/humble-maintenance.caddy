@@ -1,0 +1,46 @@
+# Humble Planning — maintenance page of the shared reverse proxy, shipped with
+# the Caddy image as /etc/caddy/humble-maintenance.caddy and imported by each
+# site (deploy/Caddyfile): `import /etc/caddy/humble-maintenance*.caddy`, a
+# pattern that an older image without this file accepts with a warning.
+#
+# While the application of an instance does not answer (update, restart,
+# crash), Caddy gets 502/503/504 from it. A page request (GET or HEAD
+# accepting text/html) then gets /usr/share/humble/maintenance.html with
+# status 503: self-contained (inline images, styles and script), it checks the
+# page again every few seconds and reloads it once the application answers.
+# Every other request (API, XHR, Socket.io) gets a bare 503, never HTML.
+# The headers of the site do not apply to error responses: the security
+# headers are set here, with a strict CSP for this page (no nonce: its inline
+# script and styles need 'unsafe-inline'; it only connects to its own URL).
+handle_errors 502 503 504 {
+	@humble_page {
+		method GET HEAD
+		header Accept *text/html*
+	}
+	handle @humble_page {
+		root * /usr/share/humble
+		rewrite * /maintenance.html
+		header {
+			Cache-Control "no-store"
+			Retry-After "10"
+			X-Content-Type-Options "nosniff"
+			X-Frame-Options "SAMEORIGIN"
+			Referrer-Policy "strict-origin-when-cross-origin"
+			# Ignored by browsers over plain HTTP.
+			Strict-Transport-Security "max-age=31536000; includeSubDomains"
+			Content-Security-Policy "default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
+			-Server
+		}
+		file_server {
+			status 503
+		}
+	}
+	handle {
+		header {
+			Cache-Control "no-store"
+			Retry-After "10"
+			-Server
+		}
+		respond 503
+	}
+}

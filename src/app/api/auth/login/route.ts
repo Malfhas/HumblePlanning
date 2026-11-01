@@ -13,6 +13,7 @@ import { getDemoCredentials } from "@/lib/demo";
 import { clearCounters, lockedFor, recordFailure } from "@/lib/services/security-counter-service";
 import type { CounterPolicy } from "@/lib/utils/security-counter";
 import crypto from "node:crypto";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 // Lockouts stored in PostgreSQL (security_counters): shared by every process
 // and kept across restarts.
@@ -117,6 +118,8 @@ function extractSessionCookie(response: Response): string | null {
 }
 
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   const body = await request.json();
   const { identifier, password, captchaToken, rememberMe } = body;
   const ip = getClientIp(request.headers);

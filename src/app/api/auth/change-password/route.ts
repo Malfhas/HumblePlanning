@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/services/audit-service";
 import { passwordNotCompliantError, passwordRejectedError } from "@/lib/services/user-service";
 import { revokeOtherSessions } from "@/lib/services/profile-service";
 import { assertNotDemoAccount } from "@/lib/demo";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 /**
  * Forced password change (/change-password screen), without the current
@@ -19,6 +20,8 @@ import { assertNotDemoAccount } from "@/lib/demo";
  * /api/profile/password, which checks the current password.
  */
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   try {
     const session = await getAuthSession();
     if (!session) throw new AppError("errors.unauthenticated");

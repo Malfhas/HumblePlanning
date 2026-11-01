@@ -18,10 +18,19 @@
 # update, rollback, backup, remove…), which runs Docker Compose in this
 # directory.
 
+# Container logs: rotated (5 files of 10 MB per container), otherwise Docker's
+# default json-file driver lets them grow until the disk is full.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 x-app: &app
   # The installed version (HUMBLE_VERSION) is managed by `humble-planning update`.
   image: ${HUMBLE_IMAGE:-ghcr.io/malfhas/humble-planning}:${HUMBLE_VERSION:?HUMBLE_VERSION must be set in .env}
   restart: unless-stopped
+  logging: *logging
   init: true
   env_file: .env
   volumes:
@@ -75,6 +84,7 @@ services:
     image: postgres:18-alpine
     profiles: [db]
     restart: unless-stopped
+    logging: *logging
     environment:
       # Superuser created on the first start (empty volume). Installations
       # made before v1.0.0 use it as the application user too.

@@ -7,6 +7,7 @@ import { logAudit } from "@/lib/services/audit-service";
 import { clearCounters, lockedFor, recordFailure, type DbExecutor } from "@/lib/services/security-counter-service";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { matchTotpStep, TWO_FACTOR_POLICY, twoFactorFailureKey } from "@/lib/utils/two-factor-guard";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 type PendingPayload = { userId: string; sessionId?: string; sessionCookie?: string | null; rememberMe: boolean };
 type Rejection = { reason: string; code: string };
@@ -40,6 +41,8 @@ async function consumeTotpCode(tx: DbExecutor, userId: string, secret: string, c
 }
 
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   try {
     return await verifySecondFactor(request);
   } catch (error) {

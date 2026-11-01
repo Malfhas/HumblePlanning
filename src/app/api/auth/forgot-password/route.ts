@@ -13,6 +13,7 @@ import { getServerTranslator } from "@/i18n/server-translator";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
 import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
@@ -36,6 +37,8 @@ async function genericResponse(): Promise<Response> {
 }
 
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   // User cooldown claimed but no email sent yet: released on error
   let pendingUserCooldown: string | null = null;
   try {
