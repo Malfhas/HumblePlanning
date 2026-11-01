@@ -3,19 +3,22 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, CircleCheck, Loader2, RotateCcw, X } from "lucide-react";
+import { AlertTriangle, Check, ChevronsUpDown, CircleCheck, Loader2, RotateCcw, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { modelLabel } from "@/components/ai-chat/models";
 import { apiFetch } from "@/lib/api-client";
 import { tDyn } from "@/i18n/dynamic";
+import { cn } from "@/lib/utils";
 
 // i18n-dynamic: aiChat.settings.reasons.*
 // i18n-dynamic: aiChat.settings.generation.reasoning.options.*
@@ -114,6 +117,8 @@ function SettingsForm({ view }: { view: AdminView }) {
   const [config, setConfig] = useState<ChatSettings>(view.config);
   const [apiKeyDraft, setApiKeyDraft] = useState("");
   const [newModel, setNewModel] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [modelSearch, setModelSearch] = useState("");
   const [catalog, setCatalog] = useState<{ id: string; name: string }[]>([]);
   const [modelLabels, setModelLabels] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -184,6 +189,17 @@ function SettingsForm({ view }: { view: AdminView }) {
     }
     setNewModel("");
   };
+
+  // Model picker: a catalogue entry, or any ID typed in the search field.
+  const pickModel = (id: string) => {
+    setNewModel(id);
+    setPickerOpen(false);
+    setModelSearch("");
+  };
+  // An OpenRouter ID ("provider/model") typed by hand, absent from the catalogue.
+  const typedModel = modelSearch.trim();
+  const customModel = typedModel.includes("/") && !catalog.some((m) => m.id === typedModel) ? typedModel : "";
+  const pickable = catalog.filter((m) => !config.models.includes(m.id)).slice(0, 500);
 
   const removeModel = (model: string) => {
     const remaining = config.models.filter((m) => m !== model);
@@ -344,28 +360,57 @@ function SettingsForm({ view }: { view: AdminView }) {
             </div>
           </div>
           <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-1.5">
+            <div className="flex-1 min-w-0 space-y-1.5">
               <Label htmlFor="ai-model">{t("models.add")}</Label>
-              <Input
-                id="ai-model"
-                value={newModel}
-                onChange={(e) => setNewModel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addModel();
-                  }
+              <Popover
+                open={pickerOpen}
+                onOpenChange={(open) => {
+                  setPickerOpen(open);
+                  if (!open) setModelSearch("");
                 }}
-                placeholder="deepseek/deepseek-v4-flash"
-                list="ai-chat-models"
-              />
-              <datalist id="ai-chat-models">
-                {catalog.slice(0, 500).map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </datalist>
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    id="ai-model"
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={pickerOpen}
+                    className="w-full justify-start font-normal"
+                  >
+                    <span className={cn("truncate flex-1 min-w-0 text-left", !newModel && "text-muted-foreground")}>
+                      {newModel || t("models.pick")}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder={t("models.search")} value={modelSearch} onValueChange={setModelSearch} />
+                    <CommandList>
+                      <CommandEmpty>{t("models.emptyCatalog")}</CommandEmpty>
+                      <CommandGroup>
+                        {pickable.map((m) => (
+                          <CommandItem key={m.id} value={`${m.id} ${m.name}`} onSelect={() => pickModel(m.id)}>
+                            <Check className={cn("h-4 w-4 shrink-0", newModel === m.id ? "opacity-100" : "opacity-0")} />
+                            <div className="min-w-0">
+                              <div className="truncate font-mono text-xs">{m.id}</div>
+                              <div className="truncate text-xs text-muted-foreground">{m.name}</div>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      {customModel ? (
+                        <CommandGroup>
+                          <CommandItem value={`typed ${customModel}`} onSelect={() => pickModel(customModel)}>
+                            {t("models.useTyped", { id: customModel })}
+                          </CommandItem>
+                        </CommandGroup>
+                      ) : null}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <Button variant="outline" disabled={!newModel.trim()} onClick={addModel}>
               {tActions("add")}

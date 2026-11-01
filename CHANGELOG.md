@@ -4,6 +4,21 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-11-01
+
+### Added
+
+- `humble-planning update` brings the scripts of the target release along: before touching any instance, it installs the `humble-planning` command of that release (the previous one kept as `humble-planning.prev`) and runs it again; each updated instance gets the Compose files of its new version, checked before use and put back by the automatic rollback or `humble-planning rollback`; the shared proxy gets its Compose file and site template when its image moves forward. Never older than the newest version installed on the server; a download or check failure only warns and the update goes on. With `HUMBLE_PULL=0`, nothing is fetched.
+
+### Changed
+
+- Servers no longer need the installer to get the changes of the command and of the Compose files: `update` (and the nightly `--auto`) applies them. A server on 1.1.1 or older needs the installer once to get this command.
+
+### Fixed
+
+- Settings: after a save, the panels computed from the settings follow at once (the Nuntly webhook card kept showing "Secret not configured" until the page was reloaded): every query is refreshed, not only the settings themselves.
+- Settings > AI chat: the model picker uses the searchable list of the application instead of the browser's native list (dark, unstyled); a model ID absent from the OpenRouter catalogue can still be typed.
+
 ## [1.1.1] - 2026-11-01
 
 ### Added
@@ -161,6 +176,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.1.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.2
 [1.1.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.1
 [1.1.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.0
 [1.0.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.1
