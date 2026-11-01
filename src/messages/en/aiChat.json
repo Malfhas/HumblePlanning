@@ -419,6 +419,10 @@
       },
       "none": "No allowed model.",
       "add": "Add a model",
+      "pick": "Choose or type a model",
+      "search": "Search or type an ID…",
+      "useTyped": "Use “{id}”",
+      "emptyCatalog": "Load the list from OpenRouter, or type the model ID.",
       "saved": "Models saved"
     },
     "privacy": {

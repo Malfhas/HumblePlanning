@@ -419,6 +419,10 @@
       },
       "none": "Kein zugelassenes Modell.",
       "add": "Modell hinzufügen",
+      "pick": "Modell auswählen oder eingeben",
+      "search": "Suchen oder ID eingeben …",
+      "useTyped": "„{id}“ verwenden",
+      "emptyCatalog": "Laden Sie die Liste von OpenRouter oder geben Sie die Modell-ID ein.",
       "saved": "Modelle gespeichert"
     },
     "privacy": {

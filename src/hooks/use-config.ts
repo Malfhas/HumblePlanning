@@ -44,7 +44,10 @@ export function useUpdateConfig() {
         method: "PUT",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["config"] }),
+    // Settings feed many server responses beyond /api/config (webhook status,
+    // modules, formats…): every query is refreshed, the visible ones at once,
+    // so that no panel keeps showing the state from before the save.
+    onSuccess: () => qc.invalidateQueries(),
   });
 }
 

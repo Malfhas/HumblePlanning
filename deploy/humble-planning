@@ -48,6 +48,18 @@
 # variable, for tests and mirrors (root only, like the whole command):
 #   HUMBLE_INSTALLER_URL   URL of install.sh, "{tag}" replaced by the release tag
 #                          (https://raw.githubusercontent.com/<repo>/{tag}/install.sh)
+#
+# The scripts follow the release (from 1.1.2): before touching any instance,
+# `update` installs the humble-planning command of the target release (the
+# previous one kept as humble-planning.prev), then runs it again with the
+# same arguments; each updated instance gets the Compose files of its new
+# version (previous ones kept for the rollback), and the proxy gets its files
+# when its image moves forward. Never older than the newest version installed
+# on the server. Source: the directory HUMBLE_BUILD_SOURCE when the images
+# are built from one, nothing with HUMBLE_PULL=0 (offline), else the release
+# tag on GitHub. Internal variable, for tests and mirrors:
+#   HUMBLE_SCRIPTS_URL     base URL of the repository files, "{tag}" replaced
+#                          (https://raw.githubusercontent.com/<repo>/{tag})
 
 set -Eeuo pipefail
 
@@ -84,6 +96,9 @@ LEGACY_UNIT=humble-planning-update
 SYSTEMD_DIR=/etc/systemd/system
 CRON_PREFIX=/etc/cron.d/humble-planning-update
 SELF=$(readlink -f "${BASH_SOURCE[0]}")
+WRAPPER_PATH=/usr/local/bin/humble-planning
+SELF_UPDATE_MIN=1.1.2 # first release whose command updates itself
+ORIG_ARGS=()
 TMP_DIR=""
 SPINNER_PID=""
 AUTO=0
@@ -592,6 +607,156 @@ print_notes() {
   if [ -n "$TARGET_URL" ]; then say ""; say "  ${DIM}Release page: $TARGET_URL${RESET}"; fi
 }
 
+# ─── Scripts of the release ──────────────────────────────────────────────────
+
+# release_file TAG PATH DEST — a file of the repository (deploy/…) at TAG:
+# the local tree of HUMBLE_BUILD_SOURCE when the images are built from a
+# directory, nothing with HUMBLE_PULL=0 (offline), else downloaded.
+release_file() {
+  local tag=$1 rel=$2 dest=$3 src repo base
+  src=$(env_get HUMBLE_BUILD_SOURCE)
+  if [ -n "$src" ] && [ -d "$src" ]; then
+    cp "$src/$rel" "$dest"
+    return
+  fi
+  if [ "$(env_get HUMBLE_PULL)" = 0 ]; then
+    echo "HUMBLE_PULL=0: $rel of $tag is not downloaded."
+    return 1
+  fi
+  repo=$(env_get HUMBLE_UPDATE_REPO)
+  base=${HUMBLE_SCRIPTS_URL:-"https://raw.githubusercontent.com/${repo:-$DEFAULT_UPDATE_REPO}/{tag}"}
+  base=${base//\{tag\}/$tag}
+  curl -fsSL --retry 2 --max-time 60 -o "$dest" "$base/$rel"
+}
+
+# Offline (HUMBLE_PULL=0, images not built from a directory): the scripts of
+# the release cannot be fetched, by choice — no network access is attempted.
+scripts_offline() {
+  local src
+  src=$(env_get HUMBLE_BUILD_SOURCE)
+  [ "$(env_get HUMBLE_PULL)" = 0 ] && ! { [ -n "$src" ] && [ -d "$src" ]; }
+}
+
+# A fetched script is only used when it is complete and valid bash.
+valid_bash_script() {
+  [ -s "$1" ] && head -n1 "$1" | grep -qE '^#!.*[/ ]bash([[:space:]]|$)' && bash -n "$1" 2>>"$UPDATE_LOG"
+}
+
+highest_installed() {
+  local n
+  for n in $(instance_names); do instance_version "$n"; echo; done | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1
+}
+
+# self_target MODE WANT INSTANCE → the release tag `update` moves to (empty
+# when unknown): --version, the latest release, or for --auto the latest
+# patch release of the series of the instance.
+self_target() {
+  local mode=$1 want=${2#v} name=$3 json="$TMP_DIR/self-releases.json" cur
+  if [ "$mode" = version ]; then
+    if [[ $want =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then printf 'v%s' "$want"; fi
+    return 0
+  fi
+  ( ENV_FILE="$(reg_get "$name" DIR)/.env"; fetch_releases "$json" ) 2>>"$UPDATE_LOG" || return 0
+  if [ "$mode" = auto ]; then
+    cur=$(instance_version "$name")
+    release_tags <"$json" | grep -E "^v?${cur%.*}\.[0-9]+$" | tail -n1 || true
+  else
+    release_tags <"$json" | tail -n1
+  fi
+}
+
+# self_update TAG INSTANCE — before any instance is touched, the installed
+# command is replaced by the one of TAG when it differs, then run again with
+# the same arguments (HUMBLE_SELF_UPDATED: once). Never with a release older
+# than the newest version installed here, or older than SELF_UPDATE_MIN (an
+# older command may not know several instances). A failure only warns: the
+# update goes on with the current command.
+self_update() {
+  local tag=$1 v max new="$TMP_DIR/humble-planning.new"
+  v=${tag#v}
+  [ -z "${HUMBLE_SELF_UPDATED:-}" ] && [ -n "$tag" ] && [ "$SELF" = "$WRAPPER_PATH" ] || return 0
+  [[ $v =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 0
+  if version_gt "$SELF_UPDATE_MIN" "$v"; then return 0; fi
+  max=$(highest_installed)
+  if [ -n "$max" ] && version_gt "$max" "$v"; then return 0; fi
+  if ( ENV_FILE="$(reg_get "$2" DIR)/.env"; scripts_offline ); then
+    log "SELF  HUMBLE_PULL=0: the command of $tag is not fetched (offline)"
+    return 0
+  fi
+  if ! ( ENV_FILE="$(reg_get "$2" DIR)/.env"; release_file "$tag" deploy/humble-planning "$new" ) >>"$UPDATE_LOG" 2>&1; then
+    warn "The humble-planning command of $tag could not be fetched: the update goes on with the current one (see $UPDATE_LOG)."
+    return 0
+  fi
+  cmp -s "$new" "$SELF" && return 0
+  if ! valid_bash_script "$new"; then
+    warn "The humble-planning command of $tag is not a valid script: the update goes on with the current one."
+    return 0
+  fi
+  cp -p "$SELF" "$SELF.prev"
+  install -m 0755 "$new" "$SELF.new"
+  mv -f "$SELF.new" "$SELF"
+  ok "humble-planning command updated to the one of $tag (previous one: $SELF.prev)"
+  log "SELF  $tag installed, running it again: humble-planning ${ORIG_ARGS[*]}"
+  # exec skips the EXIT trap: clean up first.
+  spinner_stop
+  rm -rf -- "${TMP_DIR:?}"
+  HUMBLE_SELF_UPDATED=$tag exec "$SELF" "${ORIG_ARGS[@]}"
+}
+
+# Compose files of the selected instance (COMPOSE_FILE in .env)
+instance_compose_files() {
+  echo docker-compose.yml
+  if proxied; then echo docker-compose.proxy.yml; fi
+}
+
+# compose_prepare TAG — the Compose files of TAG, checked (docker compose
+# config) with the .env of the instance, into $TMP_DIR/compose.<name>/; only
+# the files that differ from the current ones stay there.
+compose_prepare() {
+  local tag=$1 d="$TMP_DIR/compose.$NAME" f args=()
+  rm -rf -- "${d:?}"
+  mkdir -p "$d"
+  for f in $(instance_compose_files); do
+    release_file "$tag" "deploy/$f" "$d/$f" || return 1
+    [ -s "$d/$f" ] || { echo "deploy/$f of $tag is empty."; return 1; }
+    args+=(-f "$d/$f")
+  done
+  HUMBLE_VERSION=${tag#v} docker compose --project-directory "$INSTALL_DIR" "${args[@]}" config -q || return 1
+  for f in $(instance_compose_files); do
+    if cmp -s "$d/$f" "$INSTALL_DIR/$f"; then rm -f -- "${d:?}/$f"; else echo "$f changes in $tag"; fi
+  done
+}
+
+# compose_install FROM — installs the prepared files: the current ones are
+# kept as <file>.bak-<date> (as install.sh does) and in backups/compose-vFROM/
+# for the rollback.
+COMPOSE_CHANGED=0
+compose_install() {
+  local from=$1 d="$TMP_DIR/compose.$NAME" f keep="$BACKUP_DIR/compose-v$1" stamp
+  stamp=$(date +%Y%m%d%H%M%S)
+  for f in "$d"/*; do
+    [ -f "$f" ] || continue
+    f=${f##*/}
+    install -d -m 0700 "$keep"
+    if [ -f "$INSTALL_DIR/$f" ]; then
+      cp -p "$INSTALL_DIR/$f" "$keep/$f"
+      cp -p "$INSTALL_DIR/$f" "$INSTALL_DIR/$f.bak-$stamp"
+    fi
+    install -m 0640 "$d/$f" "$INSTALL_DIR/$f"
+    COMPOSE_CHANGED=1
+  done
+}
+
+# compose_restore VERSION — the Compose files kept when VERSION was updated
+compose_restore() {
+  local keep="$BACKUP_DIR/compose-v$1" f
+  [ -d "$keep" ] || return 0
+  for f in "$keep"/*; do
+    [ -f "$f" ] || continue
+    install -m 0640 "$f" "$INSTALL_DIR/${f##*/}"
+  done
+}
+
 # ─── Update ──────────────────────────────────────────────────────────────────
 
 # pull_or_build VERSION — images of the instance. The image of the shared proxy
@@ -625,6 +790,10 @@ auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
   cat "$failure" >>"$UPDATE_LOG"
   title "Rolling back $NAME to v$from"
   spin "Stopping v$to" compose stop app socket || true
+  if [ "$COMPOSE_CHANGED" = 1 ]; then
+    compose_restore "$from"
+    ok "Compose files of v$from restored"
+  fi
   local restored=1
   if [ "$migrated" = 1 ]; then
     if spin "Restoring the database from the pre-update backup" restore_from "$backup"; then restored=1; else restored=0; fi
@@ -658,6 +827,16 @@ do_update() { # do_update FROM TO
     last_log_lines 15
     die "Could not get the images of v$to: nothing was changed, v$from is still running."
   fi
+  # The Compose files of v$to, checked before anything stops. Without them
+  # (offline, network), the current ones are kept.
+  local compose_ok=0
+  if scripts_offline; then
+    info "HUMBLE_PULL=0 (offline): the current Compose files are kept."
+  elif spin "Fetching the Compose files of v$to" compose_prepare "v$to"; then
+    compose_ok=1
+  else
+    warn "The Compose files of v$to could not be fetched or checked: the current ones are kept (see $UPDATE_LOG)."
+  fi
 
   spin "Stopping the application for the update" compose stop app socket || true
   install -d -m 0700 "$BACKUP_DIR"
@@ -673,6 +852,10 @@ do_update() { # do_update FROM TO
   info "Backup: $backup ($(du -h "$backup" | cut -f1))"
   rotate_backups
 
+  if [ "$compose_ok" = 1 ]; then
+    compose_install "$from"
+    if [ "$COMPOSE_CHANGED" = 1 ]; then info "Compose files of v$to installed (those of v$from kept in $BACKUP_DIR/compose-v$from)"; fi
+  fi
   migrated=1
   if ! spin "Applying the database migrations of v$to" compose_at "$to" run --rm -T --no-deps app provision migrate; then
     auto_rollback "$from" "$to" "applying the database migrations" "$backup" "$migrated"
@@ -761,7 +944,7 @@ check_all() { # check_all MODE WANT NAME…
 # The shared proxy follows the newest version installed (never moves back).
 proxy_follow() {
   [ -n "$1" ] && proxy_exists || return 0
-  proxy_upgrade "$1" || warn "The shared reverse proxy keeps v$(penv_get HUMBLE_CADDY_VERSION) (see $UPDATE_LOG)."
+  proxy_upgrade "$1" 1 || warn "The shared reverse proxy keeps v$(penv_get HUMBLE_CADDY_VERSION) (see $UPDATE_LOG)."
 }
 
 cmd_update() {
@@ -792,12 +975,16 @@ cmd_update() {
     select_instance "${names[0]:-${targets[0]}}"
     setup_colors
     exec >>"$UPDATE_LOG" 2>&1
-    printf '\n===== %s automatic update check of %s\n' "$(date '+%F %T')" "$NAME"
+    printf '\n===== %s automatic update check of %s%s\n' "$(date '+%F %T')" "$NAME" "${HUMBLE_SELF_UPDATED:+ (command of $HUMBLE_SELF_UPDATED)}"
+    self_update "$(self_target auto "" "$NAME")" "$NAME"
     RESULT_FILE="$TMP_DIR/result.$NAME"
     update_instance auto "" 1
     [ "$(cut -f1 "$RESULT_FILE" 2>/dev/null)" = updated ] && proxied && proxy_follow "$(env_get HUMBLE_VERSION)"
     return 0
   fi
+
+  # The command of the target release first: it runs again, then checks and asks.
+  self_update "$(self_target "$mode" "$want" "${names[0]:-${targets[0]}}")" "${names[0]:-${targets[0]}}"
 
   if [ "$all" = 1 ]; then
     names=("${targets[@]}")
@@ -966,6 +1153,11 @@ cmd_rollback() {
     spin "Downloading v$previous" compose_at "$previous" pull app socket || die "Could not get the images of v$previous."
   fi
   spin "Stopping v$current" compose stop app socket || true
+  # The Compose files of v$previous, kept when v$current was installed
+  if [ -d "$BACKUP_DIR/compose-v$previous" ]; then
+    compose_restore "$previous"
+    ok "Compose files of v$previous restored"
+  fi
   if [ "${restore:-0}" = 1 ]; then
     if ! spin "Restoring the database from the pre-update backup" restore_from "$backup"; then
       compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
@@ -1459,7 +1651,7 @@ cmd_proxy_adopt() {
 # image checked with the current configuration, container recreated, previous
 # version started again on failure.
 proxy_upgrade() {
-  local v=$1 cur image snap
+  local v=$1 refresh=${2:-0} cur image snap new_files=0
   proxy_exists || return 0
   cur=$(penv_get HUMBLE_CADDY_VERSION)
   if [ -n "$cur" ] && ! version_gt "$v" "$cur"; then return 0; fi
@@ -1472,23 +1664,79 @@ proxy_upgrade() {
     fi
     spin "Downloading $image" docker pull "$image" || return 1
   fi
+  # `update`: the files of the proxy follow its image (install.sh writes them itself).
+  if [ "$refresh" = 1 ] && [ "$(penv_get HUMBLE_PULL)" = 0 ]; then
+    info "HUMBLE_PULL=0 (offline): the current proxy files are kept."
+  elif [ "$refresh" = 1 ]; then
+    if spin "Fetching the proxy files of v$v" proxy_files_prepare "v$v"; then
+      new_files=1
+    else
+      warn "The proxy files of v$v could not be fetched or checked: the current ones are kept (see $UPDATE_LOG)."
+    fi
+  fi
   # The new image ships the maintenance page: the sites made before get it.
   snap=$(proxy_snapshot)
+  if [ "$new_files" = 1 ]; then proxy_files_install; fi
   migrate_sites_note
   if ! spin "Checking the proxy configuration with $image" proxy_validate_with "$v"; then
     proxy_restore "$snap"
+    if [ "$new_files" = 1 ]; then proxy_files_restore; fi
     last_log_lines 4
     return 1
   fi
   if proxy_running; then
     if ! spin "Moving the shared reverse proxy to v$v (a few seconds)" proxy_recreate "$v"; then
       proxy_restore "$snap"
+      if [ "$new_files" = 1 ]; then proxy_files_restore; fi
       spin "Starting the shared reverse proxy v$cur again" proxy_start || true
       return 1
     fi
   fi
   kv_set "$PROXY_ENV" 600 HUMBLE_CADDY_VERSION "$v"
   ok "Shared reverse proxy: $image"
+}
+
+# proxy_files_prepare TAG — docker-compose.yml and site-template.caddy of the
+# proxy at TAG (source settings of the first instance it serves), checked,
+# into $TMP_DIR/proxy-files/; only the files that differ stay there.
+proxy_files_prepare() {
+  local tag=$1 d="$TMP_DIR/proxy-files" n="" f
+  rm -rf -- "${d:?}"
+  mkdir -p "$d"
+  for f in $(instance_names); do proxied "$f" && { n=$f; break; }; done
+  [ -n "$n" ] || { echo "No instance uses the proxy."; return 1; }
+  ( ENV_FILE="$(reg_get "$n" DIR)/.env"
+    release_file "$tag" deploy/proxy/docker-compose.yml "$d/docker-compose.yml" &&
+      release_file "$tag" deploy/Caddyfile "$d/site-template.caddy" ) || return 1
+  grep -q '__SITE_ADDRESS__' "$d/site-template.caddy" || { echo "deploy/Caddyfile of $tag is not a site template."; return 1; }
+  HUMBLE_CADDY_VERSION=${tag#v} docker compose --project-directory "$PROXY_DIR" -f "$d/docker-compose.yml" config -q || return 1
+  for f in docker-compose.yml site-template.caddy; do
+    if cmp -s "$d/$f" "$PROXY_DIR/$f"; then rm -f -- "${d:?}/$f"; else echo "$f changes in $tag"; fi
+  done
+}
+
+# The current files go to $TMP_DIR/proxy-files.prev/ (and the Compose file to
+# docker-compose.yml.bak-<date>, as install.sh does), then the new ones in place.
+proxy_files_install() {
+  local d="$TMP_DIR/proxy-files" prev="$TMP_DIR/proxy-files.prev" f
+  mkdir -p "$prev"
+  for f in "$d"/*; do
+    [ -f "$f" ] || continue
+    f=${f##*/}
+    if [ -f "$PROXY_DIR/$f" ]; then cp -p "$PROXY_DIR/$f" "$prev/$f"; fi
+    if [ "$f" = docker-compose.yml ] && [ -f "$PROXY_DIR/$f" ]; then cp -p "$PROXY_DIR/$f" "$PROXY_DIR/$f.bak-$(date +%Y%m%d%H%M%S)"; fi
+    install -m 0640 "$d/$f" "$PROXY_DIR/$f"
+    info "Proxy file updated: $PROXY_DIR/$f"
+  done
+  [ ! -f "$PROXY_DIR/site-template.caddy" ] || chmod 0644 "$PROXY_DIR/site-template.caddy"
+}
+
+proxy_files_restore() {
+  local f
+  for f in "$TMP_DIR/proxy-files.prev"/*; do
+    [ -f "$f" ] || continue
+    cp -p "$f" "$PROXY_DIR/${f##*/}"
+  done
 }
 
 proxy_validate_with() { HUMBLE_CADDY_VERSION=$1 pcompose run --rm --no-deps -T caddy caddy validate "${CADDY_CONFIG[@]}"; }
@@ -1965,7 +2213,10 @@ cmd_remove() {
 # that `update` parses the list with. The keys of a release come in the order
 # tag_name, …, draft, …, prerelease; the escaped quotes of a release body
 # (\"draft\") never match.
-latest_release_tag() {
+latest_release_tag() { release_tags | tail -n1; }
+
+# release_tags — every vX.Y.Z tag of a published release, lowest first (stdin: JSON)
+release_tags() {
   tr ',{}[]' '\n\n\n\n\n' |
     sed -n -E 's/^[[:space:]]*"(tag_name|draft|prerelease)"[[:space:]]*:[[:space:]]*"?([^"[:space:]]*)"?[[:space:]]*$/\1 \2/p' |
     awk '
@@ -1974,7 +2225,7 @@ latest_release_tag() {
       $1 == "draft" { draft = $2 }
       $1 == "prerelease" { pre = $2 }
       END { flush() }' |
-    sort -V | tail -n1
+    sort -V
 }
 
 # A first instance gives the release source (HUMBLE_UPDATE_SOURCE/REPO);
@@ -2130,6 +2381,7 @@ EOF
 }
 
 main() {
+  ORIG_ARGS=("$@")
   TMP_DIR=$(mktemp -d)
   trap 'spinner_stop; rm -rf "$TMP_DIR"' EXIT
   trap 'die "Unexpected error on line $LINENO: $BASH_COMMAND"' ERR

@@ -419,6 +419,10 @@
       },
       "none": "Aucun modèle autorisé.",
       "add": "Ajouter un modèle",
+      "pick": "Choisir ou saisir un modèle",
+      "search": "Rechercher ou saisir un identifiant…",
+      "useTyped": "Utiliser « {id} »",
+      "emptyCatalog": "Chargez la liste depuis OpenRouter, ou saisissez l’identifiant du modèle.",
       "saved": "Modèles enregistrés"
     },
     "privacy": {
