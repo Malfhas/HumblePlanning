@@ -24,7 +24,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-7c3aed" alt="License: AGPL-3.0"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.0.0-0f766e" alt="Version 1.0.0"></a>
+  <a href="https://github.com/Malfhas/HumblePlanning/releases/latest"><img src="https://img.shields.io/github/v/release/Malfhas/HumblePlanning?sort=semver&label=version&color=0f766e" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white" alt="Next.js 16">
   <img src="https://img.shields.io/badge/PostgreSQL-16%2B-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16+">
   <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker ready">
