@@ -11,6 +11,7 @@ import { logAudit } from "@/lib/services/audit-service";
 import { verifyCaptcha } from "@/lib/captcha";
 import { logger } from "@/lib/logger";
 import { passwordNotCompliantError, passwordRejectedError } from "@/lib/services/user-service";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 /** GET: Validate token and return user username */
 export async function GET(request: Request) {
@@ -46,6 +47,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   try {
     const body = await request.json();
     const { token, password, captchaToken } = body;

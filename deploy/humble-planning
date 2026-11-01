@@ -1246,12 +1246,49 @@ proxy_start() { pcompose up -d --force-recreate --wait --wait-timeout 60 && prox
 proxy_discard() { pcompose rm --force --stop caddy >>"$UPDATE_LOG" 2>&1 || true; }
 proxy_reload_running() { pcompose exec -T caddy caddy reload "${CADDY_CONFIG[@]}"; }
 
+# Maintenance page (Caddy image 1.1.1+): each site imports the configuration
+# shipped with the image. The sites made by 1.1.0 are kept across updates
+# (they may have been edited by hand): only this line is added, right after
+# the address of the site. A site that mentions it already (even commented
+# out, to do without the page) is left as it is. An image without the file
+# matches nothing, which Caddy accepts: the line can come before the image.
+MAINTENANCE_IMPORT='import /etc/caddy/humble-maintenance*.caddy'
+
+# proxy_migrate_sites → names of the sites changed (idempotent)
+proxy_migrate_sites() {
+  local f tmp name
+  for f in "$PROXY_CONF"/sites/*.caddy; do
+    [ -f "$f" ] || continue
+    grep -q 'humble-maintenance' "$f" && continue
+    name=${f##*/}; name=${name%.caddy}
+    tmp=$(mktemp "$PROXY_CONF/sites/.$name.XXXXXX")
+    if awk -v line="	$MAINTENANCE_IMPORT" '
+         !done && /^[^#[:space:]].*\{[[:space:]]*$/ { print; print line; done = 1; next }
+         { print }
+         END { exit !done }' "$f" >"$tmp"; then
+      chmod --reference="$f" "$tmp"
+      mv -f "$tmp" "$f"
+      printf '%s\n' "$name"
+    else
+      rm -f "$tmp"
+    fi
+  done
+}
+
+# Runs proxy_migrate_sites and tells which sites changed.
+migrate_sites_note() {
+  local changed
+  changed=$(proxy_migrate_sites | paste -sd' ' -)
+  [ -z "$changed" ] || info "Maintenance page added to the site(s) $changed (one import line, nothing else changed)"
+}
+
 # proxy_apply SNAPSHOT START — applies the files written by the caller: main
 # Caddyfile generated again, checked, then hot reload (or start when START=1
 # and the proxy is stopped). On failure, the snapshot is put back and the
 # running configuration is kept.
 proxy_apply() {
   local snap=$1 start=$2
+  migrate_sites_note
   proxy_render_main >"$PROXY_CONF/Caddyfile.tmp" && mv -f "$PROXY_CONF/Caddyfile.tmp" "$PROXY_CONF/Caddyfile"
   chmod 0644 "$PROXY_CONF/Caddyfile"
   if ! spin "Checking the configuration of the shared reverse proxy" proxy_validate; then
@@ -1422,7 +1459,7 @@ cmd_proxy_adopt() {
 # image checked with the current configuration, container recreated, previous
 # version started again on failure.
 proxy_upgrade() {
-  local v=$1 cur image
+  local v=$1 cur image snap
   proxy_exists || return 0
   cur=$(penv_get HUMBLE_CADDY_VERSION)
   if [ -n "$cur" ] && ! version_gt "$v" "$cur"; then return 0; fi
@@ -1435,12 +1472,17 @@ proxy_upgrade() {
     fi
     spin "Downloading $image" docker pull "$image" || return 1
   fi
+  # The new image ships the maintenance page: the sites made before get it.
+  snap=$(proxy_snapshot)
+  migrate_sites_note
   if ! spin "Checking the proxy configuration with $image" proxy_validate_with "$v"; then
+    proxy_restore "$snap"
     last_log_lines 4
     return 1
   fi
   if proxy_running; then
     if ! spin "Moving the shared reverse proxy to v$v (a few seconds)" proxy_recreate "$v"; then
+      proxy_restore "$snap"
       spin "Starting the shared reverse proxy v$cur again" proxy_start || true
       return 1
     fi
@@ -1459,7 +1501,7 @@ proxy_remove_site() {
   proxy_exists && { [ -f "$PROXY_CONF/sites/$name.caddy" ] || [ -f "$PROXY_CONF/secrets/$name.cloudflare-token" ]; } || return 0
   take_proxy_lock
   snap=$(proxy_snapshot)
-  rm -f "$PROXY_CONF/sites/$name.caddy" "$PROXY_CONF/secrets/$name.cloudflare-token"
+  rm -f "$PROXY_CONF/sites/$name.caddy" "$PROXY_CONF/sites/$name.caddy".bak-* "$PROXY_CONF/secrets/$name.cloudflare-token"
   # The main Caddyfile no longer lists it among the Cloudflare sites.
   proxy_apply "$snap" 0
 }
@@ -1515,6 +1557,241 @@ cmd_proxy() {
       ok "Configuration applied: $PROXY_CONF" ;;
     *) die "Usage: humble-planning proxy status|logs|restart|reload" 2 ;;
   esac
+}
+
+# ─── Public URL ──────────────────────────────────────────────────────────────
+
+# URL rules of install.sh: http or https, a host, an optional port, no path.
+URL_SCHEME="" URL_HOST="" URL_PORT=""
+parse_url() {
+  local u=${1%/}
+  if [[ $u =~ ^(https?)://([A-Za-z0-9.-]+|\[[0-9A-Fa-f:]+\])(:([0-9]{1,5}))?$ ]]; then
+    URL_SCHEME=${BASH_REMATCH[1]} URL_HOST=${BASH_REMATCH[2],,} URL_PORT=${BASH_REMATCH[4]}
+    [ -z "$URL_PORT" ] || { [ "$URL_PORT" -ge 1 ] && [ "$URL_PORT" -le 65535 ]; } || return 1
+    # The default port is not part of the origin a browser sends.
+    if { [ "$URL_SCHEME" = https ] && [ "$URL_PORT" = 443 ]; } || { [ "$URL_SCHEME" = http ] && [ "$URL_PORT" = 80 ]; }; then URL_PORT=""; fi
+    return 0
+  fi
+  return 1
+}
+url_origin() { printf '%s://%s%s' "$URL_SCHEME" "$URL_HOST" "${URL_PORT:+:$URL_PORT}"; }
+
+is_ipv4() { [[ $1 =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; }
+is_ip() { is_ipv4 "$1" || [[ $1 == *:* ]]; }
+# A name that can get a public certificate (same rule as install.sh)
+is_public_domain() {
+  local h=$1
+  ! is_ip "$h" && [[ $h == *.* ]] && [[ $h =~ \.[a-z]{2,}$ ]] && [[ ! $h =~ \.(local|localhost|internal|lan|home|test|invalid|example)$ ]]
+}
+
+# Cloudflare API, as install.sh validates a token: active, and a zone visible
+# for the host (Zone.Zone:Read). The token goes through stdin, never argv.
+CF_ERROR="" CF_ZONE=""
+cf_api() {
+  printf 'Authorization: Bearer %s\n' "$1" |
+    curl -sS --max-time 20 -H @- -H 'Content-Type: application/json' "https://api.cloudflare.com/client/v4$2"
+}
+cf_message() { grep -o '"message":"[^"]*"' <<<"$1" | sed -n 1p | cut -d'"' -f4 || true; }
+cf_check_token() {
+  local token=$1 host=$2 body candidate
+  CF_ERROR="" CF_ZONE=""
+  if ! body=$(cf_api "$token" "/user/tokens/verify" 2>&1); then
+    CF_ERROR="Could not reach api.cloudflare.com: $body"; return 1
+  fi
+  if [[ $body != *'"success":true'* || $body != *'"status":"active"'* ]]; then
+    CF_ERROR="Cloudflare rejected the token${body:+: $(cf_message "$body")}"; return 1
+  fi
+  candidate=$host
+  while [[ $candidate == *.* ]]; do
+    body=$(cf_api "$token" "/zones?name=$candidate" 2>&1) || { CF_ERROR="Could not reach api.cloudflare.com."; return 1; }
+    if [[ $body == *'"success":false'* ]]; then
+      CF_ERROR="Cloudflare refused to list zones: $(cf_message "$body") (the token needs Zone → Zone → Read)."; return 1
+    fi
+    if [[ $body == *'"success":true'* && $body != *'"result":[]'* ]]; then CF_ZONE=$candidate; return 0; fi
+    candidate=${candidate#*.}
+  done
+  CF_ERROR="The token is valid but no Cloudflare zone is visible for $host (check its \"Zone Resources\")."
+  return 1
+}
+
+# A site without its generated header (two comment lines with a date) and the
+# maintenance import (added to the sites of 1.1.0 by proxy_migrate_sites)
+site_body() { grep -v -e '^# Humble Planning — site of the instance' -e '^# Kept across updates' -e 'humble-maintenance' "$@" || true; }
+
+# The instance runs again on its current .env: app and socket recreated, then
+# the health check (and the proxy, when it serves the site).
+recreate_and_check() {
+  compose up -d --force-recreate --no-deps --wait --wait-timeout 180 app socket &&
+    wait_http "http://127.0.0.1:$(env_get HP_APP_PORT)/login" 90
+}
+
+# Everything set-url changed goes back: .env, registry, proxy files (then a
+# reload), nginx example, and the instance runs again on the previous URL.
+SETURL_SNAP="" SETURL_PROXY_SNAP=""
+set_url_rollback() {
+  local reason=$1
+  title "Restoring the previous URL of $NAME"
+  cp -p "$SETURL_SNAP/env" "$ENV_FILE"
+  cp -p "$SETURL_SNAP/registry" "$REGISTRY_DIR/$NAME.conf"
+  [ ! -f "$SETURL_SNAP/nginx-example.conf" ] || cp -p "$SETURL_SNAP/nginx-example.conf" "$INSTALL_DIR/nginx-example.conf"
+  if [ -n "$SETURL_PROXY_SNAP" ]; then
+    proxy_restore "$SETURL_PROXY_SNAP"
+    if proxy_running; then spin "Reloading the previous configuration of the shared reverse proxy" proxy_reload_running || true; fi
+  fi
+  # Compose recreates app and socket only if they run with the new .env.
+  if spin "Starting $NAME again on $(env_get APP_BASE_URL)" compose up -d --wait --wait-timeout 180; then
+    ok "$NAME runs again on $(env_get APP_BASE_URL)"
+  else
+    bad "$NAME did not start again: check 'humble-planning logs $NAME'."
+  fi
+  die "The URL was not changed: $reason (details: $UPDATE_LOG)."
+}
+
+# humble-planning set-url [instance] <url> [--yes] [--token-stdin]
+cmd_set_url() {
+  local yes=0 stdin=0 pos=() new new_host old old_scheme new_tls old_tls n other site="" hand=0 bak="" token=""
+  INSTANCE_ARG=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -y|--yes) yes=1 ;;
+      --token-stdin) stdin=1 ;;
+      -*) die "Unknown option for set-url: $1" 2 ;;
+      *) pos+=("$1") ;;
+    esac
+    shift
+  done
+  require_root set-url
+  case "${#pos[@]}" in
+    1) new=${pos[0]} ;;
+    2) is_instance "${pos[0]}" || { print_instances; die "Unknown instance: ${pos[0]}" 2; }
+       INSTANCE_ARG=${pos[0]} new=${pos[1]} ;;
+    *) die "Usage: humble-planning set-url [instance] <url> [--yes] [--token-stdin]" 2 ;;
+  esac
+  parse_url "$new" || die "Invalid URL \"$new\": use http:// or https://, a host and an optional port, no path (e.g. https://planning.example.com)." 2
+  new=$(url_origin)
+  if [ -z "$INSTANCE_ARG" ] && [ "$(instance_names | grep -c .)" -gt 1 ] && ! interactive; then
+    print_instances; say ""
+    die "Several instances are installed: name one, e.g. humble-planning set-url $(instance_names | sed -n 1p) $new" 2
+  fi
+  resolve_instance set-url
+
+  # ── Checks: nothing has changed yet ──
+  old=$(env_get APP_BASE_URL)
+  if parse_url "$old"; then old=$(url_origin); old_scheme=$URL_SCHEME; else old_scheme=""; fi
+  [ "$new" != "$old" ] || die "$NAME already uses $new: nothing to change." 2
+  parse_url "$new"; new_host=$URL_HOST
+  while IFS= read -r n; do
+    [ -n "$n" ] && [ "$n" != "$NAME" ] || continue
+    other=$(instance_url "$n")
+    if parse_url "$other" && [ "$URL_HOST" = "$new_host" ]; then
+      die "$new_host is already used by the instance $n ($other)." 2
+    fi
+  done < <(instance_names)
+  parse_url "$new"
+  old_tls=$(reg_get "$NAME" TLS) new_tls=$old_tls
+  if proxied; then
+    proxy_require
+    [ -z "$URL_PORT" ] || die "With the shared reverse proxy, the URL cannot include a port ($URL_PORT): it serves ports $(penv_get HP_HTTP_PORT)/$(penv_get HP_HTTPS_PORT)." 2
+    if [ "$URL_SCHEME" = http ]; then
+      new_tls=http
+    elif is_public_domain "$URL_HOST"; then
+      new_tls=acme
+    else
+      die "No public certificate can be issued for $URL_HOST: use http://$URL_HOST, or a public domain name." 2
+    fi
+    site="$PROXY_CONF/sites/$NAME.caddy"
+    # The Cloudflare DNS challenge needs a token that covers the new zone.
+    if [ "$new_tls" = acme ] && [ "$(reg_get "$NAME" CF_DNS)" = 1 ]; then
+      if [ "$stdin" = 1 ]; then
+        IFS= read -r token || true; token=${token%$'\r'}
+        [ -n "$token" ] || die "--token-stdin: no Cloudflare API token on stdin." 2
+      elif [ -s "$PROXY_CONF/secrets/$NAME.cloudflare-token" ]; then
+        token=$(head -n1 "$PROXY_CONF/secrets/$NAME.cloudflare-token")
+      else
+        die "The Cloudflare API token of $NAME is missing: give one with --token-stdin." 2
+      fi
+      info "Checking the Cloudflare API token for $URL_HOST…"
+      cf_check_token "$token" "$URL_HOST" ||
+        die "The Cloudflare API token cannot issue a certificate for $URL_HOST: $CF_ERROR Nothing was changed; give another token with --token-stdin (Zone.Zone:Read + Zone.DNS:Edit on its zone)." 2
+      ok "Cloudflare token valid for the zone $CF_ZONE"
+    elif [ "$stdin" = 1 ]; then
+      die "--token-stdin only applies to a site using the Cloudflare DNS challenge over HTTPS." 2
+    fi
+    # Hand edits are kept in a backup, never lost silently.
+    if [ -f "$site" ] && [ "$(proxy_render_site "$NAME" | site_body)" != "$(site_body "$site")" ]; then hand=1; fi
+  elif [ "$stdin" = 1 ]; then
+    die "--token-stdin only applies to an instance served by the shared reverse proxy." 2
+  fi
+
+  # ── What will change ──
+  title "Changing the public URL of $NAME — $LABEL"
+  say "  ${DIM}URL              ${RESET} $old → ${BOLD}$new${RESET}"
+  say "  ${DIM}.env             ${RESET} APP_BASE_URL and BETTER_AUTH_URL ($ENV_FILE)"
+  if proxied; then
+    say "  ${DIM}Proxy site       ${RESET} $site, generated again for $URL_HOST$( [ "$new_tls" != "$old_tls" ] && echo " (HTTPS: $old_tls → $new_tls)"), then checked and reloaded"
+  else
+    say "  ${DIM}Reverse proxy    ${RESET} yours: update it for $URL_HOST$( [ -f "$INSTALL_DIR/nginx-example.conf" ] && echo " (nginx-example.conf updated)")"
+  fi
+  say "  ${DIM}Restart          ${RESET} app and socket of $NAME (a few seconds of unavailability)"
+  say ""
+  if [ -n "$old_scheme" ] && [ "$old_scheme" != "$URL_SCHEME" ]; then
+    warn "The URL switches from $old_scheme to $URL_SCHEME: the session cookies change, ${BOLD}everyone is signed out${RESET}."
+  fi
+  warn "MCP clients and OAuth connections (AI assistants) must reconnect with the new URL."
+  info "The DNS record of $URL_HOST must already point to this server$( [ "$new_tls" = acme ] && echo " (needed for its certificate)")."
+  if [ "$hand" = 1 ]; then
+    warn "${BOLD}$site was changed by hand${RESET}: it is generated again from the template; the current file is kept as a backup, carry your changes over."
+  fi
+  say ""
+  if [ "$yes" = 0 ]; then
+    interactive || die "Changing the URL needs a confirmation: humble-planning set-url $NAME $new --yes" 2
+    confirm "Change the URL of $NAME to $new?" y || quit "Nothing was changed."
+  fi
+
+  # ── Changes, each one restored on failure ──
+  take_lock
+  proxied && take_proxy_lock
+  SETURL_SNAP="$TMP_DIR/set-url"
+  install -d -m 0700 "$SETURL_SNAP"
+  cp -p "$ENV_FILE" "$SETURL_SNAP/env"
+  cp -p "$REGISTRY_DIR/$NAME.conf" "$SETURL_SNAP/registry"
+  [ ! -f "$INSTALL_DIR/nginx-example.conf" ] || cp -p "$INSTALL_DIR/nginx-example.conf" "$SETURL_SNAP/nginx-example.conf"
+  proxied && SETURL_PROXY_SNAP=$(proxy_snapshot)
+
+  env_set APP_BASE_URL "$new" BETTER_AUTH_URL "$new"
+  [ "$new_tls" = "$old_tls" ] || kv_set "$REGISTRY_DIR/$NAME.conf" 644 TLS "$new_tls"
+  ok ".env: APP_BASE_URL and BETTER_AUTH_URL = $new"
+  if proxied; then
+    if [ -f "$site" ]; then
+      bak="$site.bak-$(date +%Y%m%d%H%M%S)"
+      cp -p "$site" "$bak"
+    fi
+    TOKEN=$token
+    write_site "$NAME" || set_url_rollback "the site could not be written"
+    proxy_apply "$SETURL_PROXY_SNAP" 0 || set_url_rollback "the shared reverse proxy refused the new site"
+  elif [ -f "$INSTALL_DIR/nginx-example.conf" ]; then
+    sed -i -E "s/^([[:space:]]*server_name)[[:space:]].*;/\1 $URL_HOST;/" "$INSTALL_DIR/nginx-example.conf"
+  fi
+  spin "Restarting $NAME on $new" recreate_and_check || { last_log_lines 6; set_url_rollback "$NAME did not start on the new URL"; }
+  if proxied && proxy_running && [ "$new_tls" != acme ]; then
+    spin "Checking $new through the shared reverse proxy" proxy_check_site "$NAME" || { last_log_lines 3; set_url_rollback "the shared reverse proxy does not serve $new"; }
+  elif proxied && proxy_running; then
+    spin "Checking that the shared reverse proxy reaches $NAME" proxy_check_site "$NAME" || { last_log_lines 3; set_url_rollback "the shared reverse proxy does not reach $NAME"; }
+  fi
+
+  # ── Summary ──
+  say ""
+  ok "${BOLD}$NAME now answers on $new${RESET} (previously $old)"
+  if proxied; then
+    info "Proxy site: $site${bak:+ (previous one kept as $bak)}"
+    [ "$new_tls" != acme ] || info "Caddy requests the certificate of $URL_HOST now: humble-planning proxy logs"
+    proxy_running || warn "The shared reverse proxy is stopped: start it with 'humble-planning proxy restart'."
+  else
+    warn "Update your reverse proxy: serve $new (/socket.io/* → 127.0.0.1:$(env_get HP_SOCKET_PORT), the rest → 127.0.0.1:$(env_get HP_APP_PORT)), with a certificate for $URL_HOST."
+  fi
+  [ "$hand" = 0 ] || warn "Carry your changes over from $bak to $site, then: humble-planning proxy reload"
+  info "Signed-in users may have to sign in again; MCP and OAuth clients must reconnect to $new."
+  log "URL   $NAME: $old → $new"
 }
 
 # ─── Remove ──────────────────────────────────────────────────────────────────
@@ -1838,6 +2115,9 @@ several, the command asks in a terminal (or stops with the list).
   auto-update on|off|status [instance]
                                Nightly automatic updates (patch releases only)
   version [instance]           Print the installed version
+  set-url [instance] <url> [--yes] [--token-stdin]
+                               Change the public URL: .env, proxy site (checked, previous one
+                               kept as a backup), restart; everything restored on failure
   remove <instance> [--yes --confirm <instance>] [--no-backup] [--remove-proxy|--keep-proxy]
                                Remove an instance: final backup (kept in $FINAL_BACKUP_DIR),
                                containers, volumes, files, proxy site, automatic updates
@@ -1860,6 +2140,7 @@ main() {
     new) cmd_new "$@" || exit $? ;;
     update) require_root update; cmd_update "$@" ;;
     remove) cmd_remove "$@" ;;
+    set-url) cmd_set_url "$@" ;;
     proxy) cmd_proxy "$@" ;;
     help|-h|--help) usage ;;
     status|logs|start|stop|restart|rollback|backup|demo-reset|auto-update|version)

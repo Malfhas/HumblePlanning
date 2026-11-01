@@ -4,6 +4,26 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-01
+
+### Added
+
+- `humble-planning set-url [instance] <url>` changes the public URL of an instance: `.env`, site of the shared reverse proxy (checked, then reloaded; a hand-edited site is kept as a backup), Cloudflare token checked against the new zone, restart and health check, everything restored if a step fails.
+- Maintenance page of the shared reverse proxy: while the application of an instance does not answer (update, restart), its pages show a Humble Planning page (status 503, in four languages) that reloads by itself once the application is back; API and real-time requests get a bare 503. The sites created by 1.1.0 get it when the proxy moves to 1.1.1, without any other change to their file.
+
+### Changed
+
+- Container logs are rotated (5 files of 10 MB per container) for new installations and when the installer runs again: with Docker's default settings, they grew until the disk was full.
+- The `Strict-Transport-Security` header no longer includes `preload`: adding a domain to the browsers' preload list (all its subdomains forced to HTTPS for months) is the decision of its owner, not of an application installed on it. One year with `includeSubDomains` is kept.
+
+### Fixed
+
+- The application URL used in e-mails (password reset, generated passwords of new accounts, notifications, weekly summary) and shown in Settings > Application kept `http://localhost:3000` after an installation. The URL set by the installer (`APP_BASE_URL` in `.env`) now applies everywhere; the field shows it, read-only.
+
+### Security
+
+- The authentication routes (sign-in, second factor, password reset and forced password change, reset e-mail sent by an administrator) refuse requests sent by another site: a page elsewhere could sign a visitor in to an account of its choice (login CSRF) or trigger reset e-mails.
+
 ## [1.1.0] - 2026-11-01
 
 ### Added
@@ -141,6 +161,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.1.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.1
 [1.1.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.0
 [1.0.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.0

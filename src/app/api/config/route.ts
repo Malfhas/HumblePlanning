@@ -1,7 +1,7 @@
 import { requireAuth, requirePermission, validateBody, apiSuccess, apiError, handleApiError } from "@/lib/utils/api";
 import { getAllConfig, setConfigValues, getDbConfiguredSecrets } from "@/lib/services/config-service";
 import { clearLegalTextDefaults } from "@/lib/services/legal-texts";
-import { isSecretKey, isPrivateConfigKey, getEnvManagedKeys, isEnvManaged, getEnvValue } from "@/lib/services/config-secrets";
+import { isSecretKey, isPrivateConfigKey, getEnvManagedKeys, isEnvManaged, getEnvValue, ENV_OVERRIDE_KEYS } from "@/lib/services/config-secrets";
 import { reloadCacheSettings } from "@/lib/cache";
 import { logAudit } from "@/lib/services/audit-service";
 import { isAltchaConfigured } from "@/lib/altcha";
@@ -12,6 +12,14 @@ const updateConfigSchema = z.record(z.string(), z.string());
 
 /** Stands for a secret value in the audit log (the change is recorded, never the value). */
 const SECRET_AUDIT_MASK = "********";
+
+/** Non-secret keys set by .env (APP_BASE_URL): the effective value replaces the stored one. */
+function applyEnvOverrides(map: Record<string, string | null>) {
+  for (const key of ENV_OVERRIDE_KEYS) {
+    const value = getEnvValue(key);
+    if (value !== null) map[key] = demoConfigOverride(key) ?? value;
+  }
+}
 
 /**
  * Computes the email sending status from the active provider and the available keys.
@@ -57,6 +65,7 @@ export async function GET() {
       if (isPrivateConfigKey(c.key)) continue;
       map[c.key] = demoConfigOverride(c.key) ?? c.value;
     }
+    applyEnvOverrides(map);
     // GDPR texts equal to their translated default: empty field (sample text displayed).
     clearLegalTextDefaults(map, "");
 
@@ -179,6 +188,7 @@ export async function PUT(request: Request) {
       if (isSecretKey(c.key) || isPrivateConfigKey(c.key)) continue;
       map[c.key] = c.value;
     }
+    applyEnvOverrides(map);
     clearLegalTextDefaults(map, "");
     const envManagedAfter = getEnvManagedKeys();
     const dbConfiguredAfter = await getDbConfiguredSecrets();

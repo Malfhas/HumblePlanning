@@ -92,11 +92,12 @@ const nextConfig: NextConfig = {
         ].join("; "),
       },
     ];
-    // HSTS: prod only (otherwise it blocks HTTP localhost:3000).
+    // HSTS: prod only (otherwise it blocks HTTP localhost:3000). No `preload`:
+    // listing a domain in the browsers' preload list is its owner's decision.
     if (isProd) {
       securityHeaders.push({
         key: "Strict-Transport-Security",
-        value: "max-age=31536000; includeSubDomains; preload",
+        value: "max-age=31536000; includeSubDomains",
       });
     }
     return [

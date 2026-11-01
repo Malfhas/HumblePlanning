@@ -13,6 +13,7 @@ import { refuseInDemo } from "@/lib/demo/guard";
 import { assertCanManageUser } from "@/lib/services/user-access";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
 import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
+import { crossOriginRejection } from "@/lib/utils/csrf";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
@@ -21,6 +22,8 @@ const RESET_TOKEN_EXPIRY_MINUTES = 10;
 const COOLDOWN_SECONDS = 60;
 
 export async function POST(request: Request) {
+  const rejected = await crossOriginRejection(request);
+  if (rejected) return rejected;
   const refused = await refuseInDemo(request);
   if (refused) return refused;
   // Cooldown claimed but no email sent yet: released on error

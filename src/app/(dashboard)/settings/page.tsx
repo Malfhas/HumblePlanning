@@ -1731,7 +1731,7 @@ function SettingsContent() {
     if (values.ANNOUNCEMENT_ENABLED === "true") {
       values.ANNOUNCEMENT_VERSION = String(Date.now());
     }
-    // Build payload: exclude env-managed secrets (backend would ignore them anyway)
+    // Build payload: exclude env-managed keys (backend would ignore them anyway)
     // and exclude empty password fields already stored in DB (avoid overwriting with empty).
     const payload: Record<string, string> = {};
     for (const [key, val] of Object.entries(values)) {
@@ -2207,9 +2207,12 @@ function SettingsContent() {
                     )
                   ) : (
                     (() => {
-                      const isEnvManaged = field.type === "password" && envManagedSet.has(field.key);
+                      // Set in .env: read-only. Secrets are masked and flagged; the
+                      // public URL (APP_BASE_URL) is shown as it is, without a badge.
+                      const isEnvManaged = envManagedSet.has(field.key);
+                      const isEnvSecret = isEnvManaged && field.type === "password";
                       const isDbConfigured = field.type === "password" && dbConfiguredSet.has(field.key);
-                      const displayValue = isEnvManaged
+                      const displayValue = isEnvSecret
                         ? "••••••••••••"
                         : (values[field.key] ?? field.defaultValue ?? "");
                       const placeholder = isDbConfigured && !values[field.key]
@@ -2221,7 +2224,7 @@ function SettingsContent() {
                         <>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={field.key}>{fieldText.label(field)}</Label>
-                            {isEnvManaged && (
+                            {isEnvSecret && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:text-amber-200">

@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
+import { AppError, handleApiError } from "@/lib/utils/api";
 
 /**
  * Validates the Origin header for CSRF protection on state-changing requests.
  * Returns true if the request is safe (same-origin or GET/HEAD/OPTIONS).
  *
- * This is a defense-in-depth measure alongside SameSite cookies.
- * For now it is available as a utility; it can be wired into sensitive
- * endpoints incrementally without breaking existing functionality.
+ * Defense in depth alongside SameSite cookies, which do not cover the routes
+ * used before sign-in (login, password reset, second factor): see
+ * `crossOriginRejection`.
  */
-export function validateOrigin(request: NextRequest): boolean {
+export function validateOrigin(request: Request): boolean {
   const method = request.method.toUpperCase();
   // Safe methods don't need CSRF checks
   if (["GET", "HEAD", "OPTIONS"].includes(method)) return true;
@@ -31,4 +31,13 @@ export function validateOrigin(request: NextRequest): boolean {
     try { return new URL(referer).host === appHost; } catch { return false; }
   }
   return true;
+}
+
+/**
+ * 403 response for a state-changing request sent by another site, else null.
+ * The authentication routes call it first: a page elsewhere must not sign a
+ * visitor in (to an account of its choice), reset a password or send e-mails.
+ */
+export async function crossOriginRejection(request: Request): Promise<Response | null> {
+  return validateOrigin(request) ? null : handleApiError(new AppError("errors.invalidOrigin", { status: 403 }));
 }

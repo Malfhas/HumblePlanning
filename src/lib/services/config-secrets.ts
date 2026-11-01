@@ -20,6 +20,16 @@ export type SecretKey = (typeof SECRET_KEYS)[number];
 
 const SECRET_KEYS_SET: ReadonlySet<string> = new Set(SECRET_KEYS);
 
+/**
+ * Non-secret keys that `.env` overrides when set, like the secrets: the public
+ * URL of the instance (written by install.sh), which authentication and the
+ * CSRF check also read from the environment. Their value is shown in the UI.
+ */
+export const ENV_OVERRIDE_KEYS = ["APP_BASE_URL"] as const;
+
+const ENV_MANAGEABLE_KEYS: readonly string[] = [...SECRET_KEYS, ...ENV_OVERRIDE_KEYS];
+const ENV_MANAGEABLE_SET: ReadonlySet<string> = new Set(ENV_MANAGEABLE_KEYS);
+
 export function isSecretKey(key: string): boolean {
   return SECRET_KEYS_SET.has(key);
 }
@@ -44,20 +54,20 @@ export function getEnvValue(key: string): string | null {
 }
 
 /**
- * A key is "env-managed" if it is in SECRET_KEYS
+ * A key is "env-managed" if it is in SECRET_KEYS or ENV_OVERRIDE_KEYS
  * AND present (non-empty) in process.env. These keys cannot be edited
  * through the UI when defined in env — `.env` is authoritative.
  */
 export function isEnvManaged(key: string): boolean {
-  if (!SECRET_KEYS_SET.has(key)) return false;
+  if (!ENV_MANAGEABLE_SET.has(key)) return false;
   return getEnvValue(key) !== null;
 }
 
 /**
- * List of secret keys currently provided by .env (non-empty).
+ * List of keys (secret or not) currently provided by .env (non-empty).
  */
 export function getEnvManagedKeys(): string[] {
-  return SECRET_KEYS.filter((k) => getEnvValue(k) !== null);
+  return ENV_MANAGEABLE_KEYS.filter((k) => getEnvValue(k) !== null);
 }
 
 /**
