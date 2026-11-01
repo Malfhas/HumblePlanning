@@ -1,40 +1,96 @@
 #!/usr/bin/env bash
 #
-# humble-planning — manage a Humble Planning installation (Docker Compose).
-# Installed by install.sh as /usr/local/bin/humble-planning; the installation
-# directory is read from /etc/default/humble-planning (HUMBLE_INSTALL_DIR).
+# humble-planning — manage the Humble Planning instances of this server
+# (Docker Compose). Installed by install.sh as /usr/local/bin/humble-planning.
 #
 # Run `humble-planning help` for the list of commands.
+#
+# Instances: several Humble Planning instances can share a server, each with
+# its own short name, label, directory, Compose project, database, files,
+# backups and version. install.sh registers them in
+# /etc/humble-planning/instances/<name>.conf; HUMBLE_BASE_DIR in
+# /etc/default/humble-planning (/opt/humble-planning) holds:
+#   instances/<name>/   docker-compose.yml, .env and backups/ of an instance
+#                       (an installation made with 1.0.x keeps its directory
+#                       and its Compose project "humbleplanning")
+#   proxy/              the reverse proxy (Caddy) shared by the instances
+# Per-instance commands take the name: `humble-planning status <instance>`. It
+# can be left out when there is only one instance; with several, the command
+# asks in a terminal, or stops with the list. `remove` always needs the name.
 #
 # Updates: the releases come from the GitHub API (HUMBLE_UPDATE_REPO in .env,
 # or HUMBLE_UPDATE_SOURCE: any URL returning a GitHub-style JSON array of
 # releases, e.g. file:///srv/releases.json for tests). The installed version
 # lives in .env (HUMBLE_VERSION) and is only changed once an update succeeded:
 # on failure, the previous version is started again and the database is
-# restored from the backup taken just before the update.
+# restored from the backup taken just before the update. Several instances
+# are updated one after the other, each with its own backup and rollback.
+#
+# Shared reverse proxy: one Caddy container (Compose project
+# "humbleplanning-proxy") serves every instance that uses it, through the
+# Docker network "humbleplanning-proxy", with one site file per instance.
+# Every change is checked (caddy validate) before a hot reload; when it fails,
+# the previous files are restored and Caddy keeps its running configuration.
+# Its image follows the newest version installed on this server. Commands used
+# by install.sh (not listed by `help`):
+#   proxy add-site <instance> [--token-stdin]   (re)generate the site of an
+#                                               instance, then apply it
+#   proxy adopt <instance> [--token-stdin]      move the Caddy of a 1.0.x
+#                                               installation into the shared
+#                                               proxy, with its certificates
+#   proxy upgrade <version>                     move the proxy to a newer image
+# --token-stdin reads the Cloudflare API token of the site on stdin.
+#
+# New instance: `humble-planning new` downloads install.sh from the tag of the
+# latest published release (same release list as `update`: no draft, no
+# pre-release, highest X.Y.Z), checks it, then runs it with HP_ACTION=new; the
+# HP_* variables of the environment reach it (non-interactive mode). Internal
+# variable, for tests and mirrors (root only, like the whole command):
+#   HUMBLE_INSTALLER_URL   URL of install.sh, "{tag}" replaced by the release tag
+#                          (https://raw.githubusercontent.com/<repo>/{tag}/install.sh)
 
 set -Eeuo pipefail
 
+if locale -a 2>/dev/null | grep -qiE '^c\.utf-?8$'; then
+  export LC_ALL=C.UTF-8
+fi
+
 CONFIG_FILE=/etc/default/humble-planning
+HUMBLE_BASE_DIR="" HUMBLE_INSTALL_DIR=""
 if [ -r "$CONFIG_FILE" ]; then
   # shellcheck disable=SC1090
   . "$CONFIG_FILE"
 fi
-INSTALL_DIR=${HUMBLE_INSTALL_DIR:-/opt/humble-planning}
-ENV_FILE="$INSTALL_DIR/.env"
-BACKUP_DIR="$INSTALL_DIR/backups"
-STATE_FILE="$INSTALL_DIR/.update-state"
-UPDATE_LOG=/var/log/humble-planning-update.log
-LOCK_FILE=/run/lock/humble-planning.lock
+BASE_DIR=${HUMBLE_BASE_DIR:-/opt/humble-planning}
+LEGACY_DIR=${HUMBLE_INSTALL_DIR:-}
+REGISTRY_DIR=/etc/humble-planning/instances
+LOG_DIR=/var/log/humble-planning
+FINAL_BACKUP_DIR=/var/backups/humble-planning
+LOCK_DIR=/run/lock
+PROXY_DIR="$BASE_DIR/proxy"
+PROXY_ENV="$PROXY_DIR/.env"
+PROXY_CONF="$PROXY_DIR/caddy" # mounted at /etc/caddy/humble in the proxy
+PROXY_NETWORK=humbleplanning-proxy
+CADDY_CONFIG=(--config /etc/caddy/humble/Caddyfile --adapter caddyfile)
+NAME_PATTERN='^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$'
 KEEP_PRE_UPDATE_BACKUPS=5
 DEFAULT_UPDATE_REPO=Malfhas/HumblePlanning
-UNIT=humble-planning-update
+DEFAULT_IMAGE_REPO=ghcr.io/malfhas/humble-planning
+DEFAULT_CADDY_REPO=ghcr.io/malfhas/humble-planning-caddy
+INSTALL_COMMAND="curl -fsSL https://raw.githubusercontent.com/Malfhas/HumblePlanning/main/install.sh | sudo bash"
+NEW_HINT="sudo humble-planning new (or: $INSTALL_COMMAND)"
+UNIT=humble-planning-update # template units: humble-planning-update@<instance>.timer
+LEGACY_UNIT=humble-planning-update
 SYSTEMD_DIR=/etc/systemd/system
-CRON_FILE=/etc/cron.d/humble-planning-update
+CRON_PREFIX=/etc/cron.d/humble-planning-update
 SELF=$(readlink -f "${BASH_SOURCE[0]}")
 TMP_DIR=""
 SPINNER_PID=""
 AUTO=0
+# The selected instance (select_instance)
+NAME="" LABEL="" INSTALL_DIR="" ENV_FILE="" BACKUP_DIR="" STATE_FILE="" LOCK_FILE="" REL_OUT=""
+UPDATE_LOG="$LOG_DIR/humble-planning.log"
+RESULT_FILE=""
 
 # ─── Output ──────────────────────────────────────────────────────────────────
 
@@ -84,7 +140,7 @@ fmt_duration() {
   if [ "$1" -ge 60 ]; then printf '%dm%02ds' $(($1 / 60)) $(($1 % 60)); else printf '%ds' "$1"; fi
 }
 
-# spin "Message" command… — output of the command → update log; ✔/✖; returns its code
+# spin "Message" command… — output of the command → log; ✔/✖; returns its code
 spin() {
   local msg=$1; shift
   local start=$SECONDS rc=0 pid
@@ -110,6 +166,9 @@ spin() {
   return "$rc"
 }
 
+# A person answers the questions: a terminal on both ends, no --auto.
+interactive() { [ "$AUTO" = 0 ] && [ -t 0 ] && [ -t 1 ] && { : </dev/tty; } 2>/dev/null; }
+
 confirm() { # confirm "Question" y|n
   local ans hint=y/N
   [ "$2" = y ] && hint=Y/n
@@ -131,71 +190,211 @@ excerpt() {
 
 last_log_lines() { excerpt "$UPDATE_LOG" "${1:-20}" "Last lines of $UPDATE_LOG:"; }
 
-# ─── Environment and Compose ─────────────────────────────────────────────────
+# pad TEXT WIDTH — TEXT cut or padded to WIDTH characters
+pad() {
+  local t=$1 w=$2
+  [ "${#t}" -gt "$w" ] && t="${t:0:$((w - 1))}…"
+  printf '%s%*s' "$t" $((w - ${#t})) ''
+}
 
-env_get() {
+# ─── Key=value files (.env, registry) ────────────────────────────────────────
+
+kv_get() { # kv_get FILE KEY — last value of KEY, quotes removed
   local line val=""
-  [ -r "$ENV_FILE" ] || return 0
+  [ -r "$1" ] || return 0
   while IFS= read -r line || [ -n "$line" ]; do
-    if [[ $line =~ ^[[:space:]]*$1=(.*)$ ]]; then val=${BASH_REMATCH[1]}; fi
-  done <"$ENV_FILE"
+    if [[ $line =~ ^[[:space:]]*$2=(.*)$ ]]; then val=${BASH_REMATCH[1]}; fi
+  done <"$1"
   val=${val%$'\r'}
   if [[ $val =~ ^\"(.*)\"$ ]] || [[ $val =~ ^\'(.*)\'$ ]]; then val=${BASH_REMATCH[1]}; fi
   printf '%s' "$val"
 }
 
-# env_set KEY VALUE… — atomic update of .env (mode 600)
-env_set() {
-  local tmp line key
+# kv_set FILE MODE KEY VALUE… — atomic update (missing keys are appended)
+kv_set() {
+  local file=$1 mode=$2 tmp line key; shift 2
   declare -A new=()
   while [ $# -ge 2 ]; do new[$1]=$2; shift 2; done
-  tmp=$(mktemp "$ENV_FILE.XXXXXX")
-  chmod 600 "$tmp"
-  while IFS= read -r line || [ -n "$line" ]; do
-    if [[ $line =~ ^([A-Z_][A-Z0-9_]*)= ]] && [ -n "${new[${BASH_REMATCH[1]}]+x}" ]; then
-      key=${BASH_REMATCH[1]}
-      printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"
-      unset "new[$key]"
-    else
-      printf '%s\n' "$line" >>"$tmp"
-    fi
-  done <"$ENV_FILE"
+  tmp=$(mktemp "$file.XXXXXX")
+  chmod "$mode" "$tmp"
+  if [ -f "$file" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^([A-Z_][A-Z0-9_]*)= ]] && [ -n "${new[${BASH_REMATCH[1]}]+x}" ]; then
+        key=${BASH_REMATCH[1]}
+        printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"
+        unset "new[$key]"
+      else
+        printf '%s\n' "$line" >>"$tmp"
+      fi
+    done <"$file"
+  fi
   for key in "${!new[@]}"; do printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"; done
-  mv -f "$tmp" "$ENV_FILE"
+  mv -f "$tmp" "$file"
 }
 
-compose() { docker compose --project-directory "$INSTALL_DIR" -f "$INSTALL_DIR/docker-compose.yml" "$@"; }
-# compose_at VERSION … — Compose with another image version (the .env is untouched)
-compose_at() { local v=$1; shift; HUMBLE_VERSION=$v compose "$@"; }
+env_get() { kv_get "$ENV_FILE" "$1"; }
+env_set() { kv_set "$ENV_FILE" 600 "$@"; }
+penv_get() { kv_get "$PROXY_ENV" "$1"; }
 
-caddy_enabled() { [[ ",$(env_get COMPOSE_PROFILES)," == *,caddy,* ]]; }
-db_builtin() { [[ ",$(env_get COMPOSE_PROFILES)," == *,db,* ]]; }
-image_repo() { local r; r=$(env_get HUMBLE_IMAGE); printf '%s' "${r:-ghcr.io/malfhas/humble-planning}"; }
-caddy_repo() { local r; r=$(env_get HUMBLE_CADDY_IMAGE); printf '%s' "${r:-ghcr.io/malfhas/humble-planning-caddy}"; }
+# version_gt A B → A > B (X.Y.Z)
+version_gt() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" = "$1" ]; }
 
-state_set() { # state_set "result text"
-  printf 'last_check=%s\nlast_result=%s\n' "$(date '+%F %T')" "$1" >"$STATE_FILE.tmp" && mv -f "$STATE_FILE.tmp" "$STATE_FILE"
+# ─── Instances ───────────────────────────────────────────────────────────────
+
+instance_names() {
+  local f
+  for f in "$REGISTRY_DIR"/*.conf; do
+    [ -f "$f" ] || continue
+    f=${f##*/}; printf '%s\n' "${f%.conf}"
+  done | sort
 }
-state_get() { [ -r "$STATE_FILE" ] && sed -n "s/^$1=//p" "$STATE_FILE" | sed -n 1p; return 0; }
 
-require_install() {
-  [ "$(id -u)" -eq 0 ] || die "Run this command as root: sudo humble-planning $*"
-  [ -f "$ENV_FILE" ] && [ -f "$INSTALL_DIR/docker-compose.yml" ] ||
-    die "No installation found in $INSTALL_DIR (set HUMBLE_INSTALL_DIR in $CONFIG_FILE)."
-  install -d -m 0755 "$(dirname "$UPDATE_LOG")" 2>/dev/null || true
+is_instance() { [[ $1 =~ $NAME_PATTERN ]] && [ -f "$REGISTRY_DIR/$1.conf" ]; }
+reg_get() { kv_get "$REGISTRY_DIR/$1.conf" "$2"; }
+proxied() { [ "$(reg_get "${1:-$NAME}" CADDY)" = 1 ]; }
+
+# select_instance NAME — the globals of the commands point to this instance
+select_instance() {
+  NAME=$1
+  LABEL=$(reg_get "$NAME" LABEL)
+  INSTALL_DIR=$(reg_get "$NAME" DIR)
+  ENV_FILE="$INSTALL_DIR/.env"
+  BACKUP_DIR="$INSTALL_DIR/backups"
+  STATE_FILE="$INSTALL_DIR/.update-state"
+  LOCK_FILE="$LOCK_DIR/humble-planning-$NAME.lock"
+  UPDATE_LOG="$LOG_DIR/$NAME.log"
+  REL_OUT="$TMP_DIR/releases.$NAME.out"
+  [ -n "$INSTALL_DIR" ] && [ -f "$ENV_FILE" ] && [ -f "$INSTALL_DIR/docker-compose.yml" ] ||
+    die "Instance $NAME: no installation found in ${INSTALL_DIR:-?} (see $REGISTRY_DIR/$NAME.conf)."
   touch "$UPDATE_LOG" 2>/dev/null && chmod 600 "$UPDATE_LOG" 2>/dev/null || true
 }
 
-take_lock() {
-  install -d -m 0755 "$(dirname "$LOCK_FILE")" 2>/dev/null || true
-  exec 9>"$LOCK_FILE"
-  flock -n 9 || die "Another humble-planning operation is already running."
+require_root() {
+  [ "$(id -u)" -eq 0 ] || die "Run this command as root: sudo humble-planning $*"
+  install -d -m 0750 "$LOG_DIR" 2>/dev/null || true
+  touch "$UPDATE_LOG" 2>/dev/null && chmod 600 "$UPDATE_LOG" 2>/dev/null || true
 }
 
-wait_http() {
-  local url=$1 timeout=$2 i code=""
+# An installation made with 1.0.x is registered by the installer, which also
+# moves its Caddy into the shared proxy: this command does not touch it.
+check_legacy() {
+  local dir=${LEGACY_DIR:-/opt/humble-planning}
+  [ -n "$(instance_names)" ] && return 0
+  if [ -f "$dir/.env" ] && [ -f "$dir/docker-compose.yml" ]; then
+    die "The installation in $dir was made with Humble Planning 1.0.x and is not registered yet. Run the installer once to take it over (nothing is moved, the data is kept): $INSTALL_COMMAND"
+  fi
+}
+
+instance_url() { kv_get "$(reg_get "$1" DIR)/.env" APP_BASE_URL; }
+instance_version() { kv_get "$(reg_get "$1" DIR)/.env" HUMBLE_VERSION; }
+
+# instance_state NAME → running | stopped | unhealthy | partial (n/m) | ?
+instance_state() {
+  local project services total=0 up=0 sick=0 svc st status
+  project=$(kv_get "$(reg_get "$1" DIR)/.env" COMPOSE_PROJECT_NAME)
+  [ -n "$project" ] || { printf '?'; return 0; }
+  services=$(docker ps -a --filter "label=com.docker.compose.project=$project" --filter label=com.docker.compose.oneoff=False \
+    --format '{{.Label "com.docker.compose.service"}}|{{.State}}|{{.Status}}' 2>/dev/null) || { printf '?'; return 0; }
+  while IFS='|' read -r svc st status; do
+    case "$svc" in app|socket|db) ;; *) continue ;; esac
+    total=$((total + 1))
+    [ "$st" = running ] && up=$((up + 1))
+    [[ $status == *unhealthy* ]] && sick=1
+  done <<<"$services"
+  if [ "$total" = 0 ] || [ "$up" = 0 ]; then printf 'stopped'
+  elif [ "$sick" = 1 ]; then printf 'unhealthy'
+  elif [ "$up" = "$total" ]; then printf 'running'
+  else printf 'partial (%d/%d)' "$up" "$total"
+  fi
+}
+
+# print_instances [numbered] — table of the instances (EXTRA[name]: last column)
+declare -A EXTRA=()
+print_instances() {
+  local numbered=${1:-0} n i=0 prefix
+  say ""
+  prefix="    "; [ "$numbered" = 1 ] && prefix="        "
+  say "  ${DIM}${prefix}$(pad NAME 14) $(pad LABEL 26) $(pad URL 32) $(pad VERSION 9) ${EXTRA[__header]:-STATE}${RESET}"
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    i=$((i + 1))
+    prefix="    "; [ "$numbered" = 1 ] && prefix="    ${ACCENT}$(printf '%2d' "$i")${RESET}) "
+    say "  ${prefix}${BOLD}$(pad "$n" 14)${RESET} $(pad "$(reg_get "$n" LABEL)" 26) $(pad "$(instance_url "$n")" 32) $(pad "v$(instance_version "$n")" 9) ${EXTRA[$n]:-$(instance_state "$n")}"
+  done < <(instance_names)
+}
+
+# pick_instance COMMAND — the instance chosen in a terminal, else the list and an error
+pick_instance() {
+  local cmd=$1 names ans i
+  mapfile -t names < <(instance_names)
+  if ! interactive; then
+    print_instances
+    say ""
+    die "Several instances are installed: name one, e.g. humble-planning $cmd ${names[0]}" 2
+  fi
+  say ""
+  say "  ${BOLD}Several instances are installed on this server.${RESET}"
+  print_instances 1
+  while :; do
+    printf '\n  %s?%s Instance (number or name) %s[1]%s ' "$ACCENT" "$RESET" "$DIM" "$RESET"
+    IFS= read -r ans </dev/tty || die "No input available." 2
+    ans=${ans:-1}
+    if [[ $ans =~ ^[0-9]+$ ]] && [ "$ans" -ge 1 ] && [ "$ans" -le "${#names[@]}" ]; then PICKED=${names[ans - 1]}; return 0; fi
+    for i in "${names[@]}"; do [ "$i" = "$ans" ] && { PICKED=$i; return 0; }; done
+    printf '    %s✖ Enter a number between 1 and %d, or an instance name.%s\n' "$RED" "${#names[@]}" "$RESET"
+  done
+}
+
+# split_args COMMAND ARGS… → INSTANCE_ARG (first instance name) and ARGS
+# (the rest). A word that is neither an option, an instance nor a word the
+# command accepts stops with an error.
+split_args() {
+  local cmd=$1 a allowed=" "; shift
+  case "$cmd" in
+    logs|restart|status) allowed=" app socket db caddy " ;;
+    auto-update) allowed=" on off enable disable status " ;;
+  esac
+  INSTANCE_ARG="" ARGS=()
+  for a in "$@"; do
+    if [ -z "$INSTANCE_ARG" ] && [[ $a != -* ]] && is_instance "$a"; then
+      INSTANCE_ARG=$a
+    elif [[ $a == -* ]] || [[ $allowed == *" $a "* ]]; then
+      ARGS+=("$a")
+    else
+      print_instances
+      die "Unknown instance or argument: $a" 2
+    fi
+  done
+}
+
+# resolve_instance COMMAND — selects INSTANCE_ARG, the only instance, or the one picked
+resolve_instance() {
+  local cmd=$1 names
+  check_legacy
+  mapfile -t names < <(instance_names)
+  if [ -n "$INSTANCE_ARG" ]; then
+    select_instance "$INSTANCE_ARG"
+  elif [ "${#names[@]}" -eq 0 ]; then
+    die "No Humble Planning instance is installed on this server. Install one: $NEW_HINT"
+  elif [ "${#names[@]}" -eq 1 ]; then
+    select_instance "${names[0]}"
+  else
+    PICKED=""
+    pick_instance "$cmd"
+    select_instance "$PICKED"
+  fi
+}
+
+take_lock() {
+  install -d -m 0755 "$LOCK_DIR" 2>/dev/null || true
+  exec 9>"$LOCK_FILE"
+  flock -n 9 || die "Another humble-planning operation is already running on the instance $NAME."
+}
+
+wait_http() { # wait_http URL TIMEOUT [curl options…]
+  local url=$1 timeout=$2 i code=""; shift 2
   for ((i = 0; i < timeout; i += 2)); do
-    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$url" || true)
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$@" "$url" || true)
     [ "$code" = 200 ] && return 0
     sleep 2
   done
@@ -203,9 +402,44 @@ wait_http() {
   return 1
 }
 
+# ─── Compose ─────────────────────────────────────────────────────────────────
+
+# The Compose files of the instance: COMPOSE_FILE in .env (docker-compose.yml,
+# plus docker-compose.proxy.yml for an instance served by the shared proxy),
+# always given explicitly so that Compose never looks for another file in the
+# parent directories.
+compose() {
+  local list f files=()
+  list=$(env_get COMPOSE_FILE)
+  IFS=: read -ra list <<<"${list:-docker-compose.yml}"
+  for f in "${list[@]}"; do
+    [[ $f == /* ]] || f="$INSTALL_DIR/$f"
+    files+=(-f "$f")
+  done
+  docker compose --project-directory "$INSTALL_DIR" "${files[@]}" "$@"
+}
+# compose_at VERSION … — Compose with another image version (the .env is untouched)
+compose_at() { local v=$1; shift; HUMBLE_VERSION=$v compose "$@"; }
+
+db_builtin() { [[ ",$(env_get COMPOSE_PROFILES)," == *,db,* ]]; }
+image_repo() { local r; r=$(env_get HUMBLE_IMAGE); printf '%s' "${r:-$DEFAULT_IMAGE_REPO}"; }
+proxy_repo() {
+  local r; r=$(penv_get HUMBLE_CADDY_IMAGE)
+  [ -n "$r" ] || r=$(env_get HUMBLE_CADDY_IMAGE)
+  printf '%s' "${r:-$DEFAULT_CADDY_REPO}"
+}
+
+state_set() { # state_set "result text"
+  printf 'last_check=%s\nlast_result=%s\n' "$(date '+%F %T')" "$1" >"$STATE_FILE.tmp" && mv -f "$STATE_FILE.tmp" "$STATE_FILE"
+}
+state_get() { [ -r "$STATE_FILE" ] && sed -n "s/^$1=//p" "$STATE_FILE" | sed -n 1p; return 0; }
+
+# result STATUS DETAIL — outcome of an update, read by `update` with several instances
+result() { [ -z "$RESULT_FILE" ] || printf '%s\t%s\n' "$1" "${2:-}" >"$RESULT_FILE"; return 0; }
+
 # ─── Backups ─────────────────────────────────────────────────────────────────
 
-# make_backup NAME → path of the new dump on stdout (pg_dump through the app image)
+# backup_to FILE — pg_dump through the app image (custom format)
 backup_to() {
   local file=$1
   ( umask 077; compose run --rm -T --no-deps app provision backup >"$file.part" )
@@ -224,13 +458,12 @@ restore_from() {
 }
 
 cmd_backup() {
-  require_install backup
   take_lock
   install -d -m 0700 "$BACKUP_DIR"
   local file
   file="$BACKUP_DIR/manual-$(env_get HUMBLE_VERSION)-$(date +%Y%m%d-%H%M%S).dump"
   db_builtin && { compose up -d --wait db >>"$UPDATE_LOG" 2>&1 || true; }
-  spin "Backing up the database" backup_to "$file" || { last_log_lines 10; die "Backup failed."; }
+  spin "Backing up the database of $NAME" backup_to "$file" || { last_log_lines 10; die "Backup failed."; }
   info "Backup: $file ($(du -h "$file" | cut -f1))"
 }
 
@@ -304,21 +537,26 @@ for (const x of rel.filter((x) => cmp(x.v, cur) > 0 && cmp(x.v, target.v) <= 0))
 if (truncated) say("NOTE", `… Full release notes: ${target.r.html_url ?? latest.r.html_url ?? ""}`);
 JS
 
+# fetch_releases FILE — the release list, downloaded once per source and run
 fetch_releases() {
-  local src repo
+  local src repo cache
   src=${HUMBLE_UPDATE_SOURCE:-$(env_get HUMBLE_UPDATE_SOURCE)}
   repo=$(env_get HUMBLE_UPDATE_REPO)
   [ -n "$src" ] || src="https://api.github.com/repos/${repo:-$DEFAULT_UPDATE_REPO}/releases?per_page=100"
-  log "FETCH $src"
-  curl -fsSL --max-time 30 -H 'Accept: application/vnd.github+json' -H 'User-Agent: humble-planning-updater' "$src"
+  cache="$TMP_DIR/releases-$(printf '%s' "$src" | cksum | cut -d' ' -f1).json"
+  if [ ! -s "$cache" ]; then
+    log "FETCH $src"
+    curl -fsSL --max-time 30 -H 'Accept: application/vnd.github+json' -H 'User-Agent: humble-planning-updater' "$src" >"$cache.part" || return 1
+    mv -f "$cache.part" "$cache"
+  fi
+  cp "$cache" "$1"
 }
 
-# fetch_and_parse MODE WANT → $TMP_DIR/releases.out (runs in a subshell under spin)
+# fetch_and_parse MODE WANT → $REL_OUT (runs in a subshell under spin)
 fetch_and_parse() {
-  local mode=$1 want=${2:-} current json out
+  local mode=$1 want=${2:-} current json="$TMP_DIR/releases.$NAME.json" out=$REL_OUT
   current=$(env_get HUMBLE_VERSION)
-  json="$TMP_DIR/releases.json" out="$TMP_DIR/releases.out"
-  if ! fetch_releases >"$json" 2>>"$UPDATE_LOG"; then
+  if ! fetch_releases "$json" 2>>"$UPDATE_LOG"; then
     echo "Could not download the release list (network, GitHub API rate limit or HUMBLE_UPDATE_SOURCE)." >"$out"
     return 1
   fi
@@ -331,7 +569,7 @@ fetch_and_parse() {
 
 # load_release_vars → LATEST, LATEST_KIND, TARGET, TARGET_DATE, TARGET_URL, NOTES
 load_release_vars() {
-  local out="$TMP_DIR/releases.out"
+  local out=$REL_OUT
   IFS=$'\t' read -r _ LATEST LATEST_KIND < <(grep $'^LATEST\t' "$out")
   TARGET="" TARGET_DATE="" TARGET_URL=""
   if grep -q $'^TARGET\t' "$out"; then
@@ -356,36 +594,36 @@ print_notes() {
 
 # ─── Update ──────────────────────────────────────────────────────────────────
 
-pull_or_build() { # pull_or_build VERSION
-  local v=$1 src services=(app socket)
-  caddy_enabled && services+=(caddy)
+# pull_or_build VERSION — images of the instance. The image of the shared proxy
+# is fetched too; it is optional (the proxy keeps its version without it).
+pull_or_build() {
+  local v=$1 src
   src=$(env_get HUMBLE_BUILD_SOURCE)
   if [ -n "$src" ]; then
     local ref=$src
     [ -d "$src" ] || ref="${src%%#*}#v$v"
     docker build --pull -t "$(image_repo):$v" --build-arg "APP_VERSION=$v" "$ref"
-    if caddy_enabled; then
-      if [ -d "$src" ]; then docker build -t "$(caddy_repo):$v" "$src/deploy/caddy"; else docker build -t "$(caddy_repo):$v" "$ref:deploy/caddy"; fi
+    if proxied; then
+      if [ -d "$src" ]; then docker build -t "$(proxy_repo):$v" "$src/deploy/caddy" || true; else docker build -t "$(proxy_repo):$v" "$ref:deploy/caddy" || true; fi
     fi
   elif [ "$(env_get HUMBLE_PULL)" = 0 ]; then
-    local s
     docker image inspect "$(image_repo):$v" >/dev/null
-    if caddy_enabled; then docker image inspect "$(caddy_repo):$v" >/dev/null; fi
-    for s in "${services[@]}"; do echo "Using the local image for $s (HUMBLE_PULL=0)"; done
+    echo "Using the local images of v$v (HUMBLE_PULL=0)"
   else
-    compose_at "$v" pull "${services[@]}"
+    compose_at "$v" pull app socket
+    if proxied; then docker pull "$(proxy_repo):$v" || echo "The image of the shared proxy could not be downloaded: the proxy keeps its version."; fi
   fi
 }
 
 # Automatic rollback after a failed update: previous version + database restore.
 auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
-  local from=$1 to=$2 stage=$3 backup=$4 migrated=$5 failure="$TMP_DIR/failure.log"
+  local from=$1 to=$2 stage=$3 backup=$4 migrated=$5 failure="$TMP_DIR/failure.$NAME.log"
   # What went wrong: output of the failed step, then the logs of v$to.
   tail -n 6 "$UPDATE_LOG" | grep -v '^[0-9-]* [0-9:]* ' >"$failure" || true
   compose_at "$to" ps -a --format '{{.Service}}: {{.Status}}' app socket >>"$failure" 2>/dev/null || true
   compose_at "$to" logs --no-color --no-log-prefix --tail 6 app >>"$failure" 2>&1 || true
   cat "$failure" >>"$UPDATE_LOG"
-  title "Rolling back to v$from"
+  title "Rolling back $NAME to v$from"
   spin "Stopping v$to" compose stop app socket || true
   local restored=1
   if [ "$migrated" = 1 ]; then
@@ -393,14 +631,16 @@ auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
   fi
   if ! spin "Starting v$from again" compose up -d --wait --wait-timeout 180; then
     last_log_lines 20
-    die "The rollback could not restart v$from: check 'humble-planning logs'. Backup: $backup"
+    result failed "update to v$to failed ($stage), and v$from did not start again"
+    die "The rollback could not restart v$from: check 'humble-planning logs $NAME'. Backup: $backup"
   fi
   state_set "Update to v$to failed ($stage); rolled back to v$from"
+  result rolledback "v$from (update to v$to failed while $stage)"
   say ""
-  bad "${BOLD}The update to v$to failed while $stage.${RESET}"
-  ok "Humble Planning is running v$from again."
+  bad "${BOLD}The update of $NAME to v$to failed while $stage.${RESET}"
+  ok "$NAME is running v$from again."
   if [ "$migrated" = 1 ] && [ "$restored" = 1 ]; then ok "The database was restored from the backup taken before the update."; fi
-  if [ "$restored" = 0 ]; then bad "The database could not be restored automatically: restore it with 'humble-planning rollback'."; fi
+  if [ "$restored" = 0 ]; then bad "The database could not be restored automatically: restore it with 'humble-planning rollback $NAME'."; fi
   info "Backup: $backup"
   excerpt "$failure" 14 "What went wrong (full log: $UPDATE_LOG):"
   exit 1
@@ -411,9 +651,10 @@ do_update() { # do_update FROM TO
   local app_port
   app_port=$(env_get HP_APP_PORT)
 
-  title "Updating Humble Planning v$from → v$to"
+  title "Updating $NAME: Humble Planning v$from → v$to"
   if ! spin "Downloading v$to" pull_or_build "$to"; then
     state_set "Update to v$to failed (download); nothing changed"
+    result failed "download of v$to failed; v$from still running"
     last_log_lines 15
     die "Could not get the images of v$to: nothing was changed, v$from is still running."
   fi
@@ -425,6 +666,7 @@ do_update() { # do_update FROM TO
     rm -f "$backup.part"
     compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
     state_set "Update to v$to cancelled: backup failed"
+    result failed "backup failed: update cancelled, v$from restarted"
     last_log_lines 15
     die "The database backup failed: update cancelled, v$from restarted."
   fi
@@ -444,60 +686,246 @@ do_update() { # do_update FROM TO
 
   env_set HUMBLE_PREVIOUS_VERSION "$from" HUMBLE_VERSION "$to"
   state_set "Updated v$from → v$to"
+  result updated "v$from → v$to"
   say ""
-  ok "${BOLD}Humble Planning v$to is up and running.${RESET}"
-  info "Previous version v$from kept for 'humble-planning rollback'."
+  ok "${BOLD}$NAME: Humble Planning v$to is up and running.${RESET}"
+  info "Previous version v$from kept for 'humble-planning rollback $NAME'."
   info "Pre-update backup: $backup"
 }
 
+# update_instance MODE WANT YES — update of the selected instance (checks the
+# releases, shows the notes unless QUIET_NOTES=1, asks unless YES=1).
+QUIET_NOTES=0
+update_instance() {
+  local mode=$1 want=$2 yes=$3 current
+  take_lock
+  current=$(env_get HUMBLE_VERSION)
+  [ -n "$current" ] || { result failed "HUMBLE_VERSION missing"; die "HUMBLE_VERSION is missing from $ENV_FILE."; }
+
+  if ! spin "Checking for updates of $NAME (installed: v$current)" fetch_and_parse "$mode" "$want"; then
+    state_set "Update check failed: $(cat "$REL_OUT" 2>/dev/null)"
+    result failed "update check: $(cat "$REL_OUT" 2>/dev/null)"
+    die "$(cat "$REL_OUT" 2>/dev/null || echo "Update check failed (see $UPDATE_LOG).")"
+  fi
+  load_release_vars
+
+  if [ -z "$TARGET" ]; then
+    if [ "$AUTO" = 1 ] && [ "$LATEST_KIND" != none ]; then
+      info "v$LATEST is available ($LATEST_KIND update): not applied automatically. Run: humble-planning update $NAME"
+      state_set "Up to date in the v${current%.*}.x series; v$LATEST available ($LATEST_KIND, manual update)"
+    else
+      state_set "Already up to date (v$current)"
+    fi
+    result uptodate "v$current"
+    ok "$NAME is already up to date (v$current)"
+    return 0
+  fi
+
+  ok "New version available for $NAME: ${BOLD}v$TARGET${RESET}${TARGET_DATE:+ (released $TARGET_DATE)}"
+  [ "$QUIET_NOTES" = 1 ] || print_notes
+  [ "$yes" = 1 ] || say ""
+  if [ "$yes" = 0 ] && ! confirm "Update $NAME from v$current to v$TARGET? A database backup is taken first." y; then
+    result cancelled "v$current"
+    quit "Update cancelled: nothing was changed."
+  fi
+  do_update "$current" "$TARGET"
+}
+
+# read_check NAME → C_STATUS C_CURRENT C_TARGET (result of check_one)
+# (Fields separated by "|": with a tab, read would merge an empty target.)
+read_check() {
+  local rest=""
+  C_STATUS=ERR C_CURRENT="no result (see $LOG_DIR/$1.log)" C_TARGET=""
+  [ -f "$TMP_DIR/check.$1" ] || return 0
+  IFS='|' read -r C_STATUS rest <"$TMP_DIR/check.$1" || true
+  if [ "$C_STATUS" = OK ]; then IFS='|' read -r C_CURRENT C_TARGET _ <<<"$rest"; else C_CURRENT=$rest; fi
+}
+
+# check_one MODE WANT → $TMP_DIR/check.<name>: OK|current|target|latest|kind or ERR|message
+check_one() {
+  local out="$TMP_DIR/check.$NAME" current
+  current=$(env_get HUMBLE_VERSION)
+  if fetch_and_parse "$1" "$2"; then
+    load_release_vars
+    printf 'OK|%s|%s|%s|%s\n' "$current" "$TARGET" "$LATEST" "$LATEST_KIND" >"$out"
+  else
+    printf 'ERR|%s\n' "$(cat "$REL_OUT" 2>/dev/null)" >"$out"
+  fi
+}
+
+check_all() { # check_all MODE WANT NAME…
+  local mode=$1 want=$2 n; shift 2
+  for n in "$@"; do ( select_instance "$n"; check_one "$mode" "$want" ) || true; done
+}
+
+# The shared proxy follows the newest version installed (never moves back).
+proxy_follow() {
+  [ -n "$1" ] && proxy_exists || return 0
+  proxy_upgrade "$1" || warn "The shared reverse proxy keeps v$(penv_get HUMBLE_CADDY_VERSION) (see $UPDATE_LOG)."
+}
+
 cmd_update() {
-  local want="" yes=0 mode=latest current
+  local want="" yes=0 mode=latest all=0 a names=() targets=() n
   while [ $# -gt 0 ]; do
     case "$1" in
       --version) want=${2:-}; shift ;;
       --version=*) want=${1#*=} ;;
       -y|--yes) yes=1 ;;
       --auto) AUTO=1; yes=1 ;;
-      *) die "Unknown option for update: $1" 2 ;;
+      --all) all=1 ;;
+      -*) die "Unknown option for update: $1" 2 ;;
+      *) is_instance "$1" || { print_instances; die "Unknown instance: $1" 2; }
+         [[ " ${names[*]} " == *" $1 "* ]] || names+=("$1") ;;
     esac
     shift
   done
   [ -n "$want" ] && mode=version
   [ "$AUTO" = 1 ] && mode=auto
+  check_legacy
+  mapfile -t targets < <(instance_names)
+  [ "${#targets[@]}" -gt 0 ] || die "No Humble Planning instance is installed on this server. Install one: $NEW_HINT"
+
   if [ "$AUTO" = 1 ]; then
+    # The nightly timer of an instance: one instance, no questions.
+    [ "${#names[@]}" -le 1 ] && [ "$all" = 0 ] || die "--auto updates one instance at a time." 2
+    [ "${#names[@]}" -eq 1 ] || [ "${#targets[@]}" -eq 1 ] || die "--auto needs the instance name." 2
+    select_instance "${names[0]:-${targets[0]}}"
     setup_colors
     exec >>"$UPDATE_LOG" 2>&1
-    printf '\n===== %s automatic update check\n' "$(date '+%F %T')"
-  fi
-  require_install update
-  take_lock
-  current=$(env_get HUMBLE_VERSION)
-  [ -n "$current" ] || die "HUMBLE_VERSION is missing from $ENV_FILE."
-
-  if ! spin "Checking for updates (installed: v$current)" fetch_and_parse "$mode" "$want"; then
-    state_set "Update check failed: $(cat "$TMP_DIR/releases.out" 2>/dev/null)"
-    die "$(cat "$TMP_DIR/releases.out" 2>/dev/null || echo "Update check failed (see $UPDATE_LOG).")"
-  fi
-  load_release_vars
-
-  if [ -z "$TARGET" ]; then
-    if [ "$AUTO" = 1 ] && [ "$LATEST_KIND" != none ]; then
-      info "v$LATEST is available ($LATEST_KIND update): not applied automatically. Run: humble-planning update"
-      state_set "Up to date in the v${current%.*}.x series; v$LATEST available ($LATEST_KIND, manual update)"
-    else
-      state_set "Already up to date (v$current)"
-    fi
-    ok "Already up to date (v$current)"
+    printf '\n===== %s automatic update check of %s\n' "$(date '+%F %T')" "$NAME"
+    RESULT_FILE="$TMP_DIR/result.$NAME"
+    update_instance auto "" 1
+    [ "$(cut -f1 "$RESULT_FILE" 2>/dev/null)" = updated ] && proxied && proxy_follow "$(env_get HUMBLE_VERSION)"
     return 0
   fi
 
-  ok "New version available: ${BOLD}v$TARGET${RESET}${TARGET_DATE:+ (released $TARGET_DATE)}"
-  print_notes
-  [ "$yes" = 1 ] || say ""
-  if [ "$yes" = 0 ] && ! confirm "Update Humble Planning from v$current to v$TARGET? A database backup is taken first." y; then
-    quit "Update cancelled: nothing was changed."
+  if [ "$all" = 1 ]; then
+    names=("${targets[@]}")
+  elif [ "${#names[@]}" -eq 0 ] && [ "${#targets[@]}" -eq 1 ]; then
+    names=("${targets[0]}")
+  elif [ "${#names[@]}" -eq 0 ] && ! interactive; then
+    print_instances
+    say ""
+    die "Several instances are installed: name them (humble-planning update ${targets[0]} …) or use --all." 2
   fi
-  do_update "$current" "$TARGET"
+
+  if [ "${#names[@]}" -eq 1 ]; then
+    # One instance: release notes and confirmation, as always.
+    select_instance "${names[0]}"
+    RESULT_FILE="$TMP_DIR/result.$NAME"
+    update_instance "$mode" "$want" "$yes"
+    [ "$(cut -f1 "$RESULT_FILE" 2>/dev/null)" = updated ] && proxied && proxy_follow "$(env_get HUMBLE_VERSION)"
+    return 0
+  fi
+  # Exit code 1 when an instance failed or was rolled back (see the summary).
+  update_many "$mode" "$want" "$yes" "${names[@]}" || exit 1
+}
+
+# update_many MODE WANT YES [NAME…] — no name: chosen in the terminal
+update_many() {
+  local mode=$1 want=$2 yes=$3 n status detail ans picked=() todo=() lowest="" rc=0 v best=""
+  local -a pool; local ok_input w; shift 3
+  if [ $# -gt 0 ]; then pool=("$@"); else mapfile -t pool < <(instance_names); fi
+  spin "Checking for updates (${#pool[@]} instances)" check_all "$mode" "$want" "${pool[@]}" || true
+
+  EXTRA=([__header]="UPDATE")
+  for n in "${pool[@]}"; do
+    read_check "$n"
+    if [ "$C_STATUS" = OK ] && [ -n "$C_TARGET" ]; then EXTRA[$n]="${GREEN}v$C_CURRENT → v$C_TARGET${RESET}"
+    elif [ "$C_STATUS" = OK ]; then EXTRA[$n]="${DIM}v$C_CURRENT, up to date${RESET}"
+    else EXTRA[$n]="${RED}check failed: $C_CURRENT${RESET}"
+    fi
+  done
+
+  if [ $# -eq 0 ]; then
+    # Picker: numbers or names, "all" = every instance with an update
+    say ""
+    say "  ${BOLD}Humble Planning instances on this server${RESET}"
+    print_instances 1
+    while :; do
+      printf '\n  %s?%s Instances to update: numbers or names separated by spaces, "all" %s[all]%s ' "$ACCENT" "$RESET" "$DIM" "$RESET"
+      IFS= read -r ans </dev/tty || die "No input available." 2
+      ans=${ans:-all}
+      picked=()
+      if [ "${ans,,}" = all ]; then picked=("${pool[@]}"); break; fi
+      ok_input=1
+      for w in ${ans//,/ }; do
+        if [[ $w =~ ^[0-9]+$ ]] && [ "$w" -ge 1 ] && [ "$w" -le "${#pool[@]}" ]; then w=${pool[w - 1]}
+        elif ! is_instance "$w"; then ok_input=0; break
+        fi
+        [[ " ${picked[*]} " == *" $w "* ]] || picked+=("$w")
+      done
+      [ "$ok_input" = 1 ] && [ "${#picked[@]}" -gt 0 ] && break
+      printf '    %s✖ Enter numbers between 1 and %d, instance names, or "all".%s\n' "$RED" "${#pool[@]}" "$RESET"
+    done
+  else
+    picked=("${pool[@]}")
+    print_instances_subset "${picked[@]}"
+  fi
+
+  # Instances with an update; the release notes are those of the oldest one.
+  for n in "${picked[@]}"; do
+    read_check "$n"
+    if [ "$C_STATUS" = OK ] && [ -n "$C_TARGET" ]; then
+      todo+=("$n")
+      if [ -z "$lowest" ] || version_gt "$(instance_version "$lowest")" "$C_CURRENT"; then lowest=$n; fi
+    fi
+  done
+  if [ "${#todo[@]}" -eq 0 ]; then
+    say ""
+    ok "Nothing to update: the selected instances are up to date (or their check failed, see above)."
+    for n in "${picked[@]}"; do read_check "$n"; [ "$C_STATUS" = OK ] || rc=1; done
+    return "$rc"
+  fi
+  if [ "$yes" = 0 ]; then
+    NOTES="$TMP_DIR/releases.$lowest.out"
+    TARGET_URL=$(grep $'^TARGET\t' "$NOTES" | cut -f5)
+    print_notes
+    say ""
+    confirm "Update ${#todo[@]} instance(s) (${todo[*]}), one after the other? A database backup of each one is taken first." y ||
+      quit "Update cancelled: nothing was changed."
+  fi
+
+  # One after the other, each in its own subshell: a failure (and its
+  # rollback) stays with its instance.
+  for n in "${picked[@]}"; do
+    RESULT_FILE="$TMP_DIR/result.$n"
+    : >"$RESULT_FILE"
+    if [[ " ${todo[*]} " == *" $n "* ]]; then
+      ( select_instance "$n"; QUIET_NOTES=1; update_instance "$mode" "$want" 1 ) || true
+    else
+      read_check "$n"
+      if [ "$C_STATUS" = OK ]; then result uptodate "v$C_CURRENT"; else result failed "update check: $C_CURRENT"; fi
+    fi
+    if [ "$(cut -f1 "$RESULT_FILE")" = updated ] && proxied "$n"; then
+      v=$(instance_version "$n")
+      if [ -z "$best" ] || version_gt "$v" "$best"; then best=$v; fi
+    fi
+  done
+  RESULT_FILE=""
+  [ -z "$best" ] || proxy_follow "$best"
+
+  title "Summary"
+  for n in "${picked[@]}"; do
+    status="" detail=""
+    IFS=$'\t' read -r status detail <"$TMP_DIR/result.$n" || true
+    case "$status" in
+      updated) ok "$(pad "$n" 14) updated $detail" ;;
+      uptodate) info "$(pad "$n" 14) already up to date ($detail)" ;;
+      rolledback) bad "$(pad "$n" 14) rolled back to $detail"; rc=1 ;;
+      cancelled) info "$(pad "$n" 14) cancelled ($detail)" ;;
+      failed) bad "$(pad "$n" 14) failed: $detail"; rc=1 ;;
+      *) bad "$(pad "$n" 14) failed: unexpected error (see $LOG_DIR/$n.log)"; rc=1 ;;
+    esac
+  done
+  say ""
+  return "$rc"
+}
+
+print_instances_subset() { # the table, limited to the instances given
+  local n keep=" $* "
+  for n in $(instance_names); do [[ $keep == *" $n "* ]] || EXTRA[$n]="${DIM}(not selected)${RESET}"; done
+  print_instances
 }
 
 # ─── Rollback ────────────────────────────────────────────────────────────────
@@ -513,15 +941,14 @@ cmd_rollback() {
     esac
     shift
   done
-  require_install rollback
   take_lock
   current=$(env_get HUMBLE_VERSION)
   previous=$(env_get HUMBLE_PREVIOUS_VERSION)
-  [ -n "$previous" ] || die "No previous version recorded: nothing to roll back to."
+  [ -n "$previous" ] || die "No previous version recorded for $NAME: nothing to roll back to."
   backup=$(find "$BACKUP_DIR" -maxdepth 1 -name "pre-update-$previous-to-$current-*.dump" -printf '%T@ %p\n' 2>/dev/null | sort -rn | awk 'NR == 1 { print $2 }')
 
-  title "Rolling back Humble Planning v$current → v$previous"
-  if [ "$yes" = 0 ] && ! confirm "Roll back to v$previous?" y; then quit "Rollback cancelled: nothing was changed."; fi
+  title "Rolling back $NAME: Humble Planning v$current → v$previous"
+  if [ "$yes" = 0 ] && ! confirm "Roll back $NAME to v$previous?" y; then quit "Rollback cancelled: nothing was changed."; fi
 
   if [ -n "$backup" ] && [ -z "$restore" ]; then
     say ""
@@ -536,7 +963,7 @@ cmd_rollback() {
   fi
 
   if [ "$(env_get HUMBLE_PULL)" != 0 ] && [ -z "$(env_get HUMBLE_BUILD_SOURCE)" ]; then
-    spin "Downloading v$previous" pull_or_build "$previous" || die "Could not get the images of v$previous."
+    spin "Downloading v$previous" compose_at "$previous" pull app socket || die "Could not get the images of v$previous."
   fi
   spin "Stopping v$current" compose stop app socket || true
   if [ "${restore:-0}" = 1 ]; then
@@ -548,42 +975,69 @@ cmd_rollback() {
   fi
   if ! spin "Starting v$previous" compose_at "$previous" up -d --wait --wait-timeout 180; then
     last_log_lines 20
-    die "v$previous did not start: check 'humble-planning logs'."
+    die "v$previous did not start: check 'humble-planning logs $NAME'."
   fi
   env_set HUMBLE_VERSION "$previous" HUMBLE_PREVIOUS_VERSION "$current"
   state_set "Rolled back v$current → v$previous$([ "${restore:-0}" = 1 ] && echo ' (database restored)')"
   say ""
-  ok "${BOLD}Humble Planning v$previous is running.${RESET}"
-  info "Run 'humble-planning update' to go back to the latest version."
+  ok "${BOLD}$NAME: Humble Planning v$previous is running.${RESET}"
+  info "Run 'humble-planning update $NAME' to go back to the latest version."
 }
 
 # ─── Automatic updates ───────────────────────────────────────────────────────
 
-auto_update_state() {
-  if [ -f "$SYSTEMD_DIR/$UNIT.timer" ]; then echo systemd
-  elif [ -f "$CRON_FILE" ]; then echo cron
+timer_name() { printf '%s@%s.timer' "$UNIT" "$NAME"; }
+cron_file() { printf '%s-%s' "$CRON_PREFIX" "$NAME"; }
+
+auto_update_state() { # → systemd | cron | off (for the selected instance)
+  if [ -e "$SYSTEMD_DIR/timers.target.wants/$(timer_name)" ]; then echo systemd
+  elif [ -f "$(cron_file)" ]; then echo cron
   else echo off
   fi
 }
 
+# The single timer (or cron entry) of the 1.0.x installations updated the only
+# instance without naming it: replaced by the timer of the instance.
+remove_legacy_auto_update() {
+  if [ -f "$SYSTEMD_DIR/$LEGACY_UNIT.timer" ]; then
+    systemctl disable --now "$LEGACY_UNIT.timer" >/dev/null 2>&1 || true
+    rm -f "$SYSTEMD_DIR/$LEGACY_UNIT.timer" "$SYSTEMD_DIR/$LEGACY_UNIT.service"
+    systemctl daemon-reload 2>/dev/null || true
+  fi
+  rm -f "$CRON_PREFIX"
+}
+
+auto_update_off() {
+  if [ -e "$SYSTEMD_DIR/timers.target.wants/$(timer_name)" ] || [ -f "$SYSTEMD_DIR/$UNIT@.timer" ]; then
+    systemctl disable --now "$(timer_name)" >/dev/null 2>&1 || true
+    rm -f "$SYSTEMD_DIR/timers.target.wants/$(timer_name)"
+  fi
+  rm -f "$(cron_file)"
+  # The template units go with the last instance that used them.
+  if ! compgen -G "$SYSTEMD_DIR/timers.target.wants/$UNIT@*.timer" >/dev/null && [ -f "$SYSTEMD_DIR/$UNIT@.timer" ]; then
+    rm -f "$SYSTEMD_DIR/$UNIT@.timer" "$SYSTEMD_DIR/$UNIT@.service"
+    systemctl daemon-reload 2>/dev/null || true
+  fi
+}
+
 cmd_auto_update() {
-  require_install auto-update
   case "${1:-status}" in
     on|enable)
+      remove_legacy_auto_update
       if [ -d /run/systemd/system ]; then
-        cat >"$SYSTEMD_DIR/$UNIT.service" <<EOF
+        cat >"$SYSTEMD_DIR/$UNIT@.service" <<EOF
 [Unit]
-Description=Humble Planning automatic update (patch releases only)
+Description=Humble Planning automatic update of the instance %i (patch releases only)
 Wants=network-online.target
 After=network-online.target docker.service
 
 [Service]
 Type=oneshot
-ExecStart=$SELF update --auto --yes
+ExecStart=$SELF update %i --auto --yes
 EOF
-        cat >"$SYSTEMD_DIR/$UNIT.timer" <<EOF
+        cat >"$SYSTEMD_DIR/$UNIT@.timer" <<EOF
 [Unit]
-Description=Nightly Humble Planning update check
+Description=Nightly update check of the Humble Planning instance %i
 
 [Timer]
 OnCalendar=*-*-* 02:00:00
@@ -594,43 +1048,40 @@ Persistent=true
 WantedBy=timers.target
 EOF
         systemctl daemon-reload
-        systemctl enable --now "$UNIT.timer" >/dev/null
-        ok "Automatic updates enabled (systemd timer $UNIT.timer, every night between 02:00 and 05:00)"
+        systemctl enable --now "$(timer_name)" >/dev/null
+        ok "Automatic updates of $NAME enabled (systemd timer $(timer_name), every night between 02:00 and 05:00)"
       else
         local minute=$((RANDOM % 60)) hour=$((2 + RANDOM % 3))
-        cat >"$CRON_FILE" <<EOF
-# Humble Planning — nightly automatic update (patch releases only).
-# Managed by: humble-planning auto-update on|off
+        install -d -m 0755 "$(dirname "$(cron_file)")"
+        cat >"$(cron_file)" <<EOF
+# Humble Planning — nightly automatic update of the instance $NAME (patch releases only).
+# Managed by: humble-planning auto-update on|off $NAME
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-$minute $hour * * * root $SELF update --auto --yes >/dev/null 2>&1
+$minute $hour * * * root $SELF update $NAME --auto --yes >/dev/null 2>&1
 EOF
-        chmod 644 "$CRON_FILE"
-        ok "Automatic updates enabled (cron, every night at $(printf '%02d:%02d' "$hour" "$minute"))"
+        chmod 644 "$(cron_file)"
+        ok "Automatic updates of $NAME enabled (cron, every night at $(printf '%02d:%02d' "$hour" "$minute"))"
         if ! command -v cron >/dev/null 2>&1 && ! command -v crond >/dev/null 2>&1; then
           warn "No cron daemon is installed: install cron (apt-get install cron) for the schedule to run."
         fi
       fi
       info "Only patch releases (x.y.Z) are installed automatically; log: $UPDATE_LOG" ;;
     off|disable)
-      if [ -f "$SYSTEMD_DIR/$UNIT.timer" ]; then
-        systemctl disable --now "$UNIT.timer" >/dev/null 2>&1 || true
-        rm -f "$SYSTEMD_DIR/$UNIT.timer" "$SYSTEMD_DIR/$UNIT.service"
-        systemctl daemon-reload 2>/dev/null || true
-      fi
-      rm -f "$CRON_FILE"
-      ok "Automatic updates disabled" ;;
+      remove_legacy_auto_update
+      auto_update_off
+      ok "Automatic updates of $NAME disabled" ;;
     status)
       case "$(auto_update_state)" in
         systemd)
-          ok "Automatic updates: enabled (systemd timer, patch releases only)"
+          ok "Automatic updates of $NAME: enabled (systemd timer, patch releases only)"
           local next
-          next=$(systemctl list-timers "$UNIT.timer" --no-legend 2>/dev/null | awk '{print $1, $2, $3}' | sed -n 1p)
+          next=$(systemctl list-timers "$(timer_name)" --no-legend 2>/dev/null | awk '{print $1, $2, $3}' | sed -n 1p)
           [ -n "$next" ] && info "Next run: $next" ;;
-        cron) ok "Automatic updates: enabled (cron: $(grep -E '^[0-9]' "$CRON_FILE" | awk '{printf "%02d:%02d", $2, $1}'), patch releases only)" ;;
-        *) info "Automatic updates: disabled — enable with: humble-planning auto-update on" ;;
+        cron) ok "Automatic updates of $NAME: enabled (cron: $(grep -E '^[0-9]' "$(cron_file)" | awk '{printf "%02d:%02d", $2, $1}'), patch releases only)" ;;
+        *) info "Automatic updates of $NAME: disabled — enable with: humble-planning auto-update on $NAME" ;;
       esac ;;
-    *) die "Usage: humble-planning auto-update on|off|status" 2 ;;
+    *) die "Usage: humble-planning auto-update on|off|status [instance]" 2 ;;
   esac
   return 0
 }
@@ -661,15 +1112,14 @@ cmd_demo_reset() {
     esac
     shift
   done
-  require_install demo-reset
   [ "$(env_get DEMO_MODE)" = true ] ||
-    die "This is not a demo instance (DEMO_MODE=true is missing from $ENV_FILE): demo-reset would erase all the data."
+    die "$NAME is not a demo instance (DEMO_MODE=true is missing from $ENV_FILE): demo-reset would erase all the data."
   take_lock
   db_builtin && { compose up -d --wait db >>"$UPDATE_LOG" 2>&1 || true; }
-  spin "Erasing the data and loading the demo dataset" demo_reset_run "${args[@]}" || rc=$?
+  spin "Erasing the data of $NAME and loading the demo dataset" demo_reset_run "${args[@]}" || rc=$?
   print_prov "$TMP_DIR/demo-reset.out"
   if [ "$rc" = 3 ]; then
-    die "Nothing was changed. To erase this data anyway: humble-planning demo-reset --force"
+    die "Nothing was changed. To erase this data anyway: humble-planning demo-reset $NAME --force"
   elif [ "$rc" != 0 ]; then
     last_log_lines 15
     die "Could not load the demo data."
@@ -678,25 +1128,663 @@ cmd_demo_reset() {
   if [ -n "$(compose ps -q app 2>/dev/null || true)" ]; then
     if ! spin "Restarting the application" compose up -d --wait --wait-timeout 180 --no-deps --force-recreate app; then
       last_log_lines 15
-      die "The application did not restart: check 'humble-planning logs app'."
+      die "The application did not restart: check 'humble-planning logs $NAME app'."
     fi
   else
-    info "The application is not running: start it with 'humble-planning start'."
+    info "The application is not running: start it with 'humble-planning start $NAME'."
   fi
+}
+
+# ─── Shared reverse proxy ────────────────────────────────────────────────────
+
+pcompose() { docker compose --project-directory "$PROXY_DIR" -f "$PROXY_DIR/docker-compose.yml" "$@"; }
+proxy_exists() { [ -f "$PROXY_DIR/docker-compose.yml" ] && [ -f "$PROXY_ENV" ]; }
+proxy_running() { [ -n "$(pcompose ps -q --status running caddy 2>/dev/null)" ]; }
+
+take_proxy_lock() {
+  install -d -m 0755 "$LOCK_DIR" 2>/dev/null || true
+  exec 8>"$LOCK_DIR/humble-planning-proxy.lock"
+  flock -w 120 8 || die "Another humble-planning operation is changing the shared reverse proxy."
+}
+
+# The main Caddyfile: global options, then every site. Behind the Cloudflare
+# proxy, CF-Connecting-IP is only read on connections from Cloudflare's ranges,
+# so the option is harmless for the sites that do not use it.
+proxy_render_main() {
+  local n cf=()
+  while IFS= read -r n; do
+    [ -n "$n" ] && proxied "$n" && [ "$(reg_get "$n" CF_PROXY)" = 1 ] && [ -f "$PROXY_CONF/sites/$n.caddy" ] && cf+=("$n")
+  done < <(instance_names)
+  printf '# Humble Planning — shared reverse proxy, generated by humble-planning on %s.\n' "$(date '+%F %T')"
+  printf '# Regenerated when a site is added or removed: edit the sites in sites/ (kept\n'
+  printf '# across updates), then apply with: humble-planning proxy reload\n'
+  if [ "${#cf[@]}" -gt 0 ]; then
+    cat <<EOF
+
+{
+	# Served through the Cloudflare proxy: ${cf[*]}. The client address
+	# ({client_ip}) is read from CF-Connecting-IP, but only on connections coming
+	# from Cloudflare's IP ranges (shipped with the image, updated with each
+	# release): anyone reaching this server directly cannot forge it.
+	servers {
+		import /etc/caddy/cloudflare-ips.caddy
+		client_ip_headers CF-Connecting-IP
+	}
+}
+EOF
+  fi
+  printf '\nimport sites/*.caddy\n'
+}
+
+# proxy_render_site NAME — site of an instance, from site-template.caddy
+proxy_render_site() {
+  local name=$1 url host blocks="" site email
+  url=$(instance_url "$name")
+  [[ $url =~ ^https?://([A-Za-z0-9.-]+|\[[0-9A-Fa-f:]+\])(:[0-9]+)?/?$ ]] || { echo "Invalid APP_BASE_URL for $name: $url"; return 1; }
+  host=${BASH_REMATCH[1],,}
+  email=$(reg_get "$name" ACME_EMAIL)
+  if [ "$(reg_get "$name" TLS)" = acme ]; then
+    site=$host blocks=https
+    if [ "$(reg_get "$name" CF_DNS)" = 1 ]; then blocks+=",cloudflare"; elif [ -n "$email" ]; then blocks+=",acme_email"; fi
+  else
+    site="http://$host"
+  fi
+  printf '# Humble Planning — site of the instance "%s" (%s), generated by humble-planning on %s.\n' "$name" "$(reg_get "$name" LABEL)" "$(date '+%F')"
+  printf '# Kept across updates. After a change: humble-planning proxy reload\n'
+  awk -v keep=",$blocks," -v site="$site" -v email="$email" -v name="$name" '
+    /^[[:space:]]*#@end[[:space:]]*$/ { if (depth > 0) skip = outer[depth--]; next }
+    /^[[:space:]]*#@[a-z_]+[[:space:]]*$/ {
+      n = $0; gsub(/[[:space:]#@]/, "", n)
+      outer[++depth] = skip
+      skip = skip || (index(keep, "," n ",") == 0); next
+    }
+    skip { next }
+    /^[[:space:]]*$/ { if (blank) next; blank = 1; print ""; next }
+    { blank = 0; gsub(/__SITE_ADDRESS__/, site); gsub(/__ACME_EMAIL__/, email); gsub(/__NAME__/, name); print }
+  ' "$PROXY_DIR/site-template.caddy"
+}
+
+# Snapshot of the configuration (caddy/ and .env) before a change. The
+# directory is mounted in the container: it is restored in place.
+proxy_snapshot() {
+  local d="$TMP_DIR/proxy-snapshot"
+  rm -rf "$d" "$d.env"
+  cp -a "$PROXY_CONF" "$d"
+  cp -p "$PROXY_ENV" "$d.env"
+  printf '%s' "$d"
+}
+
+proxy_restore() {
+  find "$PROXY_CONF" -mindepth 1 -delete
+  cp -a "$1/." "$PROXY_CONF/"
+  cp -p "$1.env" "$PROXY_ENV"
+}
+
+proxy_validate() {
+  if proxy_running; then
+    pcompose exec -T caddy caddy validate "${CADDY_CONFIG[@]}"
+  else
+    pcompose run --rm --no-deps -T caddy caddy validate "${CADDY_CONFIG[@]}"
+  fi
+}
+
+# Caddy answers on its admin endpoint (localhost:2019, IPv4 inside the
+# container) once its configuration is loaded.
+proxy_alive() {
+  local i
+  for ((i = 0; i < 20; i++)); do
+    pcompose exec -T caddy wget -q -O /dev/null http://127.0.0.1:2019/config/ 2>/dev/null && return 0
+    sleep 1
+  done
+  echo "The shared reverse proxy does not answer on its admin endpoint."
+  return 1
+}
+
+# A stopped proxy is started in a new container: one left by a failed start
+# (port taken…) can keep a broken network setup.
+proxy_start() { pcompose up -d --force-recreate --wait --wait-timeout 60 && proxy_alive; }
+proxy_discard() { pcompose rm --force --stop caddy >>"$UPDATE_LOG" 2>&1 || true; }
+proxy_reload_running() { pcompose exec -T caddy caddy reload "${CADDY_CONFIG[@]}"; }
+
+# proxy_apply SNAPSHOT START — applies the files written by the caller: main
+# Caddyfile generated again, checked, then hot reload (or start when START=1
+# and the proxy is stopped). On failure, the snapshot is put back and the
+# running configuration is kept.
+proxy_apply() {
+  local snap=$1 start=$2
+  proxy_render_main >"$PROXY_CONF/Caddyfile.tmp" && mv -f "$PROXY_CONF/Caddyfile.tmp" "$PROXY_CONF/Caddyfile"
+  chmod 0644 "$PROXY_CONF/Caddyfile"
+  if ! spin "Checking the configuration of the shared reverse proxy" proxy_validate; then
+    proxy_restore "$snap"
+    last_log_lines 4
+    return 1
+  fi
+  if proxy_running; then
+    if ! spin "Reloading the shared reverse proxy (no interruption)" proxy_reload_running; then
+      proxy_restore "$snap"
+      last_log_lines 4
+      return 1
+    fi
+  elif [ "$start" = 1 ]; then
+    if ! spin "Starting the shared reverse proxy" proxy_start; then
+      proxy_discard
+      proxy_restore "$snap"
+      last_log_lines 6
+      return 1
+    fi
+  else
+    info "The shared reverse proxy is stopped: the new configuration is used at its next start."
+  fi
+}
+
+# proxy_check_site NAME — the proxy reaches the instance (and serves it, for a
+# plain HTTP site). An HTTPS site also needs its certificate: not checked here.
+proxy_check_site() {
+  local name=$1 i host url
+  for ((i = 0; i < 30; i++)); do
+    pcompose exec -T caddy wget -q -O /dev/null "http://$name-app:3000/login" 2>/dev/null && break
+    sleep 2
+  done
+  [ "$i" -lt 30 ] || { echo "The proxy cannot reach $name-app:3000 on the $PROXY_NETWORK network."; return 1; }
+  if [ "$(reg_get "$name" TLS)" != acme ]; then
+    url=$(instance_url "$name"); host=${url#*://}; host=${host%%/*}
+    wait_http "http://127.0.0.1:$(penv_get HP_HTTP_PORT)/login" 30 -H "Host: $host"
+  fi
+}
+
+# read_token_stdin FLAG → TOKEN (Cloudflare API token, never on the command line)
+read_token_stdin() {
+  TOKEN=""
+  [ "$1" = 1 ] || return 0
+  IFS= read -r TOKEN || true
+  TOKEN=${TOKEN%$'\r'}
+}
+
+# write_site NAME — site file (and token) of an instance
+write_site() {
+  local name=$1 tmp
+  install -d -m 0755 "$PROXY_CONF/sites"
+  install -d -m 0700 "$PROXY_CONF/secrets"
+  if [ "$(reg_get "$name" CF_DNS)" = 1 ]; then
+    if [ -n "$TOKEN" ]; then
+      ( umask 077; printf '%s\n' "$TOKEN" >"$PROXY_CONF/secrets/$name.cloudflare-token" )
+    elif [ ! -s "$PROXY_CONF/secrets/$name.cloudflare-token" ]; then
+      echo "The Cloudflare API token of $name is missing ($PROXY_CONF/secrets/$name.cloudflare-token)."
+      return 1
+    fi
+  fi
+  tmp=$(mktemp "$PROXY_CONF/sites/.$name.XXXXXX")
+  proxy_render_site "$name" >"$tmp" || { rm -f "$tmp"; return 1; }
+  chmod 0644 "$tmp"
+  mv -f "$tmp" "$PROXY_CONF/sites/$name.caddy"
+}
+
+proxy_require() {
+  proxy_exists || die "The shared reverse proxy is not installed in $PROXY_DIR: run the installer."
+}
+
+# proxy add-site NAME [--token-stdin] (install.sh)
+cmd_proxy_add_site() {
+  local name=${1:-} stdin=0 snap
+  [ "${2:-}" = --token-stdin ] && stdin=1
+  is_instance "$name" || die "Unknown instance: $name" 2
+  select_instance "$name"
+  proxied || die "$NAME is not served by the shared reverse proxy (CADDY=1 missing from $REGISTRY_DIR/$NAME.conf)."
+  proxy_require
+  take_proxy_lock
+  read_token_stdin "$stdin"
+  snap=$(proxy_snapshot)
+  write_site "$NAME" || { proxy_restore "$snap"; die "Could not write the site of $NAME."; }
+  proxy_apply "$snap" 1 || die "The site of $NAME was not added: the shared reverse proxy keeps its previous configuration (details: $UPDATE_LOG)."
+  if ! spin "Checking $(instance_url "$NAME") through the shared reverse proxy" proxy_check_site "$NAME"; then
+    last_log_lines 3
+    proxy_restore "$snap"
+    if proxy_running; then spin "Restoring the previous configuration of the proxy" proxy_reload_running || true; fi
+    die "The shared reverse proxy cannot serve $NAME: its site was removed again (details: $UPDATE_LOG)."
+  fi
+  ok "Site of $NAME: $PROXY_CONF/sites/$NAME.caddy"
+}
+
+# The volume mounted at PATH in a container
+volume_at() { docker inspect -f "{{range .Mounts}}{{if eq .Destination \"$2\"}}{{.Name}}{{end}}{{end}}" "$1"; }
+
+# copy_volume FROM TO IMAGE — certificates and ACME accounts of Caddy, with
+# the tools of its image (BusyBox): files already in the proxy are kept (tar
+# -k, which then exits with 1), then every file of the source must be there.
+read -r -d '' COPY_VOLUME_SH <<'SH' || true
+tar -C /from -cf - . | tar -C /to -xkf - 2>/dev/null
+cd /from && find . -type f | while IFS= read -r f; do
+  [ -e "/to/$f" ] || { echo "Not copied: $f"; exit 1; }
+done
+SH
+copy_volume() { docker run --rm --network none --entrypoint sh -v "$1:/from:ro" -v "$2:/to" "$3" -c "$COPY_VOLUME_SH"; }
+
+# proxy adopt NAME [--token-stdin] (install.sh) — an installation made with
+# 1.0.x had its own Caddy service: its site moves into the shared proxy, with
+# the content of its caddy_data volume (certificates, ACME account). The old
+# container is only removed once the proxy serves the site; on failure, it is
+# started again and the proxy files are restored.
+cmd_proxy_adopt() {
+  local name=${1:-} stdin=0 snap project legacy src dst image was_running=0
+  [ "${2:-}" = --token-stdin ] && stdin=1
+  is_instance "$name" || die "Unknown instance: $name" 2
+  select_instance "$name"
+  proxy_require
+  project=$(env_get COMPOSE_PROJECT_NAME)
+  legacy=$(docker ps -aq --filter "label=com.docker.compose.project=$project" --filter label=com.docker.compose.service=caddy | sed -n 1p)
+  if [ -z "$legacy" ]; then
+    cmd_proxy_add_site "$name" "${2:-}"
+    return
+  fi
+  take_proxy_lock
+  read_token_stdin "$stdin"
+  snap=$(proxy_snapshot)
+  write_site "$NAME" || { proxy_restore "$snap"; die "Could not write the site of $NAME."; }
+  proxy_render_main >"$PROXY_CONF/Caddyfile"
+  chmod 0644 "$PROXY_CONF/Caddyfile"
+  if ! spin "Checking the configuration of the shared reverse proxy" proxy_validate; then
+    proxy_restore "$snap"; last_log_lines 4
+    die "The configuration of the shared reverse proxy is invalid: nothing was changed, the Caddy of $NAME keeps serving it."
+  fi
+  image="$(proxy_repo):$(penv_get HUMBLE_CADDY_VERSION)"
+  src=$(volume_at "$legacy" /data)
+  proxy_running && was_running=1
+  if [ "$was_running" = 0 ]; then
+    spin "Preparing the shared reverse proxy" pcompose up --no-start --force-recreate || { proxy_restore "$snap"; die "Could not create the shared reverse proxy (see $UPDATE_LOG)."; }
+  fi
+  dst=$(volume_at "$(pcompose ps -aq caddy | sed -n 1p)" /data)
+  [ -n "$src" ] && [ -n "$dst" ] || { proxy_restore "$snap"; die "Could not find the certificate volumes (caddy_data)."; }
+
+  # From here, the site is briefly unavailable (a few seconds).
+  local done=0
+  spin "Stopping the Caddy of $NAME (installation made with 1.0.x)" docker stop "$legacy" || true
+  if spin "Copying its certificates into the shared reverse proxy ($src → $dst)" copy_volume "$src" "$dst" "$image"; then
+    if [ "$was_running" = 1 ]; then
+      spin "Reloading the shared reverse proxy" proxy_reload_running && done=1
+    else
+      spin "Starting the shared reverse proxy" proxy_start && done=1
+    fi
+  fi
+  if [ "$done" = 1 ] && spin "Checking $(instance_url "$NAME") through the shared reverse proxy" proxy_check_site "$NAME"; then
+    spin "Removing the old Caddy container (its volumes are kept)" docker rm "$legacy" || true
+    ok "The shared reverse proxy serves $NAME, with the certificates of its previous Caddy"
+    return 0
+  fi
+  last_log_lines 6
+  if [ "$was_running" = 0 ]; then proxy_discard; fi
+  proxy_restore "$snap"
+  if [ "$was_running" = 1 ]; then proxy_reload_running >>"$UPDATE_LOG" 2>&1 || true; fi
+  spin "Starting the Caddy of $NAME again" docker start "$legacy" || true
+  die "The shared reverse proxy could not take over $NAME: its previous Caddy serves it again (details: $UPDATE_LOG)."
+}
+
+# proxy_upgrade VERSION — the proxy follows the newest installed version:
+# image checked with the current configuration, container recreated, previous
+# version started again on failure.
+proxy_upgrade() {
+  local v=$1 cur image
+  proxy_exists || return 0
+  cur=$(penv_get HUMBLE_CADDY_VERSION)
+  if [ -n "$cur" ] && ! version_gt "$v" "$cur"; then return 0; fi
+  take_proxy_lock
+  image="$(proxy_repo):$v"
+  if ! docker image inspect "$image" >/dev/null 2>&1; then
+    if [ "$(penv_get HUMBLE_PULL)" = 0 ]; then
+      warn "$image is not available locally (HUMBLE_PULL=0): the shared reverse proxy keeps v$cur."
+      return 1
+    fi
+    spin "Downloading $image" docker pull "$image" || return 1
+  fi
+  if ! spin "Checking the proxy configuration with $image" proxy_validate_with "$v"; then
+    last_log_lines 4
+    return 1
+  fi
+  if proxy_running; then
+    if ! spin "Moving the shared reverse proxy to v$v (a few seconds)" proxy_recreate "$v"; then
+      spin "Starting the shared reverse proxy v$cur again" proxy_start || true
+      return 1
+    fi
+  fi
+  kv_set "$PROXY_ENV" 600 HUMBLE_CADDY_VERSION "$v"
+  ok "Shared reverse proxy: $image"
+}
+
+proxy_validate_with() { HUMBLE_CADDY_VERSION=$1 pcompose run --rm --no-deps -T caddy caddy validate "${CADDY_CONFIG[@]}"; }
+proxy_recreate() { HUMBLE_CADDY_VERSION=$1 pcompose up -d --wait --wait-timeout 60 caddy && proxy_alive; }
+
+# proxy_remove_site NAME — the site and token go, the proxy reloads; on
+# failure, they are restored (the caller stops).
+proxy_remove_site() {
+  local name=$1 snap
+  proxy_exists && { [ -f "$PROXY_CONF/sites/$name.caddy" ] || [ -f "$PROXY_CONF/secrets/$name.cloudflare-token" ]; } || return 0
+  take_proxy_lock
+  snap=$(proxy_snapshot)
+  rm -f "$PROXY_CONF/sites/$name.caddy" "$PROXY_CONF/secrets/$name.cloudflare-token"
+  # The main Caddyfile no longer lists it among the Cloudflare sites.
+  proxy_apply "$snap" 0
+}
+
+proxy_sites() {
+  local f
+  for f in "$PROXY_CONF"/sites/*.caddy; do [ -f "$f" ] || continue; f=${f##*/}; printf '%s\n' "${f%.caddy}"; done
+}
+
+cmd_proxy() {
+  local sub=${1:-status}
+  [ $# -gt 0 ] && shift
+  require_root proxy "$sub"
+  UPDATE_LOG="$LOG_DIR/proxy.log"
+  touch "$UPDATE_LOG" 2>/dev/null && chmod 600 "$UPDATE_LOG" 2>/dev/null || true
+  case "$sub" in
+    add-site) cmd_proxy_add_site "$@" ;;
+    adopt) cmd_proxy_adopt "$@" ;;
+    upgrade)
+      [ -n "${1:-}" ] || die "Usage: humble-planning proxy upgrade X.Y.Z" 2
+      proxy_require
+      proxy_upgrade "$1" || die "The shared reverse proxy keeps v$(penv_get HUMBLE_CADDY_VERSION) (details: $UPDATE_LOG)." ;;
+    status)
+      if ! proxy_exists; then info "No shared reverse proxy on this server (no instance uses Caddy)."; return 0; fi
+      local n site state=stopped
+      proxy_running && state=running
+      say ""
+      say "  ${BOLD}Shared reverse proxy (Caddy)${RESET}  ${DIM}$(proxy_repo):$(penv_get HUMBLE_CADDY_VERSION)${RESET}"
+      say "  ${DIM}Directory   ${RESET} $PROXY_DIR"
+      say "  ${DIM}State       ${RESET} $state, ports $(penv_get HP_HTTP_PORT)/$(penv_get HP_HTTPS_PORT)"
+      say "  ${DIM}Sites       ${RESET}"
+      while IFS= read -r n; do
+        [ -n "$n" ] || continue
+        site=$(sed -n '/^[^#[:space:]].*{$/{s/ {$//p;q}' "$PROXY_CONF/sites/$n.caddy")
+        say "    $(pad "$n" 14) $site$(is_instance "$n" || printf ' %s(no such instance)%s' "$YELLOW" "$RESET")"
+      done < <(proxy_sites)
+      [ -n "$(proxy_sites)" ] || say "    (none)"
+      say ""
+      pcompose ps ;;
+    logs) proxy_require; pcompose logs -f --tail=200 "$@" ;;
+    restart)
+      proxy_require
+      take_proxy_lock
+      if proxy_running; then spin "Restarting the shared reverse proxy" pcompose restart caddy || die "The restart failed (see $UPDATE_LOG)."
+      else spin "Starting the shared reverse proxy" proxy_start || die "The proxy did not start (see $UPDATE_LOG)."
+      fi ;;
+    reload)
+      proxy_require
+      take_proxy_lock
+      local snap
+      snap=$(proxy_snapshot)
+      proxy_apply "$snap" 0 || die "The configuration was not applied: the shared reverse proxy keeps its previous one."
+      ok "Configuration applied: $PROXY_CONF" ;;
+    *) die "Usage: humble-planning proxy status|logs|restart|reload" 2 ;;
+  esac
+}
+
+# ─── Remove ──────────────────────────────────────────────────────────────────
+
+# The files of an instance, as install.sh and this command write them. The
+# directory goes only once empty: anything else in it (other instances, the
+# proxy, files that are not Humble Planning's) is kept, and so is the directory.
+remove_instance_files() {
+  local dir=$1
+  [[ $dir == /*/* ]] && [ "$dir" != "$PROXY_DIR" ] || { echo "Refusing to remove $dir."; return 1; }
+  rm -f -- "$dir/.env" "$dir/docker-compose.yml" "$dir/docker-compose.proxy.yml" "$dir"/docker-compose.yml.bak-* \
+    "$dir/Caddyfile" "$dir"/Caddyfile.bak-* "$dir/nginx-example.conf" "$dir/.update-state" \
+    "$dir"/backups/*.dump "$dir"/backups/*.dump.part
+  rmdir -- "$dir/backups" 2>/dev/null || true
+  rmdir -- "$dir" 2>/dev/null || echo "kept-dir"
+}
+
+# Containers, volumes and networks of the Compose project — those of older
+# files too (the Caddy volumes of a 1.0.x installation).
+remove_project() {
+  local project=$1 label="label=com.docker.compose.project=$1" ids=()
+  compose down --volumes --remove-orphans --timeout 30 || true
+  mapfile -t ids < <(docker ps -aq --filter "$label")
+  [ "${#ids[@]}" -eq 0 ] || docker rm -f "${ids[@]}"
+  mapfile -t ids < <(docker volume ls -q --filter "$label")
+  [ "${#ids[@]}" -eq 0 ] || docker volume rm "${ids[@]}"
+  mapfile -t ids < <(docker network ls -q --filter "$label")
+  [ "${#ids[@]}" -eq 0 ] || docker network rm "${ids[@]}"
+  [ -z "$(docker ps -aq --filter "$label")$(docker volume ls -q --filter "$label")" ] || { echo "Docker resources of $project are left."; return 1; }
+}
+
+remove_proxy() {
+  pcompose down --volumes --remove-orphans --timeout 30 || true
+  if docker network inspect "$PROXY_NETWORK" >/dev/null 2>&1; then docker network rm "$PROXY_NETWORK"; fi
+  rm -rf -- "$PROXY_DIR"
+}
+
+cmd_remove() {
+  local name="" yes=0 confirm_name="" backup=1 rm_proxy="" ans
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -y|--yes) yes=1 ;;
+      --confirm) confirm_name=${2:-}; shift ;;
+      --confirm=*) confirm_name=${1#*=} ;;
+      --no-backup) backup=0 ;;
+      --remove-proxy) rm_proxy=1 ;;
+      --keep-proxy) rm_proxy=0 ;;
+      -*) die "Unknown option for remove: $1" 2 ;;
+      *) [ -z "$name" ] || die "Remove one instance at a time." 2; name=$1 ;;
+    esac
+    shift
+  done
+  require_root remove
+  check_legacy
+  if [ -z "$name" ]; then
+    [ -z "$(instance_names)" ] || print_instances
+    say ""
+    die "Name the instance to remove: humble-planning remove <instance>" 2
+  fi
+  is_instance "$name" || { [ -z "$(instance_names)" ] || print_instances; die "Unknown instance: $name" 2; }
+  select_instance "$name"
+
+  local project version url volumes site="" token="" timer final="" envcopy="" summary=()
+  project=$(env_get COMPOSE_PROJECT_NAME) version=$(env_get HUMBLE_VERSION) url=$(env_get APP_BASE_URL)
+  volumes=$(docker volume ls -q --filter "label=com.docker.compose.project=$project" | paste -sd' ' -)
+  [ -f "$PROXY_CONF/sites/$NAME.caddy" ] && site="$PROXY_CONF/sites/$NAME.caddy"
+  [ -f "$PROXY_CONF/secrets/$NAME.cloudflare-token" ] && token="$PROXY_CONF/secrets/$NAME.cloudflare-token"
+  timer=$(auto_update_state)
+
+  title "Removing the instance $NAME — $LABEL"
+  say "  ${DIM}URL              ${RESET} $url (v$version)"
+  say "  ${DIM}Directory        ${RESET} $INSTALL_DIR"
+  say "  ${DIM}Containers       ${RESET} Compose project $project (app, socket$(db_builtin && echo ", db"))"
+  say "  ${DIM}Volumes          ${RESET} ${volumes:-none}"
+  if db_builtin; then say "  ${DIM}Database         ${RESET} built-in: ${BOLD}deleted with its volume${RESET}"
+  else say "  ${DIM}Database         ${RESET} external: backed up, then left untouched on its server"; fi
+  [ -n "$site" ] && say "  ${DIM}Proxy site       ${RESET} $site"
+  [ -n "$token" ] && say "  ${DIM}Cloudflare token ${RESET} $token"
+  [ "$timer" != off ] && say "  ${DIM}Automatic update ${RESET} $timer, disabled"
+  if [ "$backup" = 1 ]; then say "  ${DIM}Final backup     ${RESET} kept in $FINAL_BACKUP_DIR"
+  else say "  ${DIM}Final backup     ${RESET} ${YELLOW}none (--no-backup)${RESET}"; fi
+  say ""
+
+  if [ "$yes" = 1 ] && [ "$confirm_name" = "$NAME" ]; then
+    :
+  elif interactive; then
+    printf '  %s?%s Everything listed above is deleted. Type the name of the instance (%s) to confirm: ' "$ACCENT" "$RESET" "$NAME"
+    IFS= read -r ans </dev/tty || die "No input available." 2
+    [ "$ans" = "$NAME" ] || quit "Removal cancelled: nothing was changed."
+  else
+    die "Removing an instance needs a confirmation: humble-planning remove $NAME --yes --confirm $NAME" 2
+  fi
+  take_lock
+
+  # 1. Final backup, outside the instance directory (with its .env: the
+  # secrets needed to restore it elsewhere).
+  if [ "$backup" = 1 ]; then
+    install -d -m 0700 "$FINAL_BACKUP_DIR"
+    final="$FINAL_BACKUP_DIR/$NAME-final-v$version-$(date +%Y%m%d-%H%M%S).dump"
+    db_builtin && { spin "Starting the database of $NAME" compose up -d --wait --wait-timeout 120 db || true; }
+    if ! spin "Final backup of the database" backup_to "$final"; then
+      rm -f "$final.part"
+      last_log_lines 10
+      die "The final backup failed: nothing was removed. To remove $NAME without it: humble-planning remove $NAME --no-backup"
+    fi
+    envcopy="${final%.dump}.env"
+    ( umask 077; cp "$ENV_FILE" "$envcopy" )
+    summary+=("final backup: $final ($(du -h "$final" | cut -f1))" "its settings and secrets: $envcopy")
+  fi
+
+  # 2. The site leaves the proxy first: nothing is deleted if Caddy refuses
+  # the new configuration.
+  if [ -n "$site" ] || [ -n "$token" ]; then
+    proxy_remove_site "$NAME" || die "The shared reverse proxy refused its new configuration: nothing else was removed${final:+ (final backup: $final)}."
+    [ -z "$site" ] || summary+=("site of the shared reverse proxy: $site")
+    [ -z "$token" ] || summary+=("Cloudflare API token of the site: $token")
+  fi
+
+  # 3. Containers, volumes, network
+  if ! spin "Removing the containers, volumes and network of $NAME" remove_project "$project"; then
+    last_log_lines 10
+    die "Some Docker resources of $project could not be removed: run the command again (details: $UPDATE_LOG)."
+  fi
+  summary+=("containers, volumes and network of the Compose project $project${volumes:+ ($volumes)}")
+
+  # 4. Automatic updates, directory, registry
+  if [ "$timer" != off ]; then auto_update_off; summary+=("nightly automatic update ($timer)"); fi
+  local kept
+  kept=$(remove_instance_files "$INSTALL_DIR") || die "$kept"
+  if [ "$kept" = kept-dir ]; then summary+=("files of the instance in $INSTALL_DIR (the directory holds other files: kept)")
+  else summary+=("directory $INSTALL_DIR"); fi
+  rm -f "$REGISTRY_DIR/$NAME.conf" "$LOCK_FILE"
+  summary+=("registry entry $REGISTRY_DIR/$NAME.conf")
+
+  # 5. The proxy, once no instance uses it any more
+  local n users=0
+  while IFS= read -r n; do [ -n "$n" ] && proxied "$n" && users=$((users + 1)); done < <(instance_names)
+  if [ "$users" = 0 ] && proxy_exists; then
+    if [ -z "$rm_proxy" ]; then
+      rm_proxy=0
+      if interactive; then
+        say ""
+        confirm "No other instance uses the shared reverse proxy. Stop and remove it too (container, network, certificates)?" n && rm_proxy=1
+      else
+        info "No other instance uses the shared reverse proxy: remove it with 'humble-planning remove … --remove-proxy', or keep it for the next instance."
+      fi
+    fi
+    if [ "$rm_proxy" = 1 ]; then
+      take_proxy_lock
+      if spin "Removing the shared reverse proxy" remove_proxy; then summary+=("shared reverse proxy: container, network $PROXY_NETWORK, certificates, $PROXY_DIR")
+      else warn "The shared reverse proxy could not be removed completely (see $UPDATE_LOG)."; fi
+    fi
+  fi
+
+  say ""
+  ok "${BOLD}The instance $NAME was removed.${RESET}"
+  for n in "${summary[@]}"; do info "$n"; done
+  if [ -n "$final" ]; then
+    say ""
+    say "  ${BOLD}Final backup:${RESET} $final"
+    say "  ${DIM}Restore it in another instance with the same secrets ($envcopy).${RESET}"
+  fi
+  [ -n "$(instance_names)" ] || info "No instance left on this server. To install one: sudo humble-planning new"
+}
+
+# ─── New instance ────────────────────────────────────────────────────────────
+
+# latest_release_tag — highest vX.Y.Z tag of a published release (no draft, no
+# pre-release) in the GitHub releases JSON on stdin, as `update` reads it.
+# Plain shell: it must work without any instance, hence without the app image
+# that `update` parses the list with. The keys of a release come in the order
+# tag_name, …, draft, …, prerelease; the escaped quotes of a release body
+# (\"draft\") never match.
+latest_release_tag() {
+  tr ',{}[]' '\n\n\n\n\n' |
+    sed -n -E 's/^[[:space:]]*"(tag_name|draft|prerelease)"[[:space:]]*:[[:space:]]*"?([^"[:space:]]*)"?[[:space:]]*$/\1 \2/p' |
+    awk '
+      function flush() { if (tag ~ /^v?[0-9]+\.[0-9]+\.[0-9]+$/ && draft == "false" && pre == "false") print tag }
+      $1 == "tag_name" { flush(); tag = $2; draft = ""; pre = "" }
+      $1 == "draft" { draft = $2 }
+      $1 == "prerelease" { pre = $2 }
+      END { flush() }' |
+    sort -V | tail -n1
+}
+
+# A first instance gives the release source (HUMBLE_UPDATE_SOURCE/REPO);
+# without any, the environment or the official repository.
+cmd_new() {
+  local first tag repo src url file="$TMP_DIR/install.sh" json="$TMP_DIR/new-releases.json" rc=0
+  require_root new
+  UPDATE_LOG="$LOG_DIR/humble-planning.log"
+  first=$(instance_names | sed -n 1p)
+  [ -z "$first" ] || ENV_FILE="$(reg_get "$first" DIR)/.env"
+  repo=$(env_get HUMBLE_UPDATE_REPO); repo=${HUMBLE_UPDATE_REPO:-${repo:-$DEFAULT_UPDATE_REPO}}
+  src=${HUMBLE_UPDATE_SOURCE:-$(env_get HUMBLE_UPDATE_SOURCE)}
+
+  # One `new` at a time. The installer takes no lock of its own; the locks it
+  # gets through this command (proxy, instance) are other files, and the child
+  # does not inherit this one (7>&-): no deadlock.
+  install -d -m 0755 "$LOCK_DIR" 2>/dev/null || true
+  exec 7>"$LOCK_DIR/humble-planning-new.lock"
+  flock -n 7 || die "Another new instance is being installed on this server."
+
+  if ! spin "Looking for the latest release" fetch_releases "$json"; then
+    die "Could not download the release list (network, GitHub API rate limit or HUMBLE_UPDATE_SOURCE). Install the new instance with: $INSTALL_COMMAND"
+  fi
+  tag=$(latest_release_tag <"$json")
+  [ -n "$tag" ] || die "No published release found in the release list. Install the new instance with: $INSTALL_COMMAND"
+  url=${HUMBLE_INSTALLER_URL:-"https://raw.githubusercontent.com/$repo/{tag}/install.sh"}
+  url=${url//\{tag\}/$tag}
+  ( umask 077; : >"$file" )
+  if ! spin "Downloading the installer of $tag" curl -fsSL --retry 3 --max-time 60 -o "$file" "$url"; then
+    die "Could not download $url. Install the new instance with: $INSTALL_COMMAND"
+  fi
+  # A truncated download, an error page or a corrupted file is never run.
+  [ -s "$file" ] && head -n1 "$file" | grep -qE '^#!.*[/ ]bash([[:space:]]|$)' ||
+    die "$url is not the Humble Planning installer (empty file or no bash shebang): nothing was run."
+  bash -n "$file" 2>>"$UPDATE_LOG" || die "The installer downloaded from $url has syntax errors: nothing was run."
+  # Installers older than 1.1.0 know a single instance: they would update the
+  # existing one instead of adding another.
+  grep -q 'HP_ACTION' "$file" || die "The installer of $tag (released before 1.1.0) cannot add an instance: nothing was run."
+  chmod 600 "$file"
+  log "NEW   $url ($tag)"
+
+  # The HP_* variables of the environment reach the installer; it fetches its
+  # files and images from the same release, and the new instance reads the
+  # same release list (mirror, repository), unless they are set.
+  HP_ACTION=new HP_VERSION=${HP_VERSION:-${tag#v}} \
+    HP_REPO_RAW=${HP_REPO_RAW:-https://raw.githubusercontent.com/$repo/$tag} \
+    HP_UPDATE_REPO=${HP_UPDATE_REPO:-$repo} HP_UPDATE_SOURCE=${HP_UPDATE_SOURCE:-$src} \
+    bash "$file" "$@" 7>&- || rc=$?
+  return "$rc"
 }
 
 # ─── Other commands ──────────────────────────────────────────────────────────
 
+cmd_list() {
+  require_root list
+  check_legacy
+  if [ -z "$(instance_names)" ]; then
+    info "No Humble Planning instance is installed on this server. Install one: $NEW_HINT"
+    return 0
+  fi
+  local n
+  EXTRA=([__header]="$(pad STATE 12) CADDY")
+  while IFS= read -r n; do
+    EXTRA[$n]="$(pad "$(instance_state "$n")" 12) $(proxied "$n" && echo yes || echo no)"
+  done < <(instance_names)
+  print_instances
+  say ""
+  if proxy_exists; then
+    say "  ${DIM}Shared reverse proxy: $(proxy_running && echo running || echo stopped), $(proxy_repo):$(penv_get HUMBLE_CADDY_VERSION), ports $(penv_get HP_HTTP_PORT)/$(penv_get HP_HTTPS_PORT) (humble-planning proxy status)${RESET}"
+  fi
+}
+
 cmd_status() {
-  require_install status
   local version previous last
   version=$(env_get HUMBLE_VERSION) previous=$(env_get HUMBLE_PREVIOUS_VERSION)
   say ""
-  say "  ${BOLD}Humble Planning v${version:-?}${RESET}  ${DIM}$(image_repo):${version:-?}${RESET}"
-  say "  ${DIM}Installation     ${RESET} $INSTALL_DIR"
-  if [ -n "$previous" ]; then say "  ${DIM}Previous version ${RESET} v$previous (humble-planning rollback)"; fi
+  say "  ${BOLD}$NAME — $LABEL${RESET}  ${DIM}Humble Planning v${version:-?}, $(image_repo):${version:-?}${RESET}"
+  say "  ${DIM}URL              ${RESET} $(env_get APP_BASE_URL)"
+  say "  ${DIM}Installation     ${RESET} $INSTALL_DIR (Compose project $(env_get COMPOSE_PROJECT_NAME))"
+  if proxied; then
+    say "  ${DIM}Reverse proxy    ${RESET} shared Caddy, site $PROXY_CONF/sites/$NAME.caddy (humble-planning proxy status)"
+  else
+    say "  ${DIM}Reverse proxy    ${RESET} your own: app on 127.0.0.1:$(env_get HP_APP_PORT), Socket.io on 127.0.0.1:$(env_get HP_SOCKET_PORT)"
+  fi
+  if [ -n "$previous" ]; then say "  ${DIM}Previous version ${RESET} v$previous (humble-planning rollback $NAME)"; fi
   case "$(auto_update_state)" in
-    off) say "  ${DIM}Automatic updates${RESET} disabled (humble-planning auto-update on)" ;;
+    off) say "  ${DIM}Automatic updates${RESET} disabled (humble-planning auto-update on $NAME)" ;;
     *) say "  ${DIM}Automatic updates${RESET} enabled, patch releases only" ;;
   esac
   last=$(state_get last_check)
@@ -705,26 +1793,59 @@ cmd_status() {
   compose ps "$@"
 }
 
+cmd_logs() {
+  if [ "${1:-}" = caddy ]; then
+    proxy_require
+    pcompose logs -f --tail=200 caddy
+  else
+    compose logs -f --tail=200 "$@"
+  fi
+}
+
+cmd_start() {
+  spin "Starting $NAME" compose up -d --wait || { last_log_lines 10; die "$NAME did not start (see 'humble-planning logs $NAME')."; }
+  if proxied && proxy_exists && ! proxy_running; then
+    spin "Starting the shared reverse proxy" proxy_start || warn "The shared reverse proxy did not start: humble-planning proxy status"
+  fi
+}
+
 usage() {
   cat <<EOF
-Usage: humble-planning <command> [options]
+Usage: humble-planning <command> [instance] [options]
 
-  status                      Version, update status and state of the containers
-  logs [service]              Follow the logs (app, socket, db, caddy)
-  start | stop | restart      Start, stop or restart Humble Planning
-  update [--version X.Y.Z]    Update to the latest (or given) release: release notes,
-         [--yes] [--auto]     database backup, migrations, automatic rollback on failure.
-                              --auto: patch releases of the same series only, no questions
-  rollback [--yes]            Go back to the previous version
+The instance name can be left out when only one instance is installed; with
+several, the command asks in a terminal (or stops with the list).
+
+  list                         Instances: name, label, URL, version, state, Caddy
+  new                          Install a new instance on this server (downloads the installer
+                               of the latest release; HP_* variables: non-interactive mode)
+  status [instance]            Version, update status and state of the containers
+  logs [instance] [service]    Follow the logs (app, socket, db; caddy: the shared proxy)
+  start | stop | restart [instance]
+                               Start, stop or restart an instance
+  update [instance…|--all]     Update to the latest (or given) release: release notes,
+         [--version X.Y.Z]     database backup, migrations, automatic rollback on failure.
+         [--yes] [--auto]      Several instances are updated one after the other, each with
+                               its own backup and rollback; without a name, in a terminal,
+                               choose them from the list. --auto: patch releases of the same
+                               series only, no questions (nightly timer)
+  rollback [instance] [--yes]  Go back to the previous version
            [--restore|--no-restore]  restore (or not) the pre-update database backup
-  backup                      Back up the database into $BACKUP_DIR
-  demo-reset [--force]        Demo instance: erase all the data and load the demo dataset now.
-                              --force: also when the database holds data not created by the demo
-  auto-update on|off|status   Nightly automatic updates (patch releases only)
-  version                     Print the installed version
-  help                        Show this help
+  backup [instance]            Back up the database into <instance directory>/backups
+  demo-reset [instance] [--force]
+                               Demo instance: erase all the data and load the demo dataset now.
+                               --force: also when the database holds data not created by the demo
+  auto-update on|off|status [instance]
+                               Nightly automatic updates (patch releases only)
+  version [instance]           Print the installed version
+  remove <instance> [--yes --confirm <instance>] [--no-backup] [--remove-proxy|--keep-proxy]
+                               Remove an instance: final backup (kept in $FINAL_BACKUP_DIR),
+                               containers, volumes, files, proxy site, automatic updates
+  proxy status|logs|restart|reload
+                               Reverse proxy (Caddy) shared by the instances
+  help                         Show this help
 
-Installation directory: $INSTALL_DIR (from $CONFIG_FILE)
+Instances: $REGISTRY_DIR — base directory: $BASE_DIR (from $CONFIG_FILE)
 EOF
 }
 
@@ -735,20 +1856,34 @@ main() {
   local cmd=${1:-help}
   [ $# -gt 0 ] && shift
   case "$cmd" in
-    status) cmd_status "$@" ;;
-    logs) require_install logs; compose logs -f --tail=200 "$@" ;;
-    start) require_install start; compose up -d --wait ;;
-    stop) require_install stop; compose stop ;;
-    restart) require_install restart; compose restart "$@" ;;
-    update) cmd_update "$@" ;;
-    rollback) cmd_rollback "$@" ;;
-    backup) cmd_backup ;;
-    demo-reset) cmd_demo_reset "$@" ;;
-    auto-update) cmd_auto_update "$@" ;;
-    version) require_install version; env_get HUMBLE_VERSION; echo ;;
+    list|ls) cmd_list ;;
+    new) cmd_new "$@" || exit $? ;;
+    update) require_root update; cmd_update "$@" ;;
+    remove) cmd_remove "$@" ;;
+    proxy) cmd_proxy "$@" ;;
     help|-h|--help) usage ;;
+    status|logs|start|stop|restart|rollback|backup|demo-reset|auto-update|version)
+      require_root "$cmd"
+      split_args "$cmd" "$@"
+      resolve_instance "$cmd"
+      set -- "${ARGS[@]}"
+      case "$cmd" in
+        status) cmd_status "$@" ;;
+        logs) cmd_logs "$@" ;;
+        start) cmd_start ;;
+        stop) spin "Stopping $NAME" compose stop || die "$NAME did not stop (see $UPDATE_LOG)." ;;
+        restart) compose restart "$@" || die "$NAME did not restart (see 'humble-planning logs $NAME')." ;;
+        rollback) cmd_rollback "$@" ;;
+        backup) cmd_backup ;;
+        demo-reset) cmd_demo_reset "$@" ;;
+        auto-update) cmd_auto_update "$@" ;;
+        version) env_get HUMBLE_VERSION; echo ;;
+      esac ;;
     *) usage; exit 2 ;;
   esac
 }
 
-main "$@"
+# Run main unless the file is sourced (tests source it to reuse the helpers).
+if [[ "${BASH_SOURCE[0]:-$0}" == "$0" ]]; then
+  main "$@"
+fi

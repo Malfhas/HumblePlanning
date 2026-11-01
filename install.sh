@@ -7,19 +7,38 @@
 #   - Docker Engine + Docker Compose, if missing (Ubuntu 22.04/24.04, Debian 12/13);
 #     any distribution works when Docker 24+ and Compose 2.20+ are already installed
 #   - the application containers: web app, Socket.io server, PostgreSQL 18
-#   - optionally Caddy, a reverse proxy with automatic HTTPS (Let's Encrypt)
+#   - optionally Caddy, a reverse proxy with automatic HTTPS (Let's Encrypt),
+#     shared by all the instances of the server
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Malfhas/HumblePlanning/main/install.sh | sudo bash
 #   sudo bash install.sh [--yes] [--non-interactive] [--help]
 #
-# Running it again on an existing installation updates it (new images, database
-# migrations, restart). The .env file and the data volumes are always kept.
+# Several instances can run on one server, each with its own name, label,
+# domain, database, files, backups and version. When instances exist, the
+# installer lists them and offers to update one of them (new images, database
+# migrations, restart; the .env file and the data volumes are always kept) or
+# to install a new one. Layout (base directory: /opt/humble-planning):
+#   /etc/humble-planning/instances/<name>.conf   registry of the instances
+#   <base dir>/instances/<name>/                 files of an instance
+#   <base dir>/proxy/                            Caddy shared by the instances
+# An installation made with 1.0.x is taken over the first time this installer
+# runs: registered as an instance without moving anything (directory, Compose
+# project and volumes stay), and its Caddy moves into the shared proxy with
+# its certificates; on failure, its own Caddy serves the site again.
 #
 # Non-interactive mode — HP_NONINTERACTIVE=1, every answer comes from a variable
 # (in interactive mode, these variables become the proposed defaults):
+#   HP_ACTION                new | update: install a new instance, or update one
+#                            (update when an instance exists, else new)
+#   HP_NAME                  short name of the instance, used in the commands:
+#                            2 to 32 of a-z 0-9 -   (from the domain, e.g. planning)
+#                            with HP_ACTION=update: the instance to update (required
+#                            when there are several)
+#   HP_LABEL                 label of a new instance, free text  (the domain)
 #   HP_URL                   public URL, e.g. https://planning.example.com (required)
-#   HP_INSTALL_DIR           installation directory            (/opt/humble-planning)
+#   HP_BASE_DIR              root of the instances and of the shared proxy (/opt/humble-planning)
+#   HP_INSTALL_DIR           directory of a new instance    (<base dir>/instances/<name>)
 #   HP_INSTANCE              production | demo                 (production)
 #   HP_DEMO_LOGIN            demo account username             (demo)
 #   HP_DEMO_PASSWORD         demo account password, public     (demo)
@@ -33,17 +52,19 @@
 #                            POSTGRES_USER=postgres, never leaves the db container)
 #   HP_DB_PASSWORD           external server password
 #   HP_DB_SSL                require | disable                 (require, disable for local hosts)
-#   HP_CADDY                 1 = install Caddy, 0 = no reverse proxy (1 for a domain name)
-#   HP_ACME_EMAIL            optional e-mail address for Let's Encrypt
+#   HP_CADDY                 1 = serve it with the shared Caddy, 0 = no reverse proxy
+#                            (1 for a domain name)
+#   HP_ACME_EMAIL            optional e-mail address for Let's Encrypt (this site)
 #   HP_CLOUDFLARE            1 = DNS challenge through Cloudflare (0)
-#   HP_CLOUDFLARE_API_TOKEN  Cloudflare API token (Zone.Zone:Read + Zone.DNS:Edit)
+#   HP_CLOUDFLARE_API_TOKEN  Cloudflare API token of this site (Zone.Zone:Read + Zone.DNS:Edit),
+#                            kept by the proxy only
 #   HP_CLOUDFLARE_PROXY      1 = the site is served through the Cloudflare proxy (0): Caddy
 #                            reads CF-Connecting-IP from Cloudflare's addresses only; without
 #                            Caddy, TRUSTED_PROXY=cloudflare is set in .env
 #   HP_ADMIN_USER            administrator username             (admin)
 #   HP_ADMIN_PASSWORD        administrator password (required for a new production installation)
 #   HP_AUTO_UPDATE           1 = nightly automatic updates, patch releases only (0)
-#   HP_UPDATE                1 = update an existing installation without asking (1)
+#   HP_UPDATE                1 = update an existing instance without asking (1)
 #   HP_ASSUME_YES            1 = answer "yes" to the confirmations
 # Images and sources:
 #   HP_VERSION               version to install, e.g. 1.2.3     (latest release)
@@ -58,8 +79,10 @@
 #   HP_REPO_RAW              raw URL of the repository for deploy/ files
 #                            (https://raw.githubusercontent.com/Malfhas/HumblePlanning/main)
 # Ports and misc:
-#   HP_APP_PORT, HP_SOCKET_PORT   loopback ports of the app and Socket.io (3000, 3001)
-#   HP_HTTP_PORT, HP_HTTPS_PORT   public ports of Caddy                   (80, 443)
+#   HP_APP_PORT, HP_SOCKET_PORT   loopback ports of the app and Socket.io
+#                                 (first free pair from 3000/3001, then 3010/3011…)
+#   HP_HTTP_PORT, HP_HTTPS_PORT   public ports of the shared Caddy (80, 443), set when it
+#                                 is created
 #   HP_TIMEZONE              application time zone (server time zone, else Europe/Paris)
 #   HP_FORCE_OS              1 = try to install Docker on an unsupported Debian/Ubuntu derivative
 #   HP_LOG                   log file      (/var/log/humble-planning-install.log)
@@ -73,7 +96,16 @@ umask 022
 readonly DEFAULT_REPO_RAW="https://raw.githubusercontent.com/Malfhas/HumblePlanning/main"
 readonly DEFAULT_IMAGE_REPO="ghcr.io/malfhas/humble-planning"
 readonly DEFAULT_CADDY_IMAGE_REPO="ghcr.io/malfhas/humble-planning-caddy"
-readonly PROJECT_NAME="humbleplanning"
+readonly LEGACY_PROJECT="humbleplanning"   # Compose project of a 1.0.x installation
+readonly PROJECT_PREFIX="humbleplanning-"  # humbleplanning-<name> for the others
+readonly PROXY_PROJECT="humbleplanning-proxy"
+readonly PROXY_NETWORK="humbleplanning-proxy"
+readonly DEFAULT_BASE_DIR="/opt/humble-planning"
+readonly REGISTRY_DIR="/etc/humble-planning/instances"
+readonly NAME_PATTERN='^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$'
+# Words that the humble-planning command reads as services or actions
+readonly RESERVED_NAMES=" proxy all app socket db caddy on off enable disable status "
+readonly MEMORY_PER_INSTANCE_MB=1024
 readonly WRAPPER_PATH="/usr/local/bin/humble-planning"
 readonly WRAPPER_CONFIG="/etc/default/humble-planning"
 readonly DEFAULT_UPDATE_REPO="Malfhas/HumblePlanning"
@@ -345,6 +377,7 @@ has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 # version_ge A B → A >= B
 version_ge() { [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]; }
+version_gt() { [ "$1" != "$2" ] && version_ge "$1" "$2"; }
 
 gen_secret() { od -An -N32 -tx1 /dev/urandom | tr -d ' \n'; }
 
@@ -364,8 +397,25 @@ has_systemd() { [ -d /run/systemd/system ]; }
 
 docker_ok() { docker info >/dev/null 2>&1; }
 
+# Compose files of the instance: COMPOSE_FILE in .env (docker-compose.yml, plus
+# docker-compose.proxy.yml with the shared proxy), always given explicitly so
+# that Compose never picks a file of a parent directory.
 compose() {
-  docker compose --project-directory "$INSTALL_DIR" -f "$INSTALL_DIR/docker-compose.yml" "$@"
+  local list f files=()
+  list=$(env_get COMPOSE_FILE)
+  IFS=: read -ra list <<<"${list:-docker-compose.yml}"
+  for f in "${list[@]}"; do
+    [[ $f == /* ]] || f="$INSTALL_DIR/$f"
+    files+=(-f "$f")
+  done
+  docker compose --project-directory "$INSTALL_DIR" "${files[@]}" "$@"
+}
+
+pcompose() { docker compose --project-directory "$PROXY_DIR" -f "$PROXY_DIR/docker-compose.yml" "$@"; }
+
+# Is a port published by a container (also when the Docker userland proxy is off)?
+port_published() {
+  has_cmd docker && docker ps --format '{{.Ports}}' 2>/dev/null | tr ',' '\n' | grep -qE "[:.]$1->"
 }
 
 # Is a TCP port listening on this host?
@@ -513,6 +563,55 @@ validate_url() {
   fi
 }
 
+# The URL of a new instance: one origin per instance, one domain per site of
+# the shared proxy.
+validate_new_url() {
+  validate_url "$1" || return 1
+  local host=$URL_HOST origin="$URL_SCHEME://$URL_HOST${URL_PORT:+:$URL_PORT}" n url
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    url=$(reg_env "$n" APP_BASE_URL)
+    parse_url "$url" || continue
+    if [ "$origin" = "$URL_SCHEME://$URL_HOST${URL_PORT:+:$URL_PORT}" ]; then
+      echo "This URL is already used by the instance $n."; return 1
+    fi
+    if [ "$host" = "$URL_HOST" ] && [ "$(reg_get "$n" CADDY)" = 1 ]; then
+      echo "$host is already served by the shared reverse proxy for the instance $n."; return 1
+    fi
+  done < <(instance_names)
+  parse_url "$1"
+}
+
+validate_new_name() {
+  [[ $1 =~ $NAME_PATTERN ]] || { echo "Use 2 to 32 lowercase letters, digits or dashes, starting and ending with a letter or a digit."; return 1; }
+  [[ $RESERVED_NAMES != *" $1 "* ]] || { echo "\"$1\" is reserved by the humble-planning command: choose another name."; return 1; }
+  [ ! -f "$REGISTRY_DIR/$1.conf" ] || { echo "An instance named $1 already exists."; return 1; }
+}
+
+validate_label() {
+  [ -n "$1" ] || { echo "Enter a label, e.g. the name of the organisation."; return 1; }
+  [ "${#1}" -le 80 ] && [[ $1 != *[[:cntrl:]]* ]] || { echo "Use up to 80 characters, without control characters."; return 1; }
+}
+
+validate_new_dir() {
+  validate_dir "$1" || return 1
+  local d=${1%/} n other
+  existing_install "$d" && { echo "$d already holds an installation: run the installer with HP_INSTALL_DIR=$d to take it over."; return 1; }
+  [ "$d" != "$PROXY_DIR" ] || { echo "This is the directory of the shared reverse proxy."; return 1; }
+  # `humble-planning remove` deletes the directory of an instance: it must
+  # hold nothing else.
+  if [ -d "$d" ] && [ -n "$(ls -A -- "$d" 2>/dev/null)" ]; then
+    echo "$d is not empty: choose a new or empty directory."; return 1
+  fi
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    other=$(reg_get "$n" DIR)
+    if [[ "$d/" == "$other/"* && $other != "$BASE_DIR" ]] || [[ "$other/" == "$d/"* ]]; then
+      echo "This directory overlaps the one of the instance $n ($other)."; return 1
+    fi
+  done < <(instance_names)
+}
+
 validate_dir() {
   if [[ $1 != /* ]]; then echo "Use an absolute path."; return 1; fi
   if [[ $1 == *[[:space:]]* ]]; then echo "The path cannot contain spaces."; return 1; fi
@@ -557,6 +656,115 @@ validate_time() {
 validate_env_value() {
   validate_required "$1" || return 1
   [[ $1 != *[[:space:]\"\'\\\$\#\`]* ]] || { echo "Spaces, quotes and the characters \\ \$ # \` are not allowed."; return 1; }
+}
+
+# ─── Key=value files: registry, proxy settings ───────────────────────────────
+
+kv_get() { # kv_get FILE KEY — last value of KEY, quotes removed
+  local line val=""
+  [ -r "$1" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [[ $line =~ ^[[:space:]]*$2=(.*)$ ]]; then val=${BASH_REMATCH[1]}; fi
+  done <"$1"
+  val=${val%$'\r'}
+  if [[ $val =~ ^\"(.*)\"$ ]] || [[ $val =~ ^\'(.*)\'$ ]]; then val=${BASH_REMATCH[1]}; fi
+  printf '%s' "$val"
+}
+
+# kv_set FILE MODE KEY VALUE… — atomic update, missing keys appended
+kv_set() {
+  local file=$1 mode=$2 tmp line key; shift 2
+  declare -A new=()
+  while [ $# -ge 2 ]; do new[$1]=$2; shift 2; done
+  tmp=$(mktemp "$file.XXXXXX")
+  chmod "$mode" "$tmp"
+  if [ -f "$file" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^([A-Z_][A-Z0-9_]*)= ]] && [ -n "${new[${BASH_REMATCH[1]}]+x}" ]; then
+        key=${BASH_REMATCH[1]}
+        printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"
+        unset "new[$key]"
+      else
+        printf '%s\n' "$line" >>"$tmp"
+      fi
+    done <"$file"
+  fi
+  for key in "${!new[@]}"; do printf '%s=%s\n' "$key" "${new[$key]}" >>"$tmp"; done
+  mv -f "$tmp" "$file"
+}
+
+instance_names() {
+  local f
+  for f in "$REGISTRY_DIR"/*.conf; do
+    [ -f "$f" ] || continue
+    f=${f##*/}; printf '%s\n' "${f%.conf}"
+  done | sort
+}
+
+reg_get() { kv_get "$REGISTRY_DIR/$1.conf" "$2"; }
+reg_env() { kv_get "$(reg_get "$1" DIR)/.env" "$2"; }
+
+# registered_dir DIR → name of the instance installed in DIR
+registered_dir() {
+  local n
+  while IFS= read -r n; do
+    [ -n "$n" ] && [ "$(reg_get "$n" DIR)" = "${1%/}" ] && { printf '%s' "$n"; return 0; }
+  done < <(instance_names)
+  return 1
+}
+
+# The registry entry of the instance (no secret: mode 644). The domain, version
+# and Compose project live in its .env.
+write_registry() {
+  local file="$REGISTRY_DIR/$INST_NAME.conf" created
+  install -d -m 0755 "$REGISTRY_DIR"
+  created=$(kv_get "$file" CREATED)
+  {
+    printf '# Humble Planning instance "%s" — written by install.sh, read by humble-planning.\n' "$INST_NAME"
+    printf '# CADDY=1: served by the shared reverse proxy (TLS acme|http, Cloudflare DNS\n'
+    printf '# challenge CF_DNS, Cloudflare proxy CF_PROXY, ACME_EMAIL of this site).\n'
+    printf 'NAME=%s\nLABEL=%s\nDIR=%s\n' "$INST_NAME" "$INST_LABEL" "$INSTALL_DIR"
+    printf 'CADDY=%s\nTLS=%s\nCF_DNS=%s\nCF_PROXY=%s\nACME_EMAIL=%s\n' "$CADDY" "$TLS_MODE" "$CLOUDFLARE" "$CF_PROXY" "$ACME_EMAIL"
+    printf 'CREATED=%s\n' "${created:-$(date '+%F %T')}"
+  } >"$file.tmp"
+  chmod 0644 "$file.tmp"
+  mv -f "$file.tmp" "$file"
+}
+
+# State of an instance from Docker: running | stopped | partial | unhealthy
+instance_state() {
+  local project out total=0 up=0 sick=0 svc st status
+  project=$(reg_env "$1" COMPOSE_PROJECT_NAME)
+  has_cmd docker && [ -n "$project" ] || { printf '?'; return 0; }
+  out=$(docker ps -a --filter "label=com.docker.compose.project=$project" --filter label=com.docker.compose.oneoff=False \
+    --format '{{.Label "com.docker.compose.service"}}|{{.State}}|{{.Status}}' 2>/dev/null) || { printf '?'; return 0; }
+  while IFS='|' read -r svc st status; do
+    case "$svc" in app|socket|db) ;; *) continue ;; esac
+    total=$((total + 1))
+    [ "$st" = running ] && up=$((up + 1))
+    [[ $status == *unhealthy* ]] && sick=1
+  done <<<"$out"
+  if [ "$up" = 0 ]; then printf 'stopped'
+  elif [ "$sick" = 1 ]; then printf 'unhealthy'
+  elif [ "$up" = "$total" ]; then printf 'running'
+  else printf 'partial'
+  fi
+}
+
+pad() { # pad TEXT WIDTH
+  local t=$1 w=$2
+  [ "${#t}" -gt "$w" ] && t="${t:0:$((w - 1))}…"
+  printf '%s%*s' "$t" $((w - ${#t})) ''
+}
+
+show_instances() {
+  local n
+  text "${BOLD}Humble Planning instances on this server${RESET}"
+  dimtext "  $(pad NAME 14) $(pad LABEL 26) $(pad URL 32) $(pad VERSION 9) STATE"
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    text "  ${BOLD}$(pad "$n" 14)${RESET} $(pad "$(reg_get "$n" LABEL)" 26) $(pad "$(reg_env "$n" APP_BASE_URL)" 32) $(pad "v$(reg_env "$n" HUMBLE_VERSION)" 9) $(instance_state "$n")"
+  done < <(instance_names)
 }
 
 # ─── .env management (atomic, never overwrites a secret) ─────────────────────
@@ -694,25 +902,6 @@ source_version() {
   printf '%s' "$v"
 }
 
-# Renders deploy/Caddyfile: keeps the #@<name> blocks listed in $1 (comma
-# separated; a block nested in a skipped block is skipped too), replaces the
-# placeholders.
-render_caddyfile() {
-  local blocks=$1 site=$2 email=$3 template=$4
-  printf '# Humble Planning — generated by install.sh on %s from deploy/Caddyfile.\n' "$(date '+%F')"
-  awk -v keep=",$blocks," -v site="$site" -v email="$email" '
-    /^[[:space:]]*#@end[[:space:]]*$/ { if (depth > 0) skip = outer[depth--]; next }
-    /^[[:space:]]*#@[a-z_]+[[:space:]]*$/ {
-      name = $0; gsub(/[[:space:]#@]/, "", name)
-      outer[++depth] = skip
-      skip = skip || (index(keep, "," name ",") == 0); next
-    }
-    skip { next }
-    /^[[:space:]]*$/ { if (blank) next; blank = 1; print ""; next }
-    { blank = 0; gsub(/__SITE_ADDRESS__/, site); gsub(/__ACME_EMAIL__/, email); print }
-  ' "$template"
-}
-
 # ─── Cloudflare ──────────────────────────────────────────────────────────────
 
 CF_ERROR="" CF_ZONE=""
@@ -768,10 +957,14 @@ cloudflare_instructions() {
 
 MODE=install          # install | update
 INSTANCE=production   # production | demo
+INST_NAME="" INST_LABEL="" PROJECT=""   # instance name, label, Compose project
+MIGRATE=0             # 1: takeover of an installation made with 1.0.x
+ADOPT=0               # 1: its own Caddy container still serves it (moved into the shared proxy)
+BASE_DIR="" PROXY_DIR="" PROXY_VERSION=""
 DEMO_LOGIN="" DEMO_PASSWORD="" DEMO_RESET_TIME=""
 APP_URL="" INSTALL_DIR="" DB_MODE=builtin
 DB_HOST="" DB_PORT="" DB_NAME="" DB_USER="" DB_PASSWORD="" DB_SSL=""
-CADDY=0 TLS_MODE=none ACME_EMAIL="" CLOUDFLARE=0 CF_TOKEN="" CF_PROXY=0 CADDYFILE_UPDATED=0
+CADDY=0 TLS_MODE=none ACME_EMAIL="" CLOUDFLARE=0 CF_TOKEN="" CF_PROXY=0
 APP_REPO="" CADDY_REPO="" APP_IMAGE="" CADDY_IMAGE="" APP_PORT="" SOCKET_PORT="" HTTP_PORT="" HTTPS_PORT=""
 AUTO_UPDATE=0
 OS_ID="" OS_VERSION_ID="" OS_PRETTY="" OS_CODENAME="" DOCKER_DIST="" DOCKER_SUITE=""
@@ -780,6 +973,44 @@ ADMIN_USER="" ADMIN_CREATED=0 BACKUP_KEY_NEW="" APP_VERSION=""
 
 existing_install() {
   [ -f "$1/.env" ] && [ -f "$1/docker-compose.yml" ] && grep -q '^APP_BASE_URL=' "$1/.env"
+}
+
+# Root of the instances and of the shared proxy: HP_BASE_DIR, else the one
+# recorded by a previous run, else /opt/humble-planning.
+detect_base_dir() {
+  BASE_DIR=${HP_BASE_DIR:-$(kv_get "$WRAPPER_CONFIG" HUMBLE_BASE_DIR)}
+  BASE_DIR=${BASE_DIR:-$DEFAULT_BASE_DIR}
+  BASE_DIR=${BASE_DIR%/}
+  validate_dir "$BASE_DIR" >/dev/null || die "Invalid HP_BASE_DIR: $BASE_DIR (absolute path without spaces)." nolog
+  PROXY_DIR="$BASE_DIR/proxy"
+}
+
+# legacy_dir → directory of an installation that is not registered yet: made
+# with 1.0.x (directory recorded in /etc/default/humble-planning, or the
+# default one), or given with HP_INSTALL_DIR.
+legacy_dir() {
+  local d
+  for d in "${HP_INSTALL_DIR:-}" "$(kv_get "$WRAPPER_CONFIG" HUMBLE_INSTALL_DIR)" "$DEFAULT_BASE_DIR"; do
+    d=${d%/}
+    [ -n "$d" ] && existing_install "$d" || continue
+    registered_dir "$d" >/dev/null && continue
+    printf '%s' "$d"
+    return 0
+  done
+  return 0
+}
+
+# default_name HOST → a free instance name derived from the domain
+default_name() {
+  local base=main n i=2
+  if ! is_ip "$1"; then
+    base=$(printf '%s' "${1%%.*}" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9-' '-' | sed -E 's/-+/-/g; s/^-+//; s/-+$//' | cut -c1-28)
+    base=${base%-}
+  fi
+  [[ $base =~ $NAME_PATTERN ]] && [[ $RESERVED_NAMES != *" $base "* ]] || base=planning
+  n=$base
+  while [ -f "$REGISTRY_DIR/$n.conf" ]; do n="$base-$i"; i=$((i + 1)); done
+  printf '%s' "$n"
 }
 
 # ─── Step 1: system requirements ─────────────────────────────────────────────
@@ -930,10 +1161,23 @@ external_db_url() {
     "$(urlencode "$DB_USER")" "$(urlencode "$DB_PASSWORD")" "$host" "$DB_PORT" "$(urlencode "$DB_NAME")" "$DB_SSL"
 }
 
-# Pick a free loopback port for the app or Socket.io server.
+# A port taken on this server: listening, published by a container, or
+# assigned to another instance (which may be stopped).
+port_taken() {
+  local p=$1 n
+  port_in_use "$p" && return 0
+  port_published "$p" && return 0
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    [ "$(reg_env "$n" HP_APP_PORT)" = "$p" ] || [ "$(reg_env "$n" HP_SOCKET_PORT)" = "$p" ] && return 0
+  done < <(instance_names)
+  return 1
+}
+
+# Pick a free loopback port for the app or Socket.io server (given explicitly).
 choose_port() {
   local __var=$1 label=$2 port=$3 env=$4
-  while port_in_use "$port"; do
+  while port_taken "$port"; do
     if [ "$INTERACTIVE" = 0 ]; then
       die "Port $port ($label) is already in use on this server. Set $env to a free port." nolog
     fi
@@ -945,10 +1189,29 @@ choose_port() {
   printf -v "$__var" '%s' "$port"
 }
 
+# Loopback ports of a new instance: HP_APP_PORT / HP_SOCKET_PORT, else the
+# first free pair among 3000/3001, 3010/3011… 3990/3991.
+pick_ports() {
+  if [ -n "${HP_APP_PORT:-}" ] || [ -n "${HP_SOCKET_PORT:-}" ]; then
+    choose_port APP_PORT "web application" "${HP_APP_PORT:-3000}" HP_APP_PORT
+    choose_port SOCKET_PORT "Socket.io server" "${HP_SOCKET_PORT:-3001}" HP_SOCKET_PORT
+    return 0
+  fi
+  local p
+  for ((p = 3000; p < 4000; p += 10)); do
+    if ! port_taken "$p" && ! port_taken $((p + 1)); then
+      APP_PORT=$p SOCKET_PORT=$((p + 1))
+      return 0
+    fi
+  done
+  die "No free pair of loopback ports between 3000 and 3999: set HP_APP_PORT and HP_SOCKET_PORT." nolog
+}
+
 configure_caddy() {
   CADDY=0 TLS_MODE=none CLOUDFLARE=0 CF_TOKEN="" ACME_EMAIL=""
-  local default=n
+  local default=n proxy_ready=0
   is_public_domain "$URL_HOST" && default=y
+  [ -f "$PROXY_DIR/.env" ] && [ -f "$PROXY_DIR/docker-compose.yml" ] && proxy_ready=1
   if [ -n "${HP_CADDY:-}" ]; then
     if [ "$HP_CADDY" = 1 ]; then default=y; else default=n; fi
   fi
@@ -956,17 +1219,28 @@ configure_caddy() {
   itext ""
   idimtext "Caddy is a web server that gets and renews HTTPS certificates automatically"
   idimtext "and routes the real-time (Socket.io) traffic to the right container."
-  ask_yes_no "Do you want to install a reverse proxy (Caddy)?" "$default" || return 0
+  idimtext "One Caddy serves every instance of this server that uses it."
+  if [ "$proxy_ready" = 1 ]; then
+    ask_yes_no "Serve this instance with the shared reverse proxy (Caddy) of this server?" "$default" || return 0
+  else
+    ask_yes_no "Do you want to install a reverse proxy (Caddy)?" "$default" || return 0
+  fi
 
   if [ -n "$URL_PORT" ] && ! { [ "$URL_SCHEME" = https ] && [ "$URL_PORT" = 443 ]; } && ! { [ "$URL_SCHEME" = http ] && [ "$URL_PORT" = 80 ]; }; then
     warn "With Caddy, the public URL cannot include a custom port ($URL_PORT): continuing without Caddy."
     return 0
   fi
 
-  HTTP_PORT=${HP_HTTP_PORT:-80} HTTPS_PORT=${HP_HTTPS_PORT:-443}
+  if [ "$proxy_ready" = 1 ]; then
+    # Its ports are those of the proxy already running for the other instances.
+    HTTP_PORT=$(kv_get "$PROXY_DIR/.env" HP_HTTP_PORT) HTTPS_PORT=$(kv_get "$PROXY_DIR/.env" HP_HTTPS_PORT)
+    HTTP_PORT=${HTTP_PORT:-80} HTTPS_PORT=${HTTPS_PORT:-443}
+  else
+    HTTP_PORT=${HP_HTTP_PORT:-80} HTTPS_PORT=${HP_HTTPS_PORT:-443}
+  fi
   local busy=() p owner
   for p in "$HTTP_PORT" "$HTTPS_PORT"; do
-    if port_in_use "$p"; then
+    if [ "$proxy_ready" = 0 ] && port_in_use "$p"; then
       owner=$(port_owner "$p")
       busy+=("$p${owner:+ ($owner)}")
     fi
@@ -1001,7 +1275,14 @@ configure_caddy() {
     return 0
   fi
 
-  ask ACME_EMAIL "E-mail address for Let's Encrypt notices (optional)" "${HP_ACME_EMAIL:-}" validate_email_optional HP_ACME_EMAIL
+  local email_default=${HP_ACME_EMAIL:-} n
+  if [ -z "$email_default" ] && [ "$INTERACTIVE" = 1 ]; then
+    while IFS= read -r n; do
+      [ -n "$n" ] && email_default=$(reg_get "$n" ACME_EMAIL)
+      [ -n "$email_default" ] && break
+    done < <(instance_names)
+  fi
+  ask ACME_EMAIL "E-mail address for Let's Encrypt notices (optional)" "$email_default" validate_email_optional HP_ACME_EMAIL
 
   local cf_default=n
   [ "${HP_CLOUDFLARE:-0}" = 1 ] && cf_default=y
@@ -1119,22 +1400,21 @@ https_label() {
   fi
 }
 
+# Settings of the instance to update: its .env, its registry entry (or, for an
+# installation made with 1.0.x, its Caddy settings and its Caddyfile).
 load_existing_config() {
   APP_URL=$(env_get APP_BASE_URL)
   parse_url "$APP_URL" || die "APP_BASE_URL in $INSTALL_DIR/.env is not a valid URL: $APP_URL" nolog
   local profiles
   profiles=$(env_get COMPOSE_PROFILES)
   [[ ",$profiles," == *,db,* ]] && DB_MODE=builtin || DB_MODE=external
-  [[ ",$profiles," == *,caddy,* ]] && CADDY=1 || CADDY=0
+  PROJECT=$(env_get COMPOSE_PROJECT_NAME); PROJECT=${PROJECT:-$LEGACY_PROJECT}
   # Behind the Cloudflare proxy: TRUSTED_PROXY without Caddy (or with a
   # Caddyfile older than v1.0.0), client_ip_headers in the Caddyfile otherwise.
   [ "$(env_get TRUSTED_PROXY)" = cloudflare ] && CF_PROXY=1 || CF_PROXY=0
   APP_PORT=$(env_get HP_APP_PORT); APP_PORT=${APP_PORT:-3000}
   SOCKET_PORT=$(env_get HP_SOCKET_PORT); SOCKET_PORT=${SOCKET_PORT:-3001}
-  HTTP_PORT=$(env_get HP_HTTP_PORT); HTTP_PORT=${HTTP_PORT:-80}
-  HTTPS_PORT=$(env_get HP_HTTPS_PORT); HTTPS_PORT=${HTTPS_PORT:-443}
   APP_REPO=$(env_get HUMBLE_IMAGE) CADDY_REPO=$(env_get HUMBLE_CADDY_IMAGE) APP_VERSION=$(env_get HUMBLE_VERSION)
-  if [ -f /etc/systemd/system/humble-planning-update.timer ] || [ -f /etc/cron.d/humble-planning-update ]; then AUTO_UPDATE=1; fi
   # The type of an existing installation is never changed.
   if [ "$(env_get DEMO_MODE)" = true ]; then
     INSTANCE=demo
@@ -1146,16 +1426,53 @@ load_existing_config() {
   if [ -n "${HP_INSTANCE:-}" ] && [ "$HP_INSTANCE" != "$INSTANCE" ]; then
     warn "HP_INSTANCE=$HP_INSTANCE ignored: this installation stays a $INSTANCE instance."
   fi
-  TLS_MODE=none CLOUDFLARE=0
-  if [ "$CADDY" = 1 ] && [ -f "$INSTALL_DIR/Caddyfile" ]; then
-    if grep -qE '^:[0-9]+ \{' "$INSTALL_DIR/Caddyfile"; then TLS_MODE=http; else TLS_MODE=acme; fi
-    if grep -q 'dns cloudflare' "$INSTALL_DIR/Caddyfile"; then CLOUDFLARE=1; fi
-    if caddyfile_reads_cf_ip; then CF_PROXY=1; fi
-    # Kept when an outdated Caddyfile is generated again (prepare_files)
-    ACME_EMAIL=$(sed -n 's/^[[:space:]]*email[[:space:]]\{1,\}\([^[:space:]]\{1,\}\).*/\1/p' "$INSTALL_DIR/Caddyfile" | sed -n 1p)
+  TLS_MODE=none CLOUDFLARE=0 AUTO_UPDATE=0
+  if [ "$MIGRATE" = 1 ]; then
+    # 1.0.x: Caddy was a service of the instance (profile "caddy"), with the
+    # ports, the Cloudflare token and a single nightly timer of the server.
+    [[ ",$profiles," == *,caddy,* ]] && CADDY=1 || CADDY=0
+    HTTP_PORT=$(env_get HP_HTTP_PORT) HTTPS_PORT=$(env_get HP_HTTPS_PORT)
+    if [ "$CADDY" = 1 ] && [ -f "$INSTALL_DIR/Caddyfile" ]; then
+      if grep -qE '^:[0-9]+ \{' "$INSTALL_DIR/Caddyfile"; then TLS_MODE=http; else TLS_MODE=acme; fi
+      if grep -q 'dns cloudflare' "$INSTALL_DIR/Caddyfile"; then CLOUDFLARE=1; fi
+      if caddyfile_reads_cf_ip; then CF_PROXY=1; fi
+      ACME_EMAIL=$(sed -n 's/^[[:space:]]*email[[:space:]]\{1,\}\([^[:space:]]\{1,\}\).*/\1/p' "$INSTALL_DIR/Caddyfile" | sed -n 1p)
+    elif [ "$CADDY" = 1 ]; then
+      TLS_MODE=acme
+      is_public_domain "$URL_HOST" && [ "$URL_SCHEME" = https ] || TLS_MODE=http
+    fi
+  else
+    CADDY=$(reg_get "$INST_NAME" CADDY) TLS_MODE=$(reg_get "$INST_NAME" TLS)
+    CLOUDFLARE=$(reg_get "$INST_NAME" CF_DNS) ACME_EMAIL=$(reg_get "$INST_NAME" ACME_EMAIL)
+    CADDY=${CADDY:-0} TLS_MODE=${TLS_MODE:-none} CLOUDFLARE=${CLOUDFLARE:-0}
+    [ "$CADDY" = 1 ] && CF_PROXY=$(reg_get "$INST_NAME" CF_PROXY)
+    CF_PROXY=${CF_PROXY:-0}
+    if [ -e "/etc/systemd/system/timers.target.wants/humble-planning-update@$INST_NAME.timer" ] ||
+       [ -f "/etc/cron.d/humble-planning-update-$INST_NAME" ]; then AUTO_UPDATE=1; fi
   fi
+  # Its own Caddy still runs (first takeover, or an earlier one that failed):
+  # its ports and Cloudflare token go to the shared proxy with its site.
+  if [ "$CADDY" = 1 ] && [ -n "$(legacy_caddy_container)" ]; then
+    ADOPT=1
+    [ "$CLOUDFLARE" = 1 ] && CF_TOKEN=$(env_get CLOUDFLARE_API_TOKEN)
+    [ -n "$HTTP_PORT" ] || HTTP_PORT=$(env_get HP_HTTP_PORT) HTTPS_PORT=$(env_get HP_HTTPS_PORT)
+  fi
+  legacy_auto_update && AUTO_UPDATE=1
+  if [ "$CADDY" = 1 ] && [ -f "$PROXY_DIR/.env" ]; then
+    HTTP_PORT=$(kv_get "$PROXY_DIR/.env" HP_HTTP_PORT) HTTPS_PORT=$(kv_get "$PROXY_DIR/.env" HP_HTTPS_PORT)
+  fi
+  HTTP_PORT=${HTTP_PORT:-${HP_HTTP_PORT:-80}} HTTPS_PORT=${HTTPS_PORT:-${HP_HTTPS_PORT:-443}}
   return 0
 }
+
+# The Caddy container of a 1.0.x installation (service "caddy" of its project),
+# until the shared proxy has taken its site over (also when an earlier run failed).
+legacy_caddy_container() {
+  docker ps -aq --filter "label=com.docker.compose.project=$PROJECT" --filter label=com.docker.compose.service=caddy 2>/dev/null | sed -n 1p
+}
+
+# The single nightly timer (or cron entry) of the 1.0.x installations
+legacy_auto_update() { [ -f /etc/systemd/system/humble-planning-update.timer ] || [ -f /etc/cron.d/humble-planning-update ]; }
 
 # Does the Caddyfile resolve the visitor address from CF-Connecting-IP (on
 # connections from Cloudflare only)? Caddyfiles older than v1.0.0 do not.
@@ -1163,67 +1480,166 @@ caddyfile_reads_cf_ip() {
   grep -qiE '^[[:space:]]*client_ip_headers[[:space:]]+cf-connecting-ip' "$INSTALL_DIR/Caddyfile"
 }
 
+# An installation made with 1.0.x (or not registered): it becomes an instance
+# where it is. Its directory, Compose project and volumes do not change.
+configure_takeover() {
+  INSTALL_DIR=$1
+  ok "Installation found in $INSTALL_DIR, made before multi-instance support (1.0.x)"
+  [ "${HP_ACTION:-update}" = update ] ||
+    die "Take this installation over first: run the installer once without HP_ACTION=new, then again to add an instance." nolog
+  itext ""
+  idimtext "It becomes an instance of this server, where it is: its directory, its Docker"
+  idimtext "volumes and its data are kept. With Caddy, its site moves into the reverse proxy"
+  idimtext "shared by the instances, with its certificates."
+  if [ "$INTERACTIVE" = 1 ] && [ "$ASSUME_YES" != 1 ]; then
+    ask_yes_no "Take it over and update it (new images, database migrations, restart)? Your data and settings are kept." y ||
+      die "Nothing changed." nolog
+  elif [ "${HP_UPDATE:-1}" != 1 ]; then
+    die "An installation already exists in $INSTALL_DIR and HP_UPDATE=0." nolog
+  fi
+  MODE=update MIGRATE=1
+  load_existing_config
+  local name_default label_default
+  name_default=$(env_get HUMBLE_INSTANCE)
+  validate_new_name "$name_default" >/dev/null 2>&1 || name_default=$(default_name "$URL_HOST")
+  label_default=$URL_HOST
+  itext ""
+  idimtext "Each instance has a short name, used in the commands (humble-planning status <name>),"
+  idimtext "and a label, free text shown in the list of the instances."
+  ask INST_NAME "Short name of this instance" "${HP_NAME:-$name_default}" validate_new_name HP_NAME
+  ask INST_LABEL "Label of this instance (e.g. Planning Dupont SARL)" "${HP_LABEL:-$label_default}" validate_label HP_LABEL
+}
+
+# Instances already installed: update one, or install a new one.
+choose_action() {
+  local names=() action=${HP_ACTION:-} choice n i opts=()
+  mapfile -t names < <(instance_names)
+  [ "$INTERACTIVE" = 1 ] && text ""
+  show_instances
+  case "$action" in
+    ""|new|update) ;;
+    *) die "Invalid HP_ACTION \"$action\": use new or update." nolog ;;
+  esac
+  if [ -z "$action" ]; then
+    if [ "$INTERACTIVE" = 1 ] && [ "$ASSUME_YES" != 1 ]; then
+      text ""
+      ask_choice choice "What do you want to do?" 1 \
+        "Update an existing instance (new images, database migrations, restart; data and settings kept)" \
+        "Install a new instance on this server"
+      if [ "$choice" = 1 ]; then action=update; else action=new; fi
+    elif [ "${HP_UPDATE:-1}" != 1 ]; then
+      die "Humble Planning is already installed and HP_UPDATE=0: set HP_ACTION=new to install another instance." nolog
+    else
+      action=update
+    fi
+  fi
+  if [ "$action" = new ]; then MODE=install; return 0; fi
+
+  MODE=update
+  if [ -n "${HP_NAME:-}" ]; then
+    [ -f "$REGISTRY_DIR/$HP_NAME.conf" ] || die "HP_NAME=$HP_NAME: no such instance (see the list above)." nolog
+    INST_NAME=$HP_NAME
+  elif [ -n "${HP_INSTALL_DIR:-}" ] && n=$(registered_dir "$HP_INSTALL_DIR"); then
+    INST_NAME=$n
+  elif [ "${#names[@]}" -eq 1 ]; then
+    INST_NAME=${names[0]}
+  elif [ "$INTERACTIVE" = 1 ]; then
+    for n in "${names[@]}"; do opts+=("$n — $(reg_get "$n" LABEL) ($(reg_env "$n" APP_BASE_URL), v$(reg_env "$n" HUMBLE_VERSION))"); done
+    text ""
+    ask_choice i "Instance to update" 1 "${opts[@]}"
+    INST_NAME=${names[i - 1]}
+  else
+    die "Several instances are installed: set HP_NAME to the one to update (or HP_ACTION=new)." nolog
+  fi
+  INST_LABEL=$(reg_get "$INST_NAME" LABEL)
+  INSTALL_DIR=$(reg_get "$INST_NAME" DIR)
+  existing_install "$INSTALL_DIR" || die "The instance $INST_NAME has no installation in $INSTALL_DIR." nolog
+  ok "Instance $INST_NAME — $INST_LABEL ($INSTALL_DIR)"
+  load_existing_config
+}
+
+# Each instance runs its own web application, Socket.io server and database.
+memory_note() {
+  local count=$1 mem_mb need_mb
+  mem_mb=$(( $(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0) / 1024 ))
+  need_mb=$(( (count + 1) * MEMORY_PER_INSTANCE_MB + 512 ))
+  itext ""
+  info "Each instance runs its own web application, real-time server and database: count about 1 GB of memory per instance."
+  if [ "$count" -gt 0 ] && [ "$mem_mb" -gt 0 ] && [ "$mem_mb" -lt "$need_mb" ]; then
+    warn "This server has $(awk -v m="$mem_mb" 'BEGIN {printf "%.1f", m / 1024}') GB of memory for $((count + 1)) instances: about $(awk -v m="$need_mb" 'BEGIN {printf "%.1f", m / 1024}') GB is recommended."
+  fi
+}
+
+configure_new() {
+  local count
+  count=$(instance_names | grep -c . || true)
+  memory_note "$count"
+  itext ""
+  ask APP_URL "Public URL of Humble Planning (e.g. https://planning.example.com)" "${HP_URL:-}" validate_new_url HP_URL
+  APP_URL=${APP_URL%/}
+  parse_url "$APP_URL"
+  APP_URL="$URL_SCHEME://$URL_HOST${URL_PORT:+:$URL_PORT}"
+
+  itext ""
+  idimtext "Each instance has a short name, used in the commands (humble-planning status <name>),"
+  idimtext "and a label, free text shown in the list of the instances."
+  ask INST_NAME "Short name of the instance (a-z, 0-9, -)" "${HP_NAME:-$(default_name "$URL_HOST")}" validate_new_name HP_NAME
+  ask INST_LABEL "Label of the instance (e.g. Planning Dupont SARL)" "${HP_LABEL:-$URL_HOST}" validate_label HP_LABEL
+  PROJECT="$PROJECT_PREFIX$INST_NAME"
+  if has_cmd docker && [ -n "$(docker volume ls -q --filter "label=com.docker.compose.project=$PROJECT" 2>/dev/null)" ]; then
+    die "Docker volumes of a previous instance named $INST_NAME are still there (Compose project $PROJECT): choose another name, or remove them (docker volume ls --filter label=com.docker.compose.project=$PROJECT)." nolog
+  fi
+
+  ask INSTALL_DIR "Installation directory" "${HP_INSTALL_DIR:-$BASE_DIR/instances/$INST_NAME}" validate_new_dir HP_INSTALL_DIR
+  INSTALL_DIR=${INSTALL_DIR%/}
+
+  configure_instance
+
+  itext ""
+  local db_default=1 db_choice
+  case "${HP_DB_MODE:-builtin}" in
+    builtin|local) ;;
+    external) db_default=2 ;;
+    *) die "Invalid HP_DB_MODE \"$HP_DB_MODE\": use builtin or external." nolog ;;
+  esac
+  ask_choice db_choice "Database" "$db_default" \
+    "Built-in PostgreSQL 18 container (recommended)" \
+    "External PostgreSQL server (16 or later)"
+  if [ "$db_choice" = 2 ]; then DB_MODE=external; ask_external_db; else DB_MODE=builtin; fi
+
+  configure_caddy
+  configure_cloudflare_proxy
+  configure_auto_update
+
+  # HP_IMAGE / HP_CADDY_IMAGE are repositories; a tag given there is accepted too.
+  APP_REPO=${HP_IMAGE:-$DEFAULT_IMAGE_REPO} CADDY_REPO=${HP_CADDY_IMAGE:-$DEFAULT_CADDY_IMAGE_REPO}
+  APP_VERSION=${HP_VERSION:-}
+  if [[ ${APP_REPO##*/} == *:* ]]; then APP_VERSION=${APP_VERSION:-${APP_REPO##*:}}; APP_REPO=${APP_REPO%:*}; fi
+  if [[ ${CADDY_REPO##*/} == *:* ]]; then CADDY_REPO=${CADDY_REPO%:*}; fi
+  APP_VERSION=${APP_VERSION#v}
+  pick_ports
+}
+
 configure() {
   step "Configuration"
-  local default_dir=${HP_INSTALL_DIR:-/opt/humble-planning}
-
-  if existing_install "$default_dir"; then
-    INSTALL_DIR=$default_dir
-    ok "Existing installation found in $INSTALL_DIR"
-    if [ "$INTERACTIVE" = 1 ] && [ "$ASSUME_YES" != 1 ]; then
-      ask_yes_no "Update it (new images, database migrations, restart)? Your data and settings are kept." y ||
-        die "Nothing changed. To install another instance, set HP_INSTALL_DIR to another directory." nolog
-    elif [ "${HP_UPDATE:-1}" != 1 ]; then
-      die "An installation already exists in $INSTALL_DIR and HP_UPDATE=0." nolog
-    fi
-    MODE=update
-    load_existing_config
+  local legacy
+  legacy=$(legacy_dir)
+  if [ -n "$legacy" ]; then
+    configure_takeover "$legacy"
+  elif [ -n "$(instance_names)" ]; then
+    choose_action
   else
-    ask APP_URL "Public URL of Humble Planning (e.g. https://planning.example.com)" "${HP_URL:-}" validate_url HP_URL
-    APP_URL=${APP_URL%/}
-    parse_url "$APP_URL"
-    APP_URL="$URL_SCHEME://$URL_HOST${URL_PORT:+:$URL_PORT}"
-
-    ask INSTALL_DIR "Installation directory" "$default_dir" validate_dir HP_INSTALL_DIR
-    INSTALL_DIR=${INSTALL_DIR%/}
-    if existing_install "$INSTALL_DIR"; then
-      ok "Existing installation found in $INSTALL_DIR: switching to update mode"
-      MODE=update
-      load_existing_config
-    fi
+    [ "${HP_ACTION:-new}" = new ] || die "HP_ACTION=$HP_ACTION: no Humble Planning instance is installed on this server yet." nolog
+    MODE=install
   fi
+  [ "$MODE" = install ] && configure_new
 
-  if [ "$MODE" = install ]; then
-    configure_instance
-
-    itext ""
-    local db_default=1 db_choice
-    case "${HP_DB_MODE:-builtin}" in
-      builtin|local) ;;
-      external) db_default=2 ;;
-      *) die "Invalid HP_DB_MODE \"$HP_DB_MODE\": use builtin or external." nolog ;;
-    esac
-    ask_choice db_choice "Database" "$db_default" \
-      "Built-in PostgreSQL 18 container (recommended)" \
-      "External PostgreSQL server (16 or later)"
-    if [ "$db_choice" = 2 ]; then DB_MODE=external; ask_external_db; else DB_MODE=builtin; fi
-
-    configure_caddy
-    configure_cloudflare_proxy
-    configure_auto_update
-
-    # HP_IMAGE / HP_CADDY_IMAGE are repositories; a tag given there is accepted too.
-    APP_REPO=${HP_IMAGE:-$DEFAULT_IMAGE_REPO} CADDY_REPO=${HP_CADDY_IMAGE:-$DEFAULT_CADDY_IMAGE_REPO}
-    APP_VERSION=${HP_VERSION:-}
-    if [[ ${APP_REPO##*/} == *:* ]]; then APP_VERSION=${APP_VERSION:-${APP_REPO##*:}}; APP_REPO=${APP_REPO%:*}; fi
-    if [[ ${CADDY_REPO##*/} == *:* ]]; then CADDY_REPO=${CADDY_REPO%:*}; fi
-    APP_VERSION=${APP_VERSION#v}
-    choose_port APP_PORT "web application" "${HP_APP_PORT:-3000}" HP_APP_PORT
-    choose_port SOCKET_PORT "Socket.io server" "${HP_SOCKET_PORT:-3001}" HP_SOCKET_PORT
-    HTTP_PORT=${HTTP_PORT:-${HP_HTTP_PORT:-80}} HTTPS_PORT=${HTTPS_PORT:-${HP_HTTPS_PORT:-443}}
-  fi
   APP_REPO=${APP_REPO:-$DEFAULT_IMAGE_REPO} CADDY_REPO=${CADDY_REPO:-$DEFAULT_CADDY_IMAGE_REPO}
   if [ -n "${HP_BUILD_SOURCE:-}" ]; then APP_REPO=humble-planning CADDY_REPO=humble-planning-caddy; fi
+  # One image repository for the shared proxy: the one it was created with.
+  if [ "$CADDY" = 1 ] && [ -n "$(kv_get "$PROXY_DIR/.env" HUMBLE_CADDY_IMAGE)" ]; then
+    CADDY_REPO=$(kv_get "$PROXY_DIR/.env" HUMBLE_CADDY_IMAGE)
+  fi
 
   local db_label proxy_label
   if [ "$DB_MODE" = builtin ]; then
@@ -1235,13 +1651,17 @@ configure() {
   else
     db_label="External PostgreSQL server (connection to be tested)"
   fi
-  if [ "$CADDY" = 1 ]; then proxy_label="Caddy (ports $HTTP_PORT/$HTTPS_PORT)"; else proxy_label="None — app on 127.0.0.1:$APP_PORT, Socket.io on 127.0.0.1:$SOCKET_PORT"; fi
+  if [ "$CADDY" = 1 ]; then proxy_label="Shared Caddy (ports $HTTP_PORT/$HTTPS_PORT)"; else proxy_label="None — app on 127.0.0.1:$APP_PORT, Socket.io on 127.0.0.1:$SOCKET_PORT"; fi
   [ "$CF_PROXY" = 1 ] && proxy_label+=", behind the Cloudflare proxy"
+  local mode_label="New instance"
+  [ "$MODE" = update ] && mode_label="Update of the existing instance"
+  [ "$MIGRATE" = 1 ] && mode_label="Takeover and update of the 1.0.x installation"
 
   [ "$INTERACTIVE" = 1 ] && text ""
   box "Summary" \
-    "${DIM}Mode         ${RESET} $( [ "$MODE" = update ] && echo "Update of the existing installation" || echo "New installation")" \
-    "${DIM}Instance     ${RESET} $(instance_label)" \
+    "${DIM}Mode         ${RESET} $mode_label" \
+    "${DIM}Instance     ${RESET} ${BOLD}$INST_NAME${RESET} — $INST_LABEL" \
+    "${DIM}Type         ${RESET} $(instance_label)" \
     "${DIM}Public URL   ${RESET} $APP_URL" \
     "${DIM}Directory    ${RESET} $INSTALL_DIR" \
     "${DIM}Database     ${RESET} $db_label" \
@@ -1348,21 +1768,23 @@ server {
 EOF
 }
 
-# Renders deploy/Caddyfile into the installation directory for the current settings.
-write_caddyfile() {
-  local template blocks="" site=":80"
-  template=$(mktemp)
-  fetch_file deploy/Caddyfile "$template" || die "Could not download the Caddyfile template." nolog
-  if [ "$TLS_MODE" = acme ]; then
-    site=$URL_HOST; blocks=https
-    [ -n "$ACME_EMAIL" ] && blocks+=",acme_email"
-    [ "$CLOUDFLARE" = 1 ] && blocks+=",cloudflare"
+# install_file deploy/FILE DEST MODE [NAME] — the file from the repository; a
+# different existing one is kept as DEST.bak-<date>.
+install_file() {
+  local rel=$1 dest=$2 mode=$3 tmp name=${4:-${2##*/}}
+  tmp=$(mktemp)
+  fetch_file "$rel" "$tmp" || die "Could not download $rel from $REPO_RAW." nolog
+  if [ -f "$dest" ] && ! cmp -s "$tmp" "$dest"; then
+    cp -p "$dest" "$dest.bak-$(date +%Y%m%d%H%M%S)"
+    install -m "$mode" "$tmp" "$dest"
+    ok "$name updated (previous version saved as .bak)"
+  elif [ -f "$dest" ]; then
+    ok "$name is up to date"
+  else
+    install -m "$mode" "$tmp" "$dest"
+    ok "$name"
   fi
-  [ "$CF_PROXY" = 1 ] && blocks+=",cloudflare_proxy"
-  if [[ ",$blocks," == *,acme_email,* || ",$blocks," == *,cloudflare_proxy,* ]]; then blocks+=",global"; fi
-  render_caddyfile "$blocks" "$site" "$ACME_EMAIL" "$template" >"$INSTALL_DIR/Caddyfile"
-  chmod 0644 "$INSTALL_DIR/Caddyfile"
-  rm -f "$template"
+  rm -f "$tmp"
 }
 
 install_wrapper() {
@@ -1371,43 +1793,52 @@ install_wrapper() {
   fetch_file deploy/humble-planning "$tmp" || die "Could not download the humble-planning command." nolog
   install -m 0755 "$tmp" "$WRAPPER_PATH"
   rm -f "$tmp"
-  printf '# Humble Planning — written by install.sh\nHUMBLE_INSTALL_DIR=%s\n' "$INSTALL_DIR" >"$WRAPPER_CONFIG"
+  # HUMBLE_INSTALL_DIR (1.0.x) is gone: the instances are in the registry.
+  printf '# Humble Planning — written by install.sh\n# Root of the instances and of the shared reverse proxy; instances: %s\nHUMBLE_BASE_DIR=%s\n' "$REGISTRY_DIR" "$BASE_DIR" >"$WRAPPER_CONFIG"
   chmod 0644 "$WRAPPER_CONFIG"
+}
+
+# The shared reverse proxy: its Compose project, settings, site template and
+# network (the configuration itself is written by `humble-planning proxy`).
+prepare_proxy() {
+  install -d -m 0750 "$PROXY_DIR"
+  install -d -m 0755 "$PROXY_DIR/caddy" "$PROXY_DIR/caddy/sites"
+  install -d -m 0700 "$PROXY_DIR/caddy/secrets"
+  install_file deploy/proxy/docker-compose.yml "$PROXY_DIR/docker-compose.yml" 0640 "docker-compose.yml of the shared reverse proxy"
+  local tmp
+  tmp=$(mktemp)
+  fetch_file deploy/Caddyfile "$tmp" || die "Could not download the Caddyfile template." nolog
+  install -m 0644 "$tmp" "$PROXY_DIR/site-template.caddy"
+  rm -f "$tmp"
+  if [ ! -f "$PROXY_DIR/caddy/Caddyfile" ]; then
+    printf '# Humble Planning — shared reverse proxy (generated again by humble-planning).\nimport sites/*.caddy\n' >"$PROXY_DIR/caddy/Caddyfile"
+    chmod 0644 "$PROXY_DIR/caddy/Caddyfile"
+  fi
+  local file="$PROXY_DIR/.env" created=0
+  if [ ! -f "$file" ]; then
+    created=1
+    printf '# Humble Planning — shared reverse proxy, written by install.sh on %s.\n' "$(date '+%F %T')" >"$file"
+    chmod 600 "$file"
+  fi
+  [ -n "$(kv_get "$file" COMPOSE_PROJECT_NAME)" ] || kv_set "$file" 600 COMPOSE_PROJECT_NAME "$PROXY_PROJECT"
+  [ -n "$(kv_get "$file" HUMBLE_CADDY_IMAGE)" ] || kv_set "$file" 600 HUMBLE_CADDY_IMAGE "$CADDY_REPO"
+  [ -n "$(kv_get "$file" HP_HTTP_PORT)" ] || kv_set "$file" 600 HP_HTTP_PORT "$HTTP_PORT" HP_HTTPS_PORT "$HTTPS_PORT"
+  [ "${HP_PULL:-1}" = 0 ] && kv_set "$file" 600 HUMBLE_PULL 0
+  chown root:root "$file"
+  if [ "$created" = 1 ]; then ok "Shared reverse proxy: $PROXY_DIR (ports $HTTP_PORT/$HTTPS_PORT)"; else ok "Shared reverse proxy: $PROXY_DIR"; fi
+  if ! docker network inspect "$PROXY_NETWORK" >/dev/null 2>&1; then
+    run_task "Creating the Docker network $PROXY_NETWORK" docker network create --label org.humbleplanning.proxy=1 "$PROXY_NETWORK"
+  fi
 }
 
 prepare_files() {
   step "Installation files"
   install -d -m 0750 "$INSTALL_DIR"
-
-  local compose_tmp
-  compose_tmp=$(mktemp)
-  fetch_file deploy/docker-compose.yml "$compose_tmp" || die "Could not download docker-compose.yml from $REPO_RAW." nolog
-  if [ -f "$INSTALL_DIR/docker-compose.yml" ] && ! cmp -s "$compose_tmp" "$INSTALL_DIR/docker-compose.yml"; then
-    cp -p "$INSTALL_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml.bak-$(date +%Y%m%d%H%M%S)"
-    install -m 0640 "$compose_tmp" "$INSTALL_DIR/docker-compose.yml"
-    ok "docker-compose.yml updated (previous version saved as .bak)"
-  elif [ -f "$INSTALL_DIR/docker-compose.yml" ]; then
-    ok "docker-compose.yml is up to date"
-  else
-    install -m 0640 "$compose_tmp" "$INSTALL_DIR/docker-compose.yml"
-    ok "docker-compose.yml"
-  fi
-  rm -f "$compose_tmp"
-
+  install_file deploy/docker-compose.yml "$INSTALL_DIR/docker-compose.yml" 0640
   if [ "$CADDY" = 1 ]; then
-    if [ "$MODE" = update ] && [ -f "$INSTALL_DIR/Caddyfile" ] && { [ "$CF_PROXY" = 0 ] || caddyfile_reads_cf_ip; }; then
-      ok "Caddyfile kept"
-    elif [ "$MODE" = update ] && [ -f "$INSTALL_DIR/Caddyfile" ]; then
-      # Behind the Cloudflare proxy, a Caddyfile older than v1.0.0 lets the
-      # application trust CF-Connecting-IP from anyone (TRUSTED_PROXY).
-      cp -p "$INSTALL_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile.bak-$(date +%Y%m%d%H%M%S)"
-      write_caddyfile
-      CADDYFILE_UPDATED=1
-      ok "Caddyfile updated: CF-Connecting-IP is now only accepted from Cloudflare (previous version saved as .bak)"
-    else
-      write_caddyfile
-      ok "Caddyfile for $( [ "$TLS_MODE" = acme ] && echo "$URL_HOST" || echo "plain HTTP on port $HTTP_PORT")"
-    fi
+    install_file deploy/docker-compose.proxy.yml "$INSTALL_DIR/docker-compose.proxy.yml" 0640
+  else
+    rm -f "$INSTALL_DIR/docker-compose.proxy.yml"
   fi
 
   # .env — settings of this run, secrets only when missing
@@ -1415,20 +1846,22 @@ prepare_files() {
   [ "$MODE" = update ] && fresh=keep
   local profiles=""
   [ "$DB_MODE" = builtin ] && profiles=db
-  [ "$CADDY" = 1 ] && profiles=${profiles:+$profiles,}caddy
   local tz
   tz=$(detect_timezone)
 
-  env_plan "Docker Compose" COMPOSE_PROJECT_NAME "$PROJECT_NAME" keep
-  env_plan "Docker Compose" COMPOSE_PROFILES "$profiles" "$fresh"
+  env_plan "Docker Compose" COMPOSE_PROJECT_NAME "$PROJECT" keep
+  # Caddy is no longer a service of the instance (1.0.x): the shared proxy.
+  env_plan "Docker Compose" COMPOSE_PROFILES "$profiles" set
+  if [ "$CADDY" = 1 ]; then
+    env_plan "Docker Compose" COMPOSE_FILE "docker-compose.yml:docker-compose.proxy.yml" set
+  else
+    env_unset COMPOSE_FILE
+  fi
+  env_plan "Docker Compose" HUMBLE_INSTANCE "$INST_NAME" set
   env_plan "Docker Compose" HUMBLE_IMAGE "$APP_REPO" set
   env_plan "Docker Compose" HUMBLE_CADDY_IMAGE "$CADDY_REPO" set
   env_plan "Docker Compose" HP_APP_PORT "$APP_PORT" "$fresh"
   env_plan "Docker Compose" HP_SOCKET_PORT "$SOCKET_PORT" "$fresh"
-  if [ "$CADDY" = 1 ]; then
-    env_plan "Docker Compose" HP_HTTP_PORT "$HTTP_PORT" "$fresh"
-    env_plan "Docker Compose" HP_HTTPS_PORT "$HTTPS_PORT" "$fresh"
-  fi
 
   env_plan "Application" NODE_ENV production keep
   env_plan "Application" PORT 3000 keep
@@ -1489,9 +1922,9 @@ prepare_files() {
   [ "${HP_PULL:-1}" = 0 ] && env_plan "Updates" HUMBLE_PULL 0 set
   [ -n "${HP_BUILD_SOURCE:-}" ] && env_plan "Updates" HUMBLE_BUILD_SOURCE "$HP_BUILD_SOURCE" set
 
-  if [ "$CADDY" = 1 ] && [ "$CLOUDFLARE" = 1 ] && [ "$MODE" = install ]; then
-    env_plan "Reverse proxy" CLOUDFLARE_API_TOKEN "$CF_TOKEN" set
-  fi
+  # The Cloudflare token belongs to the proxy (caddy/secrets/<name>.cloudflare-token).
+  # A 1.0.x installation keeps its own until the proxy has taken its site over.
+  [ "$ADOPT" = 1 ] || env_unset CLOUDFLARE_API_TOKEN
 
   local had_env=0
   [ -f "$INSTALL_DIR/.env" ] && had_env=1
@@ -1509,6 +1942,10 @@ prepare_files() {
     nginx_example >"$INSTALL_DIR/nginx-example.conf"
     chmod 0644 "$INSTALL_DIR/nginx-example.conf"
   fi
+
+  write_registry
+  ok "Instance $INST_NAME registered ($REGISTRY_DIR/$INST_NAME.conf)"
+  if [ "$CADDY" = 1 ]; then prepare_proxy; fi
   install_wrapper
   ok "Management command: $WRAPPER_PATH (humble-planning help)"
 }
@@ -1583,7 +2020,14 @@ images() {
   CADDY_IMAGE="$CADDY_REPO:$APP_VERSION"
   sub_info "Humble Planning version $APP_VERSION"
 
+  # The shared proxy runs the newest version installed on this server: its
+  # image is only needed when this version is newer.
   if [ "$CADDY" = 1 ]; then
+    PROXY_VERSION=$(kv_get "$PROXY_DIR/.env" HUMBLE_CADDY_VERSION)
+  fi
+  if [ "$CADDY" = 1 ] && [ -n "$PROXY_VERSION" ] && ! version_gt "$APP_VERSION" "$PROXY_VERSION" && image_exists "$CADDY_REPO:$PROXY_VERSION"; then
+    ok "Shared reverse proxy: $CADDY_REPO:$PROXY_VERSION"
+  elif [ "$CADDY" = 1 ]; then
     if [ -n "${HP_BUILD_SOURCE:-}" ]; then
       run_task "Building the Caddy image (with the Cloudflare DNS module)" build_caddy_image
     elif [ "${HP_PULL:-1}" != 0 ] && spin "Downloading $CADDY_IMAGE" docker pull "$CADDY_IMAGE"; then
@@ -1598,6 +2042,10 @@ images() {
 
   env_plan "Updates" HUMBLE_VERSION "$APP_VERSION" set
   env_commit
+  if [ "$CADDY" = 1 ] && [ -z "$PROXY_VERSION" ]; then
+    PROXY_VERSION=$APP_VERSION
+    kv_set "$PROXY_DIR/.env" 600 HUMBLE_CADDY_VERSION "$APP_VERSION"
+  fi
 }
 
 # ─── Step 6: database ────────────────────────────────────────────────────────
@@ -1845,19 +2293,47 @@ start_stack() {
   step "Starting Humble Planning"
   info "The first start can take a minute or two."
   run_task "Starting the containers" compose up -d --wait --wait-timeout 300
-  # A running Caddy keeps the configuration it loaded: apply the updated Caddyfile.
-  if [ "$CADDYFILE_UPDATED" = 1 ]; then
-    run_task "Reloading the Caddy configuration" compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
-  fi
   run_task "Checking the web application" wait_http "http://127.0.0.1:$APP_PORT/login" 120
-  if [ "$MODE" = install ] && [ "$AUTO_UPDATE" = 1 ]; then
-    "$WRAPPER_PATH" auto-update on || { warn "Automatic updates could not be enabled: run 'humble-planning auto-update on' later."; AUTO_UPDATE=0; }
+  if [ "$CADDY" = 1 ]; then attach_proxy; fi
+  if [ "$AUTO_UPDATE" = 1 ] && { [ "$MODE" = install ] || legacy_auto_update; }; then
+    # A 1.0.x timer updated the only instance without naming it: replaced.
+    "$WRAPPER_PATH" auto-update on "$INST_NAME" || { warn "Automatic updates could not be enabled: run 'humble-planning auto-update on $INST_NAME' later."; AUTO_UPDATE=0; }
   fi
-  if [ "$CADDY" = 1 ]; then
-    if [ "$TLS_MODE" = http ]; then
-      run_task "Checking Caddy (HTTP)" wait_http "http://127.0.0.1:$HTTP_PORT/login" 60
+}
+
+# The site of the instance in the shared proxy: added (checked, hot reload),
+# taken over from the Caddy of a 1.0.x installation, or kept as it is.
+attach_proxy() {
+  local sub="" site="$PROXY_DIR/caddy/sites/$INST_NAME.caddy" rc=0
+  # The proxy first moves to this version when it is newer (checked, rolled back on failure).
+  "$WRAPPER_PATH" proxy upgrade "$APP_VERSION" ||
+    warn "The shared reverse proxy keeps v$(kv_get "$PROXY_DIR/.env" HUMBLE_CADDY_VERSION) (see /var/log/humble-planning/proxy.log)."
+  if [ "$ADOPT" = 1 ]; then
+    sub=adopt
+  elif [ ! -f "$site" ]; then
+    sub=add-site
+  fi
+  if [ -n "$sub" ]; then
+    if [ "$CLOUDFLARE" = 1 ] && [ -n "$CF_TOKEN" ]; then
+      printf '%s\n' "$CF_TOKEN" | "$WRAPPER_PATH" proxy "$sub" "$INST_NAME" --token-stdin || rc=$?
     else
-      sub_info "Caddy is requesting the certificate for $URL_HOST (needs DNS pointing to this server)"
+      "$WRAPPER_PATH" proxy "$sub" "$INST_NAME" </dev/null || rc=$?
+    fi
+    if [ "$rc" != 0 ]; then
+      if [ "$ADOPT" = 1 ]; then
+        die "The shared reverse proxy could not take over the site: the previous Caddy of this installation serves it again. Run the installer again once the cause is fixed (see /var/log/humble-planning/$INST_NAME.log)." nolog
+      fi
+      die "The site of $INST_NAME could not be added to the shared reverse proxy (see /var/log/humble-planning/$INST_NAME.log)." nolog
+    fi
+    if [ "$ADOPT" = 1 ]; then
+      # Now kept by the proxy only.
+      env_unset CLOUDFLARE_API_TOKEN; env_unset HP_HTTP_PORT; env_unset HP_HTTPS_PORT
+      env_commit
+    fi
+  else
+    ok "Site kept in the shared reverse proxy ($site)"
+    if [ -z "$(pcompose ps -q --status running caddy 2>/dev/null)" ]; then
+      "$WRAPPER_PATH" proxy restart || warn "The shared reverse proxy is not running: humble-planning proxy status"
     fi
   fi
 }
@@ -1869,7 +2345,7 @@ check_new_release() {
   text "${BOLD}Checking for a newer release${RESET}"
   local args=()
   { [ "$INTERACTIVE" = 0 ] || [ "$ASSUME_YES" = 1 ]; } && args+=(--yes)
-  if "$WRAPPER_PATH" update "${args[@]}"; then
+  if "$WRAPPER_PATH" update "$INST_NAME" "${args[@]}"; then
     APP_VERSION=$(env_get HUMBLE_VERSION)
   else
     warn "The update did not complete (see the messages above): Humble Planning keeps running v$(env_get HUMBLE_VERSION)."
@@ -1887,21 +2363,26 @@ summary() {
   else
     account_lines=("${DIM}Administrator${RESET} (existing account)")
   fi
+  local n=$INST_NAME
   printf '\n'
   BOX_COLOR=$GREEN box "Humble Planning is ready" \
+    "${DIM}Instance     ${RESET} ${BOLD}$INST_NAME${RESET} — $INST_LABEL" \
     "${DIM}URL          ${RESET} ${BOLD}$APP_URL${RESET}" \
     "${account_lines[@]}" \
     "${DIM}HTTPS        ${RESET} $(https_label)" \
     "${DIM}Version      ${RESET} v${APP_VERSION:-?}" \
-    "${DIM}Auto updates ${RESET} $( [ "$AUTO_UPDATE" = 1 ] && echo "Enabled — patch releases, nightly" || echo "Disabled — enable with: humble-planning auto-update on")" \
+    "${DIM}Auto updates ${RESET} $( [ "$AUTO_UPDATE" = 1 ] && echo "Enabled — patch releases, nightly" || echo "Disabled — enable with: humble-planning auto-update on $n")" \
     "${DIM}Directory    ${RESET} $INSTALL_DIR" \
     "${DIM}Install log  ${RESET} $LOG_FILE" \
     "" \
-    "${BOLD}Useful commands${RESET}" \
-    "  humble-planning status     state of the containers" \
-    "  humble-planning logs       follow the logs (app, socket, db, caddy)" \
-    "  humble-planning restart    restart Humble Planning" \
-    "  humble-planning update     update to the latest release (backup + rollback)"
+    "${BOLD}Useful commands${RESET} ${DIM}(the name can be left out while there is one instance)${RESET}" \
+    "  humble-planning list             instances of this server" \
+    "  humble-planning status $n     state of the containers" \
+    "  humble-planning logs $n       follow the logs (app, socket, db)" \
+    "  humble-planning restart $n    restart this instance" \
+    "  humble-planning update $n     update to the latest release (backup + rollback)" \
+    "  humble-planning new              install another instance on this server" \
+    "  humble-planning help             every command (backup, rollback, remove, proxy…)"
 
   if [ -n "$BACKUP_KEY_NEW" ]; then
     printf '\n'
@@ -1934,7 +2415,7 @@ summary() {
     else
       text "  • Point the DNS record of ${URL_HOST} to this server and open ports 80 and 443."
     fi
-    text "  • Certificate progress: humble-planning logs caddy"
+    text "  • Certificate progress: humble-planning proxy logs"
   else
     printf '\n'
     warn "Humble Planning is served over plain HTTP: use HTTPS for a production server."
@@ -1975,6 +2456,7 @@ main() {
   PROV_OUT="$TMP_DIR/provision.out"
 
   detect_source_dir
+  detect_base_dir
   local version label=installer
   version=$(source_version)
   [ -n "$version" ] && label="v$version"
@@ -1984,7 +2466,8 @@ main() {
   text "This script installs Humble Planning with Docker on this server:"
   text "  ${ACCENT}•${RESET} Docker Engine and Docker Compose, if they are not installed yet"
   text "  ${ACCENT}•${RESET} the Humble Planning containers: web app, real-time server, PostgreSQL"
-  text "  ${ACCENT}•${RESET} optionally Caddy, a reverse proxy with automatic HTTPS"
+  text "  ${ACCENT}•${RESET} optionally Caddy, a reverse proxy with automatic HTTPS, shared by the instances"
+  text "Run it again to update an instance or to add another one on this server."
   dimtext "Estimated time: 5 to 10 minutes. Detailed log: $LOG_FILE"
   printf '\n'
   confirm "Continue?" || die "Installation cancelled." nolog

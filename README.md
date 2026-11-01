@@ -160,20 +160,25 @@ curl -fsSL https://raw.githubusercontent.com/Malfhas/HumblePlanning/main/install
 The installer:
 
 - installs Docker Engine and Docker Compose when needed;
-- asks for the public URL, the installation directory, the database (built-in PostgreSQL 18 or an existing server), and whether to set up Caddy for automatic HTTPS (Let's Encrypt, optionally through the Cloudflare DNS challenge);
+- asks for the public URL, a short name and a label for the instance, the database (built-in PostgreSQL 18 or an existing server), and whether to serve it with Caddy for automatic HTTPS (Let's Encrypt, optionally through the Cloudflare DNS challenge);
 - generates the secrets, applies the database migrations, creates the administrator account and starts the stack.
 
-Then manage the installation with the `humble-planning` command:
+Several instances can run on one server, each with its own domain, database, files, backups and version, behind one shared Caddy: run `sudo humble-planning new` (or the installer again) to add another one.
+
+Then manage the instances with the `humble-planning` command (the instance name can be left out while there is only one):
 
 ```bash
-humble-planning status        # version, available update, state of the containers
-humble-planning logs app      # logs of the app, socket, db or caddy service
-humble-planning update        # back up the database, update, roll back automatically on failure
-humble-planning backup        # back up the database
-humble-planning help          # every command
+humble-planning list               # instances: name, label, URL, version, state
+humble-planning new                # install another instance (installer of the latest release)
+humble-planning status <instance>  # version, available update, state of the containers
+humble-planning logs <instance>    # logs of the app, socket or db service
+humble-planning update --all       # back up each database, update, roll back automatically on failure
+humble-planning backup <instance>  # back up the database
+humble-planning remove <instance>  # final backup, then remove the instance
+humble-planning help               # every command
 ```
 
-Non-interactive installation, updates and rollbacks, automatic updates, running behind an existing reverse proxy and building the Docker images yourself are covered in the **[installation guide](docs/installation.md)**.
+Non-interactive installation, several instances, the shared reverse proxy, updates and rollbacks, automatic updates, migrating from 1.0.x, running behind an existing reverse proxy and building the Docker images yourself are covered in the **[installation guide](docs/installation.md)**.
 
 ## Development
 

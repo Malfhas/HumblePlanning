@@ -4,6 +4,25 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-01
+
+### Added
+
+- Several instances on one server, each with its own name, label, domain, database, files, backups and version. Running the installer again lists the instances and offers to update one of them or to install a new one; in a script, `HP_ACTION`, `HP_NAME` and `HP_LABEL` choose. The loopback ports of a new instance are chosen automatically.
+- One Caddy reverse proxy shared by all the instances of a server, from the first installation on: one site file per instance, checked with `caddy validate` before every hot reload and restored when the check fails, a Cloudflare API token per site kept by the proxy only, and an image that follows the newest version installed on the server.
+- `humble-planning list`, and an instance name for every command (`humble-planning status <instance>`). Without a name, with several instances, the command asks in a terminal and stops with the list in a script.
+- `humble-planning new` installs another instance without the `curl` command: it downloads the installer of the latest published release, checks it, and runs it for a new instance (the `HP_*` variables give a non-interactive installation).
+- `humble-planning update` updates several instances one after the other (`--all`, several names, or a choice from the list in a terminal), each with its own pre-update backup and automatic rollback, then prints the result of each one.
+- `humble-planning remove <instance>`: final database backup kept in `/var/backups/humble-planning`, confirmation by typing the name, then removal of the containers, volumes, files, proxy site, Cloudflare token and nightly update of the instance; the shared proxy can go with the last instance that uses it.
+- `humble-planning proxy status|logs|restart|reload` for the shared reverse proxy.
+- Nightly automatic updates per instance (`humble-planning-update@<instance>.timer`, or one cron entry per instance).
+- Settings > Version shows the update command with the name of the instance.
+
+### Changed
+
+- An installation made with 1.0.x is taken over by the installer: registered as an instance without moving its directory, Compose project or volumes, its Caddy moved into the shared proxy with its certificates (its own Caddy serves the site again if the takeover fails), and its nightly update timer replaced by the one of the instance. `humble-planning update` on a 1.0.x installation still updates it in place, without multi-instance support: run the installer once to get it.
+- The web application reaches its Socket.io server as `socket.internal`, a name that only exists on the private network of its instance.
+
 ## [1.0.1] - 2026-10-31
 
 ### Security
@@ -122,5 +141,6 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.1.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.0
 [1.0.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.0.0
