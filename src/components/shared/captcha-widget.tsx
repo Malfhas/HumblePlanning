@@ -19,6 +19,10 @@ const ALTCHA_LOADERS: Record<AppLocale, () => Promise<unknown>> = { // i18n-igno
   de: () => import("altcha/i18n/de"),
 };
 
+/** Options without an attribute of their own: the logo and the footer are
+ *  replaced by the notice under the widget. */
+const ALTCHA_CONFIGURATION = JSON.stringify({ hideLogo: true, hideFooter: true });
+
 interface CaptchaWidgetProps {
   provider: "altcha" | "turnstile" | "recaptcha";
   siteKey: string;
@@ -67,97 +71,97 @@ function AltchaCaptcha({ onVerify, onExpire }: Omit<CaptchaWidgetProps, "provide
     };
 
     el.addEventListener("statechange", handleStateChange);
-
-    // Upstream widget accessibility bug: the `<a class="altcha-logo">` link
-    // is `aria-hidden="true"` but stays clickable, which triggers the browser
-    // warning "Blocked aria-hidden on an element because its descendant
-    // retained focus" on click. We remove the attribute as soon as it shows up
-    // in the widget subtree: `tabindex="-1"` already prevents keyboard
-    // navigation, and without aria-hidden screen readers correctly announce
-    // the attribution link.
-    const stripAriaHiddenOnLogo = () => {
-      el.querySelectorAll<HTMLElement>(".altcha-logo[aria-hidden]").forEach((a) => {
-        a.removeAttribute("aria-hidden");
-      });
-    };
-    stripAriaHiddenOnLogo();
-    const observer = new MutationObserver(stripAriaHiddenOnLogo);
-    observer.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-hidden"] });
-
-    return () => {
-      el.removeEventListener("statechange", handleStateChange);
-      observer.disconnect();
-    };
+    return () => el.removeEventListener("statechange", handleStateChange);
   }, [ready, onVerify, onExpire]);
 
-  if (!ready) {
-    return (
-      <div className="flex h-[58px] items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground">
-        {t("captcha.loading")}
-      </div>
-    );
-  }
-
   // colorScheme toggles the widget's internal CSS `light-dark()` function,
-  // which aligns its colors with the site's current theme.
+  // for the few colors not taken from the theme below.
   const widgetStyle = {
     colorScheme: resolvedTheme === "dark" ? "dark" : "light",
   } as React.CSSProperties;
 
   return (
-    <div className="flex w-full justify-center">
-      {/*
-        Visual overrides for the widget (no Shadow DOM, classes reachable
-        in the light DOM). We force a single-line layout, the logo is
-        right-aligned, the "Protected by ALTCHA" text is hidden and the
-        width is fixed (~310 px) to stay more compact than the
-        "Sign in" button, like the Turnstile widget.
-
-        The 1st child of .altcha-main holds the checkbox-wrap AND the
-        ALTCHA logo (rendered right after in the same flex container).
-        Giving it flex-grow:1 and forcing the inner checkbox-wrap
-        not to stretch pushes the logo all the way to the right of the
-        container — exactly 0.75rem from the edge (the widget padding).
-      */}
-      <style>{`
-        altcha-widget .altcha-main {
-          flex-direction: row !important;
-          align-items: center !important;
-          gap: 0.5rem !important;
-          width: 310px;
-          max-width: 100%;
-        }
-        altcha-widget .altcha-main > *:first-child {
-          flex-grow: 1 !important;
-          width: auto !important;
-          justify-content: space-between !important;
-        }
-        altcha-widget .altcha-main > *:first-child .altcha-checkbox-wrap {
-          flex-grow: 0 !important;
-        }
-        altcha-widget .altcha-footer {
-          display: none !important;
-        }
-      `}</style>
-      {/* Web Component provided by the `altcha` package — not typed in JSX by default.
-          - `challenge`: URL to fetch the challenge from (the widget detects
-            automatically that it is a URL via the regex /^(https?:)?\\//).
-          - `auto="onload"`: starts solving the PoW as soon as the widget
-            mounts, without waiting for the user to tick the box. The
-            check is therefore transparent: by the time the form is
-            filled in, the captcha is already solved. */}
-      {/* @ts-expect-error custom element */}
-      <altcha-widget
-        ref={widgetRef as unknown as React.RefObject<HTMLElement>}
-        challenge="/api/altcha/challenge"
-        auto="onload"
-        name="altcha"
-        language={ALTCHA_LANGUAGE[locale]}
-        style={widgetStyle}
-      />
+    <div className="flex w-full flex-col gap-1">
+      {ready ? (
+        <>
+          {/*
+            The widget renders in the light DOM: it takes the theme colors
+            through its CSS variables and sits like the inputs of the form
+            (full width, same height, border and radius). Logo and footer
+            are hidden by `configuration`: the attribution is shown below
+            the box instead, in the language of the interface.
+          */}
+          <style>{`
+            altcha-widget {
+              display: block;
+              width: 100%;
+              font-size: 0.875rem;
+              --altcha-max-width: 100%;
+              --altcha-border-width: 1px;
+              --altcha-border-radius: calc(var(--radius) - 2px);
+              --altcha-border-color: var(--input);
+              --altcha-shadow: none;
+              --altcha-color-base: transparent;
+              --altcha-color-base-content: var(--foreground);
+              --altcha-color-neutral: var(--muted);
+              --altcha-color-neutral-content: var(--muted-foreground);
+              --altcha-color-primary: var(--primary);
+              --altcha-color-primary-content: var(--primary-foreground);
+              --altcha-color-error: var(--destructive);
+              --altcha-checkbox-size: 20px;
+              --altcha-checkbox-border-color: var(--ring);
+              --altcha-checkbox-border-radius: 4px;
+              --altcha-spinner-color: var(--primary);
+            }
+            .dark altcha-widget {
+              --altcha-color-base: color-mix(in oklab, var(--input) 30%, transparent);
+            }
+            altcha-widget .altcha-main {
+              box-sizing: border-box;
+              min-height: 2.75rem;
+              padding-block: 0;
+              justify-content: center;
+            }
+          `}</style>
+          {/* Web Component provided by the `altcha` package — not typed in JSX by default.
+              - `challenge`: URL to fetch the challenge from (the widget detects
+                automatically that it is a URL via the regex /^(https?:)?\\//).
+              - `auto="onload"`: starts solving the PoW as soon as the widget
+                mounts, without waiting for the user to tick the box. The
+                check is therefore transparent: by the time the form is
+                filled in, the captcha is already solved. */}
+          {/* @ts-expect-error custom element */}
+          <altcha-widget
+            ref={widgetRef as unknown as React.RefObject<HTMLElement>}
+            challenge="/api/altcha/challenge"
+            auto="onload"
+            name="altcha"
+            language={ALTCHA_LANGUAGE[locale]}
+            configuration={ALTCHA_CONFIGURATION}
+            style={widgetStyle}
+          />
+        </>
+      ) : (
+        <div className="flex h-11 items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground">
+          {t("captcha.loading")}
+        </div>
+      )}
+      <p className="self-end text-[11px] text-muted-foreground">
+        {t.rich("captcha.altchaNotice", {
+          link: (chunks) => <a href="https://altcha.org/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground hover:underline">{chunks}</a>,
+        })}
+      </p>
     </div>
   );
 }
+
+/** Global set by the reCAPTCHA v3 script (the part used here). */
+type RecaptchaWindow = Window & {
+  grecaptcha?: {
+    ready: (callback: () => void) => void;
+    execute: (siteKey: string, options: { action: string }) => Promise<string>; // i18n-ignore TypeScript type read as JSX text
+  };
+};
 
 function RecaptchaWidget({ siteKey, onVerify }: Omit<CaptchaWidgetProps, "provider">) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -178,11 +182,12 @@ function RecaptchaWidget({ siteKey, onVerify }: Omit<CaptchaWidgetProps, "provid
   }, [siteKey, locale]);
 
   const execute = useCallback(() => {
-    if (!ready || !(window as any).grecaptcha) return;
-    (window as any).grecaptcha.ready(() => {
-      (window as any).grecaptcha
+    const grecaptcha = (window as RecaptchaWindow).grecaptcha;
+    if (!ready || !grecaptcha) return;
+    grecaptcha.ready(() => {
+      grecaptcha
         .execute(siteKey, { action: "login" })
-        .then((token: string) => onVerify(token));
+        .then((token) => onVerify(token));
     });
   }, [ready, siteKey, onVerify]);
 
