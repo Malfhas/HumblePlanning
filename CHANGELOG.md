@@ -4,6 +4,13 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-11-02
+
+### Changed
+
+- ALTCHA captcha (sign-in, forgot password, password reset): the box spans the form like its inputs, with their height, border and radius and the colors of the theme in light and dark mode. The ALTCHA logo is no longer inside the box; a "Protected by ALTCHA" notice, in the language of the interface, sits under it.
+- `unpdf` 2.1.0, used to extract the text of PDF attachments in the AI chat (same text as before).
+
 ## [1.1.2] - 2026-11-01
 
 ### Added
@@ -176,6 +183,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.1.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.3
 [1.1.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.2
 [1.1.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.1
 [1.1.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.0
