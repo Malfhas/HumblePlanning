@@ -25,5 +25,14 @@
     "notAllowed": "Votre rôle ne permet pas d'utiliser l'application mobile.",
     "expired": "Ce QR code a expiré.",
     "regenerate": "Générer un nouveau QR code"
+  },
+  "quickAccess": {
+    "button": "Application mobile",
+    "title": "Application mobile",
+    "description": "Retrouvez votre planning sur votre téléphone Android, avec les alertes en temps réel.",
+    "installTitle": "1. Installez l'application",
+    "installText": "Scannez ce code avec l'appareil photo de votre téléphone pour télécharger l'application, ou ouvrez le lien.",
+    "download": "Télécharger l'application",
+    "signInTitle": "2. Connectez-vous"
   }
 }

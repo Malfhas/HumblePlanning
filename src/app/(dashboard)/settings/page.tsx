@@ -52,7 +52,8 @@ import { IconPicker } from "@/components/shared/icon-picker";
 import { ErrorState } from "@/components/shared/error-state";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { VersionPanel } from "@/components/settings/version-panel";
-import { RELEASE_MIN_APP_VERSION } from "@/lib/utils/app-version";
+import { DEFAULT_MOBILE_STORE_URL, RELEASE_MIN_APP_VERSION } from "@/lib/utils/app-version";
+import { Textarea } from "@/components/ui/textarea";
 
 // Labels resolved at render time from the identifiers (`settings` catalog):
 // i18n-dynamic: settings.categories.*
@@ -81,6 +82,13 @@ interface ConfigField {
   key: string;
   type: "text" | "number" | "boolean" | "password" | "select" | "image" | "themed-image" | "multiselect" | "taglist" | "richtext" | "datetime" | "color" | "icon" | "time" | "action";
   defaultValue?: string;
+  /**
+   * Sample shown in an empty field: what the server applies when it is left
+   * empty. Unlike `defaultValue`, never saved (a later release may change it).
+   */
+  placeholder?: string;
+  /** Multi-line text (a key file pasted as it is); with `accept`, a button imports it from a file. */
+  multiline?: boolean;
   /** ICU parameters of the description (literal braces such as `{{SOCIETE}}`). */
   descriptionParams?: Record<string, string>;
   /** Start of a section: stable identifier (label: settings.sections.<section>). */
@@ -470,8 +478,8 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       // Mobile app
       { key: "MOBILE_LOGIN_ENABLED", type: "boolean", defaultValue: "true", section: "mobile" },
       { key: "MOBILE_PAIRING_ENABLED", type: "boolean", defaultValue: "true" },
-      { key: "MOBILE_MIN_APP_VERSION", type: "text", descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
-      { key: "MOBILE_STORE_URL", type: "text" },
+      { key: "MOBILE_MIN_APP_VERSION", type: "text", placeholder: RELEASE_MIN_APP_VERSION, descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
+      { key: "MOBILE_STORE_URL", type: "text", placeholder: DEFAULT_MOBILE_STORE_URL },
       { key: "MOBILE_PUSH_ENABLED", type: "boolean", defaultValue: "true" },
       { key: "MOBILE_PUSH_TRIGGERS", type: "multiselect", optionLabels: "options.triggers", defaultValue: "task_created,task_deleted,task_title_changed,task_dates_changed,task_times_changed,task_status_changed,task_project_changed,task_notes_changed,task_user_added,task_user_removed,task_file_added,task_file_deleted", options: [
         { value: "task_created" },
@@ -487,7 +495,7 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
         { value: "task_file_added" },
         { value: "task_file_deleted" },
       ], visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
-      { key: "FCM_SERVICE_ACCOUNT_JSON", type: "password", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
+      { key: "FCM_SERVICE_ACCOUNT_JSON", type: "password", multiline: true, accept: ".json,application/json", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
       { key: "MOBILE_PUSH_RELAY_URL", type: "text", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
       { key: "MOBILE_PUSH_RELAY_KEY", type: "password", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
       // GDPR
@@ -634,6 +642,7 @@ function useFieldText() {
     },
     /** Sample text: translated default text (GDPR texts), otherwise default value. */
     placeholder: (field: ConfigField): string | undefined => {
+      if (field.placeholder) return field.placeholder;
       const defaultKey = legalTextMessageKey(field.key);
       return defaultKey ? tPublic(defaultKey) : field.defaultValue;
     },
@@ -795,7 +804,7 @@ function SettingsSectionNav({ navItems, activeSection, onSelect }: {
         </Select>
       </div>
       <nav className="hidden lg:block w-44 shrink-0">
-        <div className="sticky top-32 space-y-0.5">
+        <div className="sticky top-0 space-y-0.5">
           {navItems.map((nav, i) => {
             const btn = (
               <button
@@ -1675,7 +1684,15 @@ function SettingsContent() {
   const dbConfiguredSet = new Set(dbConfigured);
   const unreadableSet = new Set(secretsUnreadable);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [dirty, setDirty] = useState(false);
+  // Values as last loaded or saved: "Save" is enabled only when the form
+  // differs from them (a change typed then undone is no change).
+  const [baseline, setBaseline] = useState<Record<string, string>>({});
+  const dirty = useMemo(() => {
+    for (const key of new Set([...Object.keys(values), ...Object.keys(baseline)])) {
+      if ((values[key] ?? "") !== (baseline[key] ?? "")) return true;
+    }
+    return false;
+  }, [values, baseline]);
   const [activeSubSection, setActiveSubSection] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const cat of CONFIG_CATEGORIES) {
@@ -1704,7 +1721,7 @@ function SettingsContent() {
       // Auto-compute DURATION_DAY from work hours
       v.DURATION_DAY = computeDurationDay(v);
       setValues(v);
-      setDirty(false);
+      setBaseline(v);
     }
   }, [config]);
 
@@ -1721,7 +1738,6 @@ function SettingsContent() {
       }
       return next;
     });
-    setDirty(true);
   };
 
   function computeDurationDay(v: Record<string, string>): string {
@@ -1741,11 +1757,13 @@ function SettingsContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [key]: "" }),
       });
-      setValues((prev) => {
+      const without = (prev: Record<string, string>) => {
         const next = { ...prev };
         delete next[key];
         return next;
-      });
+      };
+      setValues(without);
+      setBaseline(without);
       queryClient.invalidateQueries({ queryKey: ["config"] });
     } catch {
       // silent
@@ -1765,7 +1783,8 @@ function SettingsContent() {
       if (dbConfiguredSet.has(key) && (val === "" || val == null)) continue;
       payload[key] = val;
     }
-    updateConfig.mutate(payload, { onSuccess: () => setDirty(false) });
+    const saved = { ...values };
+    updateConfig.mutate(payload, { onSuccess: () => setBaseline(saved) });
   };
 
   // --- Purge button with date picker (files / tasks) ---
@@ -1922,10 +1941,24 @@ function SettingsContent() {
     );
   }
 
+  const saveActions = (
+    <div className="flex shrink-0 items-center gap-3">
+      {updateConfig.error && (
+        <span className="text-sm text-destructive max-w-md truncate" title={updateConfig.error.message}>
+          {updateConfig.error.message}
+        </span>
+      )}
+      <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending}>
+        <Save className="mr-1.5 h-4 w-4" />
+        {updateConfig.isPending ? tc("actions.saving") : tc("actions.save")}
+      </Button>
+    </div>
+  );
+
   return (
     <Tabs
       value={activeTab}
-      className="-mt-3 md:-mt-6"
+      className="-m-3 md:-m-6 flex h-[calc(100vh-3.5rem)] flex-col gap-0"
       onValueChange={(v) => {
         setActiveTab(v);
         // Reset all sub-sections to their first item when switching main tab
@@ -1937,25 +1970,13 @@ function SettingsContent() {
         setActiveSubSection(reset);
       }}
     >
-      {/* Sticky header + tabs */}
-      <div className="sticky -top-3 md:-top-6 z-30 bg-background border-b -mx-3 md:-mx-6 px-3 md:px-6 pb-3 pt-2 md:pt-3 mb-4">
-        <div className="flex items-center justify-between">
+      {/* Header + tabs, outside the scrolling area: the title and "Save" sit
+          where the other pages put theirs, and never move with a scrollbar */}
+      <div className="z-30 shrink-0 bg-background border-b px-3 md:px-6 pb-3 pt-3 md:pt-6">
+        {/* "Save": next to the title on phones, at the end of the tab row on larger screens */}
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">{t("page.title")}</h1>
-          <div className="flex items-center gap-3">
-            {updateConfig.error && (
-              <span className="text-sm text-destructive max-w-md truncate" title={updateConfig.error.message}>
-                {updateConfig.error.message}
-              </span>
-            )}
-            <Button
-              onClick={handleSave}
-              disabled={!dirty || updateConfig.isPending}
-              size="sm"
-            >
-              <Save className="mr-1.5 h-4 w-4" />
-              {updateConfig.isPending ? tc("actions.saving") : tc("actions.save")}
-            </Button>
-          </div>
+          <div className="md:hidden">{saveActions}</div>
         </div>
         {/* Mobile: compact "Category ▸ Section" breadcrumb that opens
             a side Sheet with the full hierarchy as an accordion.
@@ -1978,15 +1999,19 @@ function SettingsContent() {
             });
           }}
         />
-        <TabsList className="mt-3 hidden md:flex md:flex-wrap h-auto gap-1 p-1">
-          {CONFIG_CATEGORIES.map((cat) => (
-            <TabsTrigger key={cat.id} value={cat.id}>
-              {tDyn(t, `categories.${cat.id}`)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="mt-3 hidden items-center justify-between gap-3 md:flex">
+          <TabsList className="flex-wrap h-auto gap-1 p-1">
+            {CONFIG_CATEGORIES.map((cat) => (
+              <TabsTrigger key={cat.id} value={cat.id}>
+                {tDyn(t, `categories.${cat.id}`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {saveActions}
+        </div>
       </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 md:px-6 pt-4 pb-3 md:pb-6">
         {CONFIG_CATEGORIES.map((cat) => {
           const navItems = categoryNav[cat.id] ?? [];
           const showNav = navItems.length > 1;
@@ -2320,16 +2345,53 @@ function SettingsContent() {
                               </span>
                             )}
                           </div>
-                          <Input
-                            id={field.key}
-                            type={field.type === "password" ? "password" : field.type === "number" ? "number" : "text"}
-                            value={displayValue}
-                            onChange={(e) => setValue(field.key, e.target.value)}
-                            placeholder={placeholder}
-                            readOnly={readOnly}
-                            disabled={disabled}
-                            className={readOnly || disabled ? "bg-muted cursor-not-allowed" : ""}
-                          />
+                          {field.multiline ? (
+                            // A key file (JSON): pasted as it is, or imported from the downloaded file
+                            <>
+                              <Textarea
+                                id={field.key}
+                                value={displayValue}
+                                onChange={(e) => setValue(field.key, e.target.value)}
+                                placeholder={placeholder}
+                                readOnly={readOnly}
+                                disabled={disabled}
+                                rows={6}
+                                spellCheck={false}
+                                autoComplete="off"
+                                className={cn("field-sizing-fixed resize-y overflow-auto font-mono md:text-xs", readOnly || disabled ? "bg-muted cursor-not-allowed" : "")}
+                              />
+                              {field.accept && !readOnly && !disabled && (
+                                <Button type="button" variant="outline" size="sm" className="w-fit" asChild>
+                                  {/* relative: keeps the hidden file input inside the scrolling area */}
+                                  <label className="relative cursor-pointer">
+                                    <Upload className="h-4 w-4" />
+                                    {t("field.importFile")}
+                                    <input
+                                      type="file"
+                                      accept={field.accept}
+                                      className="sr-only"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        e.target.value = "";
+                                        if (file) setValue(field.key, (await file.text()).trim());
+                                      }}
+                                    />
+                                  </label>
+                                </Button>
+                              )}
+                            </>
+                          ) : (
+                            <Input
+                              id={field.key}
+                              type={field.type === "password" ? "password" : field.type === "number" ? "number" : "text"}
+                              value={displayValue}
+                              onChange={(e) => setValue(field.key, e.target.value)}
+                              placeholder={placeholder}
+                              readOnly={readOnly}
+                              disabled={disabled}
+                              className={readOnly || disabled ? "bg-muted cursor-not-allowed" : ""}
+                            />
+                          )}
                         </>
                       );
                     })()
@@ -2386,6 +2448,7 @@ function SettingsContent() {
           </TabsContent>
           );
         })}
+      </div>
     </Tabs>
   );
 }
