@@ -326,5 +326,7 @@ export function usePermissions() {
     // Project capabilities
     canModifyProject,
     isLoading: !fullUser,
+    /** The permissions are not known yet: `can` answers false meanwhile. */
+    permissionsLoading: !permData && !isAdmin,
   };
 }

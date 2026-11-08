@@ -8,13 +8,15 @@ import { mobileDevices, users } from "@/db/schema";
 import { sessions, verifications } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
+import { addressBucket } from "@/lib/utils/rate-limit";
 import { tokenFromCookieValue, type SessionCookie } from "@/lib/utils/session-cookie";
 import type { CounterPolicy } from "@/lib/utils/security-counter";
 import type { MobileDevice, UpdateMobileDevice } from "@/lib/validators/mobile";
 import { getConfigValues } from "./config-service";
 import { logAudit } from "./audit-service";
 import { recordHit } from "./security-counter-service";
-import { assertMobileAppPermission } from "./mobile-client-policy";
+import { assertMobileAppPermission, MOBILE_APP_PERMISSION } from "./mobile-client-policy";
+import { hasPermission, loadUserPermissions } from "./permission-service";
 
 const PAIRING_TTL_MS = 5 * 60 * 1000;
 const PAIRING_PREFIX = "mobile-pairing:";
@@ -23,12 +25,44 @@ const PAIRING_RATE_POLICY: CounterPolicy = { max: 10, windowMs: 10 * 60 * 1000, 
 /**
  * Failures per client address on the mobile sign-in routes, which have no
  * captcha: on top of the per-account lockouts, slows down one address trying
- * many accounts. Exported for the routes, which count their own failures.
+ * many accounts. Reserved before each password or pairing code check
+ * (`reserveAttempt`), like the per-account lockouts.
  */
 export const MOBILE_IP_POLICY: CounterPolicy = { max: 30, windowMs: 15 * 60 * 1000, lockMs: 15 * 60 * 1000 };
 
+/** Key of the address lock: an IPv6 client counts by its /64 prefix (`addressBucket`). */
 export function mobileIpKey(ip: string): string {
-  return `mobile-login:ip:${ip}`;
+  return `mobile-login:ip:${addressBucket(ip)}`;
+}
+
+/** Audit reason of a mobile sign-in refused because the role does not allow the app. */
+const MOBILE_APP_NOT_ALLOWED_REASON = "mobile_app_not_allowed";
+
+export function mobileAppNotAllowed(): AppError {
+  return new AppError("mobile.errors.appNotAllowed", { status: 403 });
+}
+
+/** Failed login of the audit, for a mobile sign-in refused by the `mobile_app:use` check. */
+export function auditMobileAppRefusal(userId: string, metadata: Record<string, unknown>): void {
+  logAudit({
+    action: "login_fail",
+    entityType: "user",
+    entityId: userId,
+    metadata: { ...metadata, reason: MOBILE_APP_NOT_ALLOWED_REASON },
+  }).catch(() => {});
+}
+
+/**
+ * Account signing in with this login when it is active but its role does not
+ * allow the mobile app, so that the password is never checked for it (no
+ * password oracle for accounts that cannot use the app). Matched like Better
+ * Auth's username sign-in (`usernameNormalization: false` in src/lib/auth.ts:
+ * the exact value). Null for an unknown or inactive account or an allowed role.
+ */
+export async function findAccountWithoutMobileApp(identifier: string): Promise<string | null> {
+  const user = await db.query.users.findFirst({ where: eq(users.username, identifier), columns: { id: true, active: true } });
+  if (!user || user.active === false) return null;
+  return hasPermission(await loadUserPermissions(user.id), MOBILE_APP_PERMISSION) ? null : user.id;
 }
 
 export interface MobileSettings {
@@ -80,12 +114,15 @@ export async function finishMobileSession(cookie: SessionCookie, device: MobileD
   const [session] = await db.update(sessions)
     .set({ expiresAt })
     .where(eq(sessions.token, tokenFromCookieValue(cookie.value)))
-    .returning({ id: sessions.id, userId: sessions.userId });
+    .returning({ id: sessions.id, userId: sessions.userId, ipAddress: sessions.ipAddress, userAgent: sessions.userAgent });
   if (!session) throw new AppError("auth.errors.sessionExpired");
+  // The sign-in routes check it earlier; this one covers a withdrawal meanwhile
+  // (between the password and the second factor, for instance)
   try {
     await assertMobileAppPermission(session.userId);
   } catch (error) {
     await db.delete(sessions).where(eq(sessions.id, session.id));
+    auditMobileAppRefusal(session.userId, { ip: session.ipAddress, userAgent: session.userAgent });
     throw error;
   }
   await saveDevice(session.userId, session.id, device);
@@ -122,8 +159,17 @@ export function pairingLink(baseUrl: string, code: string): string {
   return `humbleplanning://login?url=${encodeURIComponent(baseUrl)}&code=${code}`;
 }
 
-/** New single-use code for the connected user (stored hashed), shown as a QR code on the web profile. */
-export async function createPairingCode(userId: string): Promise<{ code: string; expiresAt: Date }> {
+/** True when this session was opened by the mobile app (it has a device row). */
+export async function isMobileSession(sessionId: string): Promise<boolean> {
+  const device = await db.query.mobileDevices.findFirst({ where: eq(mobileDevices.sessionId, sessionId), columns: { id: true } });
+  return device !== undefined;
+}
+
+/**
+ * New single-use code for the connected user (stored hashed), shown as a QR
+ * code on the web profile. The audit records who created one, from where, never the code.
+ */
+export async function createPairingCode(userId: string, origin: { ip: string; userAgent: string | null }): Promise<{ code: string; expiresAt: Date }> {
   await assertMobileAppPermission(userId);
   const { count } = await recordHit(`mobile-pairing:user:${userId}`, PAIRING_RATE_POLICY);
   if (count > PAIRING_RATE_POLICY.max) throw new AppError("errors.rateLimited");
@@ -135,13 +181,22 @@ export async function createPairingCode(userId: string): Promise<{ code: string;
     value: JSON.stringify({ userId }),
     expiresAt,
   });
+  logAudit({
+    userId,
+    action: "mobile_pairing_create",
+    entityType: "user",
+    entityId: userId,
+    metadata: { ip: origin.ip, userAgent: origin.userAgent, expiresAt: expiresAt.toISOString() },
+  }).catch(() => {});
   return { code, expiresAt };
 }
 
 /**
  * Consumes a pairing code and opens a session on this device. The row is locked
  * and deleted in one transaction: a code can only be used once. Null when the
- * code is unknown, expired or used, or its account was disabled meanwhile.
+ * code is unknown, expired or used, or its account was disabled meanwhile; 403
+ * (no session opened, a failed login in the audit) when its role no longer
+ * allows the mobile app.
  */
 export async function redeemPairingCode(code: string, ipAddress: string, userAgent: string | null): Promise<SessionCookie | null> {
   const userId = await db.transaction(async (tx) => {
@@ -157,6 +212,10 @@ export async function redeemPairingCode(code: string, ipAddress: string, userAge
 
   const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { active: true } });
   if (!user || user.active === false) return null;
+  if (!hasPermission(await loadUserPermissions(userId), MOBILE_APP_PERMISSION)) {
+    auditMobileAppRefusal(userId, { ip: ipAddress, userAgent, method: "mobile_pairing" });
+    throw mobileAppNotAllowed();
+  }
 
   const cookie = await createSessionForUser(userId, ipAddress, userAgent);
   logAudit({ userId, action: "login", entityType: "user", entityId: userId, metadata: { ip: ipAddress, userAgent, method: "mobile_pairing" } }).catch(() => {});
@@ -232,11 +291,13 @@ export async function updateCurrentDevice(userId: string, sessionId: string, dat
   return { id: device.id, lastSeenAt: device.lastSeenAt, pushEnabled: device.pushToken !== null };
 }
 
+/** Push tokens of the users' devices whose session is still valid (an expired one gets nothing). */
 export async function getPushTokens(userIds: string[]): Promise<{ userId: string; pushToken: string }[]> {
   if (userIds.length === 0) return [];
   const rows = await db.select({ userId: mobileDevices.userId, pushToken: mobileDevices.pushToken })
     .from(mobileDevices)
-    .where(and(inArray(mobileDevices.userId, userIds), isNotNull(mobileDevices.pushToken)));
+    .innerJoin(sessions, eq(sessions.id, mobileDevices.sessionId))
+    .where(and(inArray(mobileDevices.userId, userIds), isNotNull(mobileDevices.pushToken), gt(sessions.expiresAt, new Date())));
   return rows.flatMap((r) => (r.pushToken ? [{ userId: r.userId, pushToken: r.pushToken }] : []));
 }
 

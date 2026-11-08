@@ -1,8 +1,9 @@
 // Alerts sent to the mobile app when a task changes. Same levels as the e-mails:
 // instance setting, triggers, per-user admin switch, the user's own preference.
-import { and, asc, desc, eq, exists, gte, inArray, lt, ne } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, inArray, lt, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { mobileAlerts, mobileDevices, users } from "@/db/schema";
+import { sessions } from "@/db/schema/auth";
 import { emitToUser } from "@/lib/ai-chat/realtime";
 import { logger } from "@/lib/logger";
 import { getConfigValues } from "./config-service";
@@ -29,7 +30,23 @@ export function parseMobileTriggers(raw: string | null | undefined): string[] {
   return (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-/** Records an alert for the eligible recipients having a signed-in device, then delivers it. */
+/**
+ * Real time and push for stored alerts, in the background: the in-app bell and
+ * the task operation never wait for Firebase or the relay. Errors are logged.
+ */
+function deliverInBackground(alerts: { id: string; userId: string }[]): void {
+  for (const alert of alerts) {
+    Promise.all([
+      emitToUser(alert.userId, "mobile:alert", { alertId: alert.id }),
+      sendMobilePush(alert.userId, alert.id),
+    ]).catch((err) => logger.error("push", "Mobile alert delivery failed", { error: String(err) }));
+  }
+}
+
+/**
+ * Records an alert for the eligible recipients having a signed-in device (its
+ * session not expired), then starts its delivery without waiting for it.
+ */
 export async function sendMobileAlerts(params: {
   type: string;
   title: string;
@@ -48,7 +65,9 @@ export async function sendMobileAlerts(params: {
     params.actorId ? ne(users.id, params.actorId) : undefined,
     eq(users.mobilePushNotifications, true),
     eq(users.mobilePushNotificationsUser, true),
-    exists(db.select({ id: mobileDevices.id }).from(mobileDevices).where(eq(mobileDevices.userId, users.id))),
+    exists(db.select({ id: mobileDevices.id }).from(mobileDevices)
+      .innerJoin(sessions, eq(sessions.id, mobileDevices.sessionId))
+      .where(and(eq(mobileDevices.userId, users.id), gt(sessions.expiresAt, new Date())))),
   ));
   // A role that lost the mobile app permission keeps its device rows until they expire: no alert for it
   const allowed = await Promise.all(candidates.map(async (c) => hasPermission(await loadUserPermissions(c.id), MOBILE_APP_PERMISSION)));
@@ -61,12 +80,9 @@ export async function sendMobileAlerts(params: {
     title: params.title.slice(0, 200),
     message: params.message,
     actionUrl: params.actionUrl,
-  }))).returning();
+  }))).returning({ id: mobileAlerts.id, userId: mobileAlerts.userId });
 
-  await Promise.all(inserted.map(async (alert) => {
-    await emitToUser(alert.userId, "mobile:alert", { alertId: alert.id });
-    await sendMobilePush(alert.userId, alert.id);
-  }));
+  deliverInBackground(inserted);
   purgeOldAlerts();
 }
 

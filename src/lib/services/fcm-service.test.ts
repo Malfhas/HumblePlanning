@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { buildServiceAccountJwt, buildWakeUpMessage, readServiceAccount } from "./fcm-service";
+import {
+  buildServiceAccountJwt, buildWakeUpMessage, isRelayUnregistered, isUnregisteredError, readServiceAccount,
+} from "./fcm-service";
 
 test("only a service account key file is accepted, as downloaded (several lines)", () => {
   const file = JSON.stringify({
@@ -40,4 +42,29 @@ test("a push carries the alert id and no content", () => {
   expect(message.android.priority).toBe("HIGH");
   expect(message.data).toEqual({ alertId: "alert-1" });
   expect(message).not.toHaveProperty("notification");
+});
+
+test("only Firebase's UNREGISTERED forgets a device", () => {
+  // HTTP v1 error body for an installation Firebase no longer knows
+  expect(isUnregisteredError({
+    error: {
+      code: 404,
+      status: "NOT_FOUND",
+      details: [{ "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", errorCode: "UNREGISTERED" }],
+    },
+  })).toBe(true);
+  // A 404 of a wrong project or URL, another FCM error, no JSON
+  expect(isUnregisteredError({ error: { code: 404, status: "NOT_FOUND", message: "Requested entity was not found." } })).toBe(false);
+  expect(isUnregisteredError({ error: { details: [{ errorCode: "INVALID_ARGUMENT" }] } })).toBe(false);
+  expect(isUnregisteredError(null)).toBe(false);
+  expect(isUnregisteredError("<html>Not found</html>")).toBe(false);
+});
+
+test("through the relay, only its 410 unregistered answer forgets a device", () => {
+  expect(isRelayUnregistered(410, { error: "unregistered" })).toBe(true);
+  // A relay address that is wrong, or an older relay
+  expect(isRelayUnregistered(404, { error: "not_found" })).toBe(false);
+  expect(isRelayUnregistered(404, { error: "firebase_refused", status: 404 })).toBe(false);
+  expect(isRelayUnregistered(410, null)).toBe(false);
+  expect(isRelayUnregistered(502, { error: "unregistered" })).toBe(false);
 });

@@ -119,7 +119,9 @@ export async function notifyPushRecipients(params: {
   recipientIds: string[];
   actorId?: string;
 }) {
-  // The mobile app has its own settings: its alerts do not depend on the in-app bell
+  // The mobile app has its own settings: its alerts do not depend on the in-app
+  // bell. Only the alert rows are awaited, their delivery (Firebase, relay) runs
+  // in the background; a failure is logged, never thrown into the caller.
   await sendMobileAlerts(params).catch((err) => logger.error("push", "Mobile alerts failed", { error: String(err) }));
 
   // Check global toggle

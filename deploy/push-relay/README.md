@@ -27,11 +27,21 @@ Serve it behind HTTPS, then set its address in Settings > Security > Mobile app 
 Push relay address on each server. A server holding its own
 `FCM_SERVICE_ACCOUNT_JSON` calls Firebase directly and does not use the relay.
 
-Limits: 600 requests a minute per address, 30 a minute per device (FID). The
+Limits: 600 requests a minute per address, 30 a minute per device (FID), bodies
+of 8 KiB at most (checked on `Content-Length` before anything is read). The
 address is the one of the connection: without `TRUSTED_PROXY=cloudflare`,
 `CF-Connecting-IP` is ignored, since any client reaching the relay directly could
 send it. Behind another reverse proxy, every server counts as the proxy's address.
+The key is compared in constant time; calls to Google give up after 10 seconds.
 
-`POST /v1/push` answers 200 when sent, 404 when Firebase no longer knows the FID
-(`UNREGISTERED`: the server then forgets it), 429 when limited, 502 when Firebase
-refused or is unreachable.
+`POST /v1/push` answers:
+
+| Status | Body | Meaning |
+|---|---|---|
+| 200 | `{status: "sent"}` | Sent |
+| 410 | `{error: "unregistered"}` | Firebase no longer knows the FID (`UNREGISTERED`: app uninstalled, data cleared). The server forgets this device's token; it is the only answer that does |
+| 400 | `{error: "invalid_json" \| "invalid_body"}` | Bad request |
+| 401 | `{error: "unauthorized"}` | Missing or wrong key |
+| 413 | `{error: "too_large"}` | Body over 8 KiB |
+| 429 | `{error: "rate_limited"}` | Limited |
+| 502 | `{error: "firebase_refused", status}` or `{error: "firebase_unreachable"}` | Firebase refused or is unreachable |

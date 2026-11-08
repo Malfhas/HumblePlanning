@@ -5,10 +5,17 @@ import { eq, and, gt, isNull, lt, or } from "drizzle-orm";
 import { getConfigValues } from "@/lib/services/config-service";
 import { logAudit } from "@/lib/services/audit-service";
 import { clearCounters, lockedFor, recordFailure, type DbExecutor } from "@/lib/services/security-counter-service";
-import { AppError, handleApiError } from "@/lib/utils/api";
+import { AppError } from "@/lib/utils/api";
 import { matchTotpStep, TWO_FACTOR_POLICY, twoFactorFailureKey } from "@/lib/utils/two-factor-guard";
 
-type PendingPayload = { userId: string; sessionId?: string; sessionCookie?: string | null; rememberMe: boolean };
+type PendingPayload = {
+  userId: string;
+  sessionId?: string;
+  sessionCookie?: string | null;
+  rememberMe: boolean;
+  /** Set by the mobile sign-in (`signInWithPassword` with `mobile`). */
+  client?: "mobile";
+};
 type Rejection = { reason: string; code: string };
 
 function tooManyAttempts(remainingSeconds: number): AppError {
@@ -39,8 +46,13 @@ async function consumeTotpCode(tx: DbExecutor, userId: string, secret: string, c
   return accepted ? null : { reason: "totp_replay", code: "auth.errors.codeAlreadyUsed" };
 }
 
-/** Second login step shared by the web and mobile routes; throws an `AppError` when refused. */
-export async function verifySecondFactor(request: Request): Promise<Response> {
+/**
+ * Second login step shared by the web and mobile routes; throws an `AppError`
+ * when refused. With `mobile`, only a pending token of the mobile sign-in is
+ * accepted (any other answers like an unknown one): a token of the web sign-in
+ * cannot be turned into a mobile session.
+ */
+export async function verifySecondFactor(request: Request, { mobile = false }: { mobile?: boolean } = {}): Promise<Response> {
   const { pendingToken, code, isBackupCode } = await request.json();
 
   if (typeof pendingToken !== "string" || !pendingToken || typeof code !== "string" || !code) {
@@ -73,6 +85,8 @@ export async function verifySecondFactor(request: Request): Promise<Response> {
     } catch {
       throw new AppError("auth.errors.invalidToken");
     }
+    // Before any count or consumption: the token stays usable where it belongs
+    if (mobile && payload.client !== "mobile") throw new AppError("auth.errors.sessionExpired");
 
     const [user] = await tx.select({
       twoFactorSecret: users.twoFactorSecret,

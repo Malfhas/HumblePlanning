@@ -36,6 +36,40 @@ export function applyHit(prev: CounterState | null, now: number, policy: Counter
   };
 }
 
+/**
+ * Attempts guarded by a lock (a password check) are reserved before they run,
+ * by one atomic hit: parallel requests cannot all pass a check made before any
+ * of them records its failure. The reservation counts against one more than
+ * `max`, so the max-th attempt still runs, as when failures were counted after
+ * the check; its failure then locks the key (`applyFailure`), and a reservation
+ * beyond it, only possible while earlier attempts are still running, locks the
+ * key at once and is refused.
+ */
+export function reservationPolicy(policy: CounterPolicy): CounterPolicy {
+  return { ...policy, max: policy.max + 1 };
+}
+
+/**
+ * State once the `attempt`-th reserved attempt failed (its hit stays): from the
+ * max-th failure on, the key is locked for `lockMs`. A running lock is kept.
+ * Without a state (cleared meanwhile by a success), the lock starts a new one.
+ */
+export function applyFailure(prev: CounterState | null, attempt: number, now: number, policy: CounterPolicy): CounterState | null {
+  if (attempt < policy.max || policy.lockMs <= 0) return prev;
+  if (prev?.lockedUntil != null && prev.lockedUntil > now) return prev;
+  return { count: prev?.count ?? attempt, windowStart: prev?.windowStart ?? now, lockedUntil: now + policy.lockMs };
+}
+
+/**
+ * State once a reservation is given back because its attempt did not count
+ * (another lock refused it, or the mobile address lock after a success): one
+ * hit less, nothing at zero. A locked key is left as it is.
+ */
+export function applyRelease(prev: CounterState | null, now: number): CounterState | null {
+  if (!prev || prev.count <= 0 || (prev.lockedUntil !== null && prev.lockedUntil > now)) return prev;
+  return prev.count === 1 ? null : { ...prev, count: prev.count - 1 };
+}
+
 /** Whole seconds until `until` (rounded up), 0 once it is past. */
 export function secondsUntil(until: number | null, now: number): number {
   return until !== null && until > now ? Math.ceil((until - now) / 1000) : 0;

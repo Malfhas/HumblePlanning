@@ -52,6 +52,7 @@ import { IconPicker } from "@/components/shared/icon-picker";
 import { ErrorState } from "@/components/shared/error-state";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { VersionPanel } from "@/components/settings/version-panel";
+import { RELEASE_MIN_APP_VERSION } from "@/lib/utils/app-version";
 
 // Labels resolved at render time from the identifiers (`settings` catalog):
 // i18n-dynamic: settings.categories.*
@@ -467,11 +468,11 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       { key: "CAPTCHA_SITE_KEY", type: "text", visibleWhen: { key: "CAPTCHA_ENABLED", value: "true", and: { key: "CAPTCHA_PROVIDER", value: ["turnstile", "recaptcha"] } } },
       { key: "CAPTCHA_SECRET_KEY", type: "password", visibleWhen: { key: "CAPTCHA_ENABLED", value: "true", and: { key: "CAPTCHA_PROVIDER", value: ["turnstile", "recaptcha"] } } },
       // Mobile app
-      { key: "MOBILE_LOGIN_ENABLED", type: "boolean", section: "mobile" },
-      { key: "MOBILE_PAIRING_ENABLED", type: "boolean" },
-      { key: "MOBILE_MIN_APP_VERSION", type: "text" },
+      { key: "MOBILE_LOGIN_ENABLED", type: "boolean", defaultValue: "true", section: "mobile" },
+      { key: "MOBILE_PAIRING_ENABLED", type: "boolean", defaultValue: "true" },
+      { key: "MOBILE_MIN_APP_VERSION", type: "text", descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
       { key: "MOBILE_STORE_URL", type: "text" },
-      { key: "MOBILE_PUSH_ENABLED", type: "boolean" },
+      { key: "MOBILE_PUSH_ENABLED", type: "boolean", defaultValue: "true" },
       { key: "MOBILE_PUSH_TRIGGERS", type: "multiselect", optionLabels: "options.triggers", defaultValue: "task_created,task_deleted,task_title_changed,task_dates_changed,task_times_changed,task_status_changed,task_project_changed,task_notes_changed,task_user_added,task_user_removed,task_file_added,task_file_deleted", options: [
         { value: "task_created" },
         { value: "task_deleted" },

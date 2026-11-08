@@ -27,6 +27,7 @@
     "2fa_fail": "2FA failure",
     "bruteforce_lock": "Brute-force lockout",
     "session_revoke": "Session revoked",
+    "mobile_pairing_create": "Sign-in QR code created",
     "email_blocked": "Email blocked",
     "email_unblocked": "Email unblocked",
     "webhook_received": "Webhook received"
@@ -109,6 +110,8 @@
     "login": "Sign-in",
     "ip": "IP {ip}",
     "accountDisabled": "Account disabled",
+    "mobileAppNotAllowed": "Mobile app not allowed for this role",
+    "pairingCodeCreated": "Mobile sign-in QR code created",
     "recipients": "{count, plural, one {# recipient} other {# recipients}}",
     "fileAdded": "File added",
     "fileAddedNamed": "File added: {name}",

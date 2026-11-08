@@ -10,7 +10,7 @@ import {
   redeemPairingCode,
 } from "@/lib/services/mobile-service";
 import { assertMobileAppVersion } from "@/lib/services/mobile-client-policy";
-import { lockedFor, recordFailure } from "@/lib/services/security-counter-service";
+import { failAttempt, lockedFor, releaseAttempt, reserveAttempt } from "@/lib/services/security-counter-service";
 
 /** POST /api/mobile/auth/pairing: signs the app in with the code of a QR shown on the web profile. */
 export async function POST(request: Request) {
@@ -29,11 +29,21 @@ export async function POST(request: Request) {
     }
 
     const { code, device } = await validateBody(request, mobilePairingSchema);
-    const cookie = await redeemPairingCode(code, ip, request.headers.get("user-agent"));
+    // Reserved before the code is checked, like a password attempt; only a rejected code counts
+    const attempt = await reserveAttempt(ipKey, MOBILE_IP_POLICY);
+    if (attempt.lockedSeconds > 0) {
+      throw new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(attempt.lockedSeconds / 60) } });
+    }
+    const cookie = await redeemPairingCode(code, ip, request.headers.get("user-agent")).catch(async (error: unknown) => {
+      // A valid code of a role without the app (403): not a guess
+      await releaseAttempt(attempt);
+      throw error;
+    });
     if (!cookie) {
-      await recordFailure(ipKey, MOBILE_IP_POLICY);
+      await failAttempt(attempt);
       throw new AppError("mobile.errors.invalidPairingCode", { status: 401 });
     }
+    await releaseAttempt(attempt);
 
     const session = await finishMobileSession(cookie, device);
     return apiSuccess({

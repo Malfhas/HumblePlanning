@@ -1,7 +1,7 @@
 // What the server enforces on the mobile app. The app identifies itself with
 // the `X-App-Version` header on every request; the web client never sends it.
 import { AppError } from "@/lib/errors";
-import { compareVersions } from "@/lib/utils/app-version";
+import { compareVersions, effectiveMinimumVersion } from "@/lib/utils/app-version";
 import { getConfigValues } from "./config-service";
 import { hasPermission, loadUserPermissions } from "./permission-service";
 
@@ -16,11 +16,14 @@ function isOn(value: string | null | undefined): boolean {
   return value === "true" || value === "1";
 }
 
-/** Minimum version (null = no minimum), store page and maintenance state. */
+/**
+ * Minimum version (the one of this release, or the setting when newer: an
+ * update of the server raises it by itself), store page and maintenance state.
+ */
 export async function getMobileClientPolicy() {
   const config = await getConfigValues(CONFIG_KEYS);
   return {
-    minimumVersion: config.MOBILE_MIN_APP_VERSION?.trim() || null,
+    minimumVersion: effectiveMinimumVersion(config.MOBILE_MIN_APP_VERSION),
     storeUrl: config.MOBILE_STORE_URL?.trim() || DEFAULT_MOBILE_STORE_URL,
     maintenance: isOn(config.MAINTENANCE_MODE),
   };

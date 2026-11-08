@@ -4,7 +4,7 @@ import { eq, and, or, ne, gte, lte, inArray, type SQL } from "drizzle-orm";
 import { addDays, addWeeks, addMonths, format } from "date-fns";
 import { getConfigValues } from "./config-service";
 import { cleanupTaskFiles, cleanupTaskFilesContent } from "./task-service";
-import { bulkTaskViolation, loadBulkTaskTargets, type BulkTaskAction, type BulkTaskTarget } from "./task-bulk-service";
+import { bulkTaskViolation, loadBulkTaskTargets, touchTasks, type BulkTaskAction, type BulkTaskTarget } from "./task-bulk-service";
 import {
   canAssignWithModifyScope,
   getReadableProject,
@@ -349,8 +349,10 @@ export async function removeUserFromRecurringTasks(
   perms: UserPermissions,
 ) {
   if (scope === "single") {
-    await db.delete(taskUsers)
-      .where(and(eq(taskUsers.taskId, taskId), eq(taskUsers.userId, userId)));
+    const removed = await db.delete(taskUsers)
+      .where(and(eq(taskUsers.taskId, taskId), eq(taskUsers.userId, userId)))
+      .returning({ taskId: taskUsers.taskId });
+    await touchTasks(removed.map((r) => r.taskId));
     return { removed: 1 };
   }
 
@@ -360,8 +362,10 @@ export async function removeUserFromRecurringTasks(
   const rootId = await getRootTaskId(taskId);
   const ids = await loadAllowedOccurrenceIds(perms, seriesScopeCondition(task, rootId, scope), "update");
   if (ids.length > 0) {
-    await db.delete(taskUsers)
-      .where(and(inArray(taskUsers.taskId, ids), eq(taskUsers.userId, userId)));
+    const removed = await db.delete(taskUsers)
+      .where(and(inArray(taskUsers.taskId, ids), eq(taskUsers.userId, userId)))
+      .returning({ taskId: taskUsers.taskId });
+    await touchTasks(removed.map((r) => r.taskId));
     // The user may lose a project from their assigned_only/own scope
     invalidateCachePrefix(`scope:projects:${userId}:`);
   }

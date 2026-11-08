@@ -9,12 +9,18 @@ import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
 import { getDemoCredentials } from "@/lib/demo";
-import { clearCounters, lockedFor, recordFailure } from "@/lib/services/security-counter-service";
+import {
+  clearCounters, failAttempt, releaseAttempt, reserveAttempt, type AttemptReservation,
+} from "@/lib/services/security-counter-service";
+import { auditMobileAppRefusal, mobileAppNotAllowed } from "@/lib/services/mobile-service";
+import { MOBILE_APP_PERMISSION } from "@/lib/services/mobile-client-policy";
 import type { CounterPolicy } from "@/lib/utils/security-counter";
 import crypto from "node:crypto";
 
 // Lockouts stored in PostgreSQL (security_counters): shared by every process
-// and kept across restarts.
+// and kept across restarts. Each attempt is reserved on every lock before the
+// password is checked (`reserveAttempt`), so parallel requests cannot run more
+// checks than a lock allows; a failure keeps the hit, a success clears it.
 
 // First lock, per identifier+IP: BRUTEFORCE_MAX_ATTEMPTS failures lock for
 // BRUTEFORCE_LOCKOUT_SECONDS; the count starts over after a day without failure.
@@ -48,36 +54,45 @@ function getAttemptKey(identifier: string, ip: string): string {
   return `login:ip:${identifier.toLowerCase()}:${ip}`;
 }
 
-async function checkBruteforce(identifier: string, ip: string): Promise<{ blocked: boolean; remainingSeconds: number }> {
-  const config = await getConfigValues(["BRUTEFORCE_MAX_ATTEMPTS", "BRUTEFORCE_LOCKOUT_SECONDS"]);
-  const maxAttempts = parseInt(config.BRUTEFORCE_MAX_ATTEMPTS ?? "5") || 0;
-
-  if (maxAttempts <= 0) return { blocked: false, remainingSeconds: 0 };
-
-  const identifierLock = hasIdentifierLock(identifier) ? await lockedFor(getIdentifierKey(identifier)) : 0;
-  if (identifierLock > 0) return { blocked: true, remainingSeconds: identifierLock };
-
-  const attemptLock = await lockedFor(getAttemptKey(identifier, ip));
-  return { blocked: attemptLock > 0, remainingSeconds: attemptLock };
-}
-
-async function recordFailedAttempt(identifier: string, ip: string): Promise<{ locked: boolean; remainingSeconds: number }> {
+/** The per-account locks of an attempt, in the order they are checked: none when BRUTEFORCE_MAX_ATTEMPTS is 0. */
+async function accountLocks(identifier: string, ip: string): Promise<{ key: string; policy: CounterPolicy }[]> {
   const config = await getConfigValues(["BRUTEFORCE_MAX_ATTEMPTS", "BRUTEFORCE_LOCKOUT_SECONDS"]);
   const maxAttempts = parseInt(config.BRUTEFORCE_MAX_ATTEMPTS ?? "5") || 0;
   const lockoutSeconds = parseInt(config.BRUTEFORCE_LOCKOUT_SECONDS ?? "300") || 300;
 
-  if (maxAttempts <= 0) return { locked: false, remainingSeconds: 0 };
+  if (maxAttempts <= 0) return [];
 
-  const [identifierLock, attemptLock] = await Promise.all([
-    hasIdentifierLock(identifier) ? recordFailure(getIdentifierKey(identifier), IDENTIFIER_POLICY) : 0,
-    recordFailure(getAttemptKey(identifier, ip), {
-      max: maxAttempts,
-      windowMs: ATTEMPT_IDLE_MS,
-      lockMs: lockoutSeconds * 1000,
-      slidingWindow: true,
-    }),
-  ]);
-  const remainingSeconds = Math.max(identifierLock, attemptLock);
+  return [
+    ...(hasIdentifierLock(identifier) ? [{ key: getIdentifierKey(identifier), policy: IDENTIFIER_POLICY }] : []),
+    {
+      key: getAttemptKey(identifier, ip),
+      policy: { max: maxAttempts, windowMs: ATTEMPT_IDLE_MS, lockMs: lockoutSeconds * 1000, slidingWindow: true },
+    },
+  ];
+}
+
+/**
+ * Reserves the attempt on each lock in turn. The first locked one refuses it
+ * (lock time left in seconds) and the reservations already made are given back,
+ * so a refused attempt counts nowhere, as when the locks were only read.
+ */
+async function reserveAll(locks: { key: string; policy: CounterPolicy }[]): Promise<{ reservations: AttemptReservation[]; lockedSeconds: number }> {
+  const reservations: AttemptReservation[] = [];
+  for (const { key, policy } of locks) {
+    const reservation = await reserveAttempt(key, policy);
+    if (reservation.lockedSeconds > 0) {
+      await Promise.all(reservations.map((r) => releaseAttempt(r)));
+      return { reservations: [], lockedSeconds: reservation.lockedSeconds };
+    }
+    reservations.push(reservation);
+  }
+  return { reservations, lockedSeconds: 0 };
+}
+
+/** The password was wrong: the reserved hits stay. Lock time left on the account, 0 when it is not locked. */
+async function recordFailedAttempt(account: AttemptReservation[], address: AttemptReservation | null): Promise<{ locked: boolean; remainingSeconds: number }> {
+  const [, ...locks] = await Promise.all([address ? failAttempt(address) : 0, ...account.map((r) => failAttempt(r))]);
+  const remainingSeconds = Math.max(0, ...locks);
   return { locked: remainingSeconds > 0, remainingSeconds };
 }
 
@@ -115,6 +130,25 @@ function extractSessionCookie(response: Response): string | null {
   return null;
 }
 
+export interface PasswordSignIn {
+  identifier: string;
+  password: string;
+  rememberMe?: unknown;
+  /**
+   * Sign-in of the mobile app (`/api/mobile/auth/login`): its per-address lock
+   * is reserved with the per-account ones (only a wrong password counts on it),
+   * a role without `mobile_app:use` gets no session (403, a failed login in the
+   * audit) and a pending second factor is marked for `/api/mobile/auth/2fa`.
+   */
+  mobile?: { addressKey: string; addressPolicy: CounterPolicy };
+}
+
+/** The role does not allow the mobile app: Super Administrateur always does (isAdmin). */
+async function lacksMobileApp(userId: string): Promise<boolean> {
+  const { loadUserPermissions, hasPermission } = await import("@/lib/services/permission-service");
+  return !hasPermission(await loadUserPermissions(userId), MOBILE_APP_PERMISSION);
+}
+
 /**
  * Password sign-in shared by the web login (`/api/auth/login`, behind its
  * captcha) and the mobile login (`/api/mobile/auth/login`): lockouts, audit,
@@ -123,17 +157,23 @@ function extractSessionCookie(response: Response): string | null {
  */
 export async function signInWithPassword(
   request: Request,
-  { identifier, password, rememberMe }: { identifier: string; password: string; rememberMe?: unknown },
+  { identifier, password, rememberMe, mobile }: PasswordSignIn,
 ): Promise<Response> {
   const ip = getClientIp(request.headers);
   const userAgent = request.headers.get("user-agent") || "unknown";
 
-  // Check bruteforce lockout
-  const bruteCheck = await checkBruteforce(identifier, ip);
-  if (bruteCheck.blocked) {
-    return handleApiError(tooManyAttempts(bruteCheck.remainingSeconds));
+  // Reserve the attempt on the locks before the (slow) password check
+  const address = mobile ? await reserveAttempt(mobile.addressKey, mobile.addressPolicy) : null;
+  if (address && address.lockedSeconds > 0) {
+    return handleApiError(new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(address.lockedSeconds / 60) } }));
+  }
+  const { reservations: account, lockedSeconds } = await reserveAll(await accountLocks(identifier, ip));
+  if (lockedSeconds > 0) {
+    if (address) await releaseAttempt(address);
+    return handleApiError(tooManyAttempts(lockedSeconds));
   }
 
+  let passwordAccepted = false;
   try {
     // Sign in with username via Better Auth username plugin.
     //
@@ -150,7 +190,7 @@ export async function signInWithPassword(
     });
 
     if (!response.ok) {
-      const result = await recordFailedAttempt(identifier, ip);
+      const result = await recordFailedAttempt(account, address);
       logAudit({ action: "login_fail", entityType: "user", metadata: { identifier, ip, userAgent } }).catch(() => {});
       if (result.locked) {
         logAudit({ action: "bruteforce_lock", entityType: "user", metadata: { identifier, ip, lockoutSeconds: result.remainingSeconds } }).catch(() => {});
@@ -159,12 +199,14 @@ export async function signInWithPassword(
       return handleApiError(new AppError("auth.errors.invalidCredentials"));
     }
 
-    // Success — clear attempts
+    // Success — clear attempts (the address lock only counts failures)
+    passwordAccepted = true;
     await clearAttempts(identifier, ip);
+    if (address) await releaseAttempt(address);
 
     // Extract user and session info
     const cloned = response.clone();
-    const result = await cloned.json().catch(() => null) as { user?: { id?: string }; session?: { id?: string; token?: string } } | null;
+    const result = await cloned.json().catch(() => null) as { user?: { id?: string }; token?: string; session?: { id?: string; token?: string } } | null;
 
     if (result?.user?.id) {
       const dbUser = await db.query.users.findFirst({
@@ -184,6 +226,15 @@ export async function signInWithPassword(
         }
         logAudit({ action: "login_fail", entityType: "user", metadata: { identifier, ip, userAgent, reason: "account_inactive" } }).catch(() => {});
         return handleApiError(new AppError("auth.errors.accountDisabled", { status: 403 }));
+      }
+
+      // The mobile route refuses these accounts before the password check; this
+      // covers a role changed meanwhile. Before the `login` entry and the last
+      // login date: the sign-in did not happen.
+      if (mobile && await lacksMobileApp(result.user.id)) {
+        if (result.token) await db.delete(sessions).where(eq(sessions.token, result.token));
+        auditMobileAppRefusal(result.user.id, { identifier, ip, userAgent });
+        return handleApiError(mobileAppNotAllowed());
       }
 
       logAudit({
@@ -217,6 +268,8 @@ export async function signInWithPassword(
             sessionId: result.session?.id,
             sessionCookie, // The full Set-Cookie header to replay after 2FA
             rememberMe: !!rememberMe,
+            // Only /api/mobile/auth/2fa redeems a token of the mobile sign-in, and only those
+            ...(mobile ? { client: "mobile" } : {}),
           }),
           expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
         });
@@ -294,7 +347,8 @@ export async function signInWithPassword(
 
     return response;
   } catch {
-    await recordFailedAttempt(identifier, ip);
+    // An error after the password was accepted is not a failed attempt: its hits are already cleared
+    if (!passwordAccepted) await recordFailedAttempt(account, address);
     logAudit({
       action: "login_fail",
       entityType: "user",

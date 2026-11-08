@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { accounts, sessions, verifications } from "@/db/schema/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, like } from "drizzle-orm";
 import { apiSuccess, handleApiError, AppError } from "@/lib/utils/api";
 import { hashPassword } from "@/lib/password";
 import { getConfigValues } from "@/lib/services/config-service";
@@ -13,6 +13,18 @@ import { logger } from "@/lib/logger";
 import { passwordNotCompliantError, passwordRejectedError } from "@/lib/services/user-service";
 import { crossOriginRejection } from "@/lib/utils/csrf";
 
+/**
+ * Reset link of this token: `verifications` also holds the pairing codes and the
+ * pending second factors, so only the rows written by forgot-password and
+ * send-reset (`reset:<userId>`, the token as value) are looked up.
+ */
+async function findResetVerification(token: string) {
+  const [verification] = await db.select().from(verifications)
+    .where(and(eq(verifications.value, token), like(verifications.identifier, "reset:%")))
+    .limit(1);
+  return verification;
+}
+
 /** GET: Validate token and return user username */
 export async function GET(request: Request) {
   try {
@@ -21,7 +33,7 @@ export async function GET(request: Request) {
 
     if (!token) throw new AppError("auth.errors.tokenRequired");
 
-    const [verification] = await db.select().from(verifications).where(eq(verifications.value, token)).limit(1);
+    const verification = await findResetVerification(token);
 
     if (!verification) throw new AppError("auth.errors.linkInvalidOrExpired");
 
@@ -68,7 +80,7 @@ export async function POST(request: Request) {
     }
 
     // Find the verification entry by token value
-    const [verification] = await db.select().from(verifications).where(eq(verifications.value, token)).limit(1);
+    const verification = await findResetVerification(token);
 
     if (!verification) {
       throw new AppError("auth.errors.linkInvalidOrExpired");
@@ -128,12 +140,14 @@ export async function POST(request: Request) {
     const resetUser = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { name: true, username: true } });
     await logAudit({ userId, action: "password_change", entityType: "user", entityId: userId, metadata: { method: "reset_token", targetUser: resetUser?.name, targetLogin: resetUser?.username } });
 
-    // Invalidate all sessions (force logout on all devices)
+    // Invalidate all sessions (force logout on all devices). The event goes
+    // out once they are deleted: each client checks its own session on it, and
+    // the Socket.io server closes the connections of the deleted ones.
+    await db.delete(sessions).where(eq(sessions.userId, userId));
     try {
       const { emitSessionRevoked } = await import("@/lib/socket-events");
       emitSessionRevoked(userId);
     } catch { /* socket server may not be running */ }
-    await db.delete(sessions).where(eq(sessions.userId, userId));
 
     // Delete the used token
     await db.delete(verifications).where(eq(verifications.id, verification.id));

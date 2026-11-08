@@ -128,12 +128,14 @@ async function checkUniqueness(username: string, email: string | null | undefine
 
 /** Invalidate all sessions for a given user (force logout on all devices) */
 async function invalidateUserSessions(userId: string, actorId?: string) {
-  // Notify connected clients before deleting sessions
+  await db.delete(sessions).where(eq(sessions.userId, userId));
+  // Notify connected clients once the sessions are gone: each one checks its
+  // own session on this event, and the Socket.io server closes the
+  // connections of the deleted ones
   try {
     const { emitSessionRevoked } = await import("@/lib/socket-events");
     emitSessionRevoked(userId);
   } catch { /* socket server may not be running */ }
-  await db.delete(sessions).where(eq(sessions.userId, userId));
   logAudit({
     userId: actorId,
     action: "session_revoke",
@@ -296,18 +298,19 @@ export async function updateUser(id: string, data: UpdateUser & { qualificationI
     updateValues.forceTwoFactor = forceTwoFactor;
   }
 
-  // When admin re-enables notifications, reset user preference to true
-  // (user can disable later in /profile if desired)
-  if (userData.notifications === true) {
+  // When admin re-enables notifications (off before), reset user preference to
+  // true (user can disable later in /profile if desired). A form saved with the
+  // switch already on keeps the user's choice.
+  if (userData.notifications === true && oldUser.notifications !== true) {
     updateValues.notificationsUser = true;
   }
-  if (userData.pushNotifications === true) {
+  if (userData.pushNotifications === true && oldUser.pushNotifications !== true) {
     updateValues.pushNotificationsUser = true;
   }
-  if (userData.mobilePushNotifications === true) {
+  if (userData.mobilePushNotifications === true && oldUser.mobilePushNotifications !== true) {
     updateValues.mobilePushNotificationsUser = true;
   }
-  if ((userData as any).smsNotifications === true) {
+  if ((userData as any).smsNotifications === true && oldUser.smsNotifications !== true) {
     updateValues.smsNotificationsUser = true;
   }
 
@@ -505,12 +508,6 @@ export async function deleteUser(id: string, deleterId?: string) {
     throw new AppError("users.errors.ownsProjects", { params: { count: ownedProjects.length, names } });
   }
 
-  // Notify connected clients BEFORE deleting (sessions will be cascade-deleted)
-  try {
-    const { emitSessionRevoked } = await import("@/lib/socket-events");
-    emitSessionRevoked(id);
-  } catch { /* socket server may not be running */ }
-
   // Audit before hard delete (data will be lost)
   await logAudit({
     userId: deleterId,
@@ -551,6 +548,13 @@ export async function deleteUser(id: string, deleterId?: string) {
 
   // Hard delete — cascades to sessions, accounts, password_history, task_users, etc.
   await db.delete(users).where(eq(users.id, id));
+
+  // Notify connected clients once the sessions are gone (deleted with the user):
+  // each one checks its own session on this event
+  try {
+    const { emitSessionRevoked } = await import("@/lib/socket-events");
+    emitSessionRevoked(id);
+  } catch { /* socket server may not be running */ }
 
   return oldUser;
 }

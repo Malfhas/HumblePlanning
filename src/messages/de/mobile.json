@@ -7,7 +7,9 @@
     "maintenance": "Der Server wird gewartet. Versuchen Sie es in Kürze erneut.",
     "appNotAllowed": "Ihre Rolle erlaubt die mobile App nicht. Wenden Sie sich an Ihren Administrator.",
     "deviceNotFound": "Gerät nicht gefunden.",
-    "pushNotConfigured": "Push-Benachrichtigungen sind auf diesem Server nicht eingerichtet."
+    "pushNotConfigured": "Push-Benachrichtigungen sind auf diesem Server nicht eingerichtet.",
+    "webOnly": "Der Anmelde-QR-Code wird auf der Website erstellt, nicht in der App oder mit einem API-Schlüssel.",
+    "appOnly": "Diese Aktion ist der mobilen App vorbehalten."
   },
   "pushTest": {
     "title": "Humble Planning",
@@ -20,6 +22,8 @@
     "show": "QR-Code anzeigen",
     "hide": "Ausblenden",
     "error": "Der QR-Code konnte nicht erstellt werden.",
-    "notAllowed": "Ihre Rolle erlaubt die mobile App nicht."
+    "notAllowed": "Ihre Rolle erlaubt die mobile App nicht.",
+    "expired": "Dieser QR-Code ist abgelaufen.",
+    "regenerate": "Neuen QR-Code erstellen"
   }
 }

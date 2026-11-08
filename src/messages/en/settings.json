@@ -1174,7 +1174,7 @@
     },
     "MOBILE_MIN_APP_VERSION": {
       "label": "Minimum app version",
-      "description": "An older app is blocked and asked to update, for example 1.2.0. Empty = no minimum."
+      "description": "An older app is blocked and asked to update. This server version already requires at least {version}, and every server update raises this minimum by itself when needed. Enter a newer version only to require it sooner, for example 1.2.0. Empty = the server's minimum."
     },
     "MOBILE_STORE_URL": {
       "label": "App download page",

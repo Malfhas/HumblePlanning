@@ -30,10 +30,12 @@ export const updateMobileDeviceSchema = mobileDeviceSchema.extend({
 });
 
 export const mobileTaskSyncSchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** Calendar dates (`YYYY-MM-DD`, a real day: 2026-02-30 is refused). */
+  startDate: z.iso.date(),
+  endDate: z.iso.date(),
   /** Last `serverTime` received: only the tasks changed since then are returned in full. */
   since: z.iso.datetime({ offset: true }).optional(),
+  /** Comma-separated business unit ids (uuids, checked with the task filters). */
   businessUnitIds: z.string().optional(),
 });
 

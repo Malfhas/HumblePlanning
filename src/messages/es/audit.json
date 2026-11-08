@@ -27,6 +27,7 @@
     "2fa_fail": "Error de 2FA",
     "bruteforce_lock": "Bloqueo por fuerza bruta",
     "session_revoke": "Sesión revocada",
+    "mobile_pairing_create": "Código QR de inicio de sesión creado",
     "email_blocked": "Correo bloqueado",
     "email_unblocked": "Correo desbloqueado",
     "webhook_received": "Webhook recibido"
@@ -109,6 +110,8 @@
     "login": "Inicio de sesión",
     "ip": "IP {ip}",
     "accountDisabled": "Cuenta desactivada",
+    "mobileAppNotAllowed": "Aplicación móvil no autorizada para este rol",
+    "pairingCodeCreated": "Código QR de inicio de sesión móvil creado",
     "recipients": "{count, plural, one {# destinatario} other {# destinatarios}}",
     "fileAdded": "Archivo añadido",
     "fileAddedNamed": "Archivo añadido: {name}",

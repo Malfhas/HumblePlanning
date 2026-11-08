@@ -110,9 +110,21 @@ export async function assertBulkTasksAllowed(
   }
 }
 
+/**
+ * Marks the tasks as changed when only their assignees changed (`task_users`
+ * rows): the incremental sync of the mobile app (`updatedAt >= since`) must
+ * report them.
+ */
+export async function touchTasks(taskIds: string[]) {
+  if (taskIds.length === 0) return;
+  await db.update(tasks).set({ updatedAt: new Date() }).where(inArray(tasks.id, taskIds));
+}
+
 export async function removeUserFromTask(taskId: string, userId: string) {
-  await db.delete(taskUsers)
-    .where(and(eq(taskUsers.taskId, taskId), eq(taskUsers.userId, userId)));
+  const removed = await db.delete(taskUsers)
+    .where(and(eq(taskUsers.taskId, taskId), eq(taskUsers.userId, userId)))
+    .returning({ taskId: taskUsers.taskId });
+  await touchTasks(removed.map((r) => r.taskId));
   // The user just lost their assignment: their `assigned_only/own` scope
   // may no longer contain the related project.
   invalidateCachePrefix(`scope:projects:${userId}:`);

@@ -1174,7 +1174,7 @@
     },
     "MOBILE_MIN_APP_VERSION": {
       "label": "Version minimale de l'application",
-      "description": "Une application plus ancienne est bloquée et invite à se mettre à jour, par exemple 1.2.0. Vide = pas de minimum."
+      "description": "Une application plus ancienne est bloquée et invitée à se mettre à jour. Cette version du serveur exige déjà au moins la {version}, et chaque mise à jour du serveur relève ce minimum d'elle-même si besoin. Renseignez une version plus récente seulement pour l'imposer plus tôt, par exemple 1.2.0. Vide = minimum du serveur."
     },
     "MOBILE_STORE_URL": {
       "label": "Page de téléchargement de l'application",

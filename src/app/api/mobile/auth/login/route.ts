@@ -4,14 +4,17 @@ import { parseSessionSetCookie } from "@/lib/utils/session-cookie";
 import { mobileLoginSchema } from "@/lib/validators/mobile";
 import { signInWithPassword } from "@/lib/services/password-login-service";
 import {
+  auditMobileAppRefusal,
+  findAccountWithoutMobileApp,
   finishMobileSession,
   getLoginRequirements,
   getMobileSettings,
   MOBILE_IP_POLICY,
+  mobileAppNotAllowed,
   mobileIpKey,
 } from "@/lib/services/mobile-service";
 import { assertMobileAppVersion } from "@/lib/services/mobile-client-policy";
-import { lockedFor, recordFailure } from "@/lib/services/security-counter-service";
+import { lockedFor } from "@/lib/services/security-counter-service";
 
 /**
  * POST /api/mobile/auth/login: password sign-in of the mobile app, with the
@@ -28,19 +31,32 @@ export async function POST(request: Request) {
     const { loginEnabled } = await getMobileSettings();
     if (!loginEnabled) throw new AppError("mobile.errors.loginDisabled", { status: 403 });
 
-    const ipKey = mobileIpKey(getClientIp(request.headers));
+    const ip = getClientIp(request.headers);
+    const ipKey = mobileIpKey(ip);
     const remaining = await lockedFor(ipKey);
     if (remaining > 0) {
       throw new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(remaining / 60) } });
     }
 
     const { identifier, password, device } = await validateBody(request, mobileLoginSchema);
-    const response = await signInWithPassword(request, { identifier, password, rememberMe: true });
 
-    if (!response.ok) {
-      if (response.status === 401) await recordFailure(ipKey, MOBILE_IP_POLICY);
-      return response;
+    // An account whose role does not allow the app is refused before its
+    // password is checked: this route must not tell whether it is right. Not a
+    // failed attempt for the lockouts (no password was tried).
+    const refusedUserId = await findAccountWithoutMobileApp(identifier);
+    if (refusedUserId) {
+      auditMobileAppRefusal(refusedUserId, { identifier, ip, userAgent: request.headers.get("user-agent") || "unknown" });
+      throw mobileAppNotAllowed();
     }
+
+    // The address lock is reserved and counted inside, with the per-account ones
+    const response = await signInWithPassword(request, {
+      identifier,
+      password,
+      rememberMe: true,
+      mobile: { addressKey: ipKey, addressPolicy: MOBILE_IP_POLICY },
+    });
+    if (!response.ok) return response;
 
     const body = await response.clone().json() as { twoFactorRequired?: boolean; pendingToken?: string };
     if (body.twoFactorRequired) {

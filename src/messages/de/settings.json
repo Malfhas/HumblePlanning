@@ -1174,7 +1174,7 @@
     },
     "MOBILE_MIN_APP_VERSION": {
       "label": "Mindestversion der App",
-      "description": "Eine ältere App wird gesperrt und zur Aktualisierung aufgefordert, zum Beispiel 1.2.0. Leer = kein Minimum."
+      "description": "Eine ältere App wird gesperrt und zur Aktualisierung aufgefordert. Diese Serverversion verlangt bereits mindestens {version}, und jedes Server-Update hebt dieses Minimum bei Bedarf von selbst an. Geben Sie nur dann eine neuere Version ein, wenn Sie sie früher verlangen möchten, zum Beispiel 1.2.0. Leer = Minimum des Servers."
     },
     "MOBILE_STORE_URL": {
       "label": "Download-Seite der App",

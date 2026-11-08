@@ -11,6 +11,12 @@ import { ACTION_STYLES, type AuditLogEntry, type LookupMaps } from "@/lib/consta
 // i18n-dynamic: audit.projectStatus.*
 // i18n-dynamic: audit.passwordMethods.*
 
+/** Translated reasons of a failed login (`metadata.reason`); any other reason is shown as it is. */
+const REASON_LABELS: Record<string, "changes.accountDisabled" | "changes.mobileAppNotAllowed"> = {
+  account_inactive: "changes.accountDisabled",
+  mobile_app_not_allowed: "changes.mobileAppNotAllowed",
+};
+
 /** Date (ISO "yyyy-MM-dd") and time ("HH:mm[:ss]") fields, formatted according to the settings. */
 const DATE_FIELDS = new Set(["startDate", "endDate", "deliveryDate"]);
 const TIME_FIELDS = new Set(["startTime", "endTime"]);
@@ -64,7 +70,7 @@ export function useAuditLabels() {
     const nw = log.newValues as Record<string, unknown> | null;
     const meta = log.metadata as Record<string, unknown> | null;
 
-    if (log.action === "login" || log.action === "login_fail" || log.action === "bruteforce_lock") {
+    if (log.action === "login" || log.action === "login_fail" || log.action === "bruteforce_lock" || log.action === "mobile_pairing_create") {
       const identifier = (meta?.identifier || meta?.email || meta?.targetUser) as string | undefined;
       if (identifier) return identifier;
       if (log.entityId && maps?.userMap?.get(log.entityId)) return maps.userMap.get(log.entityId)!;
@@ -88,15 +94,16 @@ export function useAuditLabels() {
     const meta = log.metadata as Record<string, unknown> | null;
     const metaStr = (k: string) => (typeof meta?.[k] === "string" ? (meta[k] as string) : undefined);
 
-    if (log.action === "login" || log.action === "login_fail") {
+    if (log.action === "login" || log.action === "login_fail" || log.action === "mobile_pairing_create") {
       const id = metaStr("identifier") || metaStr("email");
       const ip = metaStr("ip");
       const parts: string[] = [];
       if (id) parts.push(id);
       if (ip) parts.push(t("changes.ip", { ip }));
       const reason = metaStr("reason");
-      if (reason) parts.push(reason === "account_inactive" ? t("changes.accountDisabled") : reason);
-      return parts.join(" — ") || t("changes.login");
+      if (reason) parts.push(REASON_LABELS[reason] ? t(REASON_LABELS[reason]) : reason);
+      if (parts.length > 0) return parts.join(" — ");
+      return log.action === "mobile_pairing_create" ? t("changes.pairingCodeCreated") : t("changes.login");
     }
     if (log.action === "email_sent") {
       return t("changes.recipients", { count: Number(meta?.recipientCount ?? 0) });

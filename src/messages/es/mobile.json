@@ -7,7 +7,9 @@
     "maintenance": "El servidor está en mantenimiento. Vuelva a intentarlo en unos instantes.",
     "appNotAllowed": "Su rol no permite usar la aplicación móvil. Contacte con su administrador.",
     "deviceNotFound": "Dispositivo no encontrado.",
-    "pushNotConfigured": "Las notificaciones push no están configuradas en este servidor."
+    "pushNotConfigured": "Las notificaciones push no están configuradas en este servidor.",
+    "webOnly": "El código QR de inicio de sesión se crea desde el sitio web, no desde la aplicación ni con una clave API.",
+    "appOnly": "Esta acción está reservada a la aplicación móvil."
   },
   "pushTest": {
     "title": "Humble Planning",
@@ -20,6 +22,8 @@
     "show": "Mostrar el código QR",
     "hide": "Ocultar",
     "error": "No se pudo generar el código QR.",
-    "notAllowed": "Su rol no permite usar la aplicación móvil."
+    "notAllowed": "Su rol no permite usar la aplicación móvil.",
+    "expired": "Este código QR ha caducado.",
+    "regenerate": "Generar un nuevo código QR"
   }
 }

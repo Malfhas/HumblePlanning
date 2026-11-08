@@ -27,6 +27,7 @@
     "2fa_fail": "Échec 2FA",
     "bruteforce_lock": "Verrouillage bruteforce",
     "session_revoke": "Session révoquée",
+    "mobile_pairing_create": "QR code de connexion créé",
     "email_blocked": "Email bloqué",
     "email_unblocked": "Email débloqué",
     "webhook_received": "Webhook reçu"
@@ -109,6 +110,8 @@
     "login": "Connexion",
     "ip": "IP {ip}",
     "accountDisabled": "Compte désactivé",
+    "mobileAppNotAllowed": "Application mobile non autorisée pour ce rôle",
+    "pairingCodeCreated": "QR code de connexion mobile créé",
     "recipients": "{count, plural, one {# destinataire} other {# destinataires}}",
     "fileAdded": "Fichier ajouté",
     "fileAddedNamed": "Fichier ajouté : {name}",
