@@ -1248,15 +1248,25 @@ export class CanvasRenderer {
 
     // Truncated task (= overflows the schedule period). Since the bar
     // is clamped to the period bounds at allocation time, x and width
-    // already match the rendered portion. The arrow and the text simply
-    // align with the bar edge — no clamp to the sidebar
-    // and no clip-rect to apply. Same behavior as a standard
-    // task: everything slides under the sidebar while scrolling.
+    // already match the rendered portion.
+    // Sticky content: when the start of the bar has scrolled under the
+    // sidebar, its icons and title stay at the left edge of the grid, so
+    // a multi-day task remains readable while scrolling; the left arrow
+    // tells that it goes on. Clipped to the visible part of the bar, which
+    // can be too narrow for them.
     const arrowGutter = 12;
-    const showLeftArrow = truncatedLeft;
-    const showRightArrow = truncatedRight;
-    const visibleLeftEdge = x;
+    const gridLeft = this.viewport?.sidebarWidth ?? 0;
+    const scrolledPast = x < gridLeft;
+    const visibleLeftEdge = Math.max(x, gridLeft);
     const visibleRightEdge = x + width;
+    const showLeftArrow = truncatedLeft || (scrolledPast && visibleRightEdge - visibleLeftEdge > arrowGutter + 4);
+    const showRightArrow = truncatedRight;
+    if (scrolledPast) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(visibleLeftEdge, y, Math.max(0, visibleRightEdge - visibleLeftEdge), height);
+      ctx.clip();
+    }
     let cursorX = visibleLeftEdge + CANVAS_GEOMETRY.barPaddingX + (showLeftArrow ? arrowGutter : 0);
     const iconY = y + (height - ICON_SIZE_DEFAULT) / 2;
 
@@ -1357,6 +1367,7 @@ export class CanvasRenderer {
         ctx.stroke();
       }
     }
+    if (scrolledPast) ctx.restore();
 
     // Resize handles — visible ONLY when the bar is hovered, unless the
     // task is locked. Legacy parity: 6 px wide, rgba(0,0,0,0.35).
