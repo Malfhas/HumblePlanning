@@ -1,5 +1,5 @@
 import { requireAuth, requirePermission, validateBody, apiSuccess, apiError, handleApiError } from "@/lib/utils/api";
-import { getAllConfig, setConfigValues, getDbConfiguredSecrets } from "@/lib/services/config-service";
+import { getAllConfig, setConfigValues, getDbConfiguredSecrets, getUnreadableSecrets, getConfigEncryptionStatus } from "@/lib/services/config-service";
 import { clearLegalTextDefaults } from "@/lib/services/legal-texts";
 import { isSecretKey, isPrivateConfigKey, getEnvManagedKeys, isEnvManaged, getEnvValue, ENV_OVERRIDE_KEYS } from "@/lib/services/config-secrets";
 import { reloadCacheSettings } from "@/lib/cache";
@@ -82,6 +82,9 @@ export async function GET() {
       _dbConfigured: JSON.stringify(dbConfigured),
       _emailStatus: JSON.stringify(emailStatus),
       _altchaConfigured: isAltchaConfigured() ? "true" : "false",
+      // Encryption at rest of the secrets: a status and key names, never values.
+      _configEncryption: getConfigEncryptionStatus(),
+      _secretsUnreadable: JSON.stringify(await getUnreadableSecrets()),
     });
   } catch (error) {
     return handleApiError(error);
@@ -207,6 +210,8 @@ export async function PUT(request: Request) {
       _envManaged: JSON.stringify(envManagedAfter),
       _dbConfigured: JSON.stringify(dbConfiguredAfter),
       _emailStatus: JSON.stringify(emailStatusAfter),
+      _configEncryption: getConfigEncryptionStatus(),
+      _secretsUnreadable: JSON.stringify(await getUnreadableSecrets()),
     });
   } catch (error) {
     return handleApiError(error);

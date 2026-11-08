@@ -1670,9 +1670,10 @@ function SettingsContent() {
   const updateConfig = useUpdateConfig();
 
   // Metadata exposed by GET /api/config for secret-handling UI
-  const { envManaged, dbConfigured, emailStatus, altchaConfigured } = parseConfigMeta(config);
+  const { envManaged, dbConfigured, emailStatus, altchaConfigured, configEncryption, secretsUnreadable } = parseConfigMeta(config);
   const envManagedSet = new Set(envManaged);
   const dbConfiguredSet = new Set(dbConfigured);
+  const unreadableSet = new Set(secretsUnreadable);
   const [values, setValues] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const [activeSubSection, setActiveSubSection] = useState<Record<string, string>>(() => {
@@ -2078,6 +2079,48 @@ function SettingsContent() {
                         </div>
                       </div>
                     )}
+                    {(() => {
+                      // Encryption at rest of the secrets entered in this section
+                      // (CONFIG_ENCRYPTION_KEY): stored in plain text, or unreadable.
+                      const secretFields = section.fields.filter((f) => f.type === "password" && !envManagedSet.has(f.key));
+                      const storedInPlain = configEncryption !== "active" && secretFields.some((f) => dbConfiguredSet.has(f.key));
+                      const unreadable = secretFields.filter((f) => unreadableSet.has(f.key));
+                      const code = (chunks: React.ReactNode) => <code className="rounded bg-muted px-1 py-0.5 text-xs">{chunks}</code>;
+                      return (
+                        <>
+                          {storedInPlain && (
+                            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/30">
+                              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+                              <div className="space-y-1">
+                                <p className="font-medium text-amber-800 dark:text-amber-300">
+                                  {t(configEncryption === "invalid" ? "alerts.secretsKeyInvalid.title" : "alerts.secretsPlainText.title")}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  {configEncryption === "invalid"
+                                    ? t.rich("alerts.secretsKeyInvalid.description", { code })
+                                    : t.rich("alerts.secretsPlainText.description", { code })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {unreadable.length > 0 && (
+                            <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+                              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                              <div className="space-y-1">
+                                <p className="font-medium text-destructive">{t("alerts.secretsUnreadable.title")}</p>
+                                <p className="text-muted-foreground">
+                                  {t.rich("alerts.secretsUnreadable.description", {
+                                    keys: unreadable.map((f) => fieldText.label(f)).join(", "),
+                                    b: (chunks) => <strong>{chunks}</strong>,
+                                    code,
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                     {section.fields.map((field) => (
                 <div key={field.key}>
                   <div className="grid gap-1.5">
@@ -2237,6 +2280,8 @@ function SettingsContent() {
                       const isEnvManaged = envManagedSet.has(field.key);
                       const isEnvSecret = isEnvManaged && field.type === "password";
                       const isDbConfigured = field.type === "password" && dbConfiguredSet.has(field.key);
+                      // Encrypted with another key: reads as absent until entered again.
+                      const isUnreadable = field.type === "password" && !isEnvManaged && unreadableSet.has(field.key);
                       const displayValue = isEnvSecret
                         ? "••••••••••••"
                         : (values[field.key] ?? field.defaultValue ?? "");
@@ -2266,6 +2311,12 @@ function SettingsContent() {
                               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:text-emerald-200">
                                 <CheckCircle2 className="h-3 w-3" />
                                 {t("field.configured")}
+                              </span>
+                            )}
+                            {isUnreadable && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">
+                                <AlertTriangle className="h-3 w-3" />
+                                {t("field.reenter")}
                               </span>
                             )}
                           </div>

@@ -91,6 +91,7 @@
     "envManaged": "Gestionado en .env",
     "envManagedTooltip": "Este valor se define en el archivo .env del servidor. Para modificarlo, edite .env y reinicie la aplicación.",
     "configured": "Configurado",
+    "reenter": "Volver a introducir",
     "keepSecretPlaceholder": "•••••••••••• (déjelo vacío para conservarlo)",
     "translatedDefaultHelp": "Déjelo vacío para mostrar el texto de ejemplo, traducido al idioma del visitante."
   },
@@ -126,6 +127,18 @@
     "altchaMissing": {
       "title": "ALTCHA no configurado",
       "description": "Faltan los secretos HMAC de ALTCHA en el archivo <code>.env</code> del servidor. El captcha se omitirá sin avisar mientras no se definan las variables <code>ALTCHA_HMAC_SECRET</code> y <code>ALTCHA_HMAC_KEY_SECRET</code>. Vuelva a ejecutar <code>install.sh</code> para generarlos automáticamente."
+    },
+    "secretsPlainText": {
+      "title": "Ajustes sensibles guardados sin cifrar",
+      "description": "Las contraseñas y claves introducidas aquí se guardan sin cifrar en la base de datos, porque falta la variable <code>CONFIG_ENCRYPTION_KEY</code> en el archivo <code>.env</code> del servidor. <code>humble-planning update</code> la añade en una instalación hecha con el instalador; si no, añádala (<code>openssl rand -hex 32</code>) y reinicie la aplicación: los valores existentes se cifrarán entonces."
+    },
+    "secretsKeyInvalid": {
+      "title": "Clave de cifrado de los ajustes no válida",
+      "description": "<code>CONFIG_ENCRYPTION_KEY</code> debe contener 64 caracteres hexadecimales (<code>openssl rand -hex 32</code>). Mientras tanto, las contraseñas y claves introducidas aquí se guardan sin cifrar."
+    },
+    "secretsUnreadable": {
+      "title": "Ajustes que deben introducirse de nuevo",
+      "description": "<b>{keys}</b>: estos valores se cifraron con otra clave (<code>CONFIG_ENCRYPTION_KEY</code> perdida o cambiada, o base de datos restaurada desde otra instancia) y no se pueden leer. Vuelva a poner la clave anterior en <code>CONFIG_ENCRYPTION_KEY_PREVIOUS</code> o introdúzcalos de nuevo."
     }
   },
   "purge": {

@@ -780,6 +780,33 @@ pull_or_build() {
   fi
 }
 
+# Encryption at rest of the secret settings (1.2.0+): the application encrypts
+# the passwords and API keys entered in Settings with CONFIG_ENCRYPTION_KEY.
+# An update adds the key to .env when it is missing (an existing value is never
+# changed), before the migrations: the values already stored are encrypted at
+# the start that follows. A rollback to an older version decrypts them first.
+CONFIG_ENCRYPTION_SINCE=1.2.0
+CONFIG_KEY_ADDED=0
+ensure_config_key() {
+  local current
+  current=$(env_get CONFIG_ENCRYPTION_KEY)
+  case ${current,,} in
+    "" | *generate* | *change-me* | *your-secret* | *placeholder*) ;;
+    *) return 0 ;;
+  esac
+  env_set CONFIG_ENCRYPTION_KEY "$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
+  CONFIG_KEY_ADDED=1
+  log "KEY   CONFIG_ENCRYPTION_KEY added to $ENV_FILE"
+}
+
+# Where to find the encryption keys, never their value (the output is logged).
+config_key_notice() {
+  warn "${BOLD}A settings encryption key (CONFIG_ENCRYPTION_KEY) was added to $ENV_FILE.${RESET}"
+  say "      The passwords and API keys entered in Settings are now encrypted in the database."
+  say "      Store this key in a password manager, with BACKUP_ENCRYPTION_KEY:"
+  say "      sudo grep -E '^(BACKUP|CONFIG)_ENCRYPTION_KEY=' $ENV_FILE"
+}
+
 # Automatic rollback after a failed update: previous version + database restore.
 auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
   local from=$1 to=$2 stage=$3 backup=$4 migrated=$5 failure="$TMP_DIR/failure.$NAME.log"
@@ -810,6 +837,7 @@ auto_rollback() { # auto_rollback FROM TO STAGE BACKUP MIGRATED
   ok "$NAME is running v$from again."
   if [ "$migrated" = 1 ] && [ "$restored" = 1 ]; then ok "The database was restored from the backup taken before the update."; fi
   if [ "$restored" = 0 ]; then bad "The database could not be restored automatically: restore it with 'humble-planning rollback $NAME'."; fi
+  if [ "$CONFIG_KEY_ADDED" = 1 ]; then config_key_notice; fi
   info "Backup: $backup"
   excerpt "$failure" 14 "What went wrong (full log: $UPDATE_LOG):"
   exit 1
@@ -856,6 +884,7 @@ do_update() { # do_update FROM TO
     compose_install "$from"
     if [ "$COMPOSE_CHANGED" = 1 ]; then info "Compose files of v$to installed (those of v$from kept in $BACKUP_DIR/compose-v$from)"; fi
   fi
+  ensure_config_key
   migrated=1
   if ! spin "Applying the database migrations of v$to" compose_at "$to" run --rm -T --no-deps app provision migrate; then
     auto_rollback "$from" "$to" "applying the database migrations" "$backup" "$migrated"
@@ -874,6 +903,7 @@ do_update() { # do_update FROM TO
   ok "${BOLD}$NAME: Humble Planning v$to is up and running.${RESET}"
   info "Previous version v$from kept for 'humble-planning rollback $NAME'."
   info "Pre-update backup: $backup"
+  if [ "$CONFIG_KEY_ADDED" = 1 ]; then say ""; config_key_notice; fi
 }
 
 # update_instance MODE WANT YES — update of the selected instance (checks the
@@ -1153,6 +1183,19 @@ cmd_rollback() {
     spin "Downloading v$previous" compose_at "$previous" pull app socket || die "Could not get the images of v$previous."
   fi
   spin "Stopping v$current" compose stop app socket || true
+  # Without restoring the backup, a version older than the encryption at rest
+  # would read the encrypted secret settings as they are: decrypt them first,
+  # with v$current (encrypted again by the next update).
+  if [ "${restore:-0}" != 1 ] && version_gt "$CONFIG_ENCRYPTION_SINCE" "$previous" && ! version_gt "$CONFIG_ENCRYPTION_SINCE" "$current"; then
+    if db_builtin; then spin "Starting the database" compose up -d --wait db || true; fi
+    if ! spin "Decrypting the secret settings for v$previous" compose_at "$current" run --rm -T --no-deps app provision decrypt-secrets; then
+      last_log_lines 6
+      compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
+      say "      Put back the key they were encrypted with (CONFIG_ENCRYPTION_KEY, or CONFIG_ENCRYPTION_KEY_PREVIOUS),"
+      say "      enter them again in Settings, or roll back with --restore (the pre-update backup)."
+      die "The secret settings could not be decrypted for v$previous: rollback cancelled, v$current restarted, nothing changed."
+    fi
+  fi
   # The Compose files of v$previous, kept when v$current was installed
   if [ -d "$BACKUP_DIR/compose-v$previous" ]; then
     compose_restore "$previous"
@@ -1160,8 +1203,8 @@ cmd_rollback() {
   fi
   if [ "${restore:-0}" = 1 ]; then
     if ! spin "Restoring the database from the pre-update backup" restore_from "$backup"; then
-      compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
       last_log_lines 15
+      compose up -d --wait --wait-timeout 180 >>"$UPDATE_LOG" 2>&1 || true
       die "The database restore failed: v$current restarted, nothing changed."
     fi
   fi

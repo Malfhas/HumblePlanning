@@ -969,7 +969,7 @@ APP_REPO="" CADDY_REPO="" APP_IMAGE="" CADDY_IMAGE="" APP_PORT="" SOCKET_PORT=""
 AUTO_UPDATE=0
 OS_ID="" OS_VERSION_ID="" OS_PRETTY="" OS_CODENAME="" DOCKER_DIST="" DOCKER_SUITE=""
 DOCKER_VERSION="" COMPOSE_VERSION="" DOCKER_READY=0 ARCH=""
-ADMIN_USER="" ADMIN_CREATED=0 BACKUP_KEY_NEW="" APP_VERSION=""
+ADMIN_USER="" ADMIN_CREATED=0 BACKUP_KEY_NEW="" CONFIG_KEY_NEW="" APP_VERSION=""
 
 existing_install() {
   [ -f "$1/.env" ] && [ -f "$1/docker-compose.yml" ] && grep -q '^APP_BASE_URL=' "$1/.env"
@@ -1910,12 +1910,14 @@ prepare_files() {
     fi
   fi
 
-  local key had_backup_key
+  local key had_backup_key had_config_key
   had_backup_key=$(env_get BACKUP_ENCRYPTION_KEY)
-  for key in BETTER_AUTH_SECRET SOCKET_SECRET BACKUP_ENCRYPTION_KEY ALTCHA_HMAC_SECRET ALTCHA_HMAC_KEY_SECRET; do
+  had_config_key=$(env_get CONFIG_ENCRYPTION_KEY)
+  for key in BETTER_AUTH_SECRET SOCKET_SECRET BACKUP_ENCRYPTION_KEY CONFIG_ENCRYPTION_KEY ALTCHA_HMAC_SECRET ALTCHA_HMAC_KEY_SECRET; do
     env_plan "Secrets" "$key" "$(gen_secret)" keep
   done
   if is_placeholder "$had_backup_key"; then BACKUP_KEY_NEW=${ENV_VALUE[BACKUP_ENCRYPTION_KEY]:-}; fi
+  if is_placeholder "$had_config_key"; then CONFIG_KEY_NEW=${ENV_VALUE[CONFIG_ENCRYPTION_KEY]:-}; fi
 
   env_plan "Updates" HUMBLE_UPDATE_REPO "${HP_UPDATE_REPO:-$DEFAULT_UPDATE_REPO}" keep
   [ -n "${HP_UPDATE_SOURCE:-}" ] && env_plan "Updates" HUMBLE_UPDATE_SOURCE "$HP_UPDATE_SOURCE" set
@@ -2391,6 +2393,16 @@ summary() {
       "" \
       "Store this key in a password manager. It is also in $INSTALL_DIR/.env," \
       "but without it, backups made by Humble Planning cannot be restored."
+  fi
+
+  if [ -n "$CONFIG_KEY_NEW" ]; then
+    printf '\n'
+    BOX_COLOR=$YELLOW box "Settings encryption key — shown only once" \
+      "${BOLD}$CONFIG_KEY_NEW${RESET}" \
+      "" \
+      "Store this key in a password manager, with the backup key. It is also in" \
+      "$INSTALL_DIR/.env. Without it, the passwords and API keys entered in" \
+      "Settings cannot be read from a backup restored elsewhere."
   fi
 
   if [ "$CADDY" = 0 ]; then
