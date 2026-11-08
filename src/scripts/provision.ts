@@ -14,6 +14,7 @@
  *   bun src/scripts/provision.ts backup                    > file.dump
  *   bun src/scripts/provision.ts restore                   < file.dump
  *   bun src/scripts/provision.ts demo-reset [--force]      (DEMO_MODE=true only)
+ *   bun src/scripts/provision.ts decrypt-secrets           (before going back to a version < 1.2.0)
  *
  * Secrets (passwords, connection URL with --url-stdin) are read on stdin, never
  * from argv or the environment of the caller.
@@ -45,6 +46,8 @@ import { eq, inArray } from "drizzle-orm";
 import { users, accounts, appConfig } from "../db/schema";
 import { hashPassword } from "../lib/password";
 import { policyFromConfig, evaluatePassword, PWD_CONFIG_KEYS, type PasswordCheck, type PasswordPolicy } from "../lib/password-policy";
+import { SECRET_KEYS, isEnvManaged } from "../lib/services/config-secrets";
+import { decryptSetting, encryptSetting, encryptedKeyId, isEncryptedValue, loadConfigKeys, ENCRYPTED_PREFIX } from "../lib/services/config-crypto";
 
 const MIN_SERVER_VERSION_NUM = 160000; // PostgreSQL 16
 const SUPER_ADMIN_ROLE_ID = "00000000-0000-0000-0000-000000000005";
@@ -259,6 +262,104 @@ async function ensureDefaultSettings(sql: ReturnType<typeof connect>): Promise<v
   if (enabled.length > 0) out("OK", "ALTCHA captcha turned on (sign-in and password reset).");
 }
 
+/**
+ * Encrypts with CONFIG_ENCRYPTION_KEY the secret settings still stored in plain
+ * text, and those encrypted with CONFIG_ENCRYPTION_KEY_PREVIOUS (rotation). Runs
+ * at every start, under the migration lock; each row is updated only if it did
+ * not change meanwhile. Without a usable key, warns and leaves everything as is.
+ */
+async function encryptStoredSecrets(sql: ReturnType<typeof connect>): Promise<void> {
+  const keys = loadConfigKeys();
+  const rows = await sql<{ key: string; value: string }[]>`
+    select key, value from app_config
+    where key in ${sql([...SECRET_KEYS])} and coalesce(value, '') <> ''`;
+  // Rows overridden by .env are encrypted like the others but never read:
+  // they are left out of the counts, as in Settings.
+  const counted = (row: { key: string }) => !isEnvManaged(row.key);
+  if (!keys.current) {
+    const plain = rows.filter((row) => counted(row) && !isEncryptedValue(row.value)).length;
+    const encrypted = rows.filter((row) => counted(row) && isEncryptedValue(row.value)).length;
+    if (keys.status === "invalid") {
+      out("WARN", "CONFIG_ENCRYPTION_KEY is not usable (64 hexadecimal characters expected, `openssl rand -hex 32`): secret settings stay in plain text.");
+    } else if (plain > 0) {
+      out("WARN", `${plain} secret setting(s) stored in plain text in the database: set CONFIG_ENCRYPTION_KEY in .env (\`openssl rand -hex 32\`; \`humble-planning update\` adds it).`);
+    }
+    if (encrypted > 0) {
+      out("WARN", `${encrypted} secret setting(s) are encrypted and cannot be read without a valid CONFIG_ENCRYPTION_KEY: put the key back, or enter them again in Settings.`);
+    }
+    return;
+  }
+  let encrypted = 0;
+  let unreadable = 0;
+  for (const row of rows) {
+    let plain = row.value;
+    if (isEncryptedValue(row.value)) {
+      if (encryptedKeyId(row.value) === keys.current.id) continue;
+      const result = decryptSetting(row.key, row.value, keys.readable);
+      if (!result.ok) {
+        if (counted(row)) unreadable++;
+        continue;
+      }
+      plain = result.value;
+    }
+    const updated = await sql`
+      update app_config set value = ${encryptSetting(row.key, plain, keys.current)}
+      where key = ${row.key} and value = ${row.value}
+      returning key`;
+    if (counted(row)) encrypted += updated.length;
+  }
+  if (encrypted > 0) out("OK", `Encrypted ${encrypted} secret setting(s) in the database.`);
+  if (unreadable > 0) {
+    out("WARN", `${unreadable} secret setting(s) were encrypted with another key and cannot be read: set that key as CONFIG_ENCRYPTION_KEY_PREVIOUS, or enter them again in Settings.`);
+  }
+}
+
+/**
+ * Writes back in plain text the secret settings encrypted with CONFIG_ENCRYPTION_KEY
+ * (or _PREVIOUS). Run by `humble-planning rollback` before going back, without
+ * restoring the database, to a version older than the encryption at rest (1.2.0),
+ * which would read the encrypted values as they are. All or nothing: when one of
+ * them cannot be decrypted with the keys of .env, nothing is written and the
+ * command fails (the rollback is then cancelled). The next start of a version
+ * with the key encrypts them again.
+ */
+async function cmdDecryptSecrets(): Promise<number> {
+  const sql = connect(process.env.DATABASE_URL);
+  try {
+    const keys = loadConfigKeys();
+    const rows = await sql<{ key: string; value: string }[]>`
+      select key, value from app_config
+      where key in ${sql([...SECRET_KEYS])} and value like ${`${ENCRYPTED_PREFIX}%`}`;
+    if (rows.length === 0) {
+      out("INFO", "No encrypted secret setting in the database.");
+      return EXIT.OK;
+    }
+    const plain = rows.map((row) => ({ ...row, result: decryptSetting(row.key, row.value, keys.readable) }));
+    const unreadable = plain.filter((row) => !row.result.ok).map((row) => row.key);
+    if (unreadable.length > 0) {
+      throw new ProvisionError(
+        `${unreadable.length} secret setting(s) cannot be decrypted with the keys of .env (${unreadable.join(", ")}): nothing was changed.`,
+        EXIT.CONFLICT,
+      );
+    }
+    let decrypted = 0;
+    await sql.begin(async (tx) => {
+      for (const row of plain) {
+        if (!row.result.ok) continue;
+        const updated = await tx`
+          update app_config set value = ${row.result.value}
+          where key = ${row.key} and value = ${row.value}
+          returning key`;
+        decrypted += updated.length;
+      }
+    });
+    out("OK", `Decrypted ${decrypted} secret setting(s) in the database.`);
+    return EXIT.OK;
+  } finally {
+    await sql.end({ timeout: 5 });
+  }
+}
+
 async function cmdMigrate(): Promise<number> {
   const url = process.env.DATABASE_URL;
   const sql = connect(url);
@@ -292,6 +393,7 @@ async function cmdMigrate(): Promise<number> {
       if (seeded.done) {
         out("INFO", "Default data already present: seed skipped.");
         await ensureDefaultSettings(sql);
+        await encryptStoredSecrets(sql);
         return EXIT.OK;
       }
 
@@ -307,6 +409,7 @@ async function cmdMigrate(): Promise<number> {
       if (code !== 0) throw new ProvisionError("Seeding the default data failed (see the log for details).");
       out("OK", "Default data created (roles, permissions, statuses, settings).");
       await ensureDefaultSettings(sql);
+      await encryptStoredSecrets(sql);
       return EXIT.OK;
     } finally {
       await sql`select pg_advisory_unlock(hashtext('humble-planning:migrate'))`.catch(() => {});
@@ -517,6 +620,7 @@ const COMMANDS: Record<string, (args: string[]) => Promise<number>> = {
   backup: cmdBackup,
   restore: cmdRestore,
   "demo-reset": cmdDemoReset,
+  "decrypt-secrets": cmdDecryptSecrets,
 };
 
 /** Erases every piece of data and loads the demo dataset (see src/lib/demo). */

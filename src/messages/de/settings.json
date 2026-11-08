@@ -89,6 +89,7 @@
     "envManaged": "Über .env verwaltet",
     "envManagedTooltip": "Dieser Wert ist in der .env-Datei des Servers festgelegt. Um ihn zu ändern, bearbeiten Sie .env und starten Sie die Anwendung neu.",
     "configured": "Konfiguriert",
+    "reenter": "Erneut eingeben",
     "keepSecretPlaceholder": "•••••••••••• (leer lassen, um den aktuellen Wert zu behalten)",
     "translatedDefaultHelp": "Leer lassen, um den Beispieltext in der Sprache des Besuchers anzuzeigen."
   },
@@ -124,6 +125,18 @@
     "altchaMissing": {
       "title": "ALTCHA nicht konfiguriert",
       "description": "Die HMAC-Secrets für ALTCHA fehlen in der Datei <code>.env</code> des Servers. Das Captcha wird stillschweigend übersprungen, solange die Variablen <code>ALTCHA_HMAC_SECRET</code> und <code>ALTCHA_HMAC_KEY_SECRET</code> nicht gesetzt sind. Führen Sie <code>install.sh</code> erneut aus, um sie automatisch zu erzeugen."
+    },
+    "secretsPlainText": {
+      "title": "Vertrauliche Einstellungen im Klartext gespeichert",
+      "description": "Die hier eingegebenen Passwörter und Schlüssel werden im Klartext in der Datenbank gespeichert, weil die Variable <code>CONFIG_ENCRYPTION_KEY</code> in der Datei <code>.env</code> des Servers fehlt. <code>humble-planning update</code> fügt sie bei einer Installation mit dem Installationsprogramm hinzu; andernfalls fügen Sie sie hinzu (<code>openssl rand -hex 32</code>) und starten Sie die Anwendung neu: Die vorhandenen Werte werden dann verschlüsselt."
+    },
+    "secretsKeyInvalid": {
+      "title": "Ungültiger Schlüssel für die Verschlüsselung der Einstellungen",
+      "description": "<code>CONFIG_ENCRYPTION_KEY</code> muss 64 Hexadezimalzeichen enthalten (<code>openssl rand -hex 32</code>). Bis dahin werden die hier eingegebenen Passwörter und Schlüssel im Klartext gespeichert."
+    },
+    "secretsUnreadable": {
+      "title": "Erneut einzugebende Einstellungen",
+      "description": "<b>{keys}</b>: Diese Werte wurden mit einem anderen Schlüssel verschlüsselt (<code>CONFIG_ENCRYPTION_KEY</code> verloren oder geändert, oder Datenbank aus einer anderen Instanz wiederhergestellt) und können nicht gelesen werden. Tragen Sie den früheren Schlüssel als <code>CONFIG_ENCRYPTION_KEY_PREVIOUS</code> ein oder geben Sie sie erneut ein."
     }
   },
   "purge": {

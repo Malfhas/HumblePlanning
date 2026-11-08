@@ -1,6 +1,7 @@
 /**
  * Centralizes the list of configuration keys considered secrets.
- * These keys can be defined in `.env` (precedence) or in the `app_config` table.
+ * These keys can be defined in `.env` (precedence) or in the `app_config` table,
+ * where they are encrypted at rest with CONFIG_ENCRYPTION_KEY (config-crypto.ts).
  * Their value is NEVER returned to the front end.
  */
 export const SECRET_KEYS = [
@@ -12,7 +13,7 @@ export const SECRET_KEYS = [
   "SENT_API_KEY",
   // Captcha (Turnstile / reCAPTCHA server-side key)
   "CAPTCHA_SECRET_KEY",
-  // AI chat (OpenRouter). Recommended in `.env`: the database stores it in plain text.
+  // AI chat (OpenRouter). Encrypted in the database when CONFIG_ENCRYPTION_KEY is set.
   "OPENROUTER_API_KEY",
 ] as const;
 

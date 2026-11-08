@@ -16,7 +16,7 @@ The installer:
 - asks for the public URL, a short name and a label for the instance (see [Several instances](#several-instances-on-one-server)), the installation directory (`/opt/humble-planning/instances/<name>`), the instance type (production, or a public [demo instance](#demo-instance) reset every night), the database (built-in PostgreSQL 18 container, or an external PostgreSQL 16+ server), whether to serve it with Caddy, the [reverse proxy shared by the instances](#shared-reverse-proxy) (automatic HTTPS with Let's Encrypt, optionally through the Cloudflare DNS challenge), whether the site is served through the Cloudflare proxy, and whether to enable automatic updates (off by default);
 - generates `.env` with fresh secrets, sets up the [database user](#database-user) of the application, applies the database migrations, creates the administrator account (the password is typed twice and checked against the password policy) or, for a demo instance, loads the demo data, then starts the stack.
 
-The directory of the instance contains `docker-compose.yml`, `.env` (mode 600) and, with Caddy, `docker-compose.proxy.yml`. Data is kept in Docker volumes (`db_data`, `uploads`, `data`; the certificates in the `caddy_data` volume of the proxy). At the end, the installer displays the `BACKUP_ENCRYPTION_KEY` once: store it safely, backups cannot be restored without it.
+The directory of the instance contains `docker-compose.yml`, `.env` (mode 600) and, with Caddy, `docker-compose.proxy.yml`. Data is kept in Docker volumes (`db_data`, `uploads`, `data`; the certificates in the `caddy_data` volume of the proxy). At the end, the installer displays the `BACKUP_ENCRYPTION_KEY` and the `CONFIG_ENCRYPTION_KEY` once: store both safely, in a password manager. Backups cannot be restored without the first one, and the passwords and API keys entered in Settings cannot be read without the second one (see [Secret settings](#secret-settings)).
 
 Running the installer again lists the instances of the server and offers to update one of them or to install a new one; `sudo humble-planning new` installs a new one directly.
 
@@ -151,6 +151,24 @@ It then shows the old and new URLs and what will change, and asks for confirmati
 3. recreates the app and socket containers so that they read the new URL, then checks the application (and the site through the proxy).
 
 If a step fails, `.env`, the registry and the proxy site are restored, the proxy is reloaded and the instance is started again on its previous URL; the command then exits with an error and the path of its log.
+
+## Secret settings
+
+The passwords and API keys entered in *Settings* (SMTP password, Mailgun, Nuntly and Sent.dm keys, captcha secret key, OpenRouter key) are encrypted in the database with `CONFIG_ENCRYPTION_KEY`, a key of the `.env` of the instance (AES-256-GCM). A copy of the database alone (a dump, a backup of the `humble-planning` command, a copy of the volume, a database hosted elsewhere) no longer gives them away. It does not protect against someone who controls the server: the key sits in its `.env`. A value set in `.env` itself still takes precedence over the one entered in *Settings*, and is never stored in the database.
+
+- **New installations** get the key from the installer, which displays it once at the end.
+- **Existing instances** get it with the update to 1.2.0: `humble-planning update` adds `CONFIG_ENCRYPTION_KEY` to the `.env` of the instance when it is missing (an existing value is never changed), after the pre-update backup and before the migrations, so the values already stored are encrypted at the start of the new version. The command then says where the key is, without printing it: store it in a password manager. Running the installer again adds it too. The dumps taken before that (the pre-update backup included) still hold the secrets in plain text: delete them once they are no longer needed, or change those passwords and keys if a dump may have leaked.
+- **Without the key** (an installation made by hand, without the installer), the application keeps working: the secrets stay in plain text, *Settings* shows a warning in each section that holds one, and each start logs how many are concerned. Add the key (`openssl rand -hex 32`) to `.env` and start the application again to encrypt them.
+- **Rolling back** to a version older than 1.2.0 with `humble-planning rollback`: when the pre-update backup is restored, the secrets come back in plain text with it; otherwise the command decrypts them first, so that the older version can read them, and the next update encrypts them again. If one of them cannot be decrypted with the keys of `.env`, nothing is changed and the rollback is cancelled: put back the key it was encrypted with (as `CONFIG_ENCRYPTION_KEY` or `CONFIG_ENCRYPTION_KEY_PREVIOUS`), enter it again in *Settings*, or roll back with `--restore`.
+- **Restoring on another server** needs the dump and the two keys of the `.env`, `BACKUP_ENCRYPTION_KEY` and `CONFIG_ENCRYPTION_KEY` (`humble-planning remove` keeps a copy of the `.env` next to its final dump). Without the second one, everything else works, and *Settings* lists the secrets to enter again.
+- **A lost or changed key** never stops the application: the secrets it cannot read behave as if they had never been entered (no e-mail, no AI chat…), and *Settings* lists them with an *Enter again* badge. Putting the right key back makes them readable again; entering a new value replaces them.
+- **An invalid key** (the placeholder of `.env.example`, or a value too short: 64 hexadecimal characters are expected) is treated as no key, with its own warning.
+
+To change the key:
+
+1. in `.env`, set `CONFIG_ENCRYPTION_KEY_PREVIOUS=<current key>` and `CONFIG_ENCRYPTION_KEY=<new key>` (`openssl rand -hex 32`);
+2. apply it with `sudo humble-planning start <instance>`, which recreates the containers with the new `.env` (`restart` does not read `.env` again): the log of the start shows `Encrypted N secret setting(s) in the database.`;
+3. remove `CONFIG_ENCRYPTION_KEY_PREVIOUS` from `.env`, then run `sudo humble-planning start <instance>` again.
 
 ## Removing an instance
 

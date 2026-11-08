@@ -14,6 +14,8 @@ export interface EmailStatus {
  * - `_envManaged: string[]`  list of SECRET_KEYS provided by .env
  * - `_dbConfigured: string[]` list of SECRET_KEYS with a non-empty DB value
  * - `_emailStatus: EmailStatus` email sending status
+ * - `_configEncryption: "active" | "missing" | "invalid"` encryption at rest of the secrets
+ * - `_secretsUnreadable: string[]` SECRET_KEYS encrypted with another key (to enter again)
  *
  * To keep the `Record<string, string | null>` signature used by all the
  * existing consumers, these metadata are serialized as JSON strings on the server
@@ -52,7 +54,8 @@ export function useUpdateConfig() {
 }
 
 /**
- * Extracts the `_envManaged`, `_dbConfigured`, `_emailStatus` metadata from a config
+ * Extracts the `_envManaged`, `_dbConfigured`, `_emailStatus`, `_configEncryption`,
+ * `_secretsUnreadable` metadata from a config
  * response. The values are encoded as JSON strings on the server to stay
  * compatible with `Record<string, string | null>`.
  */
@@ -61,6 +64,8 @@ export function parseConfigMeta(config: Record<string, string | null> | undefine
   dbConfigured: string[];
   emailStatus: EmailStatus | null;
   altchaConfigured: boolean;
+  configEncryption: "active" | "missing" | "invalid";
+  secretsUnreadable: string[];
 } {
   const parseJsonField = <T>(raw: string | null | undefined, fallback: T): T => {
     if (!raw) return fallback;
@@ -75,5 +80,8 @@ export function parseConfigMeta(config: Record<string, string | null> | undefine
     dbConfigured: parseJsonField<string[]>(config?._dbConfigured, []),
     emailStatus: parseJsonField<EmailStatus | null>(config?._emailStatus, null),
     altchaConfigured: config?._altchaConfigured === "true",
+    // Absent from an older server's answer: no false alarm.
+    configEncryption: (config?._configEncryption as "active" | "missing" | "invalid" | undefined) ?? "active",
+    secretsUnreadable: parseJsonField<string[]>(config?._secretsUnreadable, []),
   };
 }

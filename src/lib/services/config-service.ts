@@ -2,17 +2,46 @@ import { db } from "@/db";
 import { appConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { cached, invalidateCachePrefix } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 import { getEnvValue, isEnvManaged, isSecretKey, SECRET_KEYS } from "./config-secrets";
+import { decryptSetting, encryptSetting, isEncryptedValue, loadConfigKeys, type ConfigEncryptionStatus } from "./config-crypto";
 import { demoConfigOverride } from "@/lib/demo";
 
 /**
- * Returns the raw config stored in the DB (without .env override).
+ * Plain value of a stored setting. Secrets are encrypted at rest (config-crypto.ts):
+ * an encrypted value is decrypted here, so every caller keeps receiving plain text.
+ * A secret that cannot be decrypted (key lost or changed) reads as absent, as if
+ * it had never been entered; `getUnreadableSecrets` lists it for the settings page.
+ */
+function readStored(key: string, stored: string | null): string | null {
+  if (!stored || !isSecretKey(key) || !isEncryptedValue(stored)) return stored;
+  const result = decryptSetting(key, stored, loadConfigKeys().readable);
+  return result.ok ? result.value : null;
+}
+
+let warnedPlainSecret = false;
+
+/** Value to store: a non-empty secret is encrypted when CONFIG_ENCRYPTION_KEY is set. */
+function toStored(key: string, value: string): string {
+  if (!value || !isSecretKey(key) || isEncryptedValue(value)) return value;
+  const { current } = loadConfigKeys();
+  if (current) return encryptSetting(key, value, current);
+  if (!warnedPlainSecret) {
+    warnedPlainSecret = true;
+    logger.warn("system", "CONFIG_ENCRYPTION_KEY is missing or invalid: secret settings are stored in plain text in the database"); // i18n-ignore server log (internal)
+  }
+  return value;
+}
+
+/**
+ * Returns the config stored in the DB (without .env override), secrets decrypted.
  * Used for the audit diff and as the source of truth for "value entered by the admin".
  */
 export async function getAllConfig() {
-  return cached("config:all", () =>
-    db.select().from(appConfig).orderBy(appConfig.key)
-  );
+  return cached("config:all", async () => {
+    const rows = await db.select().from(appConfig).orderBy(appConfig.key);
+    return rows.map((row) => ({ ...row, value: readStored(row.key, row.value) }));
+  });
 }
 
 /**
@@ -31,7 +60,7 @@ export async function getConfigValue(key: string): Promise<string | null> {
     const result = await db.query.appConfig.findFirst({
       where: eq(appConfig.key, key),
     });
-    return result?.value ?? null;
+    return readStored(key, result?.value ?? null);
   });
 }
 
@@ -66,15 +95,15 @@ export async function getConfigValues(keys: string[]): Promise<Record<string, st
         continue;
       }
       const found = results.find((r) => r.key === key);
-      map[key] = found?.value ?? null;
+      map[key] = readStored(key, found?.value ?? null);
     }
     return map;
   });
 }
 
 /**
- * Returns the list of SECRET_KEYS that have a non-empty value in the DB
- * (excluding those overridden by .env).
+ * Returns the list of SECRET_KEYS that have a usable value in the DB
+ * (excluding those overridden by .env, and those that cannot be decrypted).
  */
 export async function getDbConfiguredSecrets(): Promise<string[]> {
   const rows = await db.select().from(appConfig);
@@ -82,11 +111,31 @@ export async function getDbConfiguredSecrets(): Promise<string[]> {
   for (const row of rows) {
     if (!isSecretKey(row.key)) continue;
     if (isEnvManaged(row.key)) continue;
-    if (row.value && row.value.trim().length > 0) {
+    const value = readStored(row.key, row.value);
+    if (value && value.trim().length > 0) {
       configured.push(row.key);
     }
   }
   return configured;
+}
+
+/**
+ * SECRET_KEYS stored encrypted with a key this instance does not have (lost or
+ * changed CONFIG_ENCRYPTION_KEY, database restored from another instance), or
+ * damaged. They read as absent until entered again; .env-managed keys excluded.
+ */
+export async function getUnreadableSecrets(): Promise<string[]> {
+  const rows = await db.select().from(appConfig);
+  const keys = loadConfigKeys().readable;
+  return rows
+    .filter((row) => isSecretKey(row.key) && !isEnvManaged(row.key) && isEncryptedValue(row.value))
+    .filter((row) => !decryptSetting(row.key, row.value!, keys).ok)
+    .map((row) => row.key);
+}
+
+/** State of the encryption at rest of the secret settings (CONFIG_ENCRYPTION_KEY). */
+export function getConfigEncryptionStatus(): ConfigEncryptionStatus {
+  return loadConfigKeys().status;
 }
 
 export { SECRET_KEYS };
@@ -100,24 +149,25 @@ export async function setConfigValue(key: string, value: string, description?: s
     where: eq(appConfig.key, key),
   });
 
+  const stored = toStored(key, value);
   let result;
   if (existing) {
     const [updated] = await db
       .update(appConfig)
-      .set({ value })
+      .set({ value: stored })
       .where(eq(appConfig.key, key))
       .returning();
     result = updated;
   } else {
     const [created] = await db
       .insert(appConfig)
-      .values({ key, value, description })
+      .values({ key, value: stored, description })
       .returning();
     result = created;
   }
 
   invalidateAllConfigCache();
-  return result;
+  return { ...result, value: readStored(key, result.value) };
 }
 
 export async function setConfigValues(values: Record<string, string>) {
@@ -126,12 +176,13 @@ export async function setConfigValues(values: Record<string, string>) {
     const existing = await db.query.appConfig.findFirst({
       where: eq(appConfig.key, key),
     });
+    const stored = toStored(key, value);
     if (existing) {
-      const [updated] = await db.update(appConfig).set({ value }).where(eq(appConfig.key, key)).returning();
-      results.push(updated);
+      const [updated] = await db.update(appConfig).set({ value: stored }).where(eq(appConfig.key, key)).returning();
+      results.push({ ...updated, value: readStored(key, updated.value) });
     } else {
-      const [created] = await db.insert(appConfig).values({ key, value }).returning();
-      results.push(created);
+      const [created] = await db.insert(appConfig).values({ key, value: stored }).returning();
+      results.push({ ...created, value: readStored(key, created.value) });
     }
   }
   invalidateAllConfigCache();

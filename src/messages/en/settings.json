@@ -89,6 +89,7 @@
     "envManaged": "Managed in .env",
     "envManagedTooltip": "This value is set in the server's .env file. To change it, edit .env and restart the application.",
     "configured": "Configured",
+    "reenter": "Enter again",
     "keepSecretPlaceholder": "•••••••••••• (leave empty to keep the current value)",
     "translatedDefaultHelp": "Leave blank to show the example text, translated into the visitor's language."
   },
@@ -124,6 +125,18 @@
     "altchaMissing": {
       "title": "ALTCHA not configured",
       "description": "The ALTCHA HMAC secrets are missing from the server's <code>.env</code> file. The captcha is silently skipped until the <code>ALTCHA_HMAC_SECRET</code> and <code>ALTCHA_HMAC_KEY_SECRET</code> variables are set. Run <code>install.sh</code> again to generate them automatically."
+    },
+    "secretsPlainText": {
+      "title": "Sensitive settings stored in plain text",
+      "description": "The passwords and keys entered here are stored in plain text in the database, because the <code>CONFIG_ENCRYPTION_KEY</code> variable is missing from the server's <code>.env</code> file. <code>humble-planning update</code> adds it on an installation made with the installer; otherwise, add it (<code>openssl rand -hex 32</code>) and restart the application: the existing values are then encrypted."
+    },
+    "secretsKeyInvalid": {
+      "title": "Invalid settings encryption key",
+      "description": "<code>CONFIG_ENCRYPTION_KEY</code> must hold 64 hexadecimal characters (<code>openssl rand -hex 32</code>). Until then, the passwords and keys entered here are stored in plain text."
+    },
+    "secretsUnreadable": {
+      "title": "Settings to enter again",
+      "description": "<b>{keys}</b>: these values were encrypted with another key (<code>CONFIG_ENCRYPTION_KEY</code> lost or changed, or a database restored from another instance) and cannot be read. Put the former key back as <code>CONFIG_ENCRYPTION_KEY_PREVIOUS</code>, or enter them again."
     }
   },
   "purge": {
