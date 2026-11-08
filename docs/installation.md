@@ -240,7 +240,8 @@ A demo instance is a public showcase: anyone can sign in and try Humble Planning
 - every night at `DEMO_RESET_TIME` (in the `TIMEZONE` time zone) and at each start of the application, **all the data is erased** and a demo dataset (in French) is generated, with dates relative to the current day;
 - visitors sign in with a single demo account, recreated at each reset; its credentials are shown on the sign-in page and it cannot be modified;
 - there is no administrator account: administration (settings, roles, backups, import, API keys, MCP, AI chat) is unavailable to everyone;
-- e-mails, SMS, file uploads and update checks are disabled.
+- e-mails, SMS, file uploads and update checks are disabled;
+- the [Android app](https://github.com/Malfhas/HumblePlanning-Android) can be tried with the demo account (password or QR code): real-time alerts work, push notifications are never sent, and a visitor cannot sign the other visitors' phones out.
 
 To install one, choose *Demo* at the *Instance type* question of the installer, or set `HP_INSTANCE=demo` (with `HP_DEMO_LOGIN`, `HP_DEMO_PASSWORD` and `HP_DEMO_RESET_TIME` if the defaults do not suit you) for a non-interactive installation. A demo can share a server with production instances: each instance has its own database. Use a dedicated instance, or at least a dedicated database: the installer loads the demo data right after the migrations and, when the database already holds data that the demo did not create, only erases it once you confirm (or with `HP_DEMO_FORCE_RESET=1`). The installer never changes the type of an existing installation.
 

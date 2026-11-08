@@ -104,6 +104,13 @@ Sign-in is not blocked by maintenance: the first authenticated call then answers
 Without the permission, the web profile shows no QR code (`POST /pairing` answers
 the same 403), the account receives no mobile alert and cannot send a test push.
 
+On a demo instance (`DEMO_MODE=true`) the demo role has `mobile_app:use`, so
+the app can be tried with the demo account. Nothing leaves the server there:
+`pushEnabled` is always `false` (alerts reach the app through Socket.IO and its
+background checks) and `POST /devices/current/push-test` is refused. The shared
+demo account cannot revoke devices (`DELETE /devices/{id}`: 403
+`errors.demoAccountLocked`).
+
 ## Data
 
 | Route | Auth | Response |

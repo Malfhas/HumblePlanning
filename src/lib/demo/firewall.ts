@@ -24,6 +24,7 @@ const RULES: readonly Rule[] = [
   { methods: "all", path: /^\/api\/profile\/mcp-keys(\/|$)/ },
   { methods: "all", path: /^\/api\/ai-chat\/(admin|conversations|attachments|scope-projects)(\/|$)/ },
   { methods: "all", path: /^\/api\/auth\/send-reset$/ },
+  { methods: "all", path: /^\/api\/mobile\/devices\/current\/push-test$/ },
   // Uploads: branding, avatars, task attachments
   { methods: "all", path: /^\/api\/branding\/upload$/ },
   { methods: "write", path: /^\/api\/profile\/avatar$/ },

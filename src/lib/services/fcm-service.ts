@@ -12,6 +12,7 @@
 // relies on Socket.io in the foreground and background polling otherwise.
 import { createSign } from "node:crypto";
 import { logger } from "@/lib/logger";
+import { isDemoMode } from "@/lib/demo";
 import { getConfigValue, getConfigValues } from "./config-service";
 import { clearPushToken, getPushTokens } from "./mobile-service";
 
@@ -68,6 +69,8 @@ async function relaySettings(): Promise<{ url: string; key: string | null } | nu
 }
 
 export async function isPushConfigured(): Promise<boolean> {
+  // A demo instance sends nothing outside (src/lib/demo)
+  if (isDemoMode()) return false;
   if (parseServiceAccount(await getConfigValue("FCM_SERVICE_ACCOUNT_JSON"))) return true;
   return (await relaySettings()) !== null;
 }
@@ -157,6 +160,7 @@ async function sendThroughRelay(relay: { url: string; key: string | null }, push
 
 /** Wakes up every device of a user. Number of devices reached. */
 export async function sendMobilePush(userId: string, alertId: string): Promise<number> {
+  if (isDemoMode()) return 0;
   const account = parseServiceAccount(await getConfigValue("FCM_SERVICE_ACCOUNT_JSON"));
   const relay = account ? null : await relaySettings();
   if (!account && !relay) return 0;

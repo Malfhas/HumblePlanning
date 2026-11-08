@@ -8,8 +8,9 @@
  * - Administration is unavailable to everyone: the permissions below are
  *   removed when permissions are loaded, and ./firewall.ts refuses the
  *   matching routes whatever the permissions say.
- * - Outgoing traffic is off (e-mails, SMS, update checks, AI chat, MCP, API keys)
- *   and so are uploads.
+ * - Outgoing traffic is off (e-mails, SMS, update checks, AI chat, MCP, API keys,
+ *   mobile push) and so are uploads. The mobile app can be tried with the demo
+ *   account (mobile_app:use): real-time alerts work, push does not.
  */
 import { AppError } from "@/lib/errors";
 
@@ -68,6 +69,7 @@ export const DEMO_ROLE_PERMISSIONS: readonly string[] = [
   "files:view",
   "groups:edit",
   "labor_types:edit",
+  "mobile_app:use",
   "notifications:view",
   "pages:business_units", "pages:home",
   "pages:labor_types", "pages:places", "pages:planning", "pages:projects",
