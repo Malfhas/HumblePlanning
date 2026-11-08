@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from 'zustand';
+import { takePageReload } from './lib/page-reload';
 
 /**
  * Floating assistant state. Collapsing the panel or hiding the sphere only
@@ -8,7 +9,8 @@ import { create } from 'zustand';
  * intended: hiding is not a setting, it is a gesture of the moment.
  *
  * The current conversation, however, belongs to the browser: it is kept
- * in its local storage, and it is the one found again on the next load.
+ * in its local storage, and it is the one found again on the next load,
+ * except after a reload by the user, which starts on the assistant's home.
  * It is never "the most recent of the account": on another device, the
  * panel opens blank, and nothing else forces its way into the
  * panel.
@@ -75,6 +77,10 @@ export const useAssistantStore = create<AssistantState>()((set) => ({
   hidden: false,
   sphereVisible: false,
   selection: (() => {
+    if (takePageReload('floating-assistant')) {
+      rememberConversation(null);
+      return null;
+    }
     const id = storedConversation();
     return id ? { id, key: id, chosenAt: Date.now() } : null;
   })(),

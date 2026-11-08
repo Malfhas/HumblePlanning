@@ -28,6 +28,7 @@ import { PageLoader, Tooltip } from "./ui/misc";
 import { ConfirmDialog } from "./ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { useIsPhone } from "./lib/use-is-phone";
+import { takePageReload } from "./lib/page-reload";
 import { EmptyState, ChatThread, unavailability, useChatDate, type ChatAccess, type Conversation } from "./thread";
 import { ReplyDots } from "./reply-indicator";
 import { EditableTitle } from "./editable-title";
@@ -83,6 +84,13 @@ export function ChatView({
     // i18n-ignore technical mount key of the thread (never displayed)
     setThreadKey(`home-${Date.now()}`);
   };
+  // A reload by the user (F5) starts on the assistant's home; a link to a
+  // conversation, or the history, still opens it. After the first render,
+  // which matches the server's.
+  useEffect(() => {
+    if (initialConversation && takePageReload('assistant-page', window.location.pathname)) queueMicrotask(goHome);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once, at the first mount
+  }, []);
   const [toDelete, setToDelete] = useState<Conversation | null>(null);
   /** Conversation whose title is being typed, in the list. */
   const [editingId, setEditingId] = useState<string | null>(null);
