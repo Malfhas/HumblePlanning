@@ -6,6 +6,7 @@ import { getConfigValues } from "@/lib/services/config-service";
 import { logAudit } from "@/lib/services/audit-service";
 import { clearCounters, lockedFor, recordFailure, type DbExecutor } from "@/lib/services/security-counter-service";
 import { AppError } from "@/lib/utils/api";
+import { withCookieLifetime } from "@/lib/utils/session-cookie";
 import { matchTotpStep, TWO_FACTOR_POLICY, twoFactorFailureKey } from "@/lib/utils/two-factor-guard";
 
 type PendingPayload = {
@@ -126,7 +127,8 @@ export async function verifySecondFactor(request: Request, { mobile = false }: {
 
   // 2FA verified — deliver the session cookie that was held back
 
-  // Apply session duration from config
+  // Apply session duration from config, to the session row and to the browser cookie
+  let durationSeconds: number | null = null;
   if (sessionId) {
     const sessionConfig = await getConfigValues(["SESSION_DURATION_DAYS", "SESSION_REMEMBER_DAYS"]);
     const standardDays = parseInt(sessionConfig.SESSION_DURATION_DAYS || "7") || 7;
@@ -135,12 +137,13 @@ export async function verifySecondFactor(request: Request, { mobile = false }: {
     await db.update(sessions)
       .set({ expiresAt: new Date(Date.now() + durationMs) })
       .where(eq(sessions.id, sessionId));
+    durationSeconds = Math.floor(durationMs / 1000);
   }
 
   // Replay the original Set-Cookie from Better Auth
   const headers = new Headers({ "Content-Type": "application/json" });
   if (sessionCookie) {
-    headers.set("Set-Cookie", sessionCookie);
+    headers.set("Set-Cookie", durationSeconds ? withCookieLifetime(sessionCookie, durationSeconds) : sessionCookie);
   }
 
   // Get user's preferred home page for redirect

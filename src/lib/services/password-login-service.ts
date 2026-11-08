@@ -9,6 +9,7 @@ import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
 import { getDemoCredentials } from "@/lib/demo";
+import { isSessionSetCookie, withSessionCookieLifetime } from "@/lib/utils/session-cookie";
 import {
   clearCounters, failAttempt, releaseAttempt, reserveAttempt, type AttemptReservation,
 } from "@/lib/services/security-counter-service";
@@ -108,26 +109,11 @@ function tooManyAttempts(remainingSeconds: number): AppError {
 }
 
 /**
- * Extract Set-Cookie header value for better-auth.session_token from a Response.
+ * Set-Cookie header of the session cookie in a Response: `better-auth.session_token`,
+ * or `__Secure-better-auth.session_token` behind HTTPS.
  */
 function extractSessionCookie(response: Response): string | null {
-  const setCookie = response.headers.getSetCookie?.() ?? [];
-  for (const cookie of setCookie) {
-    if (cookie.startsWith("better-auth.session_token=")) {
-      return cookie;
-    }
-  }
-  // Fallback: check raw set-cookie header
-  const raw = response.headers.get("set-cookie");
-  if (raw?.includes("better-auth.session_token=")) {
-    // May contain multiple cookies joined by ", " — find the right one
-    const parts = raw.split(/,(?=\s*better-auth\.)/);
-    for (const p of parts) {
-      if (p.trim().startsWith("better-auth.session_token=")) return p.trim();
-    }
-    return raw;
-  }
-  return null;
+  return response.headers.getSetCookie().find(isSessionSetCookie) ?? null;
 }
 
 export interface PasswordSignIn {
@@ -209,6 +195,12 @@ export async function signInWithPassword(
     const result = await cloned.json().catch(() => null) as { user?: { id?: string }; token?: string; session?: { id?: string; token?: string } } | null;
 
     if (result?.user?.id) {
+      // Better Auth answers `{token, user}`: the session row is found by its token
+      // (for the "remember me" duration, the 2FA and the refusals below).
+      const sessionId = result.session?.id ?? (result.token
+        ? (await db.query.sessions.findFirst({ where: eq(sessions.token, result.token), columns: { id: true } }))?.id
+        : undefined);
+
       const dbUser = await db.query.users.findFirst({
         where: eq(users.id, result.user.id),
         columns: {
@@ -221,9 +213,7 @@ export async function signInWithPassword(
 
       // Block inactive accounts — delete the session Better Auth just created
       if (!dbUser || dbUser.active === false) {
-        if (result.session?.id) {
-          await db.delete(sessions).where(eq(sessions.id, result.session.id));
-        }
+        if (sessionId) await db.delete(sessions).where(eq(sessions.id, sessionId));
         logAudit({ action: "login_fail", entityType: "user", metadata: { identifier, ip, userAgent, reason: "account_inactive" } }).catch(() => {});
         return handleApiError(new AppError("auth.errors.accountDisabled", { status: 403 }));
       }
@@ -232,7 +222,7 @@ export async function signInWithPassword(
       // covers a role changed meanwhile. Before the `login` entry and the last
       // login date: the sign-in did not happen.
       if (mobile && await lacksMobileApp(result.user.id)) {
-        if (result.token) await db.delete(sessions).where(eq(sessions.token, result.token));
+        if (sessionId) await db.delete(sessions).where(eq(sessions.id, sessionId));
         auditMobileAppRefusal(result.user.id, { identifier, ip, userAgent });
         return handleApiError(mobileAppNotAllowed());
       }
@@ -265,7 +255,7 @@ export async function signInWithPassword(
           identifier: `2fa-pending:${pendingToken}`,
           value: JSON.stringify({
             userId: result.user.id,
-            sessionId: result.session?.id,
+            sessionId,
             sessionCookie, // The full Set-Cookie header to replay after 2FA
             rememberMe: !!rememberMe,
             // Only /api/mobile/auth/2fa redeems a token of the mobile sign-in, and only those
@@ -290,14 +280,17 @@ export async function signInWithPassword(
       }
 
       // ─── SESSION DURATION ───
-      if (result.session?.id) {
+      // On the session row and on the browser cookie (Better Auth gives it 7 days)
+      let headers = response.headers;
+      if (sessionId) {
         const sessionConfig = await getConfigValues(["SESSION_DURATION_DAYS", "SESSION_REMEMBER_DAYS"]);
         const standardDays = parseInt(sessionConfig.SESSION_DURATION_DAYS || "7") || 7;
         const rememberDays = parseInt(sessionConfig.SESSION_REMEMBER_DAYS || "30") || 30;
         const durationMs = (rememberMe ? rememberDays : standardDays) * 24 * 60 * 60 * 1000;
         await db.update(sessions)
           .set({ expiresAt: new Date(Date.now() + durationMs) })
-          .where(eq(sessions.id, result.session.id));
+          .where(eq(sessions.id, sessionId));
+        headers = withSessionCookieLifetime(response.headers, Math.floor(durationMs / 1000));
       }
 
       // ─── FORCE PASSWORD CHANGE ───
@@ -305,7 +298,7 @@ export async function signInWithPassword(
         const newBody = { ...result, forcePasswordChange: true };
         return new Response(JSON.stringify(newBody), {
           status: response.status,
-          headers: response.headers,
+          headers,
         });
       }
 
@@ -341,7 +334,7 @@ export async function signInWithPassword(
       const newBody = { ...result, redirectTo };
       return new Response(JSON.stringify(newBody), {
         status: response.status,
-        headers: response.headers,
+        headers,
       });
     }
 

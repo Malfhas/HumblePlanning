@@ -355,9 +355,10 @@ function TaskFormDialogInner({
       placeTextLat: values.placeTextLat || null,
       placeTextLng: values.placeTextLng || null,
       resourceId: values.resourceId && values.resourceId !== "none" ? values.resourceId : null,
-      endDate: values.endDate || undefined,
-      startTime: values.startTime || undefined,
-      endTime: values.endTime || undefined,
+      // Editing: an emptied field is sent as null to clear it (undefined keeps the old value)
+      endDate: values.endDate || (isEditing ? null : undefined),
+      startTime: values.startTime || (isEditing ? null : undefined),
+      endTime: values.endTime || (isEditing ? null : undefined),
       ...(pendingLock !== null ? { isLocked: pendingLock } : {}),
     };
 

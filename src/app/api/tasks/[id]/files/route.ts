@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireAuth, handleApiError, AppError, apiSuccess, assertUuid } from "@/lib/utils/api";
 import { loadUserPermissions, hasPermission, assertTaskReadable, assertTaskModifiable } from "@/lib/services/permission-service";
+import { isTaskLocked } from "@/lib/services/task-service";
 import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
@@ -90,6 +91,10 @@ export async function POST(
       throw new AppError("tasks.errors.addFilesForbidden", { status: 403 });
     }
     await assertTaskModifiable(perms, id);
+    // Attachments of a locked task, like its fields: only for someone allowed to lock
+    if (!hasPermission(perms, "tasks:lock") && await isTaskLocked(id)) {
+      throw new AppError("tasks.errors.locked", { status: 403 });
+    }
 
     // Get config
     const config = await getConfigValues(["ENABLE_FILE_UPLOAD", "WHITELIST_UPLOAD", "MAX_UPLOAD_SIZE_MB", "MAX_TOTAL_SIZE_MB", "MAX_FILES_PER_TASK"]);
@@ -264,6 +269,9 @@ export async function DELETE(
       throw new AppError("tasks.errors.deleteFilesForbidden", { status: 403 });
     }
     await assertTaskModifiable(perms, id);
+    if (!hasPermission(perms, "tasks:lock") && await isTaskLocked(id)) {
+      throw new AppError("tasks.errors.locked", { status: 403 });
+    }
 
     const enableConfig = await getConfigValues(["ENABLE_FILE_UPLOAD"]);
     if (enableConfig.ENABLE_FILE_UPLOAD === "false") {
