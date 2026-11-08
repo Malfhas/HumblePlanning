@@ -4,6 +4,23 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-11-08
+
+### Added
+
+- Header: a "Mobile app" button (when QR sign-in is on and the role may use the app) opens a window with the QR code to download the Android app and the QR code that signs it in.
+
+### Changed
+
+- Schedule: when the start of a multi-day task scrolls under the sidebar, its title and icons stay at the left edge of the grid, with an arrow telling that the task goes on.
+- AI assistant: a reload of the page (F5) opens the assistant page and the floating assistant on their home instead of the last conversation; links to a conversation and the browser history still open it.
+- Settings: the Firebase service account is a multi-line field with an "Import from a file" button; the minimum app version and the download page show the values the server applies when they are empty.
+- Settings: "Save" is only enabled when the form differs from the saved values (also in the AI chat settings); the title, the tabs and "Save" stay in place while a section scrolls.
+
+### Fixed
+
+- Settings: the "Mobile app" section made the whole page scroll (double scrollbar).
+
 ## [1.2.0] - 2026-11-08
 
 ### Added
@@ -214,6 +231,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.2.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.1
 [1.2.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.0
 [1.1.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.3
 [1.1.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.2
