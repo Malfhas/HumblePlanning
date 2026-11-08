@@ -27,7 +27,7 @@ const SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /** Overridable for development and tests only (mock server), like OPENROUTER_BASE_URL. */
-function oauthUrl(): string {
+function tokenEndpoint(): string {
   return process.env.FCM_OAUTH_URL?.trim() || "https://oauth2.googleapis.com/token";
 }
 
@@ -87,7 +87,7 @@ export function buildServiceAccountJwt(account: Pick<ServiceAccount, "client_ema
 async function getAccessToken(account: ServiceAccount): Promise<string> {
   const now = Date.now();
   if (cachedToken?.email === account.client_email && cachedToken.expiresAt > now + 60_000) return cachedToken.token;
-  const url = oauthUrl();
+  const url = tokenEndpoint();
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
