@@ -37,7 +37,8 @@
     "backup": "Back up",
     "import": "Import",
     "migration": "Migration",
-    "version": "Version"
+    "version": "Version",
+    "mobile": "Mobile app"
   },
   "sections": {
     "application": "Application",
@@ -77,7 +78,8 @@
     "backup": "Back up",
     "import": "Import",
     "migration": "Migration",
-    "updateCheck": "Update check"
+    "updateCheck": "Update check",
+    "mobile": "Mobile app"
   },
   "page": {
     "title": "Settings"
@@ -1161,6 +1163,41 @@
     "UPDATE_CHECK_ENABLED": {
       "label": "Check for updates",
       "description": "The server queries the public GitHub Releases API (api.github.com) at most once every 24 hours, or when you click “Check now”. Only this read request is sent: no data about the instance or its users. When disabled, no request is made, neither automatic nor manual."
+    },
+    "MOBILE_LOGIN_ENABLED": {
+      "label": "Allow password sign-in from the app",
+      "description": "This sign-in has no captcha: only the lockouts after failures protect it. When off, the app can only sign in with a QR code."
+    },
+    "MOBILE_PAIRING_ENABLED": {
+      "label": "Allow QR code sign-in",
+      "description": "Shows a single-use QR code in users' profiles."
+    },
+    "MOBILE_MIN_APP_VERSION": {
+      "label": "Minimum app version",
+      "description": "An older app is blocked and asked to update, for example 1.2.0. Empty = no minimum."
+    },
+    "MOBILE_STORE_URL": {
+      "label": "App download page",
+      "description": "Opened by an app that is too old. Empty = the latest release on GitHub."
+    },
+    "MOBILE_PUSH_ENABLED": {
+      "label": "Send alerts to the mobile app",
+      "description": "Notifications on users' phones. Everyone can turn them off in their profile or in the app."
+    },
+    "MOBILE_PUSH_TRIGGERS": {
+      "label": "Triggering events (mobile app)",
+      "description": "Select the events that trigger an alert on the mobile app"
+    },
+    "FCM_SERVICE_ACCOUNT_JSON": {
+      "label": "Firebase service account",
+      "description": "Content of the private key JSON file (Firebase console > Project settings > Service accounts), only for the owner of the app's Firebase project. The relay is then not used. The .env file takes precedence."
+    },
+    "MOBILE_PUSH_RELAY_URL": {
+      "label": "Push relay address",
+      "description": "To reach the published app without a Firebase service account. Empty, and without a service account = no real-time push, the app checks about every 15 minutes."
+    },
+    "MOBILE_PUSH_RELAY_KEY": {
+      "label": "Push relay key"
     }
   },
   "timezones": {
@@ -1240,6 +1277,7 @@
     }
   },
   "errors": {
+    "fcmServiceAccountInvalid": "This is not a Firebase service account: paste the whole content of the JSON file downloaded from the Firebase console.",
     "captchaKeysRequired": "The {provider} captcha requires a site key and a secret key. Enter both or disable the captcha.",
     "cellWidthsNotPositive": "Cell widths must be strictly positive.",
     "cellMinAboveMax": "The minimum width must be less than or equal to the maximum width.",

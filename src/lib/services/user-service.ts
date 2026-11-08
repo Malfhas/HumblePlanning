@@ -304,6 +304,9 @@ export async function updateUser(id: string, data: UpdateUser & { qualificationI
   if (userData.pushNotifications === true) {
     updateValues.pushNotificationsUser = true;
   }
+  if (userData.mobilePushNotifications === true) {
+    updateValues.mobilePushNotificationsUser = true;
+  }
   if ((userData as any).smsNotifications === true) {
     updateValues.smsNotificationsUser = true;
   }

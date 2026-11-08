@@ -4,6 +4,7 @@ import { eq, and, desc, inArray, lte, sql, count } from "drizzle-orm";
 import { getConfigValues } from "./config-service";
 import { emitPushNotification } from "@/lib/socket-events";
 import { getActivePushTriggers, isPushTriggerActive } from "./push-notification-triggers";
+import { sendMobileAlerts } from "./mobile-alert-service";
 import { logger } from "@/lib/logger";
 
 // Throttle: run retention purge at most once per hour
@@ -118,6 +119,9 @@ export async function notifyPushRecipients(params: {
   recipientIds: string[];
   actorId?: string;
 }) {
+  // The mobile app has its own settings: its alerts do not depend on the in-app bell
+  await sendMobileAlerts(params).catch((err) => logger.error("push", "Mobile alerts failed", { error: String(err) }));
+
   // Check global toggle
   const config = await getConfigValues(["NOTIFICATION_PUSH_ENABLED"]);
   if (config.NOTIFICATION_PUSH_ENABLED !== "true") return;

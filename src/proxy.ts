@@ -67,6 +67,9 @@ export async function proxy(request: NextRequest) {
     !pathname.startsWith("/reset-password") &&
     !pathname.startsWith("/privacy") &&
     !pathname.startsWith("/api/auth") &&
+    // Mobile app: server discovery and sign-in, before it has a session.
+    pathname !== "/api/mobile/info" &&
+    !pathname.startsWith("/api/mobile/auth/") &&
     !pathname.startsWith("/api/altcha/") &&
     !pathname.startsWith("/api/config/public") &&
     // Language choice: allowed before sign-in (authentication pages).

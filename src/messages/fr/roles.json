@@ -73,6 +73,7 @@
     "admin": "Administration & sécurité — actions",
     "integrations": "Intégrations IA (MCP) — actions",
     "ai_chat": "Assistant IA (chat intégré) — actions",
+    "mobile_app": "Application mobile",
     "scope_projects": "Scope du planning — Projets visibles",
     "scope_users": "Scope du planning — Utilisateurs visibles",
     "scope_modify": "Scope du planning — Niveau de modification",
@@ -409,6 +410,12 @@
       "write": {
         "label": "Autoriser les modifications par l'assistant IA",
         "description": "L'assistant peut proposer de créer, modifier, déplacer, dupliquer ou supprimer des tâches et des projets. Chaque modification exige toujours la confirmation explicite de l'utilisateur. Nécessite « Utiliser l'assistant IA »."
+      }
+    },
+    "mobile_app": {
+      "use": {
+        "label": "Utiliser l'application mobile",
+        "description": "Se connecter à l'application Android Humble Planning et recevoir ses alertes. Retirée, les téléphones déjà connectés sont bloqués à leur requête suivante."
       }
     },
     "scope": {

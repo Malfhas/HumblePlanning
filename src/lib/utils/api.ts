@@ -15,6 +15,7 @@ import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator, translateKey, type ServerTranslator } from "@/i18n/server-translator";
 import type { AppLocale } from "@/i18n/config";
 import { localizeErrorParams } from "@/lib/utils/error-params";
+import { assertMobileClientAllowed } from "@/lib/services/mobile-client-policy";
 
 export { AppError } from "@/lib/errors";
 
@@ -43,6 +44,7 @@ export async function requireAuth() {
     if (!user || user.active === false) {
       throw new AppError("errors.unauthenticated");
     }
+    await assertMobileClientAllowed(await headers(), session.user.id);
     return session;
   }
 

@@ -237,6 +237,9 @@ export async function updatePreferences(userId: string, prefs: UpdatePreferences
   if (prefs.pushNotifications !== undefined) {
     updateData.pushNotificationsUser = prefs.pushNotifications;
   }
+  if (prefs.mobilePushNotifications !== undefined) {
+    updateData.mobilePushNotificationsUser = prefs.mobilePushNotifications;
+  }
   if ((prefs as any).smsNotifications !== undefined) {
     updateData.smsNotificationsUser = (prefs as any).smsNotifications;
   }

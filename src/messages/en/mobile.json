@@ -1,0 +1,25 @@
+{
+  "errors": {
+    "loginDisabled": "Signing in from the mobile app is disabled on this server.",
+    "pairingDisabled": "Signing in with a QR code is disabled on this server.",
+    "invalidPairingCode": "This QR code is no longer valid. Generate a new one from your profile.",
+    "upgradeRequired": "Update the app to continue (minimum version: {minimumVersion}).",
+    "maintenance": "The server is under maintenance. Try again in a few moments.",
+    "appNotAllowed": "Your role does not allow the mobile app. Contact your administrator.",
+    "deviceNotFound": "Device not found.",
+    "pushNotConfigured": "Push notifications are not configured on this server."
+  },
+  "pushTest": {
+    "title": "Humble Planning",
+    "message": "Notifications work on this device."
+  },
+  "profile": {
+    "title": "Mobile app",
+    "description": "Sign the Humble Planning app in without typing your password, by scanning a QR code.",
+    "instructions": "In the app, tap \"Scan a QR code\". This code works once and is valid for 5 minutes.",
+    "show": "Show the QR code",
+    "hide": "Hide",
+    "error": "Could not generate the QR code.",
+    "notAllowed": "Your role does not allow the mobile app."
+  }
+}

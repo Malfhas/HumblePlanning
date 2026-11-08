@@ -17,6 +17,7 @@ const userFields = z.object({
   visibleOnPlanning: z.boolean(),
   notifications: z.boolean(),
   pushNotifications: z.boolean(),
+  mobilePushNotifications: z.boolean().optional(),
   smsNotifications: z.boolean(),
   address: z.string().max(255).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),

@@ -248,6 +248,9 @@ async function cmdCheckDb(args: string[]): Promise<number> {
  * in .env, and is not turned on when another provider was chosen.
  */
 async function ensureDefaultSettings(sql: ReturnType<typeof connect>): Promise<void> {
+  // Mobile app: on by default; existing values are kept. Not in a migration: the seed
+  // runs only on an empty app_config.
+  await sql`insert into app_config (key, value) values ('MOBILE_LOGIN_ENABLED', 'true'), ('MOBILE_PAIRING_ENABLED', 'true'), ('MOBILE_PUSH_ENABLED', 'true') on conflict (key) do nothing`;
   if (!process.env.ALTCHA_HMAC_SECRET || !process.env.ALTCHA_HMAC_KEY_SECRET) return;
   await sql`insert into app_config (key, value) values ('CAPTCHA_PROVIDER', 'altcha') on conflict (key) do nothing`;
   const enabled = await sql`

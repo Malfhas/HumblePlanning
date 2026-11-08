@@ -36,6 +36,13 @@
       "when": 1793446027215,
       "tag": "0004_security_counters",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793837031534,
+      "tag": "0005_mobile_app",
+      "breakpoints": true
     }
   ]
 }

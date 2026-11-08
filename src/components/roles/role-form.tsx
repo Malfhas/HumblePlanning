@@ -218,6 +218,15 @@ export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
     ],
   },
 
+  {
+    id: "mobile_app",
+    type: "binary",
+    block: "actions",
+    permissions: [
+      { key: "mobile_app:use" },
+    ],
+  },
+
   // ════════════════════════════════════════════════════════════════════
   // BLOCK 3 — DISPLAY SCOPE AND PLANNING GRID CONTROL
   // ════════════════════════════════════════════════════════════════════

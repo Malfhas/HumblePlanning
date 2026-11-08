@@ -73,6 +73,7 @@
     "admin": "Administration & security — actions",
     "integrations": "AI integrations (MCP) — actions",
     "ai_chat": "AI assistant (built-in chat) — actions",
+    "mobile_app": "Mobile app",
     "scope_projects": "Planning scope — Visible projects",
     "scope_users": "Planning scope — Visible users",
     "scope_modify": "Planning scope — Editing level",
@@ -409,6 +410,12 @@
       "write": {
         "label": "Allow changes by the AI assistant",
         "description": "The assistant can offer to create, edit, move, duplicate or delete tasks and projects. Every change always requires the user's explicit confirmation. Requires “Use the AI assistant”."
+      }
+    },
+    "mobile_app": {
+      "use": {
+        "label": "Use the mobile app",
+        "description": "Sign in to the Humble Planning Android app and receive its alerts. When withdrawn, phones already signed in are blocked at their next request."
       }
     },
     "scope": {

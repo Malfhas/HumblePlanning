@@ -6,6 +6,7 @@ import { reloadCacheSettings } from "@/lib/cache";
 import { logAudit } from "@/lib/services/audit-service";
 import { isAltchaConfigured } from "@/lib/altcha";
 import { demoConfigOverride } from "@/lib/demo";
+import { readServiceAccount } from "@/lib/services/fcm-service";
 import { z } from "zod";
 
 const updateConfigSchema = z.record(z.string(), z.string());
@@ -131,6 +132,14 @@ export async function PUT(request: Request) {
         }
       }
     }
+
+    // Firebase service account pasted in the UI: refuse a value push could not use,
+    // rather than saving it and failing silently at the first alert.
+    const serviceAccount = data.FCM_SERVICE_ACCOUNT_JSON?.trim();
+    if (serviceAccount && !readServiceAccount(serviceAccount)) {
+      return apiError("settings.errors.fcmServiceAccountInvalid", 400);
+    }
+    if (serviceAccount) data.FCM_SERVICE_ACCOUNT_JSON = serviceAccount;
 
     // Planning grid cell width validation: min ≤ default ≤ max, mobile_max ≥ min, all > 0.
     // The 4 settings are linked and inconsistent if entered independently.

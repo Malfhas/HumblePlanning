@@ -21,6 +21,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MobileAppCard } from "@/components/profile/mobile-app-card";
 import {
   Eye,
   EyeOff,
@@ -67,6 +68,7 @@ export function SecurityTab() {
   const t = useTranslations("profile");
   const tAuth = useTranslations("auth");
   const tc = useTranslations("common");
+  const tMobile = useTranslations("mobile.profile");
   const { formatDateTime } = useDateFormat();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
@@ -550,6 +552,9 @@ export function SecurityTab() {
           </div>
         ) : null}
       </div>
+
+      {/* Mobile app */}
+      <MobileAppCard title={<SectionTitle>{tMobile("title")}</SectionTitle>} />
 
       {/* Active sessions */}
       <div className="space-y-3">

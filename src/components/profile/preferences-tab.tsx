@@ -56,6 +56,7 @@ export function PreferencesTab() {
     defaultHomePage: "/planning" as string,
     notifications: false,
     pushNotifications: false,
+    mobilePushNotifications: true,
     smsNotifications: false,
     theme: "system" as string,
   });
@@ -68,6 +69,8 @@ export function PreferencesTab() {
       // If admin disabled notifications, force user preference to false
       const adminEmail = profile.notifications ?? false;
       const adminPush = profile.pushNotifications ?? false;
+      const adminMobilePush = profile.mobilePushNotifications ?? true;
+      const userMobilePush = profile.mobilePushNotificationsUser ?? true;
       const adminSms = (profile as any).smsNotifications ?? false;
       const userEmail = (profile as any).notificationsUser ?? true;
       const userPush = (profile as any).pushNotificationsUser ?? true;
@@ -78,6 +81,7 @@ export function PreferencesTab() {
         defaultHomePage: prefs.defaultHomePage ?? "/planning",
         notifications: adminEmail && userEmail,
         pushNotifications: adminPush && userPush,
+        mobilePushNotifications: adminMobilePush && userMobilePush,
         smsNotifications: adminSms && userSms,
         theme: prefs.theme ?? "system",
       };
@@ -90,6 +94,7 @@ export function PreferencesTab() {
 
   const adminEmailEnabled = profile?.notifications ?? false;
   const adminPushEnabled = profile?.pushNotifications ?? false;
+  const adminMobilePushEnabled = profile?.mobilePushNotifications ?? true;
   const adminSmsEnabled = (profile as any)?.smsNotifications ?? false;
 
   function handleSave() {
@@ -235,6 +240,22 @@ export function PreferencesTab() {
             checked={form.pushNotifications}
             disabled={!adminPushEnabled}
             onCheckedChange={(checked) => setForm({ ...form, pushNotifications: !!checked })}
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <Label htmlFor="pref-mobile-push-notifications" className={!adminMobilePushEnabled ? "text-muted-foreground" : ""}>
+              {t("preferences.mobilePushNotifications")}
+            </Label>
+            {!adminMobilePushEnabled && (
+              <span className="text-xs text-muted-foreground">{t("preferences.disabledByAdmin")}</span>
+            )}
+          </div>
+          <Switch
+            id="pref-mobile-push-notifications"
+            checked={form.mobilePushNotifications}
+            disabled={!adminMobilePushEnabled}
+            onCheckedChange={(checked) => setForm({ ...form, mobilePushNotifications: !!checked })}
           />
         </div>
         <div className="flex items-center justify-between">

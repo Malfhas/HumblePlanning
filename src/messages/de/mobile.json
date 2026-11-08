@@ -1,0 +1,25 @@
+{
+  "errors": {
+    "loginDisabled": "Die Anmeldung über die mobile App ist auf diesem Server deaktiviert.",
+    "pairingDisabled": "Die Anmeldung per QR-Code ist auf diesem Server deaktiviert.",
+    "invalidPairingCode": "Dieser QR-Code ist nicht mehr gültig. Erstellen Sie in Ihrem Profil einen neuen.",
+    "upgradeRequired": "Aktualisieren Sie die App, um fortzufahren (Mindestversion: {minimumVersion}).",
+    "maintenance": "Der Server wird gewartet. Versuchen Sie es in Kürze erneut.",
+    "appNotAllowed": "Ihre Rolle erlaubt die mobile App nicht. Wenden Sie sich an Ihren Administrator.",
+    "deviceNotFound": "Gerät nicht gefunden.",
+    "pushNotConfigured": "Push-Benachrichtigungen sind auf diesem Server nicht eingerichtet."
+  },
+  "pushTest": {
+    "title": "Humble Planning",
+    "message": "Benachrichtigungen funktionieren auf diesem Gerät."
+  },
+  "profile": {
+    "title": "Mobile App",
+    "description": "Melden Sie die Humble-Planning-App ohne Passworteingabe an, indem Sie einen QR-Code scannen.",
+    "instructions": "Tippen Sie in der App auf „QR-Code scannen“. Dieser Code ist einmalig und 5 Minuten gültig.",
+    "show": "QR-Code anzeigen",
+    "hide": "Ausblenden",
+    "error": "Der QR-Code konnte nicht erstellt werden.",
+    "notAllowed": "Ihre Rolle erlaubt die mobile App nicht."
+  }
+}

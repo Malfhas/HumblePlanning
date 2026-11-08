@@ -31,6 +31,7 @@ import ui from "./ui.json";
 import aiChat from "./aiChat.json";
 import version from "./version.json";
 import seed from "./seed.json";
+import mobile from "./mobile.json";
 
 const messages = {
   common,
@@ -63,6 +64,7 @@ const messages = {
   aiChat,
   version,
   seed,
+  mobile,
 };
 
 export default messages;

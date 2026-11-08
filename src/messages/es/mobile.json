@@ -1,0 +1,25 @@
+{
+  "errors": {
+    "loginDisabled": "El inicio de sesión desde la aplicación móvil está desactivado en este servidor.",
+    "pairingDisabled": "El inicio de sesión con código QR está desactivado en este servidor.",
+    "invalidPairingCode": "Este código QR ya no es válido. Genere uno nuevo desde su perfil.",
+    "upgradeRequired": "Actualice la aplicación para continuar (versión mínima: {minimumVersion}).",
+    "maintenance": "El servidor está en mantenimiento. Vuelva a intentarlo en unos instantes.",
+    "appNotAllowed": "Su rol no permite usar la aplicación móvil. Contacte con su administrador.",
+    "deviceNotFound": "Dispositivo no encontrado.",
+    "pushNotConfigured": "Las notificaciones push no están configuradas en este servidor."
+  },
+  "pushTest": {
+    "title": "Humble Planning",
+    "message": "Las notificaciones funcionan en este dispositivo."
+  },
+  "profile": {
+    "title": "Aplicación móvil",
+    "description": "Inicie sesión en la aplicación Humble Planning sin escribir su contraseña, escaneando un código QR.",
+    "instructions": "En la aplicación, toque «Escanear un código QR». Este código es de un solo uso y válido durante 5 minutos.",
+    "show": "Mostrar el código QR",
+    "hide": "Ocultar",
+    "error": "No se pudo generar el código QR.",
+    "notAllowed": "Su rol no permite usar la aplicación móvil."
+  }
+}
