@@ -100,7 +100,8 @@
       "visibleOnPlanning": "Visible on the planning",
       "emailNotifications": "Email notifications",
       "pushNotifications": "Push notifications",
-      "smsNotifications": "SMS / WhatsApp notifications"
+      "smsNotifications": "SMS / WhatsApp notifications",
+      "mobilePushNotifications": "Mobile app alerts"
     },
     "pickers": {
       "noTeam": "No team",

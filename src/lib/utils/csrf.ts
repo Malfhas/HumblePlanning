@@ -34,6 +34,25 @@ export function validateOrigin(request: Request): boolean {
 }
 
 /**
+ * True only for a request a browser sent from a page of this application:
+ * `Sec-Fetch-Site: same-origin`, or an `Origin` header naming the application
+ * (APP_BASE_URL / BETTER_AUTH_URL, else the request's own host). Unlike
+ * `validateOrigin`, a request with neither is refused: for actions reserved to
+ * the web pages, which native clients and scripts never send these headers to.
+ */
+export function isSameOriginRequest(request: Request): boolean {
+  if (request.headers.get("sec-fetch-site") === "same-origin") return true;
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  const appUrl = process.env.APP_BASE_URL || process.env.BETTER_AUTH_URL || request.url;
+  try {
+    return new URL(origin).host === new URL(appUrl).host;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * 403 response for a state-changing request sent by another site, else null.
  * The authentication routes call it first: a page elsewhere must not sign a
  * visitor in (to an account of its choice), reset a password or send e-mails.

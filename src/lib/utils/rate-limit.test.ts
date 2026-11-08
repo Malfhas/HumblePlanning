@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { getClientIp } from "./rate-limit";
+import { addressBucket, getClientIp } from "./rate-limit";
 
 const ENV = process.env.TRUSTED_PROXY;
 afterEach(() => {
@@ -29,5 +29,36 @@ describe("client IP", () => {
     delete process.env.TRUSTED_PROXY;
     expect(getClientIp(headers({ "x-forwarded-for": "1.2.3.4, 203.0.113.9" }))).toBe("203.0.113.9");
     expect(getClientIp(headers({}))).toBe("127.0.0.1");
+  });
+});
+
+describe("address bucket of the lock keys", () => {
+  it("keeps an IPv4 address", () => {
+    expect(addressBucket("203.0.113.5")).toBe("203.0.113.5");
+    expect(addressBucket(" 203.0.113.5 ")).toBe("203.0.113.5");
+  });
+
+  it("counts an IPv6 address by its /64 prefix, whatever its spelling", () => {
+    expect(addressBucket("2001:db8:1:2:aaaa:bbbb:cccc:dddd")).toBe("2001:db8:1:2::/64");
+    expect(addressBucket("2001:0DB8:0001:0002::1")).toBe("2001:db8:1:2::/64");
+    expect(addressBucket("[2001:db8:1:2::5]")).toBe("2001:db8:1:2::/64");
+    expect(addressBucket("fe80::1%eth0")).toBe("fe80:0:0:0::/64");
+    expect(addressBucket("2001:db8::")).toBe("2001:db8:0:0::/64");
+    expect(addressBucket("::1")).toBe("0:0:0:0::/64");
+    expect(addressBucket("2001:db8:1:3::1")).not.toBe(addressBucket("2001:db8:1:2::1"));
+  });
+
+  it("reads an IPv4-mapped IPv6 address as the IPv4 address", () => {
+    expect(addressBucket("::ffff:203.0.113.5")).toBe("203.0.113.5");
+    expect(addressBucket("::FFFF:cb00:7105")).toBe("203.0.113.5");
+    expect(addressBucket("0:0:0:0:0:ffff:203.0.113.5")).toBe("203.0.113.5");
+  });
+
+  it("keeps anything that is not an address as it is", () => {
+    expect(addressBucket("unknown")).toBe("unknown");
+    expect(addressBucket("1:2:3")).toBe("1:2:3");
+    expect(addressBucket("1::2::3")).toBe("1::2::3");
+    expect(addressBucket("::ffff:300.1.1.1")).toBe("::ffff:300.1.1.1");
+    expect(addressBucket("1:2:3:4:5:6:7:8:9")).toBe("1:2:3:4:5:6:7:8:9");
   });
 });

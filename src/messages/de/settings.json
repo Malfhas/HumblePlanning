@@ -37,7 +37,8 @@
     "backup": "Sichern",
     "import": "Importieren",
     "migration": "Migration",
-    "version": "Version"
+    "version": "Version",
+    "mobile": "Mobile App"
   },
   "sections": {
     "application": "Anwendung",
@@ -77,7 +78,8 @@
     "backup": "Sichern",
     "import": "Importieren",
     "migration": "Migration",
-    "updateCheck": "Prüfung auf Updates"
+    "updateCheck": "Prüfung auf Updates",
+    "mobile": "Mobile App"
   },
   "page": {
     "title": "Einstellungen"
@@ -1161,6 +1163,41 @@
     "UPDATE_CHECK_ENABLED": {
       "label": "Auf Updates prüfen",
       "description": "Der Server fragt die öffentliche GitHub-Releases-API (api.github.com) höchstens einmal alle 24 Stunden ab oder wenn Sie auf „Jetzt prüfen“ klicken. Nur diese Leseanfrage wird gesendet: keinerlei Daten über die Instanz oder ihre Benutzer. Wenn deaktiviert, wird keine Anfrage gesendet, weder automatisch noch manuell."
+    },
+    "MOBILE_LOGIN_ENABLED": {
+      "label": "Passwortanmeldung aus der App erlauben",
+      "description": "Diese Anmeldung hat kein Captcha: Sie ist nur durch Sperren nach Fehlversuchen geschützt. Wenn deaktiviert, kann sich die App nur per QR-Code anmelden."
+    },
+    "MOBILE_PAIRING_ENABLED": {
+      "label": "Anmeldung per QR-Code erlauben",
+      "description": "Zeigt im Benutzerprofil einen einmaligen QR-Code an."
+    },
+    "MOBILE_MIN_APP_VERSION": {
+      "label": "Mindestversion der App",
+      "description": "Eine ältere App wird gesperrt und zur Aktualisierung aufgefordert. Diese Serverversion verlangt bereits mindestens {version}, und jedes Server-Update hebt dieses Minimum bei Bedarf von selbst an. Geben Sie nur dann eine neuere Version ein, wenn Sie sie früher verlangen möchten, zum Beispiel 1.2.0. Leer = Minimum des Servers."
+    },
+    "MOBILE_STORE_URL": {
+      "label": "Download-Seite der App",
+      "description": "Wird von einer zu alten App geöffnet. Leer = die neueste Version auf GitHub."
+    },
+    "MOBILE_PUSH_ENABLED": {
+      "label": "Benachrichtigungen an die mobile App senden",
+      "description": "Benachrichtigungen auf den Telefonen der Benutzer. Jeder kann sie im Profil oder in der App deaktivieren."
+    },
+    "MOBILE_PUSH_TRIGGERS": {
+      "label": "Auslösende Ereignisse (mobile App)",
+      "description": "Wählen Sie die Ereignisse aus, die eine Benachrichtigung in der mobilen App auslösen"
+    },
+    "FCM_SERVICE_ACCOUNT_JSON": {
+      "label": "Firebase-Dienstkonto",
+      "description": "Inhalt der JSON-Datei mit dem privaten Schlüssel (Firebase-Konsole > Projekteinstellungen > Dienstkonten), nur für den Inhaber des Firebase-Projekts der App. Das Relay wird dann nicht verwendet. Die .env-Datei hat Vorrang."
+    },
+    "MOBILE_PUSH_RELAY_URL": {
+      "label": "Adresse des Push-Relays",
+      "description": "Um die veröffentlichte App ohne Firebase-Dienstkonto zu erreichen. Leer und ohne Dienstkonto = kein Push in Echtzeit, die App prüft etwa alle 15 Minuten."
+    },
+    "MOBILE_PUSH_RELAY_KEY": {
+      "label": "Schlüssel des Push-Relays"
     }
   },
   "timezones": {
@@ -1240,6 +1277,7 @@
     }
   },
   "errors": {
+    "fcmServiceAccountInvalid": "Das ist kein Firebase-Dienstkonto: Fügen Sie den gesamten Inhalt der JSON-Datei ein, die Sie aus der Firebase-Konsole heruntergeladen haben.",
     "captchaKeysRequired": "Das Captcha {provider} erfordert einen Site Key und einen Secret Key. Geben Sie beide ein oder deaktivieren Sie das Captcha.",
     "cellWidthsNotPositive": "Die Zellenbreiten müssen strikt positiv sein.",
     "cellMinAboveMax": "Die Mindestbreite muss kleiner oder gleich der Höchstbreite sein.",

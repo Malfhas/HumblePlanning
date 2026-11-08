@@ -114,6 +114,7 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
     active: true,
     notifications: false,
     pushNotifications: false,
+    mobilePushNotifications: true,
     smsNotifications: false,
     visibleOnPlanning: true,
     defaultHourlyRate: "",
@@ -168,6 +169,7 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
         active: u.active ?? true,
         notifications: u.notifications ?? false,
         pushNotifications: u.pushNotifications ?? false,
+        mobilePushNotifications: u.mobilePushNotifications ?? true,
         smsNotifications: (u as any).smsNotifications ?? false,
         visibleOnPlanning: u.visibleOnPlanning ?? true,
         defaultHourlyRate: u.defaultHourlyRate ?? "",
@@ -204,6 +206,7 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
         active: true,
         notifications: s.notifications ?? false,
         pushNotifications: s.pushNotifications ?? false,
+        mobilePushNotifications: s.mobilePushNotifications ?? true,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         smsNotifications: (s as any).smsNotifications ?? false,
         visibleOnPlanning: s.visibleOnPlanning ?? true,
@@ -316,6 +319,7 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
       active: form.active,
       notifications: form.notifications,
       pushNotifications: form.pushNotifications,
+      mobilePushNotifications: form.mobilePushNotifications,
       smsNotifications: false, // Feature disabled — force false on save
       visibleOnPlanning: form.visibleOnPlanning,
       defaultHourlyRate: form.defaultHourlyRate || null,
@@ -1261,6 +1265,14 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
               id="pushNotifications"
               checked={form.pushNotifications}
               onCheckedChange={(checked) => setForm({ ...form, pushNotifications: !!checked })}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="mobilePushNotifications">{t("form.fields.mobilePushNotifications")}</Label>
+            <Switch
+              id="mobilePushNotifications"
+              checked={form.mobilePushNotifications}
+              onCheckedChange={(checked) => setForm({ ...form, mobilePushNotifications: !!checked })}
             />
           </div>
           <div className="flex items-center justify-between">

@@ -37,7 +37,8 @@
     "backup": "Copia de seguridad",
     "import": "Importar",
     "migration": "Migración",
-    "version": "Versión"
+    "version": "Versión",
+    "mobile": "Aplicación móvil"
   },
   "sections": {
     "application": "Aplicación",
@@ -77,7 +78,8 @@
     "backup": "Copia de seguridad",
     "import": "Importar",
     "migration": "Migración",
-    "updateCheck": "Comprobación de actualizaciones"
+    "updateCheck": "Comprobación de actualizaciones",
+    "mobile": "Aplicación móvil"
   },
   "page": {
     "title": "Configuración"
@@ -1161,6 +1163,41 @@
     "UPDATE_CHECK_ENABLED": {
       "label": "Comprobar las actualizaciones",
       "description": "El servidor consulta la API pública de GitHub Releases (api.github.com) como máximo una vez cada 24 h, o cuando hace clic en «Comprobar ahora». Solo se envía esta solicitud de lectura: ningún dato sobre la instancia ni sobre sus usuarios. Si se desactiva, no se envía ninguna solicitud, ni automática ni manual."
+    },
+    "MOBILE_LOGIN_ENABLED": {
+      "label": "Permitir el inicio de sesión con contraseña desde la aplicación",
+      "description": "Este inicio de sesión no tiene captcha: solo lo protegen los bloqueos tras los fallos. Desactivado, la aplicación solo puede iniciar sesión con un código QR."
+    },
+    "MOBILE_PAIRING_ENABLED": {
+      "label": "Permitir el inicio de sesión con código QR",
+      "description": "Muestra un código QR de un solo uso en el perfil de los usuarios."
+    },
+    "MOBILE_MIN_APP_VERSION": {
+      "label": "Versión mínima de la aplicación",
+      "description": "Una aplicación más antigua se bloquea y se le pide que se actualice. Esta versión del servidor ya exige al menos la {version}, y cada actualización del servidor eleva este mínimo por sí sola si hace falta. Indique una versión más reciente solo para exigirla antes, por ejemplo 1.2.0. Vacío = mínimo del servidor."
+    },
+    "MOBILE_STORE_URL": {
+      "label": "Página de descarga de la aplicación",
+      "description": "La abre una aplicación demasiado antigua. Vacío = la última versión publicada en GitHub."
+    },
+    "MOBILE_PUSH_ENABLED": {
+      "label": "Enviar alertas a la aplicación móvil",
+      "description": "Notificaciones en el teléfono de los usuarios. Cada uno puede desactivarlas en su perfil o en la aplicación."
+    },
+    "MOBILE_PUSH_TRIGGERS": {
+      "label": "Eventos desencadenantes (aplicación móvil)",
+      "description": "Seleccione los eventos que desencadenan una alerta en la aplicación móvil"
+    },
+    "FCM_SERVICE_ACCOUNT_JSON": {
+      "label": "Cuenta de servicio de Firebase",
+      "description": "Contenido del archivo JSON de clave privada (consola de Firebase > Configuración del proyecto > Cuentas de servicio), solo para el propietario del proyecto Firebase de la aplicación. El relé deja de usarse. El archivo .env tiene prioridad."
+    },
+    "MOBILE_PUSH_RELAY_URL": {
+      "label": "Dirección del relé de push",
+      "description": "Para llegar a la aplicación publicada sin cuenta de servicio de Firebase. Vacío, y sin cuenta de servicio = sin push en tiempo real, la aplicación comprueba cada 15 minutos aproximadamente."
+    },
+    "MOBILE_PUSH_RELAY_KEY": {
+      "label": "Clave del relé de push"
     }
   },
   "timezones": {
@@ -1240,6 +1277,7 @@
     }
   },
   "errors": {
+    "fcmServiceAccountInvalid": "No es una cuenta de servicio de Firebase: pegue todo el contenido del archivo JSON descargado desde la consola de Firebase.",
     "captchaKeysRequired": "El captcha {provider} requiere una Site Key y una Secret Key. Indique ambas o desactive el captcha.",
     "cellWidthsNotPositive": "Los anchos de las celdas deben ser estrictamente positivos.",
     "cellMinAboveMax": "El ancho mínimo debe ser menor o igual que el ancho máximo.",

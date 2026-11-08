@@ -27,7 +27,15 @@ export function useSocket() {
     function onDisconnect() {
       setConnected(false);
     }
-    function onSessionRevoked() {
+    async function onSessionRevoked() {
+      // Sent to every session of the user (another device signed out, a
+      // password change): only leave when this one is gone. A failed check
+      // counts as gone.
+      try {
+        const res = await fetch("/api/auth/get-session", { cache: "no-store" });
+        const current = res.ok ? await res.json() as { session?: unknown } | null : null;
+        if (current?.session) return;
+      } catch { /* network failure: signed out below */ }
       // Cancel all pending queries to prevent a "network error" flash
       queryClient.cancelQueries();
       queryClient.clear();

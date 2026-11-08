@@ -14,6 +14,9 @@ export const SECRET_KEYS = [
   "CAPTCHA_SECRET_KEY",
   // AI chat (OpenRouter). Recommended in `.env`: the database stores it in plain text.
   "OPENROUTER_API_KEY",
+  // Mobile push notifications (Firebase service account, JSON). Recommended in `.env`.
+  "FCM_SERVICE_ACCOUNT_JSON",
+  "MOBILE_PUSH_RELAY_KEY",
 ] as const;
 
 export type SecretKey = (typeof SECRET_KEYS)[number];

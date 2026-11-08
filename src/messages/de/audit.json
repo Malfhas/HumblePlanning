@@ -27,6 +27,7 @@
     "2fa_fail": "2FA fehlgeschlagen",
     "bruteforce_lock": "Brute-Force-Sperre",
     "session_revoke": "Sitzung widerrufen",
+    "mobile_pairing_create": "Anmelde-QR-Code erstellt",
     "email_blocked": "E-Mail blockiert",
     "email_unblocked": "E-Mail entsperrt",
     "webhook_received": "Webhook empfangen"
@@ -109,6 +110,8 @@
     "login": "Anmeldung",
     "ip": "IP {ip}",
     "accountDisabled": "Konto deaktiviert",
+    "mobileAppNotAllowed": "Mobile App für diese Rolle nicht erlaubt",
+    "pairingCodeCreated": "QR-Code für die mobile Anmeldung erstellt",
     "recipients": "{count, plural, one {# Empfänger} other {# Empfänger}}",
     "fileAdded": "Datei hinzugefügt",
     "fileAddedNamed": "Datei hinzugefügt: {name}",

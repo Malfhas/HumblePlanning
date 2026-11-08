@@ -100,7 +100,8 @@
       "visibleOnPlanning": "Visible en la planificación",
       "emailNotifications": "Notificaciones por correo electrónico",
       "pushNotifications": "Notificaciones push",
-      "smsNotifications": "Notificaciones por SMS / WhatsApp"
+      "smsNotifications": "Notificaciones por SMS / WhatsApp",
+      "mobilePushNotifications": "Alertas en la aplicación móvil"
     },
     "pickers": {
       "noTeam": "Ningún equipo",

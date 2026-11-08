@@ -11,6 +11,7 @@ import { isPasswordReused, isPasswordBlacklisted, addPasswordToHistory } from ".
 import { getUserById, passwordNotCompliantError, passwordRejectedError, userSafeColumns } from "./user-service";
 import { AppError } from "@/lib/errors";
 import { assertNotDemoAccount, isDemoAccount } from "@/lib/demo";
+import { emitSessionRevoked } from "@/lib/socket-events";
 
 export async function getProfile(userId: string) {
   return getUserById(userId);
@@ -59,8 +60,11 @@ export async function updateProfile(userId: string, data: UpdateProfile) {
 
 /**
  * Signs the user out of their other devices after a password change: deletes
- * every session except the current one. No `session:revoked` socket event,
- * it would also redirect the tabs of the current session to /login.
+ * every session except the current one, then emits `session:revoked` to the
+ * user. The event reaches every tab and device of the user, the current
+ * session's too: each client checks its own session first and only leaves when
+ * it is gone (src/hooks/use-socket.ts, the mobile app reads its profile), and
+ * the Socket.io server closes the connections of the deleted sessions.
  */
 export async function revokeOtherSessions(userId: string, currentSessionId: string | undefined) {
   const condition = currentSessionId
@@ -68,6 +72,7 @@ export async function revokeOtherSessions(userId: string, currentSessionId: stri
     : eq(sessions.userId, userId);
   const revoked = await db.delete(sessions).where(condition).returning({ id: sessions.id });
   if (revoked.length > 0) {
+    emitSessionRevoked(userId);
     logAudit({
       userId,
       action: "session_revoke",
@@ -211,6 +216,9 @@ export async function revokeSession(userId: string, sessionId: string) {
   if (!session) throw new AppError("profile.errors.sessionNotFound", { status: 404 });
 
   await db.delete(sessions).where(eq(sessions.id, sessionId));
+  // Same event as for the other revocations (see `revokeOtherSessions`): a
+  // phone signed out this way is told at once, the other sessions stay
+  emitSessionRevoked(userId);
 
   return { success: true };
 }
@@ -236,6 +244,9 @@ export async function updatePreferences(userId: string, prefs: UpdatePreferences
   }
   if (prefs.pushNotifications !== undefined) {
     updateData.pushNotificationsUser = prefs.pushNotifications;
+  }
+  if (prefs.mobilePushNotifications !== undefined) {
+    updateData.mobilePushNotificationsUser = prefs.mobilePushNotifications;
   }
   if ((prefs as any).smsNotifications !== undefined) {
     updateData.smsNotificationsUser = (prefs as any).smsNotifications;

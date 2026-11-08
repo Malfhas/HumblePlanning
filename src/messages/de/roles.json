@@ -73,6 +73,7 @@
     "admin": "Verwaltung & Sicherheit — Aktionen",
     "integrations": "KI-Integrationen (MCP) — Aktionen",
     "ai_chat": "KI-Assistent (integrierter Chat) — Aktionen",
+    "mobile_app": "Mobile App",
     "scope_projects": "Planungsbereich — Sichtbare Projekte",
     "scope_users": "Planungsbereich — Sichtbare Benutzer",
     "scope_modify": "Planungsbereich — Bearbeitungsstufe",
@@ -409,6 +410,12 @@
       "write": {
         "label": "Änderungen durch den KI-Assistenten erlauben",
         "description": "Der Assistent kann anbieten, Aufgaben und Projekte zu erstellen, zu bearbeiten, zu verschieben, zu duplizieren oder zu löschen. Jede Änderung erfordert stets die ausdrückliche Bestätigung des Benutzers. Erfordert „KI-Assistenten verwenden“."
+      }
+    },
+    "mobile_app": {
+      "use": {
+        "label": "Mobile App verwenden",
+        "description": "Bei der Android-App von Humble Planning anmelden und ihre Benachrichtigungen erhalten. Wird sie entzogen, werden bereits angemeldete Telefone bei ihrer nächsten Anfrage gesperrt."
       }
     },
     "scope": {

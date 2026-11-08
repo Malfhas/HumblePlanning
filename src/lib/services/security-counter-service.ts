@@ -3,12 +3,12 @@
 // OAuth endpoints. Shared by every process and kept across restarts; a hit is
 // one atomic upsert, so concurrent requests cannot lose an increment.
 // Pure transition (and its tests): src/lib/utils/security-counter.ts.
-import { and, eq, gt, inArray, lte, sql, type SQL } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { securityCounters } from "@/db/schema";
 import { logger } from "@/lib/logger";
 import {
-  applyHit, boundedKey, counterRetentionMs, secondsUntil,
+  applyHit, boundedKey, counterRetentionMs, reservationPolicy, secondsUntil,
   type CounterPolicy, type CounterState,
 } from "@/lib/utils/security-counter";
 
@@ -84,6 +84,70 @@ export async function lockedFor(key: string, { tx = db, now = Date.now() }: Coun
   const [row] = await tx.select({ lockedUntil: t.lockedUntil }).from(t)
     .where(and(eq(t.key, boundedKey(key)), gt(t.lockedUntil, new Date(now))));
   return secondsUntil(row?.lockedUntil?.getTime() ?? null, now);
+}
+
+/** An attempt reserved on a lock before the check it guards (`reserveAttempt`). */
+export interface AttemptReservation {
+  key: string;
+  policy: CounterPolicy;
+  /** Rank of the attempt in the current window (meaningless when refused). */
+  attempt: number;
+  /** Lock time left in seconds when the attempt is refused, otherwise 0. */
+  lockedSeconds: number;
+}
+
+/**
+ * Reserves an attempt on `key` before a slow check (password verification):
+ * one atomic upsert, so parallel requests cannot all pass a lock check made
+ * before any of them records its failure. Refused (`lockedSeconds` > 0) while
+ * the key is locked. Then `failAttempt` (the hit stays), `clearCounters` or
+ * `releaseAttempt`. Transitions and tests: `reservationPolicy`, `applyFailure`,
+ * `applyRelease` (src/lib/utils/security-counter.ts).
+ */
+export async function reserveAttempt(
+  key: string,
+  policy: CounterPolicy,
+  { tx = db, now = Date.now() }: CounterOptions = {},
+): Promise<AttemptReservation> {
+  const state = await recordHit(key, reservationPolicy(policy), { tx, now });
+  return { key, policy, attempt: state.count, lockedSeconds: secondsUntil(state.lockedUntil, now) };
+}
+
+/** The reserved attempt failed: from the max-th one, the key is locked. Lock time left in seconds, 0 below the max. */
+export async function failAttempt(
+  { key, policy, attempt }: AttemptReservation,
+  { tx = db, now = Date.now() }: CounterOptions = {},
+): Promise<number> {
+  if (attempt < policy.max || policy.lockMs <= 0) return 0;
+  const lockedUntil = now + policy.lockMs;
+  const expiresAt = now + counterRetentionMs(policy);
+  const [row] = await tx.insert(t)
+    // Cleared meanwhile (a success): the lock starts a new row
+    .values({ key: boundedKey(key), count: attempt, windowStart: new Date(now), lockedUntil: new Date(lockedUntil), expiresAt: new Date(expiresAt) })
+    .onConflictDoUpdate({
+      target: t.key,
+      set: {
+        // A running lock is kept
+        lockedUntil: sql`CASE WHEN ${t.lockedUntil} > ${at(now)} THEN ${t.lockedUntil} ELSE ${at(lockedUntil)} END`,
+        expiresAt: sql`GREATEST(${t.expiresAt}, ${at(expiresAt)})`,
+      },
+    })
+    .returning({ lockedUntil: t.lockedUntil });
+  return secondsUntil(row.lockedUntil?.getTime() ?? null, now);
+}
+
+/** Gives a reservation back: its attempt does not count. One hit less, the row dropped at zero; a locked key is left as it is. */
+export async function releaseAttempt(
+  { key, lockedSeconds }: AttemptReservation,
+  { tx = db, now = Date.now() }: CounterOptions = {},
+): Promise<void> {
+  if (lockedSeconds > 0) return;
+  const unlocked = and(eq(t.key, boundedKey(key)), or(isNull(t.lockedUntil), lte(t.lockedUntil, new Date(now))));
+  const [row] = await tx.update(t)
+    .set({ count: sql`${t.count} - 1` })
+    .where(and(unlocked, gt(t.count, 0)))
+    .returning({ count: t.count });
+  if (row?.count === 0) await tx.delete(t).where(and(unlocked, eq(t.count, 0)));
 }
 
 /** Forgets the keys (successful login, cooldown released after a failed action). */

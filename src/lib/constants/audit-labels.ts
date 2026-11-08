@@ -32,6 +32,7 @@ export const ACTION_STYLES: Record<string, string> = {
   "2fa_fail": "bg-rose-500/15 text-rose-700 dark:text-rose-400",
   bruteforce_lock: "bg-red-500/15 text-red-700 dark:text-red-400",
   session_revoke: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  mobile_pairing_create: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
   email_blocked: "bg-red-500/15 text-red-700 dark:text-red-400",
   email_unblocked: "bg-green-500/15 text-green-700 dark:text-green-400",
   webhook_received: "bg-blue-500/15 text-blue-700 dark:text-blue-400",

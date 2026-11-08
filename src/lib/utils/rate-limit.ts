@@ -42,3 +42,42 @@ export function getClientIp(headers: Headers): string {
   // Only the last X-Forwarded-For entry comes from the nearest proxy: the others are sent by the client
   return headers.get("x-forwarded-for")?.split(",").map((s) => s.trim()).filter(Boolean).at(-1) ?? "127.0.0.1";
 }
+
+const IPV4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+
+/** The eight 16-bit groups of an IPv6 address (embedded IPv4 tail allowed), null when it is not one. */
+function ipv6Groups(address: string): number[] | null {
+  let text = address;
+  const lastColon = text.lastIndexOf(":");
+  const tail = text.slice(lastColon + 1);
+  if (lastColon >= 0 && tail.includes(".")) {
+    if (!IPV4.test(tail)) return null;
+    const [a, b, c, d] = tail.split(".").map(Number);
+    text = `${text.slice(0, lastColon + 1)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const halves = text.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const rest = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  if ([...head, ...rest].some((group) => !/^[0-9a-f]{1,4}$/i.test(group))) return null;
+  const missing = 8 - head.length - rest.length;
+  if (halves.length === 2 ? missing < 1 : missing !== 0) return null;
+  return [...head, ...Array<string>(halves.length === 2 ? missing : 0).fill("0"), ...rest].map((group) => parseInt(group, 16));
+}
+
+/**
+ * Part of a lock key that stands for a client address. An IPv6 client usually
+ * holds a whole /64 and can pick any address in it, so IPv6 addresses count by
+ * their /64 prefix; IPv4 addresses, and IPv4-mapped IPv6 ones (`::ffff:a.b.c.d`),
+ * as the IPv4 address. Anything else is kept as it is.
+ */
+export function addressBucket(ip: string): string {
+  const address = ip.trim().replace(/^\[(.*)\]$/, "$1").replace(/%.*$/, "").toLowerCase();
+  if (IPV4.test(address)) return address;
+  const groups = ipv6Groups(address);
+  if (!groups) return ip;
+  if (groups.slice(0, 5).every((group) => group === 0) && groups[5] === 0xffff) {
+    return [groups[6] >> 8, groups[6] & 0xff, groups[7] >> 8, groups[7] & 0xff].join(".");
+  }
+  return `${groups.slice(0, 4).map((group) => group.toString(16)).join(":")}::/64`;
+}

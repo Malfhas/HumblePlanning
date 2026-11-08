@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { crossOriginRejection, validateOrigin } from "./csrf";
+import { crossOriginRejection, isSameOriginRequest, validateOrigin } from "./csrf";
 
 // Bun loads .env into process.env: each test sets the URL it needs.
 let saved: { app?: string; auth?: string };
@@ -45,5 +45,30 @@ describe("crossOriginRejection", () => {
     const rejected = await crossOriginRejection(post({ origin: "https://evil.example" }));
     expect(rejected?.status).toBe(403);
     expect(await crossOriginRejection(post({ origin: "https://planning.example.com" }))).toBeNull();
+  });
+});
+
+describe("isSameOriginRequest", () => {
+  it("accepts a request sent by a page of the application", () => {
+    expect(isSameOriginRequest(post({ origin: "https://planning.example.com" }))).toBe(true);
+    expect(isSameOriginRequest(post({ "sec-fetch-site": "same-origin" }))).toBe(true);
+  });
+
+  it("refuses a request without Origin nor Sec-Fetch-Site (native client, script)", () => {
+    expect(isSameOriginRequest(post({}))).toBe(false);
+    expect(isSameOriginRequest(post({ referer: "https://planning.example.com/profile" }))).toBe(false);
+    expect(isSameOriginRequest(post({ "sec-fetch-site": "none" }))).toBe(false);
+  });
+
+  it("refuses another site", () => {
+    expect(isSameOriginRequest(post({ origin: "https://evil.example" }))).toBe(false);
+    expect(isSameOriginRequest(post({ origin: "https://evil.example", "sec-fetch-site": "cross-site" }))).toBe(false);
+    expect(isSameOriginRequest(post({ origin: "null" }))).toBe(false);
+  });
+
+  it("compares with the request's host when no application URL is set", () => {
+    delete process.env.APP_BASE_URL;
+    expect(isSameOriginRequest(post({ origin: "https://planning.example.com" }))).toBe(true);
+    expect(isSameOriginRequest(post({ origin: "https://evil.example" }))).toBe(false);
   });
 });

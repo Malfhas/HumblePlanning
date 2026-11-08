@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { Server as SocketServer } from "socket.io";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { pgTable, uuid, text, varchar, timestamp, boolean, jsonb, decimal } from "drizzle-orm/pg-core";
 
 // --- Inline schema (no @/ aliases in standalone Bun script) ---
@@ -41,6 +41,8 @@ type PresenceUser = {
 const presenceMap = new Map<string, PresenceUser>();
 const PRESENCE_TIMEOUT = 5 * 60 * 1000;
 const CLEANUP_INTERVAL = 30_000;
+// Connections whose session expired without any event are closed this often
+const SESSION_SWEEP_INTERVAL = 5 * 60 * 1000;
 
 // --- Cookie parser ---
 function parseCookie(cookieStr: string, name: string): string | undefined {
@@ -86,12 +88,21 @@ const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
         // map: the latter is purged after 5 min of inactivity, and a background
         // tab no longer received anything (end of an AI chat reply,
         // notification, session revocation).
+        let rooms: string[] | null = null;
         if (event.targetUserId) {
-          io.to(`user:${event.targetUserId}`).emit(channel, event);
+          rooms = [`user:${event.targetUserId}`];
         } else if (Array.isArray(event.targetUserIds) && event.targetUserIds.length > 0) {
-          io.to(event.targetUserIds.map((id: string) => `user:${id}`)).emit(channel, event);
-        } else {
-          io.emit(channel, event);
+          rooms = event.targetUserIds.map((id: string) => `user:${id}`);
+        }
+        if (rooms) io.to(rooms).emit(channel, event);
+        else io.emit(channel, event);
+
+        // A session was revoked: its live connections end now, not at their
+        // next handshake. After the emit, so that its clients get the event.
+        if (channel === "session:revoked") {
+          disconnectEndedSessions(rooms).catch((error: unknown) => {
+            console.error("[Socket.io] Session check failed:", error instanceof Error ? error.message : error);
+          });
         }
 
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -129,6 +140,30 @@ const io = new SocketServer(httpServer, {
   transports: ["websocket", "polling"],
 });
 
+/**
+ * Closes the connections (of these rooms, or all) whose session no longer
+ * exists or has expired: revoked from the profile or a device list, signed out,
+ * password changed, account disabled or deleted, or simply expired.
+ */
+async function disconnectEndedSessions(rooms: string[] | null) {
+  const sockets = rooms ? await io.in(rooms).fetchSockets() : await io.fetchSockets();
+  const sessionIds = [...new Set(sockets.map((s) => s.data.sessionId as string | undefined).filter((id): id is string => !!id))];
+  if (sessionIds.length === 0) return;
+  const now = new Date();
+  const alive = new Set<string>();
+  // Bounded number of parameters per query
+  for (let i = 0; i < sessionIds.length; i += 1000) {
+    const rows = await db
+      .select({ id: sessions.id, expiresAt: sessions.expiresAt })
+      .from(sessions)
+      .where(inArray(sessions.id, sessionIds.slice(i, i + 1000)));
+    for (const row of rows) if (new Date(row.expiresAt) > now) alive.add(row.id);
+  }
+  for (const socket of sockets) {
+    if (socket.data.sessionId && !alive.has(socket.data.sessionId)) socket.disconnect(true);
+  }
+}
+
 function broadcastPresence() {
   const seen = new Map<string, PresenceUser>();
   for (const entry of presenceMap.values()) {
@@ -154,7 +189,7 @@ io.use(async (socket, next) => {
     const cleanToken = token.split(".")[0];
 
     const [session] = await db
-      .select({ userId: sessions.userId, expiresAt: sessions.expiresAt })
+      .select({ id: sessions.id, userId: sessions.userId, expiresAt: sessions.expiresAt })
       .from(sessions)
       .where(eq(sessions.token, cleanToken))
       .limit(1);
@@ -174,6 +209,8 @@ io.use(async (socket, next) => {
     const displayName = [user.firstName, user.name].filter(Boolean).join(" ");
     const avatarUrl = user.image ? `/api/avatars/${user.image.replace("avatars/", "")}` : null;
     socket.data.user = { ...user, displayName, avatarUrl };
+    // Checked again on revocation and by the periodic sweep
+    socket.data.sessionId = session.id;
     next();
   } catch {
     next(new Error("Authentication error"));
@@ -249,6 +286,13 @@ setInterval(() => {
   }
   if (changed) broadcastPresence();
 }, CLEANUP_INTERVAL);
+
+// Close the connections of expired (or deleted) sessions
+setInterval(() => {
+  disconnectEndedSessions(null).catch((error: unknown) => {
+    console.error("[Socket.io] Session sweep failed:", error instanceof Error ? error.message : error);
+  });
+}, SESSION_SWEEP_INTERVAL);
 
 // --- Start ---
 httpServer.listen(port, () => {

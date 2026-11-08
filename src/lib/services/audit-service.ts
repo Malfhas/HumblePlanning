@@ -35,7 +35,7 @@ export type AuditAction =
   | "api_key_create" | "api_key_delete"
   | "mcp_key_create" | "mcp_key_delete"
   | "2fa_enable" | "2fa_disable" | "2fa_fail"
-  | "bruteforce_lock" | "session_revoke"
+  | "bruteforce_lock" | "session_revoke" | "mobile_pairing_create"
   | "update_triggered" | "migrate"
   | "email_blocked" | "email_unblocked" | "webhook_received";
 
@@ -98,7 +98,7 @@ const ENTITY_TYPE_CONFIG_MAP: Record<string, keyof AuditConfig> = {
 /** Actions related to login/auth (gated by AUDIT_LOGINS). */
 const LOGIN_ACTIONS = new Set([
   "login", "login_fail", "bruteforce_lock", "session_revoke",
-  "2fa_enable", "2fa_disable", "2fa_fail",
+  "2fa_enable", "2fa_disable", "2fa_fail", "mobile_pairing_create",
 ]);
 
 /**

@@ -75,7 +75,8 @@
     "pushNotifications": "Push-Benachrichtigungen",
     "smsNotifications": "SMS-/WhatsApp-Benachrichtigungen",
     "disabledByAdmin": "Vom Administrator deaktiviert",
-    "saved": "Präferenzen gespeichert"
+    "saved": "Präferenzen gespeichert",
+    "mobilePushNotifications": "Benachrichtigungen in der mobilen App"
   },
   "security": {
     "password": {

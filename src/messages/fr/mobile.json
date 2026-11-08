@@ -1,0 +1,29 @@
+{
+  "errors": {
+    "loginDisabled": "La connexion depuis l'application mobile est désactivée sur ce serveur.",
+    "pairingDisabled": "La connexion par QR code est désactivée sur ce serveur.",
+    "invalidPairingCode": "Ce QR code n'est plus valide. Générez-en un nouveau depuis votre profil.",
+    "upgradeRequired": "Mettez à jour l'application pour continuer (version minimale : {minimumVersion}).",
+    "maintenance": "Le serveur est en maintenance. Réessayez dans quelques instants.",
+    "appNotAllowed": "Votre rôle ne permet pas d'utiliser l'application mobile. Contactez votre administrateur.",
+    "deviceNotFound": "Appareil introuvable.",
+    "pushNotConfigured": "Les notifications push ne sont pas configurées sur ce serveur.",
+    "webOnly": "Le QR code de connexion se crée depuis le site web, pas depuis l'application ni avec une clé API.",
+    "appOnly": "Cette action est réservée à l'application mobile."
+  },
+  "pushTest": {
+    "title": "Humble Planning",
+    "message": "Les notifications fonctionnent sur cet appareil."
+  },
+  "profile": {
+    "title": "Application mobile",
+    "description": "Connectez l'application Humble Planning sans saisir votre mot de passe, en scannant un QR code.",
+    "instructions": "Dans l'application, touchez « Scanner un QR code ». Ce code est à usage unique et valable 5 minutes.",
+    "show": "Afficher le QR code",
+    "hide": "Masquer",
+    "error": "Impossible de générer le QR code.",
+    "notAllowed": "Votre rôle ne permet pas d'utiliser l'application mobile.",
+    "expired": "Ce QR code a expiré.",
+    "regenerate": "Générer un nouveau QR code"
+  }
+}

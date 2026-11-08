@@ -17,6 +17,7 @@ export const updatePreferencesSchema = z.object({
   defaultHomePage: z.string().max(100).optional(),
   notifications: z.boolean().optional(),
   pushNotifications: z.boolean().optional(),
+  mobilePushNotifications: z.boolean().optional(),
   smsNotifications: z.boolean().optional(),
   theme: z.enum(["light", "dark", "system"]).optional(),
 });

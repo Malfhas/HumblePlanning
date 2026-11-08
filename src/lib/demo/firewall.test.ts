@@ -22,6 +22,7 @@ describe("demo firewall", () => {
       ["POST", "/api/ai-chat/conversations"], ["GET", "/api/ai-chat/admin/config"], ["POST", "/api/ai-chat/attachments"],
       ["POST", "/api/auth/send-reset"], ["POST", "/api/branding/upload"], ["POST", "/api/profile/avatar"],
       ["POST", "/api/tasks/abc/files"], ["PUT", `/api/users/${DEMO_USER_ID}`], ["DELETE", `/api/users/${DEMO_USER_ID}/2fa`],
+      ["POST", "/api/mobile/devices/current/push-test"],
     ]) {
       expect(`${method} ${path} ${isDemoBlockedRoute(method, path)}`).toBe(`${method} ${path} true`);
     }
@@ -34,6 +35,8 @@ describe("demo firewall", () => {
       ["GET", "/api/tasks/abc/files"], ["POST", "/api/users"], ["PUT", "/api/users/11111111-2222-4333-8444-555555555555"],
       ["GET", `/api/users/${DEMO_USER_ID}`], ["GET", "/api/profile/avatar"], ["PUT", "/api/profile/preferences"],
       ["POST", "/api/projects"], ["GET", "/planning"], ["POST", "/api/auth/login"],
+      ["GET", "/api/mobile/info"], ["POST", "/api/mobile/auth/login"], ["GET", "/api/mobile/bootstrap"],
+      ["POST", "/api/mobile/pairing"], ["PUT", "/api/mobile/devices/current"],
     ]) {
       expect(`${method} ${path} ${isDemoBlockedRoute(method, path)}`).toBe(`${method} ${path} false`);
     }
@@ -44,6 +47,8 @@ describe("demo permissions and settings", () => {
   it("the Démo role has no blocked permission", () => {
     expect(DEMO_ROLE_PERMISSIONS.filter((p) => DEMO_BLOCKED_PERMISSIONS.has(p))).toEqual([]);
     expect(DEMO_ROLE_PERMISSIONS).toContain("users:create");
+    // The mobile app can be tried on a demo
+    expect(DEMO_ROLE_PERMISSIONS).toContain("mobile_app:use");
   });
 
   it("removes administration from every role, Super Admin included, only in demo mode", () => {

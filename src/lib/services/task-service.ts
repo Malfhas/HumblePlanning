@@ -7,7 +7,6 @@ import { scheduleTaskCreated, scheduleTaskUpdated, scheduleTaskDeleted } from ".
 import { schedulePushTaskCreated, schedulePushTaskUpdated, schedulePushTaskDeleted } from "./push-notification-queue";
 import { invalidateCachePrefix } from "@/lib/cache";
 import { rm, unlink } from "node:fs/promises";
-import { USER_SECRET_COLUMNS_EXCLUDED } from "@/lib/utils/user-columns";
 import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
@@ -130,6 +129,23 @@ export async function cleanupTaskFilesContent(files: { storageKey?: string; name
     }
   }
 }
+
+/**
+ * People of a task as every reader may see them (list, detail, real-time
+ * events): no contact details, contract or rate, which stay on the users routes
+ * with their own permissions.
+ */
+const TASK_USER_RELATION = {
+  columns: {
+    id: true, name: true, firstName: true, color: true,
+    image: true, businessUnitId: true, teamId: true,
+  },
+  with: {
+    businessUnit: {
+      columns: { id: true, name: true, number: true, color: true },
+    },
+  },
+} as const;
 
 // Helper: map task with taskUsers to include users array
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -308,21 +324,7 @@ export async function getTasks(filters: TaskFilters, scope: TaskAccessScope = {}
         },
         place: { columns: { id: true, name: true } },
         resource: { columns: { id: true, name: true } },
-        taskUsers: {
-          with: {
-            user: {
-              columns: {
-                id: true, name: true, firstName: true, color: true,
-                image: true, businessUnitId: true, teamId: true,
-              },
-              with: {
-                businessUnit: {
-                  columns: { id: true, name: true, number: true, color: true },
-                },
-              },
-            },
-          },
-        },
+        taskUsers: { with: { user: TASK_USER_RELATION } },
         creator: { columns: { id: true, name: true, firstName: true } },
         lastModifier: { columns: { id: true, name: true, firstName: true } },
       },
@@ -377,7 +379,7 @@ export async function getTaskById(id: string) {
       status: true,
       place: true,
       resource: true,
-      taskUsers: { with: { user: { columns: USER_SECRET_COLUMNS_EXCLUDED } } },
+      taskUsers: { with: { user: TASK_USER_RELATION } },
       creator: { columns: { id: true, name: true, firstName: true } },
       lastModifier: { columns: { id: true, name: true, firstName: true } },
     },

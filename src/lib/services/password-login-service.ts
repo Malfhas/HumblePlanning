@@ -1,0 +1,353 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { sessions, verifications } from "@/db/schema/auth";
+import { eq } from "drizzle-orm";
+import { logAudit } from "@/lib/services/audit-service";
+import { getConfigValues } from "@/lib/services/config-service";
+import { resolveRequestLocale } from "@/i18n/resolve-locale";
+import { AppError, handleApiError } from "@/lib/utils/api";
+import { getClientIp } from "@/lib/utils/rate-limit";
+import { getDemoCredentials } from "@/lib/demo";
+import { isSessionSetCookie, withSessionCookieLifetime } from "@/lib/utils/session-cookie";
+import {
+  clearCounters, failAttempt, releaseAttempt, reserveAttempt, type AttemptReservation,
+} from "@/lib/services/security-counter-service";
+import { auditMobileAppRefusal, mobileAppNotAllowed } from "@/lib/services/mobile-service";
+import { MOBILE_APP_PERMISSION } from "@/lib/services/mobile-client-policy";
+import type { CounterPolicy } from "@/lib/utils/security-counter";
+import crypto from "node:crypto";
+
+// Lockouts stored in PostgreSQL (security_counters): shared by every process
+// and kept across restarts. Each attempt is reserved on every lock before the
+// password is checked (`reserveAttempt`), so parallel requests cannot run more
+// checks than a lock allows; a failure keeps the hit, a success clears it.
+
+// First lock, per identifier+IP: BRUTEFORCE_MAX_ATTEMPTS failures lock for
+// BRUTEFORCE_LOCKOUT_SECONDS; the count starts over after a day without failure.
+const ATTEMPT_IDLE_MS = 24 * 60 * 60 * 1000;
+
+// Second lock, per identifier whatever the IP: the client address can be
+// spoofed (TRUSTED_PROXY=cloudflare with the origin reachable directly), which
+// would make the identifier+IP lock alone ineffective.
+const IDENTIFIER_MAX_FAILURES = 20;
+const IDENTIFIER_LOCK_MS = 15 * 60 * 1000;
+const IDENTIFIER_POLICY: CounterPolicy = {
+  max: IDENTIFIER_MAX_FAILURES,
+  windowMs: IDENTIFIER_LOCK_MS,
+  lockMs: IDENTIFIER_LOCK_MS,
+};
+
+/**
+ * The identifier lock protects a secret password. The demo account's password
+ * is public: that lock would only let anyone lock every visitor out.
+ */
+function hasIdentifierLock(identifier: string): boolean {
+  const demo = getDemoCredentials();
+  return !demo || identifier.trim().toLowerCase() !== demo.login.trim().toLowerCase();
+}
+
+function getIdentifierKey(identifier: string): string {
+  return `login:id:${identifier.trim().toLowerCase()}`;
+}
+
+function getAttemptKey(identifier: string, ip: string): string {
+  return `login:ip:${identifier.toLowerCase()}:${ip}`;
+}
+
+/** The per-account locks of an attempt, in the order they are checked: none when BRUTEFORCE_MAX_ATTEMPTS is 0. */
+async function accountLocks(identifier: string, ip: string): Promise<{ key: string; policy: CounterPolicy }[]> {
+  const config = await getConfigValues(["BRUTEFORCE_MAX_ATTEMPTS", "BRUTEFORCE_LOCKOUT_SECONDS"]);
+  const maxAttempts = parseInt(config.BRUTEFORCE_MAX_ATTEMPTS ?? "5") || 0;
+  const lockoutSeconds = parseInt(config.BRUTEFORCE_LOCKOUT_SECONDS ?? "300") || 300;
+
+  if (maxAttempts <= 0) return [];
+
+  return [
+    ...(hasIdentifierLock(identifier) ? [{ key: getIdentifierKey(identifier), policy: IDENTIFIER_POLICY }] : []),
+    {
+      key: getAttemptKey(identifier, ip),
+      policy: { max: maxAttempts, windowMs: ATTEMPT_IDLE_MS, lockMs: lockoutSeconds * 1000, slidingWindow: true },
+    },
+  ];
+}
+
+/**
+ * Reserves the attempt on each lock in turn. The first locked one refuses it
+ * (lock time left in seconds) and the reservations already made are given back,
+ * so a refused attempt counts nowhere, as when the locks were only read.
+ */
+async function reserveAll(locks: { key: string; policy: CounterPolicy }[]): Promise<{ reservations: AttemptReservation[]; lockedSeconds: number }> {
+  const reservations: AttemptReservation[] = [];
+  for (const { key, policy } of locks) {
+    const reservation = await reserveAttempt(key, policy);
+    if (reservation.lockedSeconds > 0) {
+      await Promise.all(reservations.map((r) => releaseAttempt(r)));
+      return { reservations: [], lockedSeconds: reservation.lockedSeconds };
+    }
+    reservations.push(reservation);
+  }
+  return { reservations, lockedSeconds: 0 };
+}
+
+/** The password was wrong: the reserved hits stay. Lock time left on the account, 0 when it is not locked. */
+async function recordFailedAttempt(account: AttemptReservation[], address: AttemptReservation | null): Promise<{ locked: boolean; remainingSeconds: number }> {
+  const [, ...locks] = await Promise.all([address ? failAttempt(address) : 0, ...account.map((r) => failAttempt(r))]);
+  const remainingSeconds = Math.max(0, ...locks);
+  return { locked: remainingSeconds > 0, remainingSeconds };
+}
+
+async function clearAttempts(identifier: string, ip: string): Promise<void> {
+  await clearCounters([getIdentifierKey(identifier), getAttemptKey(identifier, ip)]);
+}
+
+/** 429 "too many attempts": remaining delay in minutes beyond one minute, otherwise in seconds. */
+function tooManyAttempts(remainingSeconds: number): AppError {
+  return remainingSeconds > 60
+    ? new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(remainingSeconds / 60) } })
+    : new AppError("auth.errors.tooManyAttemptsSeconds", { status: 429, params: { count: remainingSeconds } });
+}
+
+/**
+ * Set-Cookie header of the session cookie in a Response: `better-auth.session_token`,
+ * or `__Secure-better-auth.session_token` behind HTTPS.
+ */
+function extractSessionCookie(response: Response): string | null {
+  return response.headers.getSetCookie().find(isSessionSetCookie) ?? null;
+}
+
+export interface PasswordSignIn {
+  identifier: string;
+  password: string;
+  rememberMe?: unknown;
+  /**
+   * Sign-in of the mobile app (`/api/mobile/auth/login`): its per-address lock
+   * is reserved with the per-account ones (only a wrong password counts on it),
+   * a role without `mobile_app:use` gets no session (403, a failed login in the
+   * audit) and a pending second factor is marked for `/api/mobile/auth/2fa`.
+   */
+  mobile?: { addressKey: string; addressPolicy: CounterPolicy };
+}
+
+/** The role does not allow the mobile app: Super Administrateur always does (isAdmin). */
+async function lacksMobileApp(userId: string): Promise<boolean> {
+  const { loadUserPermissions, hasPermission } = await import("@/lib/services/permission-service");
+  return !hasPermission(await loadUserPermissions(userId), MOBILE_APP_PERMISSION);
+}
+
+/**
+ * Password sign-in shared by the web login (`/api/auth/login`, behind its
+ * captcha) and the mobile login (`/api/mobile/auth/login`): lockouts, audit,
+ * inactive accounts, second factor, forced password change. Returns the
+ * response for the client, with the session cookie when the login is complete.
+ */
+export async function signInWithPassword(
+  request: Request,
+  { identifier, password, rememberMe, mobile }: PasswordSignIn,
+): Promise<Response> {
+  const ip = getClientIp(request.headers);
+  const userAgent = request.headers.get("user-agent") || "unknown";
+
+  // Reserve the attempt on the locks before the (slow) password check
+  const address = mobile ? await reserveAttempt(mobile.addressKey, mobile.addressPolicy) : null;
+  if (address && address.lockedSeconds > 0) {
+    return handleApiError(new AppError("auth.errors.tooManyAttemptsMinutes", { status: 429, params: { count: Math.ceil(address.lockedSeconds / 60) } }));
+  }
+  const { reservations: account, lockedSeconds } = await reserveAll(await accountLocks(identifier, ip));
+  if (lockedSeconds > 0) {
+    if (address) await releaseAttempt(address);
+    return handleApiError(tooManyAttempts(lockedSeconds));
+  }
+
+  let passwordAccepted = false;
+  try {
+    // Sign in with username via Better Auth username plugin.
+    //
+    // IMPORTANT: we forward `request.headers` to Better Auth so that its
+    // internal hooks can extract the client address (see `clientIpHeaders`) and
+    // `user-agent` and persist them in the `ip_address` and
+    // `user_agent` columns of the `session` table. Without this, Better Auth
+    // has no access to the original Request and these columns stay empty
+    // (see the active sessions list on /profile → "Inconnu — Inconnu").
+    const response = await auth.api.signInUsername({
+      body: { username: identifier, password },
+      headers: request.headers,
+      asResponse: true,
+    });
+
+    if (!response.ok) {
+      const result = await recordFailedAttempt(account, address);
+      logAudit({ action: "login_fail", entityType: "user", metadata: { identifier, ip, userAgent } }).catch(() => {});
+      if (result.locked) {
+        logAudit({ action: "bruteforce_lock", entityType: "user", metadata: { identifier, ip, lockoutSeconds: result.remainingSeconds } }).catch(() => {});
+        return handleApiError(tooManyAttempts(result.remainingSeconds));
+      }
+      return handleApiError(new AppError("auth.errors.invalidCredentials"));
+    }
+
+    // Success — clear attempts (the address lock only counts failures)
+    passwordAccepted = true;
+    await clearAttempts(identifier, ip);
+    if (address) await releaseAttempt(address);
+
+    // Extract user and session info
+    const cloned = response.clone();
+    const result = await cloned.json().catch(() => null) as { user?: { id?: string }; token?: string; session?: { id?: string; token?: string } } | null;
+
+    if (result?.user?.id) {
+      // Better Auth answers `{token, user}`: the session row is found by its token
+      // (for the "remember me" duration, the 2FA and the refusals below).
+      const sessionId = result.session?.id ?? (result.token
+        ? (await db.query.sessions.findFirst({ where: eq(sessions.token, result.token), columns: { id: true } }))?.id
+        : undefined);
+
+      const dbUser = await db.query.users.findFirst({
+        where: eq(users.id, result.user.id),
+        columns: {
+          active: true,
+          forcePasswordChange: true,
+          twoFactorEnabled: true,
+          forceTwoFactor: true,
+        },
+      });
+
+      // Block inactive accounts — delete the session Better Auth just created
+      if (!dbUser || dbUser.active === false) {
+        if (sessionId) await db.delete(sessions).where(eq(sessions.id, sessionId));
+        logAudit({ action: "login_fail", entityType: "user", metadata: { identifier, ip, userAgent, reason: "account_inactive" } }).catch(() => {});
+        return handleApiError(new AppError("auth.errors.accountDisabled", { status: 403 }));
+      }
+
+      // The mobile route refuses these accounts before the password check; this
+      // covers a role changed meanwhile. Before the `login` entry and the last
+      // login date: the sign-in did not happen.
+      if (mobile && await lacksMobileApp(result.user.id)) {
+        if (sessionId) await db.delete(sessions).where(eq(sessions.id, sessionId));
+        auditMobileAppRefusal(result.user.id, { identifier, ip, userAgent });
+        return handleApiError(mobileAppNotAllowed());
+      }
+
+      logAudit({
+        userId: result.user.id,
+        action: "login",
+        entityType: "user",
+        entityId: result.user.id,
+        metadata: { identifier, ip, userAgent },
+      }).catch(() => {});
+
+      // users.locale = effective language of this login (emails, notifications).
+      const loggedUserId = result.user.id;
+      resolveRequestLocale()
+        .then((locale) => db.update(users).set({ lastLoginAt: new Date(), locale }).where(eq(users.id, loggedUserId)))
+        .catch(() => {});
+
+      // ─── 2FA REQUIRED ───
+      // SECURITY: Do NOT send the session cookie — store it server-side
+      // and only deliver it after successful TOTP verification.
+      if (dbUser?.twoFactorEnabled) {
+        // Extract the signed session cookie from Better Auth's response
+        const sessionCookie = extractSessionCookie(response);
+
+        // Create a pending token that holds the cookie value server-side
+        const pendingToken = crypto.randomUUID();
+        await db.insert(verifications).values({
+          id: crypto.randomUUID(),
+          identifier: `2fa-pending:${pendingToken}`,
+          value: JSON.stringify({
+            userId: result.user.id,
+            sessionId,
+            sessionCookie, // The full Set-Cookie header to replay after 2FA
+            rememberMe: !!rememberMe,
+            // Only /api/mobile/auth/2fa redeems a token of the mobile sign-in, and only those
+            ...(mobile ? { client: "mobile" } : {}),
+          }),
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+        });
+
+        // Return WITHOUT Set-Cookie — the browser gets NO session
+        return Response.json({ twoFactorRequired: true, pendingToken });
+      }
+
+      // ─── 2FA SETUP REQUIRED ───
+      const config = await getConfigValues(["TWOFACTOR_REQUIRED"]);
+      const globalRequired = config.TWOFACTOR_REQUIRED === "true";
+      if ((globalRequired || dbUser?.forceTwoFactor) && !dbUser?.twoFactorEnabled) {
+        const newBody = { ...result, setupTwoFactorRequired: true };
+        return new Response(JSON.stringify(newBody), {
+          status: response.status,
+          headers: response.headers,
+        });
+      }
+
+      // ─── SESSION DURATION ───
+      // On the session row and on the browser cookie (Better Auth gives it 7 days)
+      let headers = response.headers;
+      if (sessionId) {
+        const sessionConfig = await getConfigValues(["SESSION_DURATION_DAYS", "SESSION_REMEMBER_DAYS"]);
+        const standardDays = parseInt(sessionConfig.SESSION_DURATION_DAYS || "7") || 7;
+        const rememberDays = parseInt(sessionConfig.SESSION_REMEMBER_DAYS || "30") || 30;
+        const durationMs = (rememberMe ? rememberDays : standardDays) * 24 * 60 * 60 * 1000;
+        await db.update(sessions)
+          .set({ expiresAt: new Date(Date.now() + durationMs) })
+          .where(eq(sessions.id, sessionId));
+        headers = withSessionCookieLifetime(response.headers, Math.floor(durationMs / 1000));
+      }
+
+      // ─── FORCE PASSWORD CHANGE ───
+      if (dbUser?.forcePasswordChange) {
+        const newBody = { ...result, forcePasswordChange: true };
+        return new Response(JSON.stringify(newBody), {
+          status: response.status,
+          headers,
+        });
+      }
+
+      // ─── REDIRECT TO USER'S DEFAULT HOME PAGE ───
+      // Respect user preference, but fall back intelligently if they no longer
+      // have permission for the chosen page.
+      const fullUser = await db.query.users.findFirst({
+        where: eq(users.id, result.user.id),
+        columns: { preferences: true },
+      });
+      const prefs = (fullUser?.preferences ?? {}) as Record<string, string>;
+      const preferred = prefs.defaultHomePage || "/planning";
+
+      // Check permissions to validate the preferred redirect
+      const { loadUserPermissions, hasPermission } = await import("@/lib/services/permission-service");
+      const userPerms = await loadUserPermissions(result.user.id);
+
+      const PAGE_PERM_MAP: Record<string, string> = {
+        "/planning": "pages:planning",
+        "/home": "pages:home",
+        "/tasks": "pages:tasks",
+      };
+      const preferredPerm = PAGE_PERM_MAP[preferred];
+      let redirectTo = preferred;
+      if (preferredPerm && !hasPermission(userPerms, preferredPerm)) {
+        // Preferred page not allowed — try /home, then /planning, then /tasks
+        if (hasPermission(userPerms, "pages:home")) redirectTo = "/home";
+        else if (hasPermission(userPerms, "pages:planning")) redirectTo = "/planning";
+        else if (hasPermission(userPerms, "pages:tasks")) redirectTo = "/tasks";
+        else redirectTo = "/home"; // ultimate fallback
+      }
+
+      const newBody = { ...result, redirectTo };
+      return new Response(JSON.stringify(newBody), {
+        status: response.status,
+        headers,
+      });
+    }
+
+    return response;
+  } catch {
+    // An error after the password was accepted is not a failed attempt: its hits are already cleared
+    if (!passwordAccepted) await recordFailedAttempt(account, address);
+    logAudit({
+      action: "login_fail",
+      entityType: "user",
+      metadata: { identifier, ip, userAgent },
+    }).catch(() => {});
+
+    return handleApiError(new AppError("auth.errors.invalidCredentials"));
+  }
+}
