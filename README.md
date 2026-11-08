@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://humbleplanning.com/">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="public/branding-defaults/logo-dark.svg">
-      <img src="public/branding-defaults/logo-light.svg" alt="Humble Planning" width="360">
+      <source media="(prefers-color-scheme: dark)" srcset="docs/branding/logo-dark.png">
+      <img src="docs/branding/logo-light.png" alt="Humble Planning" width="360">
     </picture>
   </a>
 </p>
