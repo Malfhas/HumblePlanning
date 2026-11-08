@@ -25,5 +25,14 @@
     "notAllowed": "Ihre Rolle erlaubt die mobile App nicht.",
     "expired": "Dieser QR-Code ist abgelaufen.",
     "regenerate": "Neuen QR-Code erstellen"
+  },
+  "quickAccess": {
+    "button": "Mobile App",
+    "title": "Mobile App",
+    "description": "Ihre Planung auf Ihrem Android-Telefon, mit Echtzeit-Benachrichtigungen.",
+    "installTitle": "1. App installieren",
+    "installText": "Scannen Sie diesen Code mit der Kamera Ihres Telefons, um die App herunterzuladen, oder öffnen Sie den Link.",
+    "download": "App herunterladen",
+    "signInTitle": "2. Anmelden"
   }
 }

@@ -25,5 +25,14 @@
     "notAllowed": "Your role does not allow the mobile app.",
     "expired": "This QR code has expired.",
     "regenerate": "Generate a new QR code"
+  },
+  "quickAccess": {
+    "button": "Mobile app",
+    "title": "Mobile app",
+    "description": "Your schedule on your Android phone, with real-time alerts.",
+    "installTitle": "1. Install the app",
+    "installText": "Scan this code with your phone's camera to download the app, or open the link.",
+    "download": "Download the app",
+    "signInTitle": "2. Sign in"
   }
 }

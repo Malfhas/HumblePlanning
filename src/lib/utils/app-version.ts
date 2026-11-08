@@ -6,6 +6,9 @@
  */
 export const RELEASE_MIN_APP_VERSION = "1.0.0";
 
+/** Download page opened by an outdated app when MOBILE_STORE_URL is empty: the app's GitHub releases. */
+export const DEFAULT_MOBILE_STORE_URL = "https://github.com/Malfhas/HumblePlanning-Android/releases/latest";
+
 /**
  * Numeric comparison of dotted versions (`1.10.0` > `1.9.3`). A suffix
  * (`1.2.0-debug`) and missing segments are ignored; a non-numeric segment

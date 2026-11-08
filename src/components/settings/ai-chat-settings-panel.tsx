@@ -124,6 +124,9 @@ function SettingsForm({ view }: { view: AdminView }) {
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
   const set = <K extends keyof ChatSettings>(field: K, value: ChatSettings[K]) => setConfig((prev) => ({ ...prev, [field]: value }));
+  // "Save" only when the form differs from the saved settings (a change undone is no change)
+  const dirty = apiKeyDraft.trim() !== "" || (Object.keys(config) as (keyof ChatSettings)[])
+    .some((key) => JSON.stringify(config[key]) !== JSON.stringify(view.config[key]));
 
   const applyResult = (result: AdminView, body: Record<string, unknown>) => {
     queryClient.setQueryData(QUERY_KEY, result);
@@ -139,6 +142,8 @@ function SettingsForm({ view }: { view: AdminView }) {
       callApi<AdminView>("/api/ai-chat/admin/config", { method: "PUT", body: JSON.stringify(body) }),
     onSuccess: (result, body) => {
       applyResult(result, body);
+      // As the server stored them (it may normalize a value): the form is no longer "changed"
+      setConfig(result.config);
       setApiKeyDraft("");
       setMessage({ tone: "ok", text: t("saved") });
     },
@@ -209,7 +214,7 @@ function SettingsForm({ view }: { view: AdminView }) {
   const isPromptCustomized = Boolean(config.systemPrompt?.trim());
   const reasons = REASON_ORDER.filter((r) => view.status.reasons.includes(r));
   const saveButton = (
-    <Button size="sm" onClick={() => save()} disabled={saveConfig.isPending}>
+    <Button size="sm" onClick={() => save()} disabled={!dirty || saveConfig.isPending}>
       {saveConfig.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
       {tActions("save")}
     </Button>

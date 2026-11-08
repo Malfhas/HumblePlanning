@@ -93,6 +93,7 @@
     "configured": "Konfiguriert",
     "reenter": "Erneut eingeben",
     "keepSecretPlaceholder": "•••••••••••• (leer lassen, um den aktuellen Wert zu behalten)",
+    "importFile": "Aus einer Datei importieren",
     "translatedDefaultHelp": "Leer lassen, um den Beispieltext in der Sprache des Besuchers anzuzeigen."
   },
   "tagList": {

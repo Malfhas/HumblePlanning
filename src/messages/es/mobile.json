@@ -25,5 +25,14 @@
     "notAllowed": "Su rol no permite usar la aplicación móvil.",
     "expired": "Este código QR ha caducado.",
     "regenerate": "Generar un nuevo código QR"
+  },
+  "quickAccess": {
+    "button": "Aplicación móvil",
+    "title": "Aplicación móvil",
+    "description": "Su planificación en su teléfono Android, con alertas en tiempo real.",
+    "installTitle": "1. Instale la aplicación",
+    "installText": "Escanee este código con la cámara de su teléfono para descargar la aplicación, o abra el enlace.",
+    "download": "Descargar la aplicación",
+    "signInTitle": "2. Inicie sesión"
   }
 }

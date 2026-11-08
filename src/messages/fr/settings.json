@@ -93,6 +93,7 @@
     "configured": "Configuré",
     "reenter": "À ressaisir",
     "keepSecretPlaceholder": "•••••••••••• (laissez vide pour conserver)",
+    "importFile": "Importer depuis un fichier",
     "translatedDefaultHelp": "Laissez vide pour afficher le texte proposé en exemple, traduit dans la langue du visiteur."
   },
   "tagList": {

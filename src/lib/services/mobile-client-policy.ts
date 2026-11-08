@@ -1,14 +1,13 @@
 // What the server enforces on the mobile app. The app identifies itself with
 // the `X-App-Version` header on every request; the web client never sends it.
 import { AppError } from "@/lib/errors";
-import { compareVersions, effectiveMinimumVersion } from "@/lib/utils/app-version";
+import { compareVersions, DEFAULT_MOBILE_STORE_URL, effectiveMinimumVersion } from "@/lib/utils/app-version";
 import { getConfigValues } from "./config-service";
 import { hasPermission, loadUserPermissions } from "./permission-service";
 
 export const MOBILE_VERSION_HEADER = "x-app-version";
 /** Role permission without which an account cannot use the mobile app (Super Admin: always). */
 export const MOBILE_APP_PERMISSION = "mobile_app:use";
-export const DEFAULT_MOBILE_STORE_URL = "https://github.com/Malfhas/HumblePlanning-Android/releases/latest";
 
 const CONFIG_KEYS = ["MOBILE_MIN_APP_VERSION", "MOBILE_STORE_URL", "MAINTENANCE_MODE"];
 
