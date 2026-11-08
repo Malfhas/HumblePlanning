@@ -4,6 +4,37 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-08
+
+### Added
+
+- Mobile API for the native Android app, [Humble Planning for Android](https://github.com/Malfhas/HumblePlanning-Android): sign-in by password (with the second factor) or by scanning a QR code from the web profile, start-up data and incremental sync of the schedule, real-time alerts with optional push (the instance's own Firebase project, or a push relay: `deploy/push-relay`), devices listed and signed out from the profile and the app. The contract for clients is `docs/mobile-api.md`.
+- Role permission "Use the mobile app" (`mobile_app:use`): granted to Administrateur and Manager (Super Administrateur always has it), not to Membre+ and Membre; the web is not affected.
+- *Settings > Security > Mobile app*: password sign-in, QR sign-in, alerts and their events, push (Firebase service account or relay), minimum app version, download page. Users get a "Mobile app alerts" switch in their preferences, and administrators one per user.
+- Minimum app version shipped with each server release (1.0.0 for this one): an update of the server applies it by itself; the setting can only raise it.
+- Demo instances: visitors can try the mobile app with the demo account; no push leaves a demo.
+- Secret settings (SMTP password, Mailgun, Nuntly and Sent.dm keys, captcha secret key, OpenRouter key, Firebase service account, relay key) are encrypted in the database with `CONFIG_ENCRYPTION_KEY` (AES-256-GCM). `humble-planning update` adds the key to the `.env` of an existing instance (an existing value is never changed) and the values already stored are encrypted at the start of the new version; a rollback to an older version decrypts them first. See "Secret settings" in `docs/installation.md`.
+
+### Changed
+
+- Signing a session out (from the profile, after a password change, or when a phone is signed out) now ends it at once in the browsers that used it, through the real-time connection; the other tabs of the same account stay signed in.
+- Saving a user no longer turns their own notification preferences (e-mail, push, SMS, mobile alerts) back on; that only happens when an administrator switches a channel from off to on.
+- Removing a person from a task (or from occurrences of a recurring task) updates the task's modification date, so that synchronised copies see it.
+- README: logo shown on GitHub (PNG versions), link to the Android app with screenshots.
+
+### Fixed
+
+- "Remember me" at sign-in had no effect: the session and the browser cookie now last the remember-me duration (30 days by default), also after the second factor.
+- Emptying an end date or a time in the task form kept the old value.
+
+### Security
+
+- The detail of a task, task changes and their real-time events carried the full records of the people assigned (phone, address, contract, hourly rate, last sign-in…) to anyone who could read the task: they now carry the same public fields as the task list.
+- Attachments of a locked task could be added or deleted without the right to lock tasks.
+- Brute-force lockouts hold under parallel requests: each sign-in attempt is counted before the password is checked (same thresholds and messages as before).
+- Revoked and expired sessions are disconnected from the real-time server, not only refused by the API.
+- Password reset links are only looked up among password reset requests.
+
 ## [1.1.3] - 2026-11-02
 
 ### Changed
@@ -183,6 +214,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.2.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.0
 [1.1.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.3
 [1.1.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.2
 [1.1.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.1
