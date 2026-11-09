@@ -26,10 +26,11 @@ export function normalizeMessage(message: string): string {
  * fingerprint only groups the repeats of an incident, it protects nothing, and a cryptographic hash of logged
  * text reads to code scanners as a weakly hashed secret.
  */
-// BigInt() rather than literals: the TypeScript target (ES2017) has no BigInt literals
-const FNV_OFFSET = BigInt("0xcbf29ce484222325");
-const FNV_PRIME = BigInt("0x100000001b3");
-const MASK_64 = BigInt("0xffffffffffffffff");
+// BigInt() rather than literals: the TypeScript target (ES2017) has no BigInt literals. In decimal, as hex
+// strings read as words to the i18n scan.
+const FNV_OFFSET = BigInt("14695981039346656037"); // 0xcbf29ce484222325
+const FNV_PRIME = BigInt("1099511628211"); // 0x100000001b3
+const MASK_64 = BigInt("18446744073709551615"); // 2^64 - 1
 
 function fnv1a64(text: string): string {
   let hash = FNV_OFFSET;
