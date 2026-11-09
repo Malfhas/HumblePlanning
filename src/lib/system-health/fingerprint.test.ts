@@ -16,11 +16,17 @@ describe("normalizeMessage", () => {
 });
 
 describe("eventFingerprint", () => {
+  it("is 16 hex digits, the same for the same input", () => {
+    const value = eventFingerprint("ERROR", "api", "Unhandled API error: boom");
+    expect(value).toMatch(/^[0-9a-f]{16}$/);
+    expect(eventFingerprint("ERROR", "api", "Unhandled API error: boom")).toBe(value);
+  });
+
   it("groups the same incident repeated with other values", () => {
     const a = eventFingerprint("ERROR", "api", "Task 3f2a1c9e-1b2c-4d5e-8f90-123456789abc not found (42 ms)");
     const b = eventFingerprint("ERROR", "api", "Task 91bc0000-1b2c-4d5e-8f90-000000000000 not found (7 ms)");
     expect(a).toBe(b);
-    expect(a).toMatch(/^[0-9a-f]{64}$/);
+    expect(a).toMatch(/^[0-9a-f]{16}$/);
   });
 
   it("keeps level, category and message apart", () => {

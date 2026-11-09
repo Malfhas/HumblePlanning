@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
 const EMAIL_RE = /[^\s@"'<>()]+@[^\s@"'<>()]+\.[a-z]{2,}/gi;
 const HEX_RE = /\b(?:0x[0-9a-f]+|[0-9a-f]{16,})\b/gi;
@@ -23,9 +21,28 @@ export function normalizeMessage(message: string): string {
     .slice(0, MAX_NORMALIZED_LENGTH);
 }
 
-/** Grouping key of a system event: level + category + normalized message (SHA-256, hex). */
+/**
+ * 64-bit FNV-1a of a string (UTF-16 code units), as 16 hex digits. Not a cryptographic hash, on purpose: the
+ * fingerprint only groups the repeats of an incident, it protects nothing, and a cryptographic hash of logged
+ * text reads to code scanners as a weakly hashed secret.
+ */
+// BigInt() rather than literals: the TypeScript target (ES2017) has no BigInt literals
+const FNV_OFFSET = BigInt("0xcbf29ce484222325");
+const FNV_PRIME = BigInt("0x100000001b3");
+const MASK_64 = BigInt("0xffffffffffffffff");
+
+function fnv1a64(text: string): string {
+  let hash = FNV_OFFSET;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= BigInt(text.charCodeAt(i));
+    hash = (hash * FNV_PRIME) & MASK_64;
+  }
+  return hash.toString(16).padStart(16, "0");
+}
+
+/** Grouping key of a system event: level + category + normalized message (64-bit FNV-1a, 16 hex digits). */
 export function eventFingerprint(level: string, category: string, message: string): string {
-  return createHash("sha256").update(`${level}\u0000${category}\u0000${normalizeMessage(message)}`).digest("hex");
+  return fnv1a64(`${level}\u0000${category}\u0000${normalizeMessage(message)}`);
 }
 
 /**
