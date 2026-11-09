@@ -1,25 +1,30 @@
 "use client";
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { addDays, format, isToday as isTodayFn, isWeekend } from "date-fns";
-import { localizeDatePattern } from "@/i18n/date-locale";
+import { format, getISOWeek, isToday as isTodayFn, isWeekend } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useDateFormat } from "@/hooks/use-date-format";
 import { Loader2 } from "lucide-react";
 
 import { usePlanningStore } from "@/stores/planning-store";
-import { useBuStore } from "@/stores/bu-store";
 import { usePlanningData } from "@/hooks/use-planning-data";
-import { useHourConfig } from "@/hooks/use-hour-config";
 import { dateSettingsFromConfig, formatHourLabel } from "@/lib/utils/dates";
 import { useConfig } from "@/hooks/use-config";
-import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { parseDailyTaskLimit, wouldExceedDailyLimit } from "@/lib/utils/daily-task-limit";
+import {
+  busyPeopleOn, CALENDAR_EVERYONE, calendarPersonRow, calendarTasks, calendarWindow, eachDay, hiddenBarsPerDay,
+  layoutBars, parseDailyHours, plannedHoursOn,
+} from "@/lib/utils/calendar-view";
 import { useMoveTask, useCopyTask, useDeleteTask, useRemoveUserFromTask, useResizeTask, useUpdateTask } from "@/hooks/use-tasks";
+import { cn } from "@/lib/utils";
 import { CalendarColumn } from "./calendar-column";
-import { CalendarAllDayBlock } from "./calendar-allday-block";
+import { CalendarBar } from "./calendar-items";
+import { CalendarDayHeader } from "./calendar-day-header";
 import { CalendarDayTaskBlock } from "./calendar-day-task-block";
+import { CalendarMonth } from "./calendar-month";
+import { useCalendarPeople } from "./calendar-person-select";
 import { GridToolbar } from "./grid-toolbar";
 import { GridDndContext, type DragCompleteInfo } from "./grid-dnd-context";
 import { PlanningContextMenu, DropActionMenu, type ContextMenuState } from "./context-menu";
@@ -27,11 +32,12 @@ import { TaskFormDialog } from "./task-form-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { RecurringDeleteDialog } from "./recurring-delete-dialog";
 import type { TaskWithUsers } from "@/types";
-import type { PlanningRow } from "@/lib/utils/sort-rows";
-import { getContractSuffix } from "@/lib/constants/contract-types";
-import { tDyn } from "@/i18n/dynamic";
-// i18n-dynamic: users.contractTypes.*
+import { useDeleteShortcut } from "@/hooks/use-delete-shortcut";
+import { deleteOpensDialog, isRecurringTask, isSharedTask } from "@/lib/utils/delete-shortcut";
+import { DeleteShortcutHint } from "./delete-shortcut-hint";
 
+/** Minimum height of one hour, driven by the column width slider. The grid
+ *  grows beyond it to fill the screen height. */
 const SLOT_HEIGHTS: Record<string, number> = {
   compact: 48,
   normal: 60,
@@ -40,24 +46,53 @@ const SLOT_HEIGHTS: Record<string, number> = {
   xxlarge: 124,
 };
 
+const HOUR_COLUMN = 56;
+const DAY_HEADER_HEIGHT = 52;
+/** One line of the "all day" band: bar (22) + gap. */
+const ALL_DAY_LINE = 26;
+/** Calendar of everyone: lines of the "all day" band before "+N". */
+const EVERYONE_ALL_DAY_LANES = 3;
+
 function parseHourFromTime(timeStr: string): number {
   return parseInt(timeStr.split(":")[0], 10) || 0;
 }
 
+type CreatableRow = { id: string; teamId?: string | null; ownerId?: string | null };
+
+/**
+ * Calendar view of `/planning`: the tasks of one person, or of everyone the
+ * signed-in user may see, over 1, 3, 5 or 7 days (hours or day cards) or over
+ * a month. Same actions and permissions as the planning: create, open, move /
+ * copy by drag and drop, resize, context menu, clipboard shortcuts. Showing
+ * everyone, a task shared by several people comes once with their avatars, and
+ * nothing assigns it to a row: the task keeps its people.
+ */
 export function CalendarGrid() {
   const t = useTranslations("planning");
-  const tUsers = useTranslations("users");
-  const { dateLocale, locale } = useDateFormat();
+  const { locale, format: formatDay } = useDateFormat();
+  const isMobile = useIsMobile();
   const {
-    calendarMode, calendarDays, calendarUserId, startDate, selectedDay, zoomLevel,
+    calendarDays, calendarUserId, startDate, endDate, zoomLevel,
     clipboardTask, setClipboard, clearClipboard, setPendingDrop,
-    calendarShow24h, calendarPersonalView, dragOverCellId, markTaskDeleting,
+    calendarShow24h, calendarPersonalView, dragOverCellId, markTaskDeleting, showCalendarPeriod,
+    setCalendarPersonalView,
   } = usePlanningStore();
-  const { tasks, sortedRows, holidays, isLoading, error } = usePlanningData();
-  const { slots: workSlots, isLoading: configLoading } = useHourConfig();
-  const { data: config } = useConfig();
+  const { data: config, isLoading: configLoading } = useConfig();
   const { userId: currentUserId, can, canCreateAnyTask, canCreateOnPlanningRow, canLockTask, canModifyTask, canDeleteTask, canMoveTask, modifyScope } = usePermissions();
   const dailyLimit = parseDailyTaskLimit(config?.PLANNING_MAX_TASKS_PER_DAY);
+  const dailyHours = parseDailyHours(config?.DURATION_DAY);
+
+  // Visible days. The tasks of the planning period are reused when they cover
+  // them; otherwise (month grid, period shorter than the days shown) these days are loaded.
+  const span = calendarDays;
+  const isMonth = span === "month";
+  const { start: windowStart, end: windowEnd } = useMemo(() => calendarWindow(startDate, span), [startDate, span]);
+  const coveredByPeriod = windowStart >= startDate && windowEnd <= endDate;
+  const range = useMemo(
+    () => (coveredByPeriod ? undefined : { start: windowStart, end: windowEnd }),
+    [coveredByPeriod, windowStart, windowEnd],
+  );
+  const { tasks, sortedRows, holidays, isLoading, isFetching, error } = usePlanningData({ range });
 
   // Mutations
   const moveTask = useMoveTask();
@@ -67,16 +102,17 @@ export function CalendarGrid() {
   const resizeTask = useResizeTask();
   const updateTaskMutation = useUpdateTask();
 
-  const isTeamDay = calendarMode === "team-day";
-  const slotHeight = SLOT_HEIGHTS[zoomLevel] ?? 60;
+  const minSlotHeight = SLOT_HEIGHTS[zoomLevel] ?? 60;
 
   // Default time config
   const defaultStartTime = config?.AM_START || "08:00";
   const defaultEndTime = config?.PM_END || "17:00";
 
-  // Work period hours for highlighting
+  // Work period hours for highlighting (lunch break shaded too)
   const workStartHour = parseHourFromTime(defaultStartTime);
   const workEndHour = parseHourFromTime(defaultEndTime);
+  const breakStartHour = config?.AM_END ? parseHourFromTime(config.AM_END) : undefined;
+  const breakEndHour = config?.PM_START ? parseHourFromTime(config.PM_START) : undefined;
 
   // Generate slots: all 24h or continuous work range based on toggle
   const timeFormat = dateSettingsFromConfig(config ?? {}).timeFormat;
@@ -86,7 +122,7 @@ export function CalendarGrid() {
   );
   // Continuous range from first work hour to last work hour (no gaps)
   const workRangeSlots = useMemo(
-    () => Array.from({ length: workEndHour - workStartHour }, (_, i) => ({
+    () => Array.from({ length: Math.max(workEndHour - workStartHour, 1) }, (_, i) => ({
       hour: workStartHour + i,
       label: formatHourLabel(workStartHour + i, locale, timeFormat),
       index: i,
@@ -95,26 +131,28 @@ export function CalendarGrid() {
   );
   const activeSlots = calendarShow24h ? all24Slots : workRangeSlots;
 
-  // Effective user (personal mode only)
-  const effectiveUserId = calendarUserId || currentUserId;
+  // Calendar person (signed-in user by default), or everyone the user may see
+  // (the people of the person picker: no one beyond them)
+  const people = useCalendarPeople();
+  const isEveryone = calendarUserId === CALENDAR_EVERYONE;
+  const effectiveUserId = isEveryone ? null : calendarUserId || currentUserId;
+  const columnId = isEveryone ? CALENDAR_EVERYONE : effectiveUserId ?? "";
 
-  // ===== PERSONAL MODE: days as columns =====
-  const days = useMemo(
-    () => (isTeamDay ? [] : Array.from({ length: calendarDays }, (_, i) => addDays(startDate, i))),
-    [isTeamDay, startDate, calendarDays]
+  const days = useMemo(() => eachDay(windowStart, windowEnd), [windowStart, windowEnd]);
+  const dayStrs = useMemo(() => days.map((d) => format(d, "yyyy-MM-dd")), [days]);
+
+  // Tasks of the calendar person (or of everyone, each task once) over the visible days
+  const shownPeople = useMemo(
+    () => new Set(isEveryone ? (people ?? []).map((p) => p.id) : effectiveUserId ? [effectiveUserId] : []),
+    [isEveryone, people, effectiveUserId],
   );
+  const windowTasks = useMemo(() => {
+    if (dayStrs.length === 0) return [];
+    return calendarTasks(tasks, shownPeople, dayStrs[0], dayStrs[dayStrs.length - 1]);
+  }, [tasks, shownPeople, dayStrs]);
 
-  // Filter tasks for selected user (personal mode)
-  const userTasks = useMemo(() => {
-    if (isTeamDay) return [];
-    if (!effectiveUserId) return [];
-    return tasks.filter((t) => t.users?.some((u) => u.id === effectiveUserId));
-  }, [isTeamDay, tasks, effectiveUserId]);
-
-  // Group tasks by day (personal mode)
+  // Group tasks by day
   const tasksByDay = useMemo(() => {
-    if (isTeamDay) return new Map<string, TaskWithUsers[]>();
-
     // Time-group helper matching Gantt slot-allocator sort order
     const timeGroup = (t: TaskWithUsers): number => {
       if (!t.startTime) return 0; // all-day → top
@@ -127,13 +165,8 @@ export function CalendarGrid() {
     };
 
     const map = new Map<string, TaskWithUsers[]>();
-    for (const day of days) {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const filtered = userTasks.filter((t) => {
-        const start = t.startDate;
-        const end = t.endDate || t.startDate;
-        return dayStr >= start && dayStr <= end;
-      });
+    for (const dayStr of dayStrs) {
+      const filtered = windowTasks.filter((t) => dayStr >= t.startDate && dayStr <= (t.endDate || t.startDate));
       // Sort matching Planning view: startDate → timeGroup → createdAt → endDate
       filtered.sort((a, b) => {
         const cmpDate = a.startDate.localeCompare(b.startDate);
@@ -147,69 +180,26 @@ export function CalendarGrid() {
       map.set(dayStr, filtered);
     }
     return map;
-  }, [isTeamDay, days, userTasks]);
+  }, [dayStrs, windowTasks]);
 
-  // ===== TEAM-DAY MODE: always load users independently (not from viewMode rows) =====
-  const { data: teamDayUsers } = useUsers(undefined, true);
-  const { selectedBuIds } = useBuStore();
-  const userRows = useMemo(() => {
-    if (!isTeamDay || !teamDayUsers) return [];
-    return (teamDayUsers as any[])
-      .filter((u) => u.visibleOnPlanning)
-      .filter((u) => selectedBuIds.length === 0 || (u.businessUnitId && selectedBuIds.includes(u.businessUnitId)))
-      .map((u) => ({
-        id: u.id,
-        name: u.displayName || [u.firstName, u.name].filter(Boolean).join(" ") || u.name,
-        type: "row" as const,
-        color: u.color || "#6b7280",
-        contractType: u.contractType ?? null,
-        teamId: u.teamId,
-        teamName: u.team?.name,
-        teamColor: u.team?.color,
-        sortOrder: u.sortOrder ?? 0,
-      }));
-  }, [isTeamDay, teamDayUsers, selectedBuIds]);
-
-  const selectedDayStr = useMemo(() => format(selectedDay, "yyyy-MM-dd"), [selectedDay]);
-
-  // Group tasks by user for the selected day
-  const tasksByUser = useMemo(() => {
-    if (!isTeamDay) return new Map<string, TaskWithUsers[]>();
-    const map = new Map<string, TaskWithUsers[]>();
-    for (const row of userRows) {
-      map.set(
-        row.id,
-        tasks.filter((t) => {
-          const start = t.startDate;
-          const end = t.endDate || t.startDate;
-          const isInDay = selectedDayStr >= start && selectedDayStr <= end;
-          const isAssigned = t.users?.some((u) => u.id === row.id);
-          return isInDay && isAssigned;
-        })
-      );
-    }
+  // Hours planned per day (header load badges): one person's, none for everyone
+  const hoursByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    if (isEveryone) return map;
+    for (const dayStr of dayStrs) map.set(dayStr, plannedHoursOn(tasksByDay.get(dayStr) ?? [], dayStr, dailyHours));
     return map;
-  }, [isTeamDay, tasks, userRows, selectedDayStr]);
+  }, [dayStrs, tasksByDay, dailyHours, isEveryone]);
+
+  // Everyone: people busy per day, out of the people shown (header badges)
+  const busyByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!isEveryone) return map;
+    for (const dayStr of dayStrs) map.set(dayStr, busyPeopleOn(tasksByDay.get(dayStr) ?? [], dayStr, shownPeople));
+    return map;
+  }, [dayStrs, tasksByDay, isEveryone, shownPeople]);
 
   // All visible tasks (for delete / clipboard lookups)
-  const allVisibleTasks = useMemo(() => {
-    if (isTeamDay) {
-      const all: TaskWithUsers[] = [];
-      for (const arr of tasksByUser.values()) {
-        for (const t of arr) {
-          if (!all.some((x) => x.id === t.id)) all.push(t);
-        }
-      }
-      return all;
-    }
-    const all: TaskWithUsers[] = [];
-    for (const arr of tasksByDay.values()) {
-      for (const t of arr) {
-        if (!all.some((x) => x.id === t.id)) all.push(t);
-      }
-    }
-    return all;
-  }, [isTeamDay, tasksByUser, tasksByDay]);
+  const allVisibleTasks = windowTasks;
 
   const handleLockTask = useCallback((taskId: string) => {
     const task = allVisibleTasks.find((t) => t.id === taskId);
@@ -267,16 +257,24 @@ export function CalendarGrid() {
     setDialogOpen(true);
   }, []);
 
+  // Creation in the calendar person's row: same checks for every cell
+  // (permission, row scope, daily task limit).
+  const canCreateHere = useMemo(() => {
+    if (!canCreateAnyTask) return false;
+    const row = effectiveUserId ? sortedRows.find((r) => r.id === effectiveUserId) : null;
+    return !(row && row.type === "row" && !canCreateOnPlanningRow("users", row as CreatableRow));
+  }, [canCreateAnyTask, canCreateOnPlanningRow, effectiveUserId, sortedRows]);
+
+  const canCreateOn = useCallback(
+    (dateStr: string) =>
+      canCreateHere
+      && !(effectiveUserId && wouldExceedDailyLimit(tasks, dailyLimit, { userIds: [effectiveUserId], startDate: dateStr })),
+    [canCreateHere, effectiveUserId, tasks, dailyLimit],
+  );
+
   const handleCellClickPersonal = useCallback(
     (dateStr: string, hour: number) => {
-      if (!canCreateAnyTask) return;
-      const row = effectiveUserId ? sortedRows.find((r) => r.id === effectiveUserId) : null;
-      if (row && row.type === "row" && !canCreateOnPlanningRow("users", row as { id: string; teamId?: string | null; ownerId?: string | null })) {
-        return;
-      }
-      if (effectiveUserId && wouldExceedDailyLimit(tasks, dailyLimit, { userIds: [effectiveUserId], startDate: dateStr })) {
-        return;
-      }
+      if (!canCreateOn(dateStr)) return;
       setEditingTaskId(null);
       const startTime = `${String(hour).padStart(2, "0")}:00`;
       const endTime = `${String(hour + 1).padStart(2, "0")}:00`;
@@ -288,79 +286,40 @@ export function CalendarGrid() {
       });
       setDialogOpen(true);
     },
-    [effectiveUserId, canCreateAnyTask, canCreateOnPlanningRow, sortedRows, tasks, dailyLimit]
+    [effectiveUserId, canCreateOn]
   );
 
-  // Team-day: create a cell click handler per user
-  const handleCellClickTeamDay = useCallback(
-    (userId: string) => (dateStr: string, hour: number) => {
-      if (!canCreateAnyTask) return;
-      const row = sortedRows.find((r) => r.id === userId);
-      if (row && row.type === "row" && !canCreateOnPlanningRow("users", row as { id: string; teamId?: string | null; ownerId?: string | null })) {
-        return;
-      }
-      if (wouldExceedDailyLimit(tasks, dailyLimit, { userIds: [userId], startDate: dateStr })) {
-        return;
-      }
+  /** New task on a day, without times ("all day" band, "+" of the month). */
+  const handleDayCreate = useCallback(
+    (dateStr: string) => {
+      if (!canCreateOn(dateStr)) return;
       setEditingTaskId(null);
-      const startTime = `${String(hour).padStart(2, "0")}:00`;
-      const endTime = `${String(hour + 1).padStart(2, "0")}:00`;
-      setPrefillData({
-        rowId: userId,
-        date: dateStr,
-        startTime,
-        endTime,
-      });
+      setPrefillData({ rowId: effectiveUserId ?? undefined, date: dateStr });
       setDialogOpen(true);
     },
-    [canCreateAnyTask, canCreateOnPlanningRow, sortedRows, tasks, dailyLimit]
+    [effectiveUserId, canCreateOn],
   );
 
-  // Stable map of cell click handlers per user (team-day)
-  const cellClickHandlers = useMemo(() => {
-    if (!isTeamDay) return new Map<string, (dateStr: string, hour: number) => void>();
-    const map = new Map<string, (dateStr: string, hour: number) => void>();
-    for (const row of userRows) {
-      map.set(row.id, handleCellClickTeamDay(row.id));
-    }
-    return map;
-  }, [isTeamDay, userRows, handleCellClickTeamDay]);
+  const openDay = useCallback((day: Date) => showCalendarPeriod(day, 1), [showCalendarPeriod]);
+  /** "+N" of the hours view (everyone): the day as cards, where every task has room. */
+  const openDayCards = useCallback((day: Date) => {
+    setCalendarPersonalView("days");
+    showCalendarPeriod(day, 1);
+  }, [setCalendarPersonalView, showCalendarPeriod]);
+  const openWeek = useCallback((monday: Date) => showCalendarPeriod(monday, 7), [showCalendarPeriod]);
 
   // --- Context menu handlers ---
 
   const handleTaskContextMenu = useCallback((e: React.MouseEvent, taskId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    // Find the rowId: in personal mode it's the effectiveUserId, in team-day find the column
-    const rowId = isTeamDay
-      ? (() => {
-          for (const [uid, utasks] of tasksByUser.entries()) {
-            if (utasks.some((t) => t.id === taskId)) return uid;
-          }
-          return undefined;
-        })()
-      : effectiveUserId ?? undefined;
-    setContextMenu({ x: e.clientX, y: e.clientY, taskId, rowId });
-  }, [isTeamDay, tasksByUser, effectiveUserId]);
+    setContextMenu({ x: e.clientX, y: e.clientY, taskId, rowId: effectiveUserId ?? undefined });
+  }, [effectiveUserId]);
 
-  const handleCellContextMenuPersonal = useCallback((e: React.MouseEvent, dateStr: string, hour: number) => {
+  const handleCellContextMenuPersonal = useCallback((e: React.MouseEvent, dateStr: string, hour?: number) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, rowId: effectiveUserId ?? undefined, dateStr, hour });
   }, [effectiveUserId]);
-
-  const makeCellContextMenuTeamDay = useCallback((userId: string) => (e: React.MouseEvent, dateStr: string, hour: number) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, rowId: userId, dateStr, hour });
-  }, []);
-
-  const cellContextMenuHandlers = useMemo(() => {
-    if (!isTeamDay) return new Map<string, (e: React.MouseEvent, dateStr: string, hour: number) => void>();
-    const map = new Map<string, (e: React.MouseEvent, dateStr: string, hour: number) => void>();
-    for (const row of userRows) {
-      map.set(row.id, makeCellContextMenuTeamDay(row.id));
-    }
-    return map;
-  }, [isTeamDay, userRows, makeCellContextMenuTeamDay]);
 
   const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
 
@@ -382,8 +341,9 @@ export function CalendarGrid() {
     const task = allVisibleTasks.find((t) => t.id === taskId);
     if (task?.parentId) {
       setRecurDeleteState({ taskId, rowId });
-    } else if (task && task.users?.length > 1 && rowId) {
-      setMultiDeleteState({ taskId, rowId });
+    } else if (task && task.users?.length > 1) {
+      // Showing everyone, no row: the dialog only offers to delete the task
+      setMultiDeleteState({ taskId, rowId: calendarPersonRow(rowId) ?? "" });
     } else {
       markTaskDeleting(taskId);
       setTimeout(() => deleteTaskMutation.mutate({ id: taskId }), 170);
@@ -392,14 +352,16 @@ export function CalendarGrid() {
 
   const handleCreateTask = useCallback((rowId: string, cellDateStr: string) => {
     setEditingTaskId(null);
-    setPrefillData({ rowId, date: cellDateStr });
+    setPrefillData({ rowId: calendarPersonRow(rowId), date: cellDateStr });
     setDialogOpen(true);
   }, []);
 
   const handlePaste = useCallback((rowId: string, cellDateStr: string, hour?: number) => {
     if (!clipboardTask) return;
 
-    const rowFieldData: Record<string, unknown> = { userIds: [rowId] };
+    // Showing everyone, no row: the task keeps its people
+    const row = calendarPersonRow(rowId);
+    const rowFieldData: Record<string, unknown> = row ? { userIds: [row] } : {};
 
     const task = allVisibleTasks.find((t) => t.id === clipboardTask.taskId);
 
@@ -438,15 +400,16 @@ export function CalendarGrid() {
   // --- Resize handler ---
   const handleCalendarResize = useCallback((taskId: string, startTime: string, endTime: string) => {
     const task = allVisibleTasks.find((t) => t.id === taskId);
+    if (!task) return;
     resizeTask.mutate({
       id: taskId,
       data: {
-        endDate: task?.endDate ?? task?.startDate ?? selectedDayStr,
+        endDate: task.endDate ?? task.startDate,
         startTime,
         endTime,
       },
     });
-  }, [resizeTask, allVisibleTasks, selectedDayStr]);
+  }, [resizeTask, allVisibleTasks]);
 
   // --- Keyboard shortcuts (Ctrl/Cmd + C/X/V) ---
   useEffect(() => {
@@ -490,10 +453,10 @@ export function CalendarGrid() {
         const hourPart = parts[2];
         const hour = hourPart != null && hourPart !== "allday" ? parseInt(hourPart, 10) : undefined;
         if (!rowId || !cellDateStr) return;
-        // Destination: always "users" in calendar view, check the row
-        // (team-day) or the current user (personal) through canCreateOnPlanningRow.
+        // Destination: always the calendar person ("users" row), checked
+        // through canCreateOnPlanningRow.
         const destRow = sortedRows.find((r) => r.id === rowId);
-        if (destRow && destRow.type === "row" && !canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null })) return;
+        if (destRow && destRow.type === "row" && !canCreateOnPlanningRow("users", destRow as CreatableRow)) return;
         e.preventDefault();
         handlePaste(rowId, cellDateStr, isNaN(hour as number) ? undefined : hour);
         showToast(clipboardTask.mode === "copy" ? t("grid.clipboard.pastedCopy") : t("grid.clipboard.pastedMove"));
@@ -502,7 +465,27 @@ export function CalendarGrid() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [clipboardTask, setClipboard, handlePaste, allVisibleTasks, showToast, can, canCreateAnyTask, canMoveTask, t]);
+  }, [clipboardTask, setClipboard, handlePaste, allVisibleTasks, showToast, can, canCreateAnyTask, canMoveTask, canCreateOnPlanningRow, sortedRows, t]);
+
+  // --- Delete key on the task under the cursor: same rules and action as the « Delete » item of the menu ---
+  const deleteHint = useDeleteShortcut({
+    enabled: true,
+    resolve: (clientX, clientY) => {
+      const el = document.elementsFromPoint(clientX, clientY)
+        .find((node): node is HTMLElement => node instanceof HTMLElement && !!node.dataset.taskId);
+      if (!el) return null;
+      const taskId = el.dataset.taskId!;
+      const task = allVisibleTasks.find((t) => t.id === taskId);
+      const r = el.getBoundingClientRect();
+      return {
+        key: taskId,
+        rect: { left: r.left, top: r.top, width: r.width, height: r.height },
+        canDelete: !!task && !task.isLocked && canDeleteTask(task),
+        opensDialog: deleteOpensDialog(isSharedTask(task), isRecurringTask(task)),
+      };
+    },
+    onConfirm: (taskId) => handleDeleteTask(taskId, effectiveUserId ?? undefined),
+  });
 
   // --- Drag & Drop ---
   const handleDragComplete = useCallback((info: DragCompleteInfo) => {
@@ -526,6 +509,7 @@ export function CalendarGrid() {
     if (!dropInfo) return;
     const task = allVisibleTasks.find((t) => t.id === dropInfo.taskId);
     const isMultiUser = (task?.users?.length ?? 0) > 1;
+    const targetRowId = calendarPersonRow(dropInfo.targetRowId);
     moveTask.mutate({
       id: dropInfo.taskId,
       data: {
@@ -533,7 +517,7 @@ export function CalendarGrid() {
         endDate: dropInfo.newEndDate,
         ...(dropInfo.newStartTime ? { startTime: dropInfo.newStartTime } : {}),
         ...(dropInfo.newEndTime ? { endTime: dropInfo.newEndTime } : {}),
-        ...(isMultiUser ? {} : (dropInfo.targetRowId ? { userIds: [dropInfo.targetRowId] } : {})),
+        ...(isMultiUser ? {} : (targetRowId ? { userIds: [targetRowId] } : {})),
       },
     });
     clearDrop();
@@ -541,21 +525,22 @@ export function CalendarGrid() {
 
   const handleDropCopy = useCallback(() => {
     if (!dropInfo) return;
+    const targetRowId = calendarPersonRow(dropInfo.targetRowId);
     copyTask.mutate({
       id: dropInfo.taskId,
       data: {
         startDate: dropInfo.newStartDate,
         ...(dropInfo.newStartTime ? { startTime: dropInfo.newStartTime } : {}),
         ...(dropInfo.newEndTime ? { endTime: dropInfo.newEndTime } : {}),
-        ...(dropInfo.targetRowId ? { userIds: [dropInfo.targetRowId] } : {}),
+        ...(targetRowId ? { userIds: [targetRowId] } : {}),
       },
     });
     clearDrop();
   }, [dropInfo, copyTask, clearDrop]);
 
   const handleDropMoveUser = useCallback(() => {
-    if (!dropInfo || !dropInfo.sourceRowId) return;
-    const sourceUserId = dropInfo.sourceRowId;
+    const sourceUserId = calendarPersonRow(dropInfo?.sourceRowId);
+    if (!dropInfo || !sourceUserId) return;
     removeUserMutation.mutate({ taskId: dropInfo.taskId, userId: sourceUserId });
     copyTask.mutate({
       id: dropInfo.taskId,
@@ -564,39 +549,70 @@ export function CalendarGrid() {
     clearDrop();
   }, [dropInfo, removeUserMutation, copyTask, clearDrop]);
 
-  // Scroll container ref (for scroll-to-now)
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const hasScrolledRef = useRef(false);
-
-  // Scroll to current hour on mount if today is visible
+  // --- Layout: the grid fills the available height ---
+  // `useState` + ref callback (React 19 StrictMode-safe): the scroll container
+  // only exists once the data is loaded.
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const attachScroll = useCallback((el: HTMLDivElement | null) => {
+    scrollRef.current = el;
+    setScrollEl(el);
+  }, []);
+  const [viewportHeight, setViewportHeight] = useState(0);
   useEffect(() => {
-    if (hasScrolledRef.current) return;
-    const todayVisible = isTeamDay
-      ? isTodayFn(selectedDay)
-      : days.some((d) => isTodayFn(d));
-    if (!todayVisible || !scrollRef.current) return;
+    if (!scrollEl) return;
+    const update = () => setViewportHeight(scrollEl.clientHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(scrollEl);
+    return () => observer.disconnect();
+  }, [scrollEl]);
 
-    const now = new Date();
-    const currentHour = now.getHours();
-    const scrollTarget = Math.max(0, (currentHour - 1)) * slotHeight;
-    scrollRef.current.scrollTop = scrollTarget;
-    hasScrolledRef.current = true;
-  }, [isTeamDay, selectedDay, days, slotHeight]);
+  // "All day" band: tasks without times, as bars over their days. Showing
+  // everyone, a few lines then "+N" per day (the day as cards shows them all).
+  const allDayLayout = useMemo(
+    () => layoutBars(dayStrs, windowTasks.filter((task) => !task.startTime)),
+    [dayStrs, windowTasks],
+  );
+  const allDayLanes = isEveryone ? Math.min(allDayLayout.laneCount, EVERYONE_ALL_DAY_LANES) : allDayLayout.laneCount;
+  const allDayHidden = useMemo(
+    () => hiddenBarsPerDay(allDayLayout.bars, dayStrs.length, allDayLanes),
+    [allDayLayout.bars, dayStrs.length, allDayLanes],
+  );
+  const allDayMoreLine = allDayHidden.some((n) => n > 0) ? 1 : 0;
+  const allDayHeight = Math.max((allDayLanes + allDayMoreLine) * ALL_DAY_LINE + 8, 30);
+  const fillSlotHeight = viewportHeight > 0
+    ? Math.floor((viewportHeight - DAY_HEADER_HEIGHT - allDayHeight - 1) / activeSlots.length)
+    : 0;
+  const slotHeight = Math.max(minSlotHeight, fillSlotHeight);
+  const totalHeight = activeSlots.length * slotHeight;
 
-  // Check if there are tasks to display (for empty state)
-  const hasVisibleTasks = isTeamDay
-    ? Array.from(tasksByUser.values()).some((t) => t.length > 0)
-    : Array.from(tasksByDay.values()).some((t) => t.length > 0);
+  const isDaysView = !isMonth && calendarPersonalView === "days";
+
+  // Initial scroll (when the hours do not fit, e.g. 24 h): the current hour
+  // when today is shown, otherwise the start of the working day.
+  const scrolledKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || isMonth || isDaysView || viewportHeight === 0) return;
+    const key = `${span}:${calendarShow24h}`;
+    if (scrolledKeyRef.current === key) return;
+    scrolledKeyRef.current = key;
+    const todayShown = days.some((d) => isTodayFn(d));
+    const targetHour = todayShown ? new Date().getHours() - 1 : workStartHour;
+    const index = activeSlots.findIndex((slot) => slot.hour >= targetHour);
+    el.scrollTop = Math.max(index, 0) * slotHeight;
+  }, [scrollEl, isMonth, isDaysView, viewportHeight, span, calendarShow24h, days, workStartHour, activeSlots, slotHeight]);
 
   const handleCreateTaskButton = useCallback(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     setEditingTaskId(null);
     setPrefillData({
-      rowId: isTeamDay ? undefined : (effectiveUserId ?? undefined),
-      date: isTeamDay ? selectedDayStr : today,
+      rowId: effectiveUserId ?? undefined,
+      date: today,
     });
     setDialogOpen(true);
-  }, [isTeamDay, effectiveUserId, selectedDayStr]);
+  }, [effectiveUserId]);
 
   if (isLoading || configLoading) {
     return (
@@ -614,618 +630,283 @@ export function CalendarGrid() {
     );
   }
 
-  const totalHeight = activeSlots.length * slotHeight;
+  const dayCount = days.length;
+  const minColumnWidth = isMobile && dayCount > 1 ? 104 : 72;
+  const firstWeek = days.length ? getISOWeek(days[0]) : 0;
+  const lastWeek = days.length ? getISOWeek(days[days.length - 1]) : 0;
+  const weekLabel = t("calendar.weekShort", { week: firstWeek === lastWeek ? String(firstWeek) : `${firstWeek}–${lastWeek}` });
+  const showEmpty = !isFetching && (isEveryone || !!effectiveUserId) && windowTasks.length === 0;
+  // Showing everyone, overlapping timed tasks side by side, at most (then "+N")
+  const everyoneColumns = isMobile ? 2 : dayCount === 1 ? 6 : dayCount <= 3 ? 4 : 3;
+  const openDayFromHeader = dayCount > 1 ? openDay : undefined;
 
-  // ===== TEAM-DAY RENDER =====
-  if (isTeamDay) {
-    const columnCount = userRows.length;
-    const isSelectedToday = isTodayFn(selectedDay);
-    const holiday = holidays.get(selectedDayStr) ?? null;
-    const dateLabel = format(selectedDay, localizeDatePattern("EEEE d MMMM yyyy", locale), { locale: dateLocale });
+  /** Header cell of a day column (sticky). */
+  const dayHeaderCell = (day: Date, dayStr: string) => (
+    <div
+      key={`head-${dayStr}`}
+      className={cn("sticky top-0 z-20 border-b border-r bg-background", isTodayFn(day) && "bg-[color-mix(in_oklch,var(--primary)_4%,var(--background))]")}
+      style={{ height: DAY_HEADER_HEIGHT }}
+    >
+      <CalendarDayHeader
+        day={day}
+        holiday={holidays.get(dayStr) ?? null}
+        hours={hoursByDay.get(dayStr) ?? 0}
+        dailyHours={dailyHours}
+        people={isEveryone ? { busy: busyByDay.get(dayStr) ?? 0, total: shownPeople.size } : undefined}
+        onOpen={openDayFromHeader}
+      />
+    </div>
+  );
 
-    return (
-      <div className="flex h-full flex-col">
-        <GridToolbar onCreateTask={handleCreateTaskButton} />
-
-        <GridDndContext tasks={allVisibleTasks} onDragComplete={handleDragComplete}>
-          <div ref={scrollRef} className="flex-1 overflow-auto">
-            {/* Date header */}
-            <div
-              className={`sticky top-0 z-20 border-b px-4 py-2 text-center text-base font-semibold first-letter:uppercase backdrop-blur ${
-                isSelectedToday
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted/80 text-foreground"
-              }`}
-            >
-              {dateLabel}
-              {holiday && (
-                <span
-                  className="ml-2 text-xs font-normal"
-                  style={{ color: holiday.color }}
-                >
-                  ({holiday.label})
-                </span>
-              )}
-            </div>
-
-            {columnCount === 0 ? (
-              <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-                {t("grid.noVisibleUsers")}
-              </div>
-            ) : (
-              <div className="relative">
-                {/* Empty state overlay */}
-                <div
-                  className="inline-grid min-w-full"
-                  style={{
-                    gridTemplateColumns: `60px repeat(${columnCount}, minmax(max-content, 1fr))`,
-                  }}
-                >
-                {/* ---- User name headers (sticky below date) ---- */}
-                <div className="sticky top-[41px] z-10 border-b border-r border-border bg-muted/80 backdrop-blur" />
-                {userRows.map((row) => {
-                  const planningRow = row as PlanningRow;
-                  return (
-                    <div
-                      key={row.id}
-                      className="sticky top-[41px] z-10 flex flex-col items-center justify-center gap-0.5 border-b border-r border-border bg-muted/80 px-2 py-1.5 backdrop-blur overflow-hidden"
-                    >
-                      <div className="flex items-center gap-1.5 max-w-full min-w-0">
-                        {/* Color dot */}
-                        <span
-                          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{
-                            backgroundColor: (row as { color?: string }).color || "#6b7280",
-                          }}
-                        />
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {(() => {
-                            const suffix = getContractSuffix(
-                              (row as { contractType?: string | null }).contractType,
-                              (key) => tDyn(tUsers, `contractTypes.${key}`),
-                            );
-                            return suffix ? `${row.name} [${suffix}]` : row.name;
-                          })()}
-                        </span>
-                      </div>
-                      {planningRow.teamName && (
-                        <span className="truncate max-w-full text-[10px] text-muted-foreground">
-                          {planningRow.teamName}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* ---- All-day row (Outlook style) ---- */}
-                {(() => {
-                  const allDayByUser = new Map<string, TaskWithUsers[]>();
-                  const timedByUser = new Map<string, TaskWithUsers[]>();
-                  let hasAnyAllDay = false;
-                  for (const row of userRows) {
-                    const rowTasks = tasksByUser.get(row.id) ?? [];
-                    const allDay = rowTasks.filter((t) => !t.startTime);
-                    const timed = rowTasks.filter((t) => !!t.startTime);
-                    allDayByUser.set(row.id, allDay);
-                    timedByUser.set(row.id, timed);
-                    if (allDay.length > 0) hasAnyAllDay = true;
-                  }
-                  const maxAllDay = Math.max(...Array.from(allDayByUser.values()).map((a) => a.length), 0);
-                  const allDayRowHeight = Math.max(maxAllDay * 26 + 8, 34);
-
-                  return (
-                    <>
-                          <div
-                            className="border-b border-r border-border bg-muted/30 flex items-center justify-end pr-2 text-[10px] text-muted-foreground"
-                            style={{ height: allDayRowHeight }}
-                          >
-                            {t("grid.allDay")}
-                          </div>
-                          {userRows.map((row) => {
-                            const allDayTasks = allDayByUser.get(row.id) ?? [];
-                            return (
-                              <div
-                                key={`allday-${row.id}`}
-                                data-cell-id={`${row.id}:${selectedDayStr}:allday`}
-                                className={`border-b border-r border-border p-0.5 transition-colors duration-100 hover:bg-primary/5 ${dragOverCellId === `${row.id}:${selectedDayStr}:allday` ? "ring-2 ring-inset ring-primary/40 !bg-primary/10" : ""}`}
-                                style={{ height: allDayRowHeight }}
-                                onContextMenu={(e) => {
-                                  e.preventDefault();
-                                  setContextMenu({ x: e.clientX, y: e.clientY, rowId: row.id, dateStr: selectedDayStr });
-                                }}
-                                onClick={() => {
-                                  setEditingTaskId(null);
-                                  setPrefillData({ rowId: row.id, date: selectedDayStr });
-                                  setDialogOpen(true);
-                                }}
-                              >
-                                <div className="flex flex-col gap-0.5 overflow-hidden">
-                                  {allDayTasks.map((task) => (
-                                    <CalendarAllDayBlock
-                                      key={task.id}
-                                      task={task}
-                                      columnId={row.id}
-                                      onClick={handleTaskClick}
-                                      onContextMenu={handleTaskContextMenu}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                      {/* ---- Body: hour labels + user columns (timed only) ---- */}
-                      <div
-                        className="relative border-r border-border bg-muted/30"
-                        style={{ height: totalHeight }}
-                      >
-                        {activeSlots.map((slot, i) => {
-                          const isOutsideWork = slot.hour < workStartHour || slot.hour >= workEndHour;
-                          return (
-                            <div
-                              key={slot.hour}
-                              className="absolute right-0 left-0 border-b border-border/50"
-                              style={{
-                                top: i * slotHeight,
-                                height: slotHeight,
-                                backgroundColor: isOutsideWork ? "color-mix(in srgb, var(--color-muted) 20%, transparent)" : undefined,
-                              }}
-                            >
-                              <span className="absolute right-2 text-xs text-muted-foreground" style={{ top: 2 }}>
-                                {slot.label}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {userRows.map((row) => {
-                        const rowTasks = timedByUser.get(row.id) ?? [];
-                        return (
-                          <CalendarColumn
-                            key={row.id}
-                            tasks={rowTasks}
-                            slots={activeSlots}
-                            slotHeight={slotHeight}
-                            dateStr={selectedDayStr}
-                            isToday={isSelectedToday}
-                            isHoliday={holiday}
-                            onTaskClick={handleTaskClick}
-                            onCellClick={cellClickHandlers.get(row.id) ?? handleCellClickPersonal}
-                            onTaskContextMenu={handleTaskContextMenu}
-                            onCellContextMenu={cellContextMenuHandlers.get(row.id)}
-                            defaultStartTime={defaultStartTime}
-                            defaultEndTime={defaultEndTime}
-                            workStartHour={workStartHour}
-                            workEndHour={workEndHour}
-                            columnId={row.id}
-                            onResize={handleCalendarResize}
-                          />
-                        );
-                      })}
-                    </>
-                  );
-                })()}
-                </div>
-              </div>
+  // ===== DAYS VIEW (no hours, day cards) =====
+  const daysView = (
+    <div
+      className="grid min-w-full"
+      style={{
+        gridTemplateColumns: `repeat(${dayCount}, minmax(${isMobile && dayCount > 1 ? 150 : 140}px, 1fr))`,
+        gridTemplateRows: `${DAY_HEADER_HEIGHT}px 1fr`,
+        minHeight: viewportHeight || undefined,
+      }}
+    >
+      {days.map((day, i) => dayHeaderCell(day, dayStrs[i]))}
+      {days.map((day, i) => {
+        const dayStr = dayStrs[i];
+        const today = isTodayFn(day);
+        const holiday = holidays.get(dayStr) ?? null;
+        const dayTasks = tasksByDay.get(dayStr) ?? [];
+        const cellId = `${columnId}:${dayStr}`;
+        const isDragOver = dragOverCellId === cellId;
+        return (
+          <div
+            key={dayStr}
+            data-cell-id={cellId}
+            className={cn(
+              "space-y-1 border-r p-1.5 transition-colors duration-100",
+              isDragOver ? "!bg-primary/10 ring-2 ring-inset ring-primary/40" : today ? "bg-primary/5" : isWeekend(day) ? "bg-muted/30" : "",
+            )}
+            style={holiday && !isDragOver ? { backgroundColor: `color-mix(in srgb, ${holiday.color} 8%, transparent)` } : undefined}
+            onContextMenu={(e) => handleCellContextMenuPersonal(e, dayStr)}
+          >
+            {dayTasks.map((task) => (
+              <CalendarDayTaskBlock
+                key={task.id}
+                task={task}
+                columnId={columnId}
+                draggableKey={dayStr}
+                onClick={handleTaskClick}
+                onContextMenu={handleTaskContextMenu}
+                showPeople={isEveryone}
+              />
+            ))}
+            {dayTasks.length === 0 && canCreateOn(dayStr) && (
+              <button
+                type="button"
+                className="flex h-16 w-full items-center justify-center rounded border border-dashed border-border/60 text-xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/30"
+                aria-label={t("calendar.newTaskOn", { date: formatDay(day, "EEEE d MMMM") })}
+                onClick={() => handleCellClickPersonal(dayStr, workStartHour)}
+              >
+                +
+              </button>
             )}
           </div>
-        </GridDndContext>
+        );
+      })}
+    </div>
+  );
 
-        {/* Context menu */}
-        <PlanningContextMenu
-          state={contextMenu}
-          onClose={handleCloseContextMenu}
-          hasClipboard={!!clipboardTask}
-          isMultiUser={contextMenu?.taskId ? (allVisibleTasks.find((t) => t.id === contextMenu.taskId)?.users?.length ?? 0) > 1 : false}
-          isRecurring={contextMenu?.taskId ? !!allVisibleTasks.find((t) => t.id === contextMenu.taskId)?.parentId : false}
-          canCreate={canCreateAnyTask && (() => {
-            const rowId = contextMenu?.rowId;
-            const dateStr = contextMenu?.dateStr;
-            if (rowId && dateStr && wouldExceedDailyLimit(tasks, dailyLimit, { userIds: [rowId], startDate: dateStr })) {
-              return false;
-            }
-            return true;
-          })()}
-          canEdit={(() => {
-            const t = contextMenu?.taskId ? allVisibleTasks.find((t) => t.id === contextMenu.taskId) : null;
-            if (t?.isLocked) return false;
-            return t ? canModifyTask(t) : modifyScope !== "readonly";
-          })()}
-          canCopy={canCreateAnyTask}
-          canCut={(() => {
-            if (!contextMenu?.taskId) return can("tasks:move");
-            const t = allVisibleTasks.find((t) => t.id === contextMenu.taskId);
-            if (!t || t.isLocked) return false;
-            return canMoveTask(t);
-          })()}
-          canDelete={(() => {
-            if (!contextMenu?.taskId) return can("tasks:delete");
-            const t = allVisibleTasks.find((t) => t.id === contextMenu.taskId);
-            if (!t || t.isLocked) return false;
-            return canDeleteTask(t);
-          })()}
-          canPaste={(() => {
-            if (!clipboardTask) return false;
-            if (clipboardTask.mode === "copy") {
-              if (!canCreateAnyTask) return false;
-            } else {
-              const source = allVisibleTasks.find((t) => t.id === clipboardTask.taskId);
-              if (!source || !canMoveTask(source)) return false;
-            }
-            if (!contextMenu?.rowId) return true;
-            const destRow = sortedRows.find(r => r.id === contextMenu.rowId);
-            if (!destRow || destRow.type !== "row") return true;
-            return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
-          })()}
-          canLock={contextMenu?.taskId ? (() => { const t = allVisibleTasks.find(t => t.id === contextMenu.taskId); return t ? canLockTask(t) : false; })() : false}
-          isLocked={contextMenu?.taskId ? allVisibleTasks.find(t => t.id === contextMenu.taskId)?.isLocked === true : false}
-          onEditTask={handleEditTask}
-          onCopyTask={handleCopyToClipboard}
-          onCutTask={handleCutToClipboard}
-          onDeleteTask={handleDeleteTask}
-          onLockTask={handleLockTask}
-          onCreateTask={handleCreateTask}
-          onPaste={handlePaste}
-        />
-
-        <TaskFormDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          taskId={editingTaskId}
-          prefill={prefillData}
-          viewMode="users"
-        />
-
-        {/* Multi-user delete dialog */}
-        <DeleteConfirmDialog
-          open={!!multiDeleteState}
-          onOpenChange={(open) => { if (!open) { setMultiDeleteState(null); setPendingRecurScope(null); } }}
-          title={t("canvas.multiDelete.title")}
-          description={t("canvas.multiDelete.description", { count: allVisibleTasks.find((x) => x.id === multiDeleteState?.taskId)?.users?.length ?? 0 })}
-          onConfirm={() => {
-            if (multiDeleteState) {
-              const scope = pendingRecurScope?.scope;
-              markTaskDeleting(multiDeleteState.taskId);
-              setMultiDeleteState(null);
-              setPendingRecurScope(null);
-              setTimeout(() => deleteTaskMutation.mutate({ id: multiDeleteState.taskId, scope }), 170);
-            }
-          }}
-          onArchive={() => {
-            if (multiDeleteState) {
-              removeUserMutation.mutate({
-                taskId: multiDeleteState.taskId,
-                userId: multiDeleteState.rowId,
-                scope: pendingRecurScope?.scope,
-              });
-              setMultiDeleteState(null);
-              setPendingRecurScope(null);
-            }
-          }}
-          confirmLabel={t("canvas.multiDelete.confirm")}
-          archiveLabel={t("canvas.multiDelete.archive")}
-        />
-
-        {/* Recurring delete dialog */}
-        <RecurringDeleteDialog
-          open={!!recurDeleteState}
-          onOpenChange={(open) => { if (!open) setRecurDeleteState(null); }}
-          onDelete={(scope) => {
-            if (!recurDeleteState) return;
-            const task = allVisibleTasks.find((t) => t.id === recurDeleteState.taskId);
-            const isMulti = (task?.users?.length ?? 0) > 1;
-            const rowId = recurDeleteState.rowId;
-            if (isMulti && rowId) {
-              setPendingRecurScope({ taskId: recurDeleteState.taskId, scope });
-              setMultiDeleteState({ taskId: recurDeleteState.taskId, rowId });
-              setRecurDeleteState(null);
-            } else {
-              markTaskDeleting(recurDeleteState.taskId);
-              setRecurDeleteState(null);
-              setTimeout(() => deleteTaskMutation.mutate({ id: recurDeleteState.taskId, scope }), 170);
-            }
-          }}
-        />
-
-        {/* Drop action menu */}
-        <DropActionMenu
-          position={dropInfo?.dropPosition ?? null}
-          isMultiUser={dropInfo ? ((allVisibleTasks.find((t) => t.id === dropInfo.taskId)?.users?.length ?? 0) > 1) : false}
-          canMove={(() => {
-            const src = dropInfo ? allVisibleTasks.find(t => t.id === dropInfo.taskId) : null;
-            if (!src || !canMoveTask(src)) return false;
-            if (!dropInfo?.targetRowId) return true;
-            const destRow = sortedRows.find(r => r.id === dropInfo.targetRowId);
-            if (!destRow || destRow.type !== "row") return true;
-            return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
-          })()}
-          canCopy={(() => {
-            if (!canCreateAnyTask) return false;
-            if (!dropInfo?.targetRowId) return true;
-            const destRow = sortedRows.find(r => r.id === dropInfo.targetRowId);
-            if (!destRow || destRow.type !== "row") return true;
-            return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
-          })()}
-          onClose={clearDrop}
-          onMove={handleDropMove}
-          onMoveUser={handleDropMoveUser}
-          onCopy={handleDropCopy}
-        />
-
-        {/* Keyboard shortcut toast */}
-        {toastMsg && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-lg">
-            {toastMsg}
-          </div>
-        )}
+  // ===== HOURS VIEW =====
+  const hoursView = (
+    <div
+      className="grid min-w-full"
+      style={{ gridTemplateColumns: `${HOUR_COLUMN}px repeat(${dayCount}, minmax(${minColumnWidth}px, 1fr))` }}
+    >
+      {/* ---- Header row (sticky): week number + days ---- */}
+      <div
+        className="sticky left-0 top-0 z-30 flex items-end justify-center border-b border-r bg-background pb-2 text-[10px] font-medium text-muted-foreground"
+        style={{ height: DAY_HEADER_HEIGHT }}
+        title={t("calendar.weekTitle", { week: firstWeek === lastWeek ? String(firstWeek) : `${firstWeek}–${lastWeek}` })}
+      >
+        {weekLabel}
       </div>
-    );
-  }
+      {days.map((day, i) => dayHeaderCell(day, dayStrs[i]))}
 
-  // Column width: fixed when many days to allow horizontal scroll
-  const personalColWidth = calendarDays <= 7 ? "1fr" : "180px";
-  const isDaysView = calendarPersonalView === "days";
+      {/* ---- All-day band (sticky under the header): bars over their days ---- */}
+      <div
+        className="sticky left-0 z-30 flex items-center justify-end border-b border-r bg-muted/60 pr-2 text-[10px] text-muted-foreground backdrop-blur"
+        style={{ top: DAY_HEADER_HEIGHT, height: allDayHeight }}
+      >
+        {t("grid.allDay")}
+      </div>
+      <div
+        className="sticky z-20 border-b bg-background"
+        style={{ top: DAY_HEADER_HEIGHT, height: allDayHeight, gridColumn: `2 / span ${dayCount}` }}
+      >
+        <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${dayCount}, minmax(0, 1fr))` }}>
+          {days.map((day, i) => {
+            const dayStr = dayStrs[i];
+            const cellId = `${columnId}:${dayStr}:allday`;
+            const isDragOver = dragOverCellId === cellId;
+            return (
+              <div
+                key={`allday-${dayStr}`}
+                data-cell-id={cellId}
+                className={cn(
+                  "border-r transition-colors duration-100",
+                  canCreateHere && "cursor-pointer hover:bg-primary/5",
+                  isDragOver ? "!bg-primary/10 ring-2 ring-inset ring-primary/40" : isTodayFn(day) ? "bg-primary/[0.04]" : isWeekend(day) ? "bg-muted/30" : "",
+                )}
+                onContextMenu={(e) => handleCellContextMenuPersonal(e, dayStr)}
+                onClick={() => handleDayCreate(dayStr)}
+              />
+            );
+          })}
+        </div>
+        {allDayLayout.bars.filter((bar) => bar.lane < allDayLanes).map((bar) => (
+          <CalendarBar
+            key={`allday-${bar.task.id}`}
+            task={bar.task}
+            draggableId={`cal-allday:${bar.task.id}:${columnId}`}
+            columnId={columnId}
+            clippedStart={bar.clippedStart}
+            clippedEnd={bar.clippedEnd}
+            onClick={handleTaskClick}
+            onContextMenu={handleTaskContextMenu}
+            showPeople={isEveryone}
+            style={{
+              position: "absolute",
+              top: 4 + bar.lane * ALL_DAY_LINE,
+              left: `calc(${bar.start} * 100% / ${dayCount} + ${bar.clippedStart ? 0 : 3}px)`,
+              width: `calc(${bar.length} * 100% / ${dayCount} - ${(bar.clippedStart ? 0 : 3) + (bar.clippedEnd ? 0 : 3)}px)`,
+              zIndex: 2,
+            }}
+          />
+        ))}
+        {allDayHidden.map((count, i) => count > 0 && (
+          <button
+            key={`allday-more-${dayStrs[i]}`}
+            type="button"
+            className="absolute h-[22px] rounded px-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            style={{
+              top: 4 + allDayLanes * ALL_DAY_LINE,
+              left: `calc(${i} * 100% / ${dayCount} + 3px)`,
+              width: `calc(100% / ${dayCount} - 6px)`,
+              zIndex: 2,
+            }}
+            title={t("calendar.showMore", { count })}
+            onClick={() => openDayCards(days[i])}
+          >
+            {t("calendar.more", { count })}
+          </button>
+        ))}
+      </div>
 
-  // ===== PERSONAL MODE RENDER =====
+      {/* ---- Body: hour labels (sticky left) + day columns ---- */}
+      <div className="sticky left-0 z-10 border-r bg-background" style={{ height: totalHeight }}>
+        {activeSlots.map((slot, i) => (
+          <div
+            key={slot.hour}
+            className="absolute inset-x-0 border-b border-border/50"
+            style={{ top: i * slotHeight, height: slotHeight }}
+          >
+            <span className="absolute right-2 top-1 text-[11px] tabular-nums text-muted-foreground">{slot.label}</span>
+          </div>
+        ))}
+      </div>
+      {days.map((day, i) => {
+        const dayStr = dayStrs[i];
+        return (
+          <CalendarColumn
+            key={dayStr}
+            tasks={(tasksByDay.get(dayStr) ?? []).filter((task) => !!task.startTime)}
+            slots={activeSlots}
+            slotHeight={slotHeight}
+            dateStr={dayStr}
+            isToday={isTodayFn(day)}
+            isWeekendDay={isWeekend(day)}
+            isHoliday={holidays.get(dayStr) ?? null}
+            onTaskClick={handleTaskClick}
+            onCellClick={handleCellClickPersonal}
+            onTaskContextMenu={handleTaskContextMenu}
+            onCellContextMenu={handleCellContextMenuPersonal}
+            defaultStartTime={defaultStartTime}
+            defaultEndTime={defaultEndTime}
+            workStartHour={workStartHour}
+            workEndHour={workEndHour}
+            breakStartHour={breakStartHour}
+            breakEndHour={breakEndHour}
+            columnId={columnId || dayStr}
+            onResize={handleCalendarResize}
+            showPeople={isEveryone}
+            maxColumns={isEveryone ? everyoneColumns : undefined}
+            onShowMore={() => openDayCards(day)}
+          />
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="flex h-full flex-col">
       <GridToolbar onCreateTask={handleCreateTaskButton} />
 
       <GridDndContext tasks={allVisibleTasks} onDragComplete={handleDragComplete}>
-        <div ref={scrollRef} className="flex-1 overflow-auto">
-          {/* Empty state overlay */}
-          <div className="relative">
+        <div className="relative min-h-0 flex-1" data-calendar-view={isMonth ? "month" : isDaysView ? "days" : "hours"}>
+          {/* Loading another period (previous data stays visible meanwhile) */}
+          {isFetching && (
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-40 h-0.5 animate-pulse bg-primary/60" />
+          )}
 
-            {isDaysView ? (
-              /* ===== DAYS VIEW (no hours, compact cards) ===== */
-              <div
-                className="inline-grid min-w-full"
-                style={{
-                  gridTemplateColumns: `repeat(${Math.min(days.length, 7)}, minmax(160px, 1fr))`,
-                }}
-              >
-                {days.map((day) => {
-                  const dayStr = format(day, "yyyy-MM-dd");
-                  const today = isTodayFn(day);
-                  const holiday = holidays.get(dayStr) ?? null;
-                  const dayTasks = tasksByDay.get(dayStr) ?? [];
+          {isMonth ? (
+            <CalendarMonth
+              anchor={startDate}
+              days={days}
+              tasks={windowTasks}
+              tasksByDay={tasksByDay}
+              holidays={holidays}
+              columnId={columnId}
+              dailyHours={dailyHours}
+              canCreate={canCreateHere}
+              dragOverCellId={dragOverCellId}
+              onOpenDay={openDay}
+              onOpenWeek={openWeek}
+              onCreate={handleDayCreate}
+              onTaskClick={handleTaskClick}
+              onTaskContextMenu={handleTaskContextMenu}
+              onDayContextMenu={handleCellContextMenuPersonal}
+              everyone={isEveryone}
+              shownPeople={shownPeople}
+            />
+          ) : (
+            <div ref={attachScroll} className="h-full overflow-auto">
+              {isDaysView ? daysView : hoursView}
+            </div>
+          )}
 
-                  return (
-                    <div
-                      key={dayStr}
-                      data-cell-id={`${effectiveUserId}:${dayStr}`}
-                      className={`border-r border-border min-h-[200px] transition-colors duration-100 ${
-                        dragOverCellId === `${effectiveUserId}:${dayStr}` ? "ring-2 ring-inset ring-primary/40 !bg-primary/10" :
-                        today ? "bg-primary/5" : isWeekend(day) ? "bg-muted/30" : ""
-                      }`}
-                    >
-                      {/* Day header */}
-                      <div
-                        className={`sticky top-0 z-10 border-b px-2 py-1.5 text-center backdrop-blur ${
-                          today
-                            ? "bg-primary/10 text-primary"
-                            : isWeekend(day)
-                              ? "bg-muted/90 text-muted-foreground"
-                              : "bg-muted/80 text-muted-foreground"
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-1 text-sm font-medium capitalize">
-                          <span>{format(day, "EEE", { locale: dateLocale })}</span>
-                          {today ? (
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                              {format(day, "d")}
-                            </span>
-                          ) : (
-                            <span>{format(day, "d")}</span>
-                          )}
-                        </div>
-                        <div className="text-[10px] capitalize text-muted-foreground">
-                          {format(day, "MMMM", { locale: dateLocale })}
-                          {holiday && (
-                            <span className="ml-1" style={{ color: holiday.color }}>
-                              · {holiday.label}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {/* Task list */}
-                      <div className="space-y-1 p-1.5">
-                        {dayTasks.length === 0 && (
-                          <div
-                            className="flex h-16 cursor-pointer items-center justify-center rounded border border-dashed border-border/50 text-xs text-muted-foreground hover:border-border hover:bg-muted/20 transition-colors"
-                            onClick={() => handleCellClickPersonal(dayStr, workStartHour)}
-                          >
-                            +
-                          </div>
-                        )}
-                        {dayTasks.map((task) => (
-                          <CalendarDayTaskBlock
-                            key={task.id}
-                            task={task}
-                            columnId={effectiveUserId ?? ""}
-                            onClick={handleTaskClick}
-                            onContextMenu={handleTaskContextMenu}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Empty period: explicit message, the grid stays usable */}
+          {showEmpty && (
+            <div className="pointer-events-none absolute inset-x-0 top-1/3 z-30 flex justify-center px-4">
+              <div className="rounded-lg border bg-background/95 px-4 py-3 text-center shadow-sm backdrop-blur">
+                <p className="text-sm font-medium">{t("calendar.empty")}</p>
+                {canCreateHere && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {isMonth ? t("calendar.emptyHintMonth") : t("calendar.emptyHint")}
+                  </p>
+                )}
               </div>
-            ) : (
-              /* ===== HOURS VIEW (existing) ===== */
-              (() => {
-                // Separate all-day tasks from timed tasks per day
-                const allDayByDay = new Map<string, TaskWithUsers[]>();
-                const timedByDay = new Map<string, TaskWithUsers[]>();
-                let hasAnyAllDay = false;
-                for (const day of days) {
-                  const dayStr = format(day, "yyyy-MM-dd");
-                  const dayTasks = tasksByDay.get(dayStr) ?? [];
-                  const allDay = dayTasks.filter((t) => !t.startTime);
-                  const timed = dayTasks.filter((t) => !!t.startTime);
-                  allDayByDay.set(dayStr, allDay);
-                  timedByDay.set(dayStr, timed);
-                  if (allDay.length > 0) hasAnyAllDay = true;
-                }
-                const maxAllDay = Math.max(...Array.from(allDayByDay.values()).map((a) => a.length), 0);
-                const allDayRowHeight = Math.max(maxAllDay * 26 + 8, 34);
-
-                return (
-                  <div
-                    className="inline-grid"
-                    style={{
-                      gridTemplateColumns: `60px repeat(${days.length}, ${personalColWidth})`,
-                      minWidth: calendarDays <= 7 ? "100%" : undefined,
-                    }}
-                  >
-                    {/* ---- Header row (sticky) ---- */}
-                    <div className="sticky top-0 z-10 border-b border-r border-border bg-muted/80 backdrop-blur" />
-                    {days.map((day) => {
-                      const dayStr = format(day, "yyyy-MM-dd");
-                      const today = isTodayFn(day);
-                      const dayOfWeek = format(day, "EEE", { locale: dateLocale });
-                      const dayNum = format(day, "d");
-                      const monthName = format(day, "MMM", { locale: dateLocale });
-                      return (
-                        <div
-                          key={dayStr}
-                          className={`sticky top-0 z-10 border-b border-r border-border px-2 py-1 text-center backdrop-blur ${
-                            today
-                              ? "bg-primary/10 text-primary"
-                              : isWeekend(day)
-                                ? "bg-muted/90 text-muted-foreground"
-                                : "bg-muted/80 text-muted-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center justify-center gap-1 text-sm font-medium capitalize">
-                            <span>{dayOfWeek}</span>
-                            {today ? (
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                                {dayNum}
-                              </span>
-                            ) : (
-                              <span>{dayNum}</span>
-                            )}
-                          </div>
-                          <div className="text-[10px] capitalize text-muted-foreground">{monthName}</div>
-                        </div>
-                      );
-                    })}
-
-                    {/* ---- All-day row (Outlook style) ---- */}
-                        <div
-                          className="border-b border-r border-border bg-muted/30 flex items-center justify-end pr-2 text-[10px] text-muted-foreground"
-                          style={{ height: allDayRowHeight }}
-                        >
-                          {t("grid.allDay")}
-                        </div>
-                        {days.map((day) => {
-                          const dayStr = format(day, "yyyy-MM-dd");
-                          const allDayTasks = allDayByDay.get(dayStr) ?? [];
-                          const today = isTodayFn(day);
-                          return (
-                            <div
-                              key={`allday-${dayStr}`}
-                              data-cell-id={`${effectiveUserId}:${dayStr}:allday`}
-                              className={`border-b border-r border-border p-0.5 transition-colors duration-100 hover:bg-primary/5 ${dragOverCellId === `${effectiveUserId}:${dayStr}:allday` ? "ring-2 ring-inset ring-primary/40 !bg-primary/10" : ""}`}
-                              style={{
-                                height: allDayRowHeight,
-                                backgroundColor: dragOverCellId === `${effectiveUserId}:${dayStr}:allday` ? undefined : today ? "color-mix(in oklch, var(--primary) 7%, transparent)" : isWeekend(day) ? "color-mix(in srgb, var(--color-muted) 30%, transparent)" : undefined,
-                              }}
-                              onContextMenu={(e) => {
-                                e.preventDefault();
-                                setContextMenu({ x: e.clientX, y: e.clientY, rowId: effectiveUserId ?? undefined, dateStr: dayStr });
-                              }}
-                              onClick={() => {
-                                setEditingTaskId(null);
-                                setPrefillData({ rowId: effectiveUserId ?? undefined, date: dayStr });
-                                setDialogOpen(true);
-                              }}
-                            >
-                              <div className="flex flex-col gap-0.5 overflow-hidden">
-                                {allDayTasks.map((task) => (
-                                  <CalendarAllDayBlock
-                                    key={task.id}
-                                    task={task}
-                                    columnId={effectiveUserId ?? dayStr}
-                                    onClick={handleTaskClick}
-                                    onContextMenu={handleTaskContextMenu}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                    {/* ---- Body: hour labels + columns ---- */}
-                    {/* Hour labels column */}
-                    <div className="relative border-r border-border bg-muted/30" style={{ height: totalHeight }}>
-                      {activeSlots.map((slot, i) => {
-                        const isOutsideWork = slot.hour < workStartHour || slot.hour >= workEndHour;
-                        return (
-                          <div
-                            key={slot.hour}
-                            className="absolute right-0 left-0 border-b border-border/50"
-                            style={{
-                              top: i * slotHeight,
-                              height: slotHeight,
-                              backgroundColor: isOutsideWork ? "color-mix(in srgb, var(--color-muted) 20%, transparent)" : undefined,
-                            }}
-                          >
-                            <span className="absolute right-2 text-xs text-muted-foreground" style={{ top: 2 }}>
-                              {slot.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Day columns (only timed tasks) */}
-                    {days.map((day) => {
-                      const dayStr = format(day, "yyyy-MM-dd");
-                      const dayTasks = timedByDay.get(dayStr) ?? [];
-                      const holiday = holidays.get(dayStr) ?? null;
-
-                      return (
-                        <CalendarColumn
-                          key={dayStr}
-                          tasks={dayTasks}
-                          slots={activeSlots}
-                          slotHeight={slotHeight}
-                          dateStr={dayStr}
-                          isToday={isTodayFn(day)}
-                          isWeekendDay={isWeekend(day)}
-                          isHoliday={holiday}
-                          onTaskClick={handleTaskClick}
-                          onCellClick={handleCellClickPersonal}
-                          onTaskContextMenu={handleTaskContextMenu}
-                          onCellContextMenu={handleCellContextMenuPersonal}
-                          defaultStartTime={defaultStartTime}
-                          defaultEndTime={defaultEndTime}
-                          workStartHour={workStartHour}
-                          workEndHour={workEndHour}
-                          columnId={effectiveUserId ?? dayStr}
-                          onResize={handleCalendarResize}
-                        />
-                      );
-                    })}
-                  </div>
-                );
-              })()
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </GridDndContext>
 
       {/* Context menu */}
+      <DeleteShortcutHint hint={deleteHint} />
+
       <PlanningContextMenu
         state={contextMenu}
         onClose={handleCloseContextMenu}
         hasClipboard={!!clipboardTask}
-        isMultiUser={contextMenu?.taskId ? (allVisibleTasks.find((t) => t.id === contextMenu.taskId)?.users?.length ?? 0) > 1 : false}
-        isRecurring={contextMenu?.taskId ? !!allVisibleTasks.find((t) => t.id === contextMenu.taskId)?.parentId : false}
+        isMultiUser={contextMenu?.taskId ? isSharedTask(allVisibleTasks.find((t) => t.id === contextMenu.taskId)) : false}
+        isRecurring={contextMenu?.taskId ? isRecurringTask(allVisibleTasks.find((t) => t.id === contextMenu.taskId)) : false}
         canCreate={canCreateAnyTask}
         canEdit={(() => {
           const t = contextMenu?.taskId ? allVisibleTasks.find((t) => t.id === contextMenu.taskId) : null;
@@ -1253,12 +934,12 @@ export function CalendarGrid() {
             const source = allVisibleTasks.find((t) => t.id === clipboardTask.taskId);
             if (!source || !canMoveTask(source)) return false;
           }
-          // Personal view: the destination is always the current user,
-          // so check the selected row if it is known.
+          // The destination is always the calendar person, so check the
+          // selected row if it is known.
           if (!contextMenu?.rowId) return true;
           const destRow = sortedRows.find(r => r.id === contextMenu.rowId);
           if (!destRow || destRow.type !== "row") return true;
-          return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
+          return canCreateOnPlanningRow("users", destRow as CreatableRow);
         })()}
         canLock={contextMenu?.taskId ? (() => { const t = allVisibleTasks.find(t => t.id === contextMenu.taskId); return t ? canLockTask(t) : false; })() : false}
         isLocked={contextMenu?.taskId ? allVisibleTasks.find(t => t.id === contextMenu.taskId)?.isLocked === true : false}
@@ -1294,7 +975,7 @@ export function CalendarGrid() {
             setTimeout(() => deleteTaskMutation.mutate({ id: multiDeleteState.taskId, scope }), 170);
           }
         }}
-        onArchive={() => {
+        onArchive={multiDeleteState?.rowId ? () => {
           if (multiDeleteState) {
             removeUserMutation.mutate({
               taskId: multiDeleteState.taskId,
@@ -1304,7 +985,7 @@ export function CalendarGrid() {
             setMultiDeleteState(null);
             setPendingRecurScope(null);
           }
-        }}
+        } : undefined}
         confirmLabel={t("canvas.multiDelete.confirm")}
         archiveLabel={t("canvas.multiDelete.archive")}
       />
@@ -1317,7 +998,7 @@ export function CalendarGrid() {
           if (!recurDeleteState) return;
           const task = allVisibleTasks.find((t) => t.id === recurDeleteState.taskId);
           const isMulti = (task?.users?.length ?? 0) > 1;
-          const rowId = recurDeleteState.rowId;
+          const rowId = calendarPersonRow(recurDeleteState.rowId);
           if (isMulti && rowId) {
             setPendingRecurScope({ taskId: recurDeleteState.taskId, scope });
             setMultiDeleteState({ taskId: recurDeleteState.taskId, rowId });
@@ -1340,18 +1021,18 @@ export function CalendarGrid() {
           if (!dropInfo?.targetRowId) return true;
           const destRow = sortedRows.find(r => r.id === dropInfo.targetRowId);
           if (!destRow || destRow.type !== "row") return true;
-          return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
+          return canCreateOnPlanningRow("users", destRow as CreatableRow);
         })()}
         canCopy={(() => {
           if (!canCreateAnyTask) return false;
           if (!dropInfo?.targetRowId) return true;
           const destRow = sortedRows.find(r => r.id === dropInfo.targetRowId);
           if (!destRow || destRow.type !== "row") return true;
-          return canCreateOnPlanningRow("users", destRow as { id: string; teamId?: string | null; ownerId?: string | null });
+          return canCreateOnPlanningRow("users", destRow as CreatableRow);
         })()}
         onClose={clearDrop}
         onMove={handleDropMove}
-        onMoveUser={handleDropMoveUser}
+        onMoveUser={isEveryone ? undefined : handleDropMoveUser}
         onCopy={handleDropCopy}
       />
 

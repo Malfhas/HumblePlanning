@@ -441,7 +441,7 @@ export function VehicleAssignmentForm({ initialData, prefillVehicleId, prefillDa
         </p>
       )}
 
-      <div className="flex justify-between pt-2">
+      <div data-slot="dialog-footer" className="flex justify-between pt-2">
         {isEdit && !currentLocked && (
           <Button
             type="button"

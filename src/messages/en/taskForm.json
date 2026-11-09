@@ -110,6 +110,9 @@
       "notes": {
         "label": "Notes",
         "placeholder": "Notes..."
+      },
+      "milestone": {
+        "label": "Milestone"
       }
     },
     "morning": "Morning",

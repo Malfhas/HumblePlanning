@@ -49,6 +49,7 @@ import { tDyn } from "@/i18n/dynamic";
 import { CalendarDays, ChevronLeft, ChevronRight, RotateCcw, Search, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PermissionButton } from "@/components/shared/permission-button";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { cn } from "@/lib/utils";
 import {
   ACTION_STYLES,
@@ -212,31 +213,32 @@ export default function AuditPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-        {!can("audit:purge") ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button variant="destructive" size="sm" disabled>{t("purge")}</Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{ta("permissionDenied")}</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button variant="destructive" size="sm" onClick={() => setPurgeOpen(true)}>{t("purge")}</Button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       {/* Search + Filters */}
-      <div className="flex flex-wrap items-center gap-2">
+      <ListToolbar
+        actions={
+          !can("audit:purge") ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button variant="destructive" size="sm" disabled>{t("purge")}</Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{ta("permissionDenied")}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button variant="destructive" size="sm" onClick={() => setPurgeOpen(true)}>{t("purge")}</Button>
+          )
+        }
+      >
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={tc("actions.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="h-9 pl-8 w-[220px]"
+            className="h-8 pl-8 w-[220px]"
           />
         </div>
 
@@ -270,7 +272,7 @@ export default function AuditPage() {
 
         <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 justify-start text-left font-normal", !dateStart && "text-muted-foreground")}>
+            <Button variant="outline" className={cn("h-8 justify-start text-left font-normal", !dateStart && "text-muted-foreground")}>
               <CalendarDays className="mr-2 h-4 w-4" />
               {dateStart ? formatLocalized(parseISO(dateStart), "d MMM yyyy") : t("filters.start")}
             </Button>
@@ -282,7 +284,7 @@ export default function AuditPage() {
 
         <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("h-9 justify-start text-left font-normal", !dateEnd && "text-muted-foreground")}>
+            <Button variant="outline" className={cn("h-8 justify-start text-left font-normal", !dateEnd && "text-muted-foreground")}>
               <CalendarDays className="mr-2 h-4 w-4" />
               {dateEnd ? formatLocalized(parseISO(dateEnd), "d MMM yyyy") : t("filters.end")}
             </Button>
@@ -296,14 +298,14 @@ export default function AuditPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 text-xs text-muted-foreground"
+            className="h-8 text-xs text-muted-foreground"
             onClick={() => { setFilterEntityTypes([]); setFilterActions([]); setFilterUsers([]); setFilterSource(""); setSearchInput(""); setSearchQuery(""); setDateStart(""); setDateEnd(""); setPage(1); }}
           >
             <X className="h-3.5 w-3.5 mr-1" />
             {t("clearFilters")}
           </Button>
         )}
-      </div>
+      </ListToolbar>
 
       {/* Flat table */}
       <div className="flex flex-col gap-3 flex-1 min-h-0">

@@ -158,7 +158,7 @@ export function QualificationForm({ initialData, onClose }: QualificationFormPro
       )}
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
+      <div data-slot="dialog-footer" className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
           {tc("actions.cancel")}
         </Button>

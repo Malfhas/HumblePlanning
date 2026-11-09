@@ -573,7 +573,7 @@ export function ProjectForm({ id, duplicateFromId, onClose, onDelete, onArchive 
       )}
 
       {/* Actions */}
-      <div className="flex justify-between">
+      <div data-slot="dialog-footer" className="flex justify-between">
         <div className="flex gap-2">
           {isEdit && onDelete && (
             <Button type="button" variant="destructive" size="sm" onClick={onDelete}>

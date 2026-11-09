@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import {
@@ -25,7 +25,6 @@ import { useDateFormat } from "@/hooks/use-date-format";
 import { tDyn } from "@/i18n/dynamic";
 import { ModelIcon } from "./model-icon";
 import { modelLabel } from "./models";
-import { ScopeSelect, type ScopeProject } from "./scope-select";
 import { DICTATION_AVAILABLE, useDictation } from "./use-dictation";
 
 export interface Attachment {
@@ -208,10 +207,10 @@ export function Composer({
   model,
   models,
   labels,
+  modelDescriptions,
   onModel,
   reasoning,
   onReasoning,
-  scope,
   imagesSupported,
   filesSupported,
   busy,
@@ -219,6 +218,7 @@ export function Composer({
   autoFocus,
   dictation = false,
   blockedMessage,
+  grow = true,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -228,20 +228,11 @@ export function Composer({
   model: string;
   models: string[];
   labels?: Record<string, string>;
+  /** Second line of each model in its menu (what it can read), like the reasoning levels. */
+  modelDescriptions?: Record<string, string>;
   onModel: (model: string) => void;
   reasoning: ReasoningLevel;
   onReasoning: (level: ReasoningLevel) => void;
-  scope: {
-    /** Global scope ("Whole planning"); null if it is not offered. */
-    workspace: { name: string } | null;
-    projects: ScopeProject[];
-    projectId: string | null;
-    onProject: (projectId: string | null) => void;
-    /** A started conversation keeps its scope: past replies depend on it. */
-    locked: boolean;
-    /** Floating assistant: the scope follows navigation, it is not chosen here. */
-    followsNavigation?: boolean;
-  };
   imagesSupported: boolean;
   /** Does the current model accept a PDF without conversion? */
   filesSupported: boolean;
@@ -256,6 +247,8 @@ export function Composer({
    * is sent (no text, no attachment, no dictation) until the reset.
    */
   blockedMessage?: string;
+  /** The field grows with its text (Assistant page); false in the floating panel, too short for it: two lines that scroll. */
+  grow?: boolean;
 }) {
   const t = useTranslations('aiChat');
   const tc = useTranslations("common");
@@ -268,11 +261,20 @@ export function Composer({
   // The actual field value is passed on: dictation must know whether you
   // edited it with the keyboard, so as not to write over it.
   const voice = useDictation(onChange, value);
-  // A conversation always has a scope: the workspace by default
-  const hasScope = Boolean(scope.projectId) || Boolean(scope.workspace);
   // Quota reached: the card stays there, readable, but nothing goes in anymore
   const closed = Boolean(blockedMessage);
-  const readyToSend = Boolean(value.trim()) && !busy && !uploading && hasScope && !closed;
+  const readyToSend = Boolean(value.trim()) && !busy && !uploading && !closed;
+
+  /**
+   * The field grows with its text, up to `max-h-60`, then scrolls: at a fixed two lines, a pasted paragraph
+   * only showed its end, and its first line seemed empty. Not in the floating panel (`grow` false).
+   */
+  useLayoutEffect(() => {
+    const field = textareaRef.current;
+    if (!field || !grow) return;
+    field.style.height = 'auto';
+    field.style.height = `${field.scrollHeight}px`;
+  }, [value, grow]);
 
   /**
    * Reading of the chosen files. Each one is handled on its own: an unreadable
@@ -335,7 +337,8 @@ export function Composer({
   return (
     <div
       className={cn(
-        'relative rounded-ai-xl border bg-ai-surface shadow-ai-raised focus-within:border-ai-border-focus',
+        // Purple when focused: the AI tools purple, like the sphere and the "New conversation" button
+        'relative rounded-ai-xl border bg-ai-surface shadow-ai-raised focus-within:border-[#7c4dff]',
         dragOver ? 'border-[#7c4dff]' : 'border-ai-border-default',
       )}
       /**
@@ -345,13 +348,13 @@ export function Composer({
        * crossed emitting its own event.
        */
       onDragEnter={(event) => {
-        if (!carriesFiles(event) || !hasScope || closed) return;
+        if (!carriesFiles(event) || closed) return;
         event.preventDefault();
         dragDepthRef.current += 1;
         setDragOver(true);
       }}
       onDragOver={(event) => {
-        if (carriesFiles(event) && hasScope && !closed) event.preventDefault();
+        if (carriesFiles(event) && !closed) event.preventDefault();
       }}
       onDragLeave={() => {
         dragDepthRef.current -= 1;
@@ -361,7 +364,7 @@ export function Composer({
         }
       }}
       onDrop={(event) => {
-        if (!carriesFiles(event) || !hasScope || closed) return;
+        if (!carriesFiles(event) || closed) return;
         event.preventDefault();
         dragDepthRef.current = 0;
         setDragOver(false);
@@ -376,17 +379,6 @@ export function Composer({
           </p>
         </div>
       ) : null}
-
-      <div className="flex items-center gap-1.5 px-2.5 pt-2">
-        <ScopeSelect
-          workspace={scope.workspace}
-          projects={scope.projects}
-          projectId={scope.projectId}
-          onChange={scope.onProject}
-          locked={scope.locked}
-          followsNavigation={scope.followsNavigation}
-        />
-      </div>
 
       {attachments.length || uploading ? (
         <div className="px-3 pt-2.5">
@@ -425,29 +417,26 @@ export function Composer({
           {blockedMessage}
         </p>
       ) : (
-        <textarea
-          ref={textareaRef}
-          autoFocus={autoFocus}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              if (readyToSend) onSend();
-            }
-          }}
-          rows={2}
-          placeholder={
-            voice.listening
-              ? t('composer.placeholder.dictating')
-              : hasScope
-                ? t('composer.placeholder.default')
-                : t('composer.placeholder.noScope')
-          }
-          disabled={!hasScope}
-          // `focus-cadre`: the card lights up, not the field
-          className="focus-cadre w-full resize-none bg-transparent px-3 py-2.5 text-ai-sm text-ai-primary placeholder:text-ai-muted disabled:cursor-not-allowed max-md:text-base"
-        />
+        // The margins around the field, not inside it: once it scrolls, its text stops short of the frame
+        // instead of being cut at its edge. A click in the margin still writes in the field.
+        <div className="cursor-text px-3.5 pb-2 pt-3" onClick={() => textareaRef.current?.focus()}>
+          <textarea
+            ref={textareaRef}
+            autoFocus={autoFocus}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (readyToSend) onSend();
+              }
+            }}
+            rows={2}
+            placeholder={voice.listening ? t('composer.placeholder.dictating') : t('composer.placeholder.default')}
+            // `focus-cadre`: the card lights up, not the field
+            className="focus-cadre block max-h-60 w-full resize-none overflow-y-auto bg-transparent p-0 text-ai-md text-ai-primary placeholder:text-ai-muted max-md:text-base"
+          />
+        </div>
       )}
 
       <div className="flex items-center gap-1.5 px-2 pb-2 max-md:gap-1">
@@ -469,7 +458,7 @@ export function Composer({
           <button
             type="button"
             aria-label={t('composer.attach.ariaLabel')}
-            disabled={!hasScope || uploading || closed}
+            disabled={uploading || closed}
             onClick={() => inputRef.current?.click()}
             className="grid size-7 place-items-center rounded-ai-md text-ai-secondary hover:bg-ai-surface-hover hover:text-ai-primary disabled:opacity-40 max-md:size-10"
           >
@@ -518,17 +507,25 @@ export function Composer({
             <Select
               value={model}
               onValueChange={(picked) => onModel(picked || model)}
-              // The name only: the model technical identifier helps nobody choose
+              // The name, and what it can read: the model technical identifier helps nobody choose
               options={models.map((modelId) => ({
                 value: modelId,
                 label: modelLabel(modelId, labels),
-                icon: <ModelIcon model={modelId} />,
+                description: modelDescriptions?.[modelId],
+                icon: <ModelIcon model={modelId} className="size-3.5" />,
               }))}
               variant="ghost"
               // `max-w-full`: the trigger shrinks and truncates the name instead of going under the microphone (phone)
               buttonClassName="max-w-full max-md:h-10"
               searchable={models.length > 8}
-              panelClassName="w-60"
+              // The same discreet button as the reasoning level: a small logo and the name
+              renderValue={() => (
+                <>
+                  <ModelIcon model={model} className="size-3.5" />
+                  <span className="truncate">{modelLabel(model, labels)}</span>
+                </>
+              )}
+              panelClassName="w-64"
               align="end"
             />
           </div>
@@ -552,9 +549,7 @@ export function Composer({
                 aria-label={
                   voice.step === 'listening' ? t('composer.dictation.stopAriaLabel') : t('composer.dictation.startAriaLabel')
                 }
-                disabled={
-                  !hasScope || closed || (voice.step !== 'idle' && voice.step !== 'listening')
-                }
+                disabled={closed || (voice.step !== 'idle' && voice.step !== 'listening')}
                 onClick={() => {
                   if (voice.step === 'listening') {
                     void voice.stop();

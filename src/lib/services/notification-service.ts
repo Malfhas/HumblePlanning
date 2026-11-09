@@ -288,11 +288,11 @@ export async function notifyTaskFileEvent(
   userIds: string[],
   actorId?: string
 ) {
-  logger.info("email", `notifyTaskFileEvent: eventType=${eventType} taskId=${task.id}`, { userIds, actorId });
+  logger.debug("email", `notifyTaskFileEvent: eventType=${eventType} taskId=${task.id}`, { userIds, actorId });
 
   const triggers = await getActiveTriggers();
   if (!isTriggerActive(triggers, eventType)) {
-    logger.info("email", `Trigger ${eventType} is not active, skipping`);
+    logger.debug("email", `Trigger ${eventType} is not active, skipping`);
     return;
   }
 
@@ -300,10 +300,10 @@ export async function notifyTaskFileEvent(
 
   const ctx = await getNotificationContext(userIds, actorId);
   if (!ctx) {
-    logger.info("email", "No notification context (notifications disabled or no eligible recipients)");
+    logger.debug("email", "No notification context (notifications disabled or no eligible recipients)");
     return;
   }
-  logger.info("email", `${ctx.recipients.length} recipients for file event`);
+  logger.debug("email", `${ctx.recipients.length} recipients for file event`);
 
   const [project, actor] = await Promise.all([
     getProjectInfo(task.projectId),

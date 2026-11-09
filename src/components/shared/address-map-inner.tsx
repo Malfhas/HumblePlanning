@@ -413,7 +413,7 @@ export default function AddressMapInner({
     <div className={`space-y-3 ${showDropdown ? "address-dropdown-open" : ""}`}>
       {/* Force overflow visible on parent dialog when dropdown is open */}
       {showDropdown && (
-        <style>{`[data-slot="dialog-content"]:has(.address-dropdown-open) { overflow: visible !important; }`}</style>
+        <style>{`[data-slot="dialog-body"]:has(.address-dropdown-open) { overflow: visible !important; }`}</style>
       )}
       <div className="space-y-1.5">
         <Label htmlFor="address-map-search">{t("label")} {required && "*"}</Label>

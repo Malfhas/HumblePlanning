@@ -2,9 +2,11 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
+import { Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { contrastColor } from "@/lib/utils";
 import { useDateFormat } from "@/hooks/use-date-format";
-import { TaskTooltip } from "./task-tooltip";
+import { CalendarPeople, CalendarTaskEnd, CalendarTaskTooltip, darkenColor, taskHeadline, TASK_FALLBACK_COLOR } from "./calendar-items";
 import { usePlanningStore } from "@/stores/planning-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { TaskWithUsers } from "@/types";
@@ -18,8 +20,9 @@ interface CalendarTaskBlockProps {
   task: TaskWithUsers;
   top: number;
   height: number;
-  left: number;
-  width: number;
+  /** Percent of the column, or a CSS length. */
+  left: number | string;
+  width: number | string;
   onClick: (taskId: string) => void;
   onContextMenu?: (e: React.MouseEvent, taskId: string) => void;
   onResize?: (taskId: string, startTime: string, endTime: string) => void;
@@ -28,15 +31,8 @@ interface CalendarTaskBlockProps {
   firstHour: number;
   columnId: string; // used for draggable id uniqueness
   dateStr?: string; // used for resize preview scoping
-}
-
-/** Darken a hex color by a percentage (0-1). */
-function darkenColor(hex: string, amount: number): string {
-  const c = hex.replace("#", "");
-  const r = Math.max(0, Math.round(parseInt(c.substring(0, 2), 16) * (1 - amount)));
-  const g = Math.max(0, Math.round(parseInt(c.substring(2, 4), 16) * (1 - amount)));
-  const b = Math.max(0, Math.round(parseInt(c.substring(4, 6), 16) * (1 - amount)));
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  /** Calendar of everyone: the assignees of the task are shown. */
+  showPeople?: boolean;
 }
 
 export function CalendarTaskBlock({
@@ -53,13 +49,19 @@ export function CalendarTaskBlock({
   firstHour,
   columnId,
   dateStr,
+  showPeople,
 }: CalendarTaskBlockProps) {
   const isDeleting = usePlanningStore((s) => s.deletingTaskIds.has(task.id));
+  const t = useTranslations("planning");
   const { formatTime: formatTimeLabel } = useDateFormat();
-  const bgColor = task.project?.color || "#9ca3af";
+  const bgColor = task.project?.color || TASK_FALLBACK_COLOR;
   const textColor = contrastColor(bgColor);
   const borderColor = darkenColor(bgColor, 0.25);
   const effectiveHeight = Math.max(height, 24);
+  const headline = taskHeadline(task, t("canvas.untitled"));
+  const timeLabel = task.startTime
+    ? `${formatTimeLabel(task.startTime)}${task.endTime ? ` \u2013 ${formatTimeLabel(task.endTime)}` : ""}`
+    : "";
 
   // Permissions: modifyScope is applied through canMoveTask/canResizeTask.
   const { canMoveTask, canResizeTask, canCreateAnyTask } = usePermissions();
@@ -175,15 +177,7 @@ export function CalendarTaskBlock({
   }
 
   return (
-    <TaskTooltip
-      task={{
-        ...task,
-        createdAt: task.createdAt ? String(task.createdAt) : null,
-        updatedAt: task.updatedAt ? String(task.updatedAt) : null,
-      }}
-      project={task.project}
-      status={task.status}
-    >
+    <CalendarTaskTooltip task={task}>
       <div
         ref={setNodeRef}
         data-task-id={task.id}
@@ -199,8 +193,8 @@ export function CalendarTaskBlock({
         className={`absolute cursor-pointer overflow-hidden hover:brightness-110 group/task select-none ${isResizing ? "" : "transition-[top,height,filter] duration-150"} ${isDeleting ? "task-deleting" : ""}`}
         style={{
           top: renderTop,
-          left: `${left}%`,
-          width: `${width}%`,
+          left: typeof left === "number" ? `${left}%` : left,
+          width: typeof width === "number" ? `${width}%` : width,
           height: renderHeight,
           backgroundColor: bgColor,
           color: textColor,
@@ -214,7 +208,7 @@ export function CalendarTaskBlock({
               ? "0 1px 2px rgba(0,0,0,0.1)"
               : "inset 0 0 0 1px var(--task-bar-border, rgba(0,0,0,0.08)), 0 1px 2px rgba(0,0,0,0.1)",
           zIndex: 2,
-          padding: "1px 6px",
+          padding: "2px 6px",
           boxSizing: "border-box",
           opacity: isDragging ? 0.3 : isPendingSource ? 0.35 : 1,
         }}
@@ -231,20 +225,30 @@ export function CalendarTaskBlock({
           />
         )}
 
-        {task.project?.name && (
-          <div
-            className="truncate text-[10px] font-semibold leading-tight"
-            style={{ color: textColor }}
-          >
-            {task.project.name}
+        {/* Title first (project when there is none), then times and project.
+            Short blocks keep a single line: times + title. */}
+        {renderHeight < 34 ? (
+          <div className="flex items-center gap-1 truncate text-[11px] leading-tight">
+            {task.isLocked && <Lock className="size-2.5 shrink-0 opacity-80" aria-hidden />}
+            {timeLabel && <span className="shrink-0 tabular-nums opacity-80">{timeLabel}</span>}
+            <span className="truncate font-medium">{headline}</span>
+            {/* End of the block: attachments, notes, milestone, then the assignees */}
+            <CalendarTaskEnd task={task} after={showPeople ? <CalendarPeople users={task.users} max={2} /> : undefined} className="ml-auto pl-0.5" />
           </div>
-        )}
-        {task.title && <div className="truncate text-xs leading-tight">{task.title}</div>}
-        {renderHeight > 40 && (task.startTime || task.endTime) && (
-          <div className="truncate text-[10px] leading-tight opacity-70">
-            {formatTimeLabel(task.startTime)}
-            {task.startTime && task.endTime ? " \u2013 " : ""}
-            {formatTimeLabel(task.endTime)}
+        ) : (
+          // Text at the top left; the assignees on the right, vertically centered
+          <div className="flex h-full min-w-0 gap-1">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start gap-1 text-xs font-medium leading-tight">
+                {task.isLocked && <Lock className="mt-px size-2.5 shrink-0 opacity-80" aria-hidden />}
+                <span className={renderHeight >= 64 ? "line-clamp-2" : "truncate"}>{headline}</span>
+              </div>
+              {timeLabel && <div className="truncate text-[10px] tabular-nums leading-tight opacity-80">{timeLabel}</div>}
+              {task.title && task.project?.name && renderHeight >= 52 && (
+                <div className="truncate text-[10px] leading-tight opacity-75">{task.project.name}</div>
+              )}
+            </div>
+            <CalendarTaskEnd task={task} after={showPeople ? <CalendarPeople users={task.users} max={2} /> : undefined} className="self-center" />
           </div>
         )}
 
@@ -258,6 +262,6 @@ export function CalendarTaskBlock({
           />
         )}
       </div>
-    </TaskTooltip>
+    </CalendarTaskTooltip>
   );
 }

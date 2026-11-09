@@ -22,6 +22,7 @@ import {
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { FilterMultiSelect, type FilterItem } from "@/components/shared/filter-multi-select";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TruncatedCell } from "@/components/shared/truncated-cell";
 import { Pencil, Trash2, Plus, Archive, ArchiveRestore, Filter, X, Copy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -245,24 +246,24 @@ export default function UsersPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("list.title")}</h1>
-        {!can("users:create") ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{t("shared.insufficientPermission")}</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold">{t("list.title")}</h1>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <ListToolbar
+        actions={
+          !can("users:create") ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t("shared.insufficientPermission")}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+          )
+        }
+      >
         <Filter className="h-4 w-4 text-muted-foreground" />
         <FilterMultiSelect label={t("list.filters.team")} items={teamOptions} selected={filterTeamIds} onChange={setFilterTeamIds} />
         <FilterMultiSelect label={t("list.filters.role")} items={roleOptions} selected={filterRoleIds} onChange={setFilterRoleIds} />
@@ -297,7 +298,7 @@ export default function UsersPage() {
             {t("list.count", { count: filteredUsers.length })}
           </span>
         )}
-      </div>
+      </ListToolbar>
 
       <DataTable
         columns={columns}

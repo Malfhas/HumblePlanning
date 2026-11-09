@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { PermissionButton } from "@/components/shared/permission-button";
 import { RowActions } from "@/components/shared/row-actions";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { FilterMultiSelect, type FilterItem } from "@/components/shared/filter-multi-select";
 import { TruncatedCell } from "@/components/shared/truncated-cell";
 import { cn } from "@/lib/utils";
@@ -340,24 +341,24 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{tc("entities.projects")}</h1>
-        {!can("projects:create") ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{t("permissionDenied")}</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold">{tc("entities.projects")}</h1>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <ListToolbar
+        actions={
+          !can("projects:create") ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t("permissionDenied")}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+          )
+        }
+      >
         <Filter className="h-4 w-4 text-muted-foreground" />
         <FilterMultiSelect label={t("fields.group")} items={groupOptions} selected={filterGroups} onChange={setFilterGroups} />
         <FilterMultiSelect label={t("fields.businessUnit")} items={businessUnitOptions} selected={filterBusinessUnits} onChange={setFilterBusinessUnits} />
@@ -392,7 +393,7 @@ export default function ProjectsPage() {
             {t("list.count", { count: filteredProjects.length })}
           </span>
         )}
-      </div>
+      </ListToolbar>
 
       <DataTable
         className="flex flex-col gap-3 flex-1 min-h-0"

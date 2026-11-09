@@ -4,7 +4,6 @@ import { db } from "@/db";
 import { aiChatConversations } from "@/db/schema";
 import { requireAuth, apiSuccess, validateBody } from "@/lib/utils/api";
 import { assertAiChatAvailable } from "@/lib/ai-chat/availability";
-import { assertScope } from "@/lib/ai-chat/chat-service";
 import { effectiveDefaultModel } from "@/lib/ai-chat/config";
 import { getListedConversation, listConversations } from "@/lib/ai-chat/conversations";
 import { handleChatError } from "@/lib/ai-chat/http";
@@ -13,14 +12,13 @@ import { getServerTranslator } from "@/i18n/server-translator";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * The assistant always works on the whole planning, within the user's rights: a
+ * `projectId` sent by an older client is ignored (zod drops unknown keys).
+ */
 const createSchema = z.object({
-  /** Null: "Whole schedule" scope. */
-  projectId: z.string().uuid().nullable().default(null),
   title: z.string().max(200).optional(),
-  /**
-   * Floating orb conversation: the scope follows navigation and is
-   * sent with each message, instead of being frozen at the first question.
-   */
+  /** Floating orb conversation: its tools follow the page being viewed, sent with each message. */
   followsNavigation: z.boolean().default(false),
 });
 
@@ -39,16 +37,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await requireAuth();
-    const { perms, config } = await assertAiChatAvailable(session.user.id);
+    const { config } = await assertAiChatAvailable(session.user.id);
     const input = await validateBody(request, createSchema);
-    await assertScope(perms, input.projectId);
     // Fallback title (no question): written in the author's language, like a typed title
     const t = await getServerTranslator(await resolveRequestLocale());
     const [created] = await db
       .insert(aiChatConversations)
       .values({
         userId: session.user.id,
-        projectId: input.projectId,
         followsNavigation: input.followsNavigation,
         title: input.title?.trim() || t("aiChat.conversations.defaultTitle"),
         model: effectiveDefaultModel(config),

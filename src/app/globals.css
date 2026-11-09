@@ -219,6 +219,73 @@
 .prose blockquote { border-left: 3px solid var(--border); padding-left: 1em; margin: 0.5em 0; color: var(--muted-foreground); }
 .prose p { margin: 0.5em 0; }
 
+/*
+ * Dialogs (dialog.tsx): the header (the title, beside the close button) and the footer (the action buttons) stay
+ * in view, only what lies between them scrolls. Both stick where they are laid out (the offsets of a sticky element
+ * count from the padding of its scroll container), so nothing moves while the content fits. Their background shadow covers the padding of the body around them, where the scrolled content
+ * would show; a line appears under the header and over the footer while content is hidden behind them
+ * (scroll-driven animation, where the browser supports it). In the components layer: a utility given to the
+ * element (sr-only, for instance) still wins.
+ */
+@property --dialog-edge {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+@layer components {
+  [data-slot="dialog-body"] [data-slot="dialog-header"] {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--background);
+    /* Covers the padding above and on the sides, and 0.5rem below; the line, 1px under it */
+    box-shadow:
+      0 calc(0.5rem - var(--dialog-pad)) 0 var(--dialog-pad) var(--background),
+      0 calc(0.5rem + 1px - var(--dialog-pad)) 0 var(--dialog-pad) var(--dialog-edge);
+  }
+
+  [data-slot="dialog-body"] [data-slot="dialog-footer"] {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background-color: var(--background);
+    /* Covers the padding below and on the sides, and 0.75rem above; the line, 1px over it */
+    box-shadow:
+      0 calc(var(--dialog-pad) - 0.75rem) 0 var(--dialog-pad) var(--background),
+      0 calc(var(--dialog-pad) - 0.75rem - 1px) 0 var(--dialog-pad) var(--dialog-edge);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    [data-slot="dialog-body"] [data-slot="dialog-header"] {
+      animation: dialog-edge-shown linear both;
+      animation-timeline: scroll();
+      animation-range: 0 1rem;
+    }
+
+    [data-slot="dialog-body"] [data-slot="dialog-footer"] {
+      animation: dialog-edge-hidden linear both;
+      animation-timeline: scroll();
+      animation-range: calc(100% - 1rem) 100%;
+    }
+  }
+}
+
+/* Delete key on a task (use-delete-shortcut.ts): its hint takes the place of the task tooltip */
+body[data-delete-shortcut] [data-slot="task-tooltip"] {
+  display: none;
+}
+
+@keyframes dialog-edge-shown {
+  from { --dialog-edge: transparent; }
+  to { --dialog-edge: var(--border); }
+}
+
+@keyframes dialog-edge-hidden {
+  from { --dialog-edge: var(--border); }
+  to { --dialog-edge: transparent; }
+}
+
 /* Task bar appear animation — only on optimistic (new) tasks to avoid
    re-animation when the real data replaces the placeholder */
 @keyframes task-appear {

@@ -13,6 +13,7 @@ import { Eye, EyeOff, Wand2, ShieldCheck } from "lucide-react";
 import { useTheme } from "next-themes";
 import { resolveThemedAsset } from "@/lib/utils/themed-asset";
 import { getRedirectFromLocation } from "@/lib/utils/safe-redirect";
+import { copyText } from "@/lib/utils/clipboard";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -151,7 +152,7 @@ export default function ChangePasswordPage() {
                 setPassword(pwd);
                 setConfirm(pwd);
                 setShowPassword(true);
-                navigator.clipboard.writeText(pwd).catch(() => {});
+                void copyText(pwd);
               }}
             >
               <Wand2 className="h-4 w-4" />

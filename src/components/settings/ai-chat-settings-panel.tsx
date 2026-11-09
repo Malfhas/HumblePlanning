@@ -522,7 +522,8 @@ function SettingsForm({ view }: { view: AdminView }) {
             value={config.systemPrompt || view.defaultPrompt}
             onChange={(e) => set("systemPrompt", e.target.value === view.defaultPrompt ? "" : e.target.value)}
             rows={18}
-            className="font-mono text-xs"
+            // Grows with the text up to about 28 lines, then scrolls inside
+            className="max-h-[28rem] overflow-y-auto font-mono text-xs"
           />
           {/* The {{appName}} placeholder stays in the code: literal braces outside ICU */}
           <HelpText>

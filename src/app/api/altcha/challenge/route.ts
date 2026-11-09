@@ -3,8 +3,8 @@
  *
  * The client widget (`<altcha-widget challengeurl="/api/altcha/challenge">`)
  * calls this endpoint on mount, solves the challenge as proof-of-work
- * (~0.5-1 s on a modern CPU with `cost=50000`), then sends the solution
- * back in the form it protects.
+ * (under a second on a recent computer, see `src/lib/altcha.ts`), then
+ * sends the solution back in the form it protects.
  *
  * Public endpoint (no auth required): by design, it is a pre-step
  * of auth. No PII exposed — just an HMAC-signed challenge

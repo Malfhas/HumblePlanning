@@ -27,7 +27,7 @@
     "gdpr": "DSGVO",
     "files": "Dateien",
     "audit": "Audit",
-    "logs": "Protokolle",
+    "retention": "Verläufe",
     "apiAccess": "API-Zugriff",
     "cache": "Cache",
     "purge": "Bereinigung",
@@ -68,7 +68,7 @@
     "footer": "Fußzeile",
     "files": "Dateien",
     "audit": "Audit",
-    "logs": "Protokolle",
+    "retention": "Aufbewahrung der Verläufe",
     "apiAccess": "API-Zugriff",
     "cache": "Cache",
     "purge": "Bereinigung",
@@ -587,8 +587,7 @@
       "label": "Anwendungstitel"
     },
     "APP_BASE_URL": {
-      "label": "Anwendungs-URL",
-      "description": "Wird in E-Mails verwendet (Links zum Zurücksetzen, Benachrichtigungen)"
+      "label": "Anwendungs-URL"
     },
     "TIMEZONE": {
       "label": "Zeitzone",
@@ -719,8 +718,8 @@
       "label": "Schriftart der Aufgaben",
       "description": "Lokal gehostete Schriftarten (beim Build geladen). Keine Aufrufe externer Server.",
       "options": {
-        "geist": "Geist Sans (Standard)",
-        "inter": "Inter",
+        "geist": "Geist Sans",
+        "inter": "Inter (Standard)",
         "roboto": "Roboto",
         "ibm-plex-sans": "IBM Plex Sans",
         "source-sans": "Source Sans 3"
@@ -949,7 +948,7 @@
     },
     "FORGOT_PASSWORD_ENABLED": {
       "label": "Funktion „Passwort vergessen“ aktivieren",
-      "description": "Zeigt auf der Anmeldeseite einen Link an, über den Benutzer ihr Passwort per E-Mail zurücksetzen können. Erfordert konfigurierte E-Mail-Einstellungen (SMTP oder Mailgun)."
+      "description": "Zeigt auf der Anmeldeseite einen Link an, über den Benutzer ihr Passwort per E-Mail zurücksetzen können. Erfordert einen konfigurierten E-Mail-Versanddienst."
     },
     "BRUTEFORCE_MAX_ATTEMPTS": {
       "label": "Anzahl der Versuche bis zur Sperre",
@@ -1088,22 +1087,13 @@
     "AUDIT_RETENTION": {
       "label": "Aufbewahrungsdauer des Audit-Protokolls"
     },
-    "LOGS_ENABLED": {
-      "label": "Systemprotokolle aktivieren",
-      "description": "Zeichnet Systemereignisse (Fehler, Aktionen, Anmeldungen) in einem Speicherpuffer auf, der auf der Seite Protokolle eingesehen werden kann"
+    "CHAT_HISTORY_RETENTION": {
+      "label": "Aufbewahrung des KI-Assistent-Verlaufs",
+      "description": "Jede Nacht werden die Unterhaltungen gelöscht, in denen seit dieser Dauer kein Austausch stattfand (Verwaltung → KI-Nutzung). Der Verbrauch des laufenden Kontingentzeitraums bleibt immer erhalten."
     },
-    "LOGS_LEVEL": {
-      "label": "Mindeststufe",
-      "options": {
-        "ERROR": "Nur Fehler",
-        "WARN": "Warnungen und Fehler",
-        "INFO": "Informationen (empfohlen)",
-        "DEBUG": "Debug (ausführlich)"
-      }
-    },
-    "LOGS_MAX_ENTRIES": {
-      "label": "Max. Anzahl Einträge",
-      "description": "Größe des Ringpuffers im Arbeitsspeicher (die ältesten Einträge werden ersetzt)"
+    "SYSTEM_EVENTS_RETENTION": {
+      "label": "Aufbewahrung der Systemvorfälle",
+      "description": "Jede Nacht werden die Vorfälle gelöscht, die länger zurück zuletzt aufgetreten sind (Verwaltung → Systemzustand)."
     },
     "API_ENABLED": {
       "label": "API-Zugriff aktivieren",

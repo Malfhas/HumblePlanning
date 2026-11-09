@@ -313,7 +313,7 @@ export function FileUpload({
         * the full width on large screens.
         */}
       <Dialog open={!!previewFile} onOpenChange={(open) => { if (!open) setPreviewFile(null); }}>
-        <DialogContent className={`p-4 pt-12 sm:p-6 sm:pt-12 ${previewFile?.type === "pdf" ? "sm:max-w-[95vw]" : "sm:max-w-5xl"} [&>[data-slot=dialog-close]]:z-10 [&>[data-slot=dialog-close]]:bg-background/80 [&>[data-slot=dialog-close]]:backdrop-blur-sm [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:shadow-sm`}>
+        <DialogContent bodyClassName="pt-12" className={`${previewFile?.type === "pdf" ? "sm:max-w-[95vw]" : "sm:max-w-5xl"} [&>[data-slot=dialog-close]]:z-10 [&>[data-slot=dialog-close]]:bg-background/80 [&>[data-slot=dialog-close]]:backdrop-blur-sm [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:shadow-sm`}>
           <VisuallyHidden><DialogTitle>{t("preview")}</DialogTitle></VisuallyHidden>
           {previewFile && (
             <div className="flex flex-col items-center gap-3">

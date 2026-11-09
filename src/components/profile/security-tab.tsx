@@ -37,6 +37,7 @@ import {
   Download,
   KeyRound,
 } from "lucide-react";
+import { copyText } from "@/lib/utils/clipboard";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -283,11 +284,12 @@ export function SecurityTab() {
                   setNewPassword(pwd);
                   setConfirmPassword(pwd);
                   setShowNewPwd(true);
-                  navigator.clipboard.writeText(pwd).then(() => {
+                  void copyText(pwd).then((ok) => {
+                    if (!ok) return;
                     if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
                     setCopiedPwd(true);
                     copiedTimerRef.current = setTimeout(() => setCopiedPwd(false), 3000);
-                  }).catch(() => {});
+                  });
                 }}
               >
                 <Wand2 className="h-4 w-4" />

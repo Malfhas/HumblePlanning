@@ -50,19 +50,19 @@ import { ReplyIndicator, localPhase } from "./reply-indicator";
 import { ModelIcon } from "./model-icon";
 import { QuotaGauge, type ChatQuota } from "./quota-gauge";
 import { modelLabel } from "./models";
-import type { ScopeProject } from "./scope-select";
 import { ReplyMarkdown } from "./reply-markdown";
 import { EditableTitle } from "./editable-title";
 import type { ReplyEvent, ReplyPhase, ReplyStatus } from "./replies-store";
 import { useReplyNotification } from "./use-reply-notification";
 import { tDyn } from "@/i18n/dynamic";
+import { copyText } from "@/lib/utils/clipboard";
 
 /**
  * The AI chat thread, shared between the Assistant page (full
  * page) and the floating assistant (bottom-right panel): a single code base for
  * the composer, reply rendering, write confirmations and
- * regeneration. What differs between the two is the scope: chosen then
- * frozen in the Assistant page, imposed by the current screen in the floating assistant.
+ * regeneration. Both work on the whole planning, within the user's rights; in the
+ * floating assistant, the tools also follow the page being viewed.
  */
 
 export interface Conversation {
@@ -76,8 +76,6 @@ export interface Conversation {
   replyInProgress: boolean;
   /** Pinned at the top of the list; null otherwise. */
   pinnedAt: string | null;
-  /** Null: "Whole planning" scope. */
-  project: { id: string; number: string; name: string } | null;
 }
 
 /** Message as stored in the database, to re-read on reopening. */
@@ -188,24 +186,10 @@ export interface ChatAccess {
   dictation?: boolean;
 }
 
-/**
- * Scope imposed by the current screen, for the floating assistant: the open
- * project, otherwise the whole schedule. It is sent with each message, and changes without
- * the thread being remounted.
- */
-export interface FollowedScope {
-  projectId: string | null;
-  /** The open project, when known: used to display it. */
-  project: ScopeProject | null;
-}
-
 // i18n-dynamic: aiChat.thread.suggestions.*
 
-/** Starter prompts offered on opening (`thread.suggestions.<scope>.<id>`): they show what the assistant can do. */
-const PROJECT_SUGGESTIONS = ['progress', 'whoThisWeek', 'lateOrUnassigned', 'conflicts'];
-
-/** On the whole schedule, questions naturally relate to teams and projects. */
-const GLOBAL_SUGGESTIONS = ['availableNextWeek', 'summaryByTeam', 'overBudget', 'unassigned'];
+/** Starter prompts offered on opening (`thread.suggestions.global.<id>`): they show what the assistant can do. */
+const SUGGESTIONS = ['availableNextWeek', 'summaryByTeam', 'overBudget', 'unassigned'];
 
 /**
  * Models known to read images. The list is used to warn the user;
@@ -225,19 +209,17 @@ const HEADER_BUTTON =
  */
 export function ChatThread({
   conversation,
-  initialProjectId,
   access,
   onCreated,
-  followedScope,
+  followsNavigation = false,
   compact,
   onOpenList,
 }: {
   conversation: Conversation | null;
-  initialProjectId: string | null;
   access: ChatAccess;
   onCreated: (id: string) => void;
-  /** Floating assistant: the scope is the current screen's, sent with each message. */
-  followedScope?: FollowedScope | null;
+  /** Floating assistant: the page being viewed is sent with each message (its tools). */
+  followsNavigation?: boolean;
   /** Narrow panel: tighter home, smaller sphere. */
   compact?: boolean;
   /** Phone: opens the conversations drawer from the thread header. */
@@ -246,13 +228,6 @@ export function ChatThread({
   const t = useTranslations('aiChat');
   const { intlTag } = useDateFormat();
   const queryClient = useQueryClient();
-  // Projects offered for the scope: those the user can see (not needed for the floating assistant)
-  const { data: visibleProjects } = useQuery({
-    queryKey: ['ai-chat-scope-projects'],
-    queryFn: () => api<ScopeProject[]>('/api/ai-chat/scope-projects'),
-    enabled: !followedScope,
-    staleTime: 60_000,
-  });
   /**
    * Monthly quota reached: no more questions until the period is
    * reset. The composer closes and says so; reading is still possible. The
@@ -266,49 +241,6 @@ export function ChatThread({
     () => void queryClient.invalidateQueries({ queryKey: ['ai-chat-access'] }),
     [queryClient],
   );
-  /**
-   * Scope: a project, or the whole schedule when it is null.
-   * In the Assistant page, it is chosen in the composer (when coming from
-   * a project, that project is picked; otherwise the whole schedule) and it freezes at the
-   * first question. In the floating assistant, the current screen
-   * imposes it, message after message, without the thread being remounted.
-   */
-  const [chosenProjectId, setChosenProjectId] = useState<string | null>(
-    conversation?.project?.id ?? initialProjectId ?? null,
-  );
-  const projectId = followedScope ? followedScope.projectId : chosenProjectId;
-  /**
-   * Scope of the next message, read on send: the screen may have changed since the
-   * transport was built, and that is precisely what we want to pass on.
-   */
-  const followedScopeRef = useRef(followedScope ?? null);
-  useEffect(() => {
-    followedScopeRef.current = followedScope ?? null;
-  }, [followedScope]);
-  /** Scope sent with the message, in the floating assistant only. */
-  const currentScope = () =>
-    followedScopeRef.current
-      ? {
-          projectId: followedScopeRef.current.projectId,
-          // The page being viewed: the server only declares its tools to the model
-          page: pageFromPath(window.location.pathname),
-        }
-      : {};
-  /**
-   * Projects offered in the scope selector. The conversation project is
-   * always there: it is the one displayed when the scope is frozen or
-   * follows navigation.
-   */
-  const projects: ScopeProject[] = followedScope
-    ? followedScope.project
-      ? [followedScope.project]
-      : []
-    : [
-        ...(conversation?.project ? [conversation.project] : []),
-        ...(visibleProjects ?? [])
-          .filter((candidate) => candidate.id !== conversation?.project?.id)
-          .map((candidate) => ({ id: candidate.id, number: candidate.number, name: candidate.name })),
-      ];
   const [model, setModel] = useState(conversation?.model || access.defaultModel);
   // Same reason as for the identifier: the model is read on send
   const modelRef = useRef(conversation?.model || access.defaultModel);
@@ -330,8 +262,6 @@ export function ChatThread({
    */
   const idRef = useRef<string | null>(conversation?.id ?? null);
 
-  /** The global scope, always offered: all the projects the user can see. */
-  const workspace = { name: t('scope.global.name') };
   /**
    * Capabilities of the current model. They come from the OpenRouter catalog, so
    * from the provider itself; the pattern fallback is only used if the catalog
@@ -340,6 +270,17 @@ export function ChatThread({
   const capabilities = access.modelCapabilities?.[model];
   const imagesSupported = capabilities ? capabilities.image : VISION_MODELS.test(model);
   const filesSupported = Boolean(capabilities?.file);
+  /** What each model can read, under its name in the model menu. */
+  const modelDescriptions = Object.fromEntries(
+    access.models.map((candidate) => {
+      const known = access.modelCapabilities?.[candidate];
+      const images = known ? known.image : VISION_MODELS.test(candidate);
+      return [
+        candidate,
+        t(images && known?.file ? 'composer.modelReads.imagesAndPdf' : images ? 'composer.modelReads.images' : 'composer.modelReads.documents'),
+      ];
+    }),
+  );
 
   const transport = useMemo(
     () =>
@@ -353,11 +294,16 @@ export function ChatThread({
             messages: outgoing,
             model: modelRef.current,
             reasoning: reasoningRef.current,
-            ...currentScope(),
+            /**
+             * The page being viewed, read on send (floating assistant only): the screen may
+             * have changed since the transport was built, and the server only declares its
+             * tools to the model.
+             */
+            ...(followsNavigation ? { page: pageFromPath(window.location.pathname) } : {}),
           },
         }),
       }),
-    [],
+    [followsNavigation],
   );
   /**
    * The conversation stays stuck to the bottom while the model writes - otherwise the
@@ -612,17 +558,16 @@ export function ChatThread({
 
   const send = async (forcedText?: string) => {
     const text = (forcedText ?? draft).trim();
-    if (!text || (!projectId && !workspace) || quotaReached) return;
+    if (!text || quotaReached) return;
 
     if (!currentId) {
       // The conversation is born now, with a title taken from the question
       const created = await api<Conversation>('/api/ai-chat/conversations', {
         method: 'POST',
         body: {
-          projectId,
           title: text.slice(0, 80),
-          // Born in the floating assistant: its scope will follow navigation
-          followsNavigation: Boolean(followedScopeRef.current),
+          // Born in the floating assistant: its tools will follow navigation
+          followsNavigation,
         },
       }).catch((err: Error) => {
         toast.error(err.message);
@@ -756,24 +701,12 @@ export function ChatThread({
         model={model}
         models={access.models}
         labels={access.modelLabels}
+        modelDescriptions={modelDescriptions}
         onModel={changeModel}
         reasoning={reasoning}
         onReasoning={(level) => {
           reasoningRef.current = level;
           setReasoning(level);
-        }}
-        scope={{
-          workspace: { name: workspace.name },
-          // The projects the user can see (scope of their permissions): nothing to filter here.
-          projects,
-          projectId,
-          onProject: setChosenProjectId,
-          // From the first question, the scope is frozen: replies already
-          // given rely on it, changing it would make the thread inconsistent.
-          locked: Boolean(currentId),
-          // Floating assistant conversation: the scope follows navigation,
-          // in the panel as in the Assistant page where it is reopened.
-          followsNavigation: Boolean(followedScope) || Boolean(conversation?.followsNavigation),
         }}
         imagesSupported={imagesSupported}
         filesSupported={filesSupported}
@@ -782,6 +715,7 @@ export function ChatThread({
         autoFocus={!conversation}
         dictation={Boolean(access.dictation)}
         blockedMessage={quotaMessage}
+        grow={!compact}
       />
     );
 
@@ -853,8 +787,14 @@ export function ChatThread({
     </header>
   );
 
-  // Home screen: the question is in the center, as in a real assistant.
-  // `m-auto` on the block: centered when it fits, scrolling otherwise (short panel).
+  const welcome = (
+    <h1 className={cn('text-center font-semibold text-ai-primary', compact ? 'mb-3 text-lg' : 'mb-5 text-2xl')}>
+      {t('thread.welcome')}
+    </h1>
+  );
+
+  // Home screen: the question is in the center, as in a real assistant; the block scrolls when the
+  // window is too short for it.
   if (!currentId && !messages.length) {
     return (
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -873,44 +813,51 @@ export function ChatThread({
             compact ? 'px-3' : 'px-6 max-md:px-3',
           )}
         >
-          <div className={cn('m-auto w-full', compact ? 'py-4' : 'max-w-2xl max-md:py-4')}>
-            <Sphere
-              className={cn('mx-auto', compact ? 'mb-4 size-24' : 'mb-6 size-40 max-md:size-28')}
-            />
-            <h1
+          {/* Panel: the sphere takes the free height above, the question and the suggestions reach the
+              bottom, with no blank under them. Full page: the question field sits in the middle of the page,
+              the sphere and the title in the half above it, the suggestions in the half below. */}
+          <div
+            className={cn(
+              'flex min-h-full w-full flex-col',
+              compact ? 'py-4' : 'mx-auto max-w-3xl py-6 max-md:py-4',
+            )}
+          >
+            <div
               className={cn(
-                'text-center font-semibold text-ai-primary',
-                compact ? 'mb-3 text-lg' : 'mb-5 text-2xl',
+                'flex flex-1 flex-col',
+                compact ? 'min-h-32 items-center justify-center' : 'justify-end',
               )}
             >
-              {t('thread.welcome')}
-            </h1>
+              <Sphere
+                className={cn('mx-auto', compact ? 'mb-4 size-28' : 'mb-6 size-40 max-md:size-28')}
+              />
+              {!compact ? welcome : null}
+            </div>
+            {compact ? welcome : null}
 
             {composer}
 
-            {(projectId || workspace) && !quotaReached ? (
-              <div className="mt-5">
-                <p className="mb-1 text-ai-xs text-ai-muted">{t('thread.suggestions.title')}</p>
-                {(projectId ? PROJECT_SUGGESTIONS : GLOBAL_SUGGESTIONS).map((key) => {
-                  const suggestion = tDyn(t, `thread.suggestions.${projectId ? 'project' : 'global'}.${key}`);
-                  return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => void send(suggestion)}
-                    className="flex w-full items-center gap-2 border-t border-ai-border-subtle px-1 py-2 text-left text-ai-sm text-ai-secondary hover:text-ai-primary max-md:min-h-10"
-                  >
-                    <span className="text-ai-muted">↳</span>
-                    {suggestion}
-                  </button>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            <p className="mt-6 text-center text-[11px] text-ai-muted">
-              {access.level === 'READ' ? t('thread.disclaimerReadOnly') : t('thread.disclaimer')}
-            </p>
+            <div className={cn(!compact && 'flex-1')}>
+              {!quotaReached ? (
+                <div className="mt-5">
+                  <p className="mb-1 text-ai-xs text-ai-muted">{t('thread.suggestions.title')}</p>
+                  {SUGGESTIONS.map((key) => {
+                    const suggestion = tDyn(t, `thread.suggestions.global.${key}`);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => void send(suggestion)}
+                        className="flex w-full items-center gap-2 border-t border-ai-border-subtle px-1 py-2 text-left text-ai-sm text-ai-secondary hover:text-ai-primary max-md:min-h-10"
+                      >
+                        <span className="text-ai-muted">↳</span>
+                        {suggestion}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -976,13 +923,16 @@ export function ChatThread({
             >
               <div
                 className={cn(
-                  'rounded-ai-xl px-3.5 py-2.5 text-ai-sm',
+                  'rounded-ai-xl px-5 py-3 text-ai-md',
                   message.role === 'user'
                     ? 'max-w-[80%] bg-ai-selected text-ai-primary max-md:max-w-[90%]'
                     : 'w-full bg-transparent text-ai-primary',
                 )}
               >
-                {message.parts.map((part, index) => {
+                {groupParts(message.parts).map((item) => {
+                  // Lookups in a row: one line that unfolds, not one frame each
+                  if (item.kind === 'tools') return <ToolGroup key={item.index} parts={item.parts} />;
+                  const { part, index } = item;
                   if (part.type === 'text') {
                     if (message.role !== 'user') return <ReplyMarkdown key={index} text={part.text} />;
                     /**
@@ -1056,10 +1006,13 @@ export function ChatThread({
               </div>
 
               <MessageActions
+                // Each block without the blank lines a model often writes around it (after its reasoning, between
+                // two tool calls): pasted in the field, they showed as an empty line above the text
                 text={message.parts
                   .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-                  .map((part) => part.text)
-                  .join('\n')}
+                  .map((part) => part.text.trim())
+                  .filter(Boolean)
+                  .join('\n\n')}
                 role={message.role}
                 date={date}
                 busy={busy}
@@ -1145,21 +1098,28 @@ function MessageActions({
   if (!text.trim()) return null;
 
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
+    if (!(await copyText(text))) {
       toast.error(t('copyFailed'));
+      return;
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   const buttonClass =
     'grid size-6 place-items-center rounded-ai-md text-ai-muted transition-colors hover:bg-ai-surface-hover hover:text-ai-primary disabled:opacity-40 max-md:size-10';
 
   return (
-    // No hover on phone: actions stay visible, otherwise they are unreachable
-    <div className="mt-0.5 flex gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 max-md:flex-wrap max-md:opacity-100">
+    // No hover on phone: actions stay visible, otherwise they are unreachable.
+    // Lined up with the text of the bubble (`px-5`), not with its rounded edge: the icons of a reply start
+    // under its first letter (their 24 px button has 5 px around the icon, and the drawing of the icon a little
+    // more inside it); the date of a question ends just inside the rounded corner of its bubble.
+    <div
+      className={cn(
+        'mt-1 flex gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 max-md:flex-wrap max-md:opacity-100',
+        role === 'user' ? 'pr-1.5' : 'pl-[18px] max-md:pl-2.5',
+      )}
+    >
       <Tooltip content={copied ? t('copied') : t('copy')}>
         <button
           type="button"
@@ -1316,7 +1276,8 @@ function AttachedDocument({ name, content }: { name: string; content: string }) 
 
 /**
  * Model reasoning. It is collapsed by default: it is a reasoning draft,
- * useful to understand a surprising reply, cluttering otherwise.
+ * useful to understand a surprising reply, cluttering otherwise. Plain text that
+ * unfolds, with no frame: it must not look like part of the answer.
  */
 function Reasoning({ text, inProgress }: { text: string; inProgress: boolean }) {
   const t = useTranslations('aiChat.reasoning');
@@ -1324,78 +1285,128 @@ function Reasoning({ text, inProgress }: { text: string; inProgress: boolean }) 
   if (!text.trim()) return null;
 
   return (
-    <div
-      className={cn(
-        'my-2 rounded-ai-lg border bg-ai-sunken transition-colors',
-        inProgress ? 'border-[#9c6bff]/50' : 'border-ai-border-subtle',
-      )}
-    >
+    <div className="my-2">
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((wasOpen) => !wasOpen)}
-        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[11px] text-ai-muted hover:text-ai-secondary max-md:min-h-10"
+        className="inline-flex items-center gap-1.5 text-ai-sm text-ai-muted transition-colors hover:text-ai-secondary max-md:min-h-10"
       >
         <Brain className={cn('size-3.5', inProgress && 'animate-pulse text-[#9c6bff]')} />
         <span className={cn(inProgress && 'ai-reflexion font-medium')}>
           {inProgress ? t('inProgress') : t('title')}
         </span>
-        <ChevronDown
-          className={cn('ml-auto size-3.5 transition-transform', open && 'rotate-180')}
-        />
+        <ChevronDown className={cn('size-3.5 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
       </button>
       {open ? (
-        <p className="whitespace-pre-wrap px-3 pb-2 text-[11px] leading-relaxed text-ai-secondary">
-          {text}
-        </p>
+        // Under the title, after the icon: the draft reads apart from the answer
+        <p className="mt-1.5 whitespace-pre-wrap pl-5 text-ai-sm leading-relaxed text-ai-muted">{text}</p>
       ) : null}
     </div>
   );
 }
 
-/** Tool call: what the assistant looked up, or what it proposes to write. */
+/**
+ * The parts of a reply as they are drawn: the lookups of tools that follow one another (the model often
+ * calls several in a row) are gathered in one group; a write waiting for approval stays alone, it is a
+ * decision; the step markers draw nothing.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyPart = any;
+type DrawnPart = { kind: 'part'; part: AnyPart; index: number } | { kind: 'tools'; parts: AnyPart[]; index: number };
+
+function groupParts(parts: AnyPart[]): DrawnPart[] {
+  const drawn: DrawnPart[] = [];
+  parts.forEach((part, index) => {
+    if (part.type === 'step-start') return;
+    const lookup = String(part.type).startsWith('tool-') && part.state !== 'approval-requested';
+    const last = drawn.at(-1);
+    if (lookup && last?.kind === 'tools') last.parts.push(part);
+    else if (lookup) drawn.push({ kind: 'tools', parts: [part], index });
+    else drawn.push({ kind: 'part', part, index });
+  });
+  return drawn;
+}
+
+/** A write waiting for the user's approval: the decision card. */
 function ToolCall({
   part,
   description,
   onDecision,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  part: any;
+  part: AnyPart;
   description?: string;
   onDecision: (id: string, approved: boolean) => void;
 }) {
   const name = String(part.type).replace(/^tool-/, '');
-  const [open, setOpen] = useState(false);
+  return <Approval name={name} part={part} description={description} onDecision={onDecision} />;
+}
 
-  // A pending write is not a trace: it is a decision to make
-  if (part.state === 'approval-requested') {
-    return <Approval name={name} part={part} description={description} onDecision={onDecision} />;
-  }
+/**
+ * The tools the assistant used, in a row: one line of text that unfolds (like the reasoning), with no
+ * frame, then each tool unfolds on its parameters and its result.
+ */
+function ToolGroup({ parts }: { parts: AnyPart[] }) {
+  const t = useTranslations('aiChat.toolGroup');
+  const [open, setOpen] = useState(false);
+  const names = parts.map((part) => String(part.type).replace(/^tool-/, ''));
+  const running = parts.some((part) => part.state === 'input-streaming' || part.state === 'input-available');
 
   return (
-    <div className="my-2 rounded-ai-lg border border-ai-border-subtle bg-ai-sunken">
+    <div className="my-2">
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((wasOpen) => !wasOpen)}
-        className="flex w-full items-center gap-2 px-3 py-1.5 text-[11px] text-ai-muted hover:text-ai-secondary max-md:min-h-10"
+        className="inline-flex max-w-full items-center gap-1.5 text-left text-ai-sm text-ai-muted transition-colors hover:text-ai-secondary max-md:min-h-10"
       >
-        <Wrench className="size-3.5 shrink-0" />
-        <span className="font-ai-mono">{name}</span>
-        <ChevronDown
-          className={cn('ml-auto size-3.5 shrink-0 transition-transform', open && 'rotate-180')}
-        />
+        <Wrench className={cn('size-3.5 shrink-0', running && 'animate-pulse text-[#9c6bff]')} />
+        <span className="shrink-0">{running ? t('running') : t('used', { count: parts.length })}</span>
+        <span className="min-w-0 truncate font-ai-mono text-[12px]">· {names.join(', ')}</span>
+        <ChevronDown className={cn('size-3.5 shrink-0 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
       </button>
-
       {open ? (
-        <div className="px-3 pb-2">
+        <div className="mt-1 space-y-1 pl-5">
+          {parts.map((part, index) => (
+            <ToolDetail key={part.toolCallId ?? index} name={names[index]} part={part} />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** One tool of a group: its name, then what it was given and what it answered. */
+function ToolDetail({ name, part }: { name: string; part: AnyPart }) {
+  const t = useTranslations('aiChat.toolGroup');
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        className="inline-flex items-center gap-1 font-ai-mono text-[12px] text-ai-muted transition-colors hover:text-ai-secondary max-md:min-h-10"
+      >
+        {name}
+        <ChevronDown className={cn('size-3 shrink-0 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
+      </button>
+      {open ? (
+        // `leading-4`: the JSON keeps its own line height, not the 24 px of the messages around it
+        <div className="mt-1 space-y-1.5 border-l border-ai-border-subtle pl-3 text-[11px] leading-4 text-ai-secondary">
           {part.input ? (
-            <pre className="overflow-x-auto whitespace-pre-wrap text-[11px] text-ai-secondary">
-              {JSON.stringify(part.input, null, 2)}
-            </pre>
+            <div>
+              <p className="text-ai-muted">{t('input')}</p>
+              <pre className="overflow-x-auto whitespace-pre-wrap">{JSON.stringify(part.input, null, 2)}</pre>
+            </div>
           ) : null}
-          {part.output ? (
-            <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap text-[11px] text-ai-secondary">
-              {typeof part.output === 'string' ? part.output : JSON.stringify(part.output, null, 2)}
-            </pre>
+          {part.output !== undefined ? (
+            <div>
+              <p className="text-ai-muted">{t('output')}</p>
+              <pre className="max-h-40 overflow-auto whitespace-pre-wrap">
+                {typeof part.output === 'string' ? part.output : JSON.stringify(part.output, null, 2)}
+              </pre>
+            </div>
           ) : null}
         </div>
       ) : null}

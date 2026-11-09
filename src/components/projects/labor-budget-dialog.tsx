@@ -162,7 +162,7 @@ export function LaborBudgetDialog({ projectId, onClose }: LaborBudgetDialogProps
               </span>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div data-slot="dialog-footer" className="flex justify-end pt-2">
               <Button variant="outline" onClick={onClose}>{tc("actions.close")}</Button>
             </div>
           </div>

@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { useAiChatAvailability } from "@/hooks/use-ai-chat-availability";
+import { useConfig } from "@/hooks/use-config";
+import { fontVariableOf } from "@/hooks/use-planning-config";
 import { useAssistantStore } from "./assistant-store";
 import { FloatingAssistant } from "./floating-assistant";
 import { useReplyListener } from "./replies-store";
@@ -24,6 +27,19 @@ export function AiChatRoot() {
 function AvailableChat({ sphereAllowed }: { sphereAllowed: boolean }) {
   useReplyListener();
   const { resolvedTheme } = useTheme();
+  /**
+   * The chat writes in the font chosen in the settings, like the planning. Set on
+   * <body>, where the font variables live: the page, the sphere and what they portal
+   * all inherit it (ai-chat.css).
+   */
+  const { data: config } = useConfig();
+  const fontKey = config?.PLANNING_FONT_FAMILY;
+  useEffect(() => {
+    document.body.style.setProperty("--ai-font", `var(${fontVariableOf(fontKey)})`);
+    return () => {
+      document.body.style.removeProperty("--ai-font");
+    };
+  }, [fontKey]);
   return (
     <div className="ai-chat-root" data-ai-chat>
       {sphereAllowed ? <FloatingAssistant /> : null}

@@ -19,7 +19,7 @@ export interface PlanningConfig {
  *  through `next/font/google` in `layout.tsx`. The variable holds the generated
  *  internal class name (e.g. `__Inter_xxx`) that must be resolved on the client
  *  because `ctx.font` does not accept `var(...)` — it needs the resolved value. */
-const FONT_VAR_BY_KEY: Record<string, string> = {
+export const FONT_VAR_BY_KEY: Record<string, string> = {
   geist: "--font-geist-sans",
   inter: "--font-inter",
   roboto: "--font-roboto",
@@ -28,6 +28,10 @@ const FONT_VAR_BY_KEY: Record<string, string> = {
 };
 
 const FONT_FALLBACK = "ui-sans-serif, system-ui, sans-serif";
+
+/** CSS variable of the font chosen in the settings (`PLANNING_FONT_FAMILY`), Inter when unknown. */
+export const fontVariableOf = (key: string | null | undefined): string =>
+  FONT_VAR_BY_KEY[(key || "inter").trim()] || FONT_VAR_BY_KEY.inter;
 
 /** Resolves a font CSS variable into a value usable by `ctx.font`. */
 function resolveFontStack(varName: string): string {
@@ -62,9 +66,7 @@ export function usePlanningConfig(): PlanningConfig {
 
     const sidebarWidthMobileMax = parseInt(config.PLANNING_SIDEBAR_WIDTH_MOBILE || "140", 10) || 140;
 
-    const fontKey = (config.PLANNING_FONT_FAMILY || "geist").trim();
-    const fontVar = FONT_VAR_BY_KEY[fontKey] || FONT_VAR_BY_KEY.geist;
-    const fontFamily = resolveFontStack(fontVar);
+    const fontFamily = resolveFontStack(fontVariableOf(config.PLANNING_FONT_FAMILY));
     const fontBold = config.PLANNING_FONT_BOLD === "true";
 
     return { taskBarHeight, taskBarGap: 4, cellFontSize, sidebarWidth, sidebarWidthMobileMax, fontFamily, fontBold };

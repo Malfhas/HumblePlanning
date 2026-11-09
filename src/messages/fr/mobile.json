@@ -24,7 +24,8 @@
     "error": "Impossible de générer le QR code.",
     "notAllowed": "Votre rôle ne permet pas d'utiliser l'application mobile.",
     "expired": "Ce QR code a expiré.",
-    "regenerate": "Générer un nouveau QR code"
+    "regenerate": "Générer un nouveau QR code",
+    "regenerateIn": "Nouveau QR code dans {seconds} s"
   },
   "quickAccess": {
     "button": "Application mobile",

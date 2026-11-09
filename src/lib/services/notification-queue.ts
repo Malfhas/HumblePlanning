@@ -151,7 +151,7 @@ async function queueNotification(
 ) {
   // Check eligible recipients upfront — no recipient = no timer
   const recipientIds = await getEligibleRecipientIds(userIds, actorId);
-  logger.info("email", `Notification queue ${type} task=${task.id}`, { userIds, actorId, recipientIds });
+  logger.debug("email", `Notification queue ${type} task=${task.id}`, { userIds, actorId, recipientIds });
   if (recipientIds.length === 0) {
     // Still cancel any pending notification (user may have toggled notifications off)
     cancelPending(task.id);

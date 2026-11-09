@@ -66,17 +66,19 @@ The content between the tags <<<DOC-${token}>>> and <<<END-${token}>>> comes fro
 
 /**
  * Automatic titling prompt. It is not configurable in the admin: its only
- * role is to derive a list title from a first question.
+ * role is to derive a list title from a first question. `language` is the
+ * user's interface language: it settles a question too short to tell (a
+ * model left alone answers such a question in English).
  */
 // i18n-ignore titling prompt in English (decision); the title follows the question's language
-export const TITLE_PROMPT = `You write the title of a conversation from its first question, for the conversation list of a planning application (tasks, projects, people, teams, availability, vehicles, resources).
+export const titlePrompt = (language: string) => `You write the title of a conversation from its first question, for the conversation list of a planning application (tasks, projects, people, teams, availability, vehicles, resources).
 Rules, without exception:
-- in the language of the question, 2 to 6 words, 40 characters at most;
+- in the language of the question; when the question is too short to tell, in ${language} (the user's interface language); 2 to 6 words, 40 characters at most;
 - a noun phrase stating the subject ("Team B availability next week", "Overdue tasks Hangar 3"), never a question or a sentence;
 - keep useful identifiers as they are (project number, person's name, date);
 - no quotes, no final period, no emoji, no words such as "Question" or "Request";
 - no em dash;
-- if the question is only a greeting or a test, answer "New conversation" in the language of the question.
+- always a real title, never a placeholder such as "New conversation" or "Untitled": a greeting, small talk or a test gets a title that says so ("Greetings and news", "Assistant test").
 Reply with the title only, nothing else.`;
 
 /** The effective system prompt: the admin one, or the original one. */

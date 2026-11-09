@@ -65,6 +65,7 @@ import { cn } from "@/lib/utils";
 import { ErrorState } from "@/components/shared/error-state";
 import { useTaskPreviewStore } from "@/stores/task-preview-store";
 import { TruncatedCell } from "@/components/shared/truncated-cell";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 
 function getFileIcon(mimeType: string) {
   if (mimeType.startsWith("image/")) return <ImageIcon className="h-4 w-4 text-blue-500" />;
@@ -139,34 +140,35 @@ export default function FilesPage() {
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Paperclip className="h-6 w-6" />
-          {t("title")}
-        </h1>
-        <Button variant="destructive" size="sm" onClick={() => setPurgeOpen(true)}>
-          {t("purge")}
-        </Button>
-      </div>
+      <h1 className="text-2xl font-bold flex items-center gap-2">
+        <Paperclip className="h-6 w-6" />
+        {t("title")}
+      </h1>
 
       {/* Storage stats */}
       <StorageStats className="w-full" />
       <UserStorageChart className="w-full" />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
+      <ListToolbar
+        actions={
+          <Button variant="destructive" size="sm" onClick={() => setPurgeOpen(true)}>
+            {t("purge")}
+          </Button>
+        }
+      >
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="pl-9 w-[240px]"
+            className="h-8 pl-9 w-[240px]"
           />
         </div>
 
         <Select value={fileType || "all"} onValueChange={(v) => { setFileType(v === "all" ? "" : v as "image" | "pdf" | "other"); setPage(1); }}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder={t("types.placeholder")} /></SelectTrigger>
+          <SelectTrigger size="sm" className="w-[160px]"><SelectValue placeholder={t("types.placeholder")} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("types.all")}</SelectItem>
             <SelectItem value="image">{t("types.image")}</SelectItem>
@@ -177,7 +179,7 @@ export default function FilesPage() {
 
         <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("w-[170px] justify-start text-left font-normal", !dateStart && "text-muted-foreground")}>
+            <Button variant="outline" className={cn("h-8 w-[170px] justify-start text-left font-normal", !dateStart && "text-muted-foreground")}>
               <CalendarDays className="mr-2 h-4 w-4" />
               {dateStart ? formatLocalized(parseISO(dateStart), "d MMM yyyy") : t("startDate")}
             </Button>
@@ -194,7 +196,7 @@ export default function FilesPage() {
 
         <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("w-[170px] justify-start text-left font-normal", !dateEnd && "text-muted-foreground")}>
+            <Button variant="outline" className={cn("h-8 w-[170px] justify-start text-left font-normal", !dateEnd && "text-muted-foreground")}>
               <CalendarDays className="mr-2 h-4 w-4" />
               {dateEnd ? formatLocalized(parseISO(dateEnd), "d MMM yyyy") : t("endDate")}
             </Button>
@@ -218,7 +220,7 @@ export default function FilesPage() {
             {tc("actions.reset")}
           </Button>
         )}
-      </div>
+      </ListToolbar>
 
       {/* Table */}
       <div className="flex flex-col gap-3 flex-1 min-h-0">
@@ -457,7 +459,7 @@ export default function FilesPage() {
 
       {/* File preview dialog */}
       <Dialog open={!!previewFile} onOpenChange={(open) => { if (!open) setPreviewFile(null); }}>
-        <DialogContent className={`p-4 pt-12 sm:p-6 sm:pt-12 ${previewFile?.type === "pdf" ? "sm:max-w-[95vw] w-[95vw]" : "sm:max-w-5xl w-[95vw]"} [&>[data-slot=dialog-close]]:z-10 [&>[data-slot=dialog-close]]:bg-background/80 [&>[data-slot=dialog-close]]:backdrop-blur-sm [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:shadow-sm`}>
+        <DialogContent bodyClassName="pt-12" className={`${previewFile?.type === "pdf" ? "sm:max-w-[95vw] w-[95vw]" : "sm:max-w-5xl w-[95vw]"} [&>[data-slot=dialog-close]]:z-10 [&>[data-slot=dialog-close]]:bg-background/80 [&>[data-slot=dialog-close]]:backdrop-blur-sm [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:shadow-sm`}>
           <VisuallyHidden><DialogTitle>{t("previewTitle")}</DialogTitle></VisuallyHidden>
           {previewFile && (
             <div className="flex flex-col items-center gap-3">

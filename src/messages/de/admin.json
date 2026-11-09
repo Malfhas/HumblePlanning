@@ -195,19 +195,288 @@
       "nagerInvalidType": "Ungültiger Typ (status, countries oder holidays)"
     }
   },
-  "logs": {
-    "title": "Systemprotokolle",
-    "entries": "{count, plural, one {# Eintrag} other {# Einträge}}",
-    "clear": "Leeren",
-    "levelPlaceholder": "Stufe",
-    "allLevels": "Alle Stufen",
-    "categoryPlaceholder": "Kategorie",
-    "allCategories": "Alle",
-    "loading": "Protokolle werden geladen...",
-    "empty": "Keine Protokolle",
-    "clearDialog": {
-      "title": "Systemprotokolle leeren",
-      "description": "Diese Aktion löscht alle Protokolle im Arbeitsspeicher. Die Protokolle werden nicht dauerhaft gespeichert und gehen endgültig verloren."
+  "purgeBefore": {
+    "before": "Vor dem {date}",
+    "datePlaceholder": "Datum wählen",
+    "confirm": "Bereinigen"
+  },
+  "aiHistory": {
+    "title": "KI-Nutzung",
+    "exportCsv": "Als CSV exportieren",
+    "purge": "Bereinigen",
+    "clearFilters": "Filter zurücksetzen",
+    "unknownUser": "Gelöschter Benutzer",
+    "deletedBadge": "Vom Benutzer gelöscht",
+    "empty": "Keine Unterhaltung im Zeitraum.",
+    "modelsCount": "{count, plural, one {# Modell} other {# Modelle}}",
+    "filters": {
+      "period": "Zeitraum",
+      "user": "Benutzer",
+      "model": "Modell"
+    },
+    "periods": {
+      "7": "Letzte 7 Tage",
+      "30": "Letzte 30 Tage",
+      "90": "Letzte 90 Tage",
+      "all": "Gesamter Verlauf"
+    },
+    "kpis": {
+      "conversations": "Unterhaltungen",
+      "messages": "Nachrichten",
+      "promptTokens": "Eingabe-Tokens",
+      "completionTokens": "Ausgabe-Tokens",
+      "cost": "Gesamtkosten",
+      "errors": "Fehler",
+      "averageDuration": "Durchschnittliche Antwortzeit: {seconds} s"
+    },
+    "chart": {
+      "title": "Kosten pro Tag",
+      "description": "Kosten der Antworten des Assistenten, in Dollar (Zeitzone der Instanz)",
+      "day": "Tag",
+      "cost": "Kosten ($)"
+    },
+    "columns": {
+      "lastActivity": "Letzter Austausch",
+      "title": "Unterhaltung",
+      "deleted": "Vom Benutzer gelöscht",
+      "user": "Benutzer",
+      "models": "Modelle",
+      "messages": "Nachrichten",
+      "tokens": "Tokens (Eingabe / Ausgabe)",
+      "promptTokens": "Eingabe-Tokens",
+      "completionTokens": "Ausgabe-Tokens",
+      "cost": "Kosten ($)",
+      "errors": "Fehler"
+    },
+    "detail": {
+      "title": "Unterhaltung",
+      "subtitle": "{user} · begonnen am {date}",
+      "empty": "Leere Unterhaltung.",
+      "roles": {
+        "USER": "Benutzer",
+        "ASSISTANT": "Assistent",
+        "TOOL": "Werkzeug"
+      },
+      "messageStatus": {
+        "DONE": "Abgeschlossen",
+        "RUNNING": "Läuft",
+        "FAILED": "Fehlgeschlagen",
+        "CANCELLED": "Angehalten",
+        "INTERRUPTED": "Unterbrochen"
+      },
+      "toolStatus": {
+        "PROPOSED": "Vorgeschlagen",
+        "APPROVED": "Bestätigt",
+        "REJECTED": "Abgelehnt",
+        "EXECUTED": "Ausgeführt",
+        "FAILED": "Fehlgeschlagen"
+      },
+      "tokens": "{prompt} Eingabe-Tokens · {completion} Ausgabe",
+      "duration": "{seconds} s",
+      "toolCalls": "{count, plural, one {# Werkzeug aufgerufen} other {# Werkzeuge aufgerufen}}",
+      "arguments": "Parameter",
+      "result": "Ergebnis"
+    },
+    "quota": {
+      "title": "Verbrauch des laufenden Kontingentzeitraums",
+      "period": "Seit {start}, nächste Zurücksetzung am {next}",
+      "amount": "Monatskontingent von {amount} pro Benutzer",
+      "disabled": "Kontingent deaktiviert",
+      "manage": "Kontingente verwalten",
+      "empty": "Kein Verbrauch im laufenden Zeitraum.",
+      "unlimited": "Unbegrenzt",
+      "columns": {
+        "user": "Benutzer",
+        "usage": "Verbraucht",
+        "share": "Anteil am Kontingent"
+      }
+    },
+    "purgeDialog": {
+      "title": "KI-Assistent-Verlauf bereinigen",
+      "description": "Löscht endgültig die Unterhaltungen, deren letzter Austausch vor dem gewählten Datum liegt, mit ihren Nachrichten und Werkzeugaufrufen. Der gewählte Tag bleibt erhalten, ebenso der Verbrauch des laufenden Kontingentzeitraums.",
+      "preview": "{conversations, plural, =0 {Keine Unterhaltung} one {# Unterhaltung} other {# Unterhaltungen}} und {messages, plural, =0 {keine Nachricht} one {# Nachricht} other {# Nachrichten}} werden gelöscht.",
+      "ledger": "Außerdem {count, plural, one {# Zeile} other {# Zeilen}} des Kontingentregisters (vergangene Zeiträume)."
+    },
+    "errors": {
+      "notFound": "Unterhaltung nicht gefunden."
+    }
+  },
+  "systemHealth": {
+    "title": "Systemzustand",
+    "sections": {
+      "live": "Aktueller Zustand",
+      "alerts": "Konfigurationswarnungen",
+      "tasks": "Geplante Aufgaben",
+      "tasksDescription": "Letzte Ausführung der Hintergrundaufgaben und nächste geplante Ausführung.",
+      "incidents": "Vorfälle",
+      "incidentsDescription": "Warnungen und Fehler des Servers, gruppiert, wenn sie sich wiederholen. Routinemeldungen bleiben im Serverprotokoll (docker logs).",
+      "deliveries": "Fehlgeschlagene Zustellungen"
+    },
+    "live": {
+      "up": "Betriebsbereit",
+      "down": "Nicht erreichbar",
+      "database": {
+        "title": "Datenbank",
+        "latency": "Antwortet in {ms} ms"
+      },
+      "realtime": {
+        "title": "Echtzeitserver",
+        "clients": "{count, plural, =0 {Kein Client verbunden} one {# Client verbunden} other {# Clients verbunden}}"
+      },
+      "version": {
+        "title": "Version",
+        "details": "Ansehen",
+        "status": {
+          "up_to_date": "Aktuell",
+          "update_available": "Update verfügbar: v{version}",
+          "security_update": "Sicherheitsupdate verfügbar: v{version}",
+          "error": "Updateprüfung fehlgeschlagen",
+          "disabled": "Updateprüfung deaktiviert",
+          "no_release": "Keine veröffentlichte Version"
+        }
+      },
+      "backup": {
+        "title": "Letzte Sicherung",
+        "none": "Keine Sicherung",
+        "detail": "{date} · {size} MB",
+        "status": {
+          "completed": "Erfolgreich",
+          "failed": "Fehlgeschlagen",
+          "in_progress": "Läuft"
+        }
+      }
+    },
+    "alerts": {
+      "none": "Kein Konfigurationsproblem erkannt.",
+      "configEncryptionKey": {
+        "title": "Schlüssel zur Verschlüsselung der Einstellungen fehlt",
+        "description": "CONFIG_ENCRYPTION_KEY ist in der Datei .env nicht gesetzt (oder ungültig): Die in den Einstellungen eingegebenen Passwörter und Schlüssel werden unverschlüsselt in der Datenbank gespeichert. Fügen Sie einen Schlüssel hinzu (openssl rand -hex 32) und starten Sie die Anwendung neu."
+      },
+      "smtpWithoutTls": {
+        "title": "SMTP ohne Verschlüsselung",
+        "description": "Der SMTP-Server ist ohne TLS und ohne Zertifikatsprüfung konfiguriert: E-Mails und die SMTP-Anmeldung werden unverschlüsselt übertragen. Wählen Sie TLS oder SSL unter Einstellungen → E-Mail."
+      },
+      "temporaryAuthSecret": {
+        "title": "Temporäres Authentifizierungsgeheimnis",
+        "description": "BETTER_AUTH_SECRET fehlt in der Datei .env: Ein temporäres Geheimnis wird verwendet, und beim nächsten Neustart gehen alle Sitzungen verloren. Führen Sie das Installationsprogramm erneut aus oder setzen Sie es in .env."
+      },
+      "captchaNotConfigured": {
+        "title": "Captcha aktiviert, aber nicht konfiguriert",
+        "description": "Das Captcha ist ohne seine Schlüssel aktiviert (ALTCHA: Geheimnisse in der Datei .env; Turnstile oder reCAPTCHA: Website-Schlüssel und geheimer Schlüssel): Die Prüfung wird bei der Anmeldung übersprungen."
+      },
+      "fcmInvalid": {
+        "title": "Ungültiges Firebase-Dienstkonto",
+        "description": "FCM_SERVICE_ACCOUNT_JSON ist kein gültiges Firebase-Dienstkonto: Die Push-Benachrichtigungen der mobilen App werden nicht gesendet."
+      }
+    },
+    "tasks": {
+      "columns": {
+        "task": "Aufgabe",
+        "lastRun": "Letzte Ausführung",
+        "result": "Ergebnis",
+        "nextRun": "Nächste Ausführung"
+      },
+      "names": {
+        "daily_purge": "Nächtliche Bereinigung",
+        "backup": "Automatische Sicherung",
+        "weekly_summary": "Wochenübersicht",
+        "update_check": "Updateprüfung"
+      },
+      "descriptions": {
+        "daily_purge": "Jede Nacht um 3 Uhr: KI-Assistent-Verlauf und Vorfälle nach Ablauf ihrer Aufbewahrungsdauer.",
+        "backup": "In der unter Einstellungen → Sicherung gewählten Häufigkeit.",
+        "weekly_summary": "E-Mail mit dem Wochenplan, gemäß Einstellungen → Kommunikation.",
+        "update_check": "Höchstens einmal alle 24 Stunden, beim Besuch eines Administrators."
+      },
+      "status": {
+        "never": "Nie ausgeführt",
+        "running": "Läuft",
+        "success": "Erfolgreich",
+        "failed": "Fehlgeschlagen"
+      },
+      "summary": {
+        "dailyPurge": "{conversations, plural, =0 {keine Unterhaltung} one {# Unterhaltung} other {# Unterhaltungen}} und {events, plural, =0 {kein Vorfall} one {# Vorfall} other {# Vorfälle}} gelöscht",
+        "backup": "{size} MB",
+        "weeklySummary": "{sent, plural, =0 {keine E-Mail gesendet} one {# E-Mail gesendet} other {# E-Mails gesendet}}"
+      },
+      "disabled": "Deaktiviert",
+      "onDemand": "Bei Bedarf",
+      "interrupted": "Unterbrochen: Der Server wurde während der Ausführung beendet."
+    },
+    "levels": {
+      "ERROR": "Fehler",
+      "WARN": "Warnung"
+    },
+    "categories": {
+      "system": "System",
+      "auth": "Authentifizierung",
+      "api": "API",
+      "socket": "Echtzeit",
+      "db": "Datenbank",
+      "email": "E-Mail",
+      "push": "Push-Benachrichtigungen",
+      "sms": "SMS",
+      "mcp": "MCP",
+      "backup": "Sicherung",
+      "import": "Import",
+      "migration": "Migration",
+      "ai_chat": "KI-Assistent"
+    },
+    "periods": {
+      "1": "Letzte 24 Stunden",
+      "7": "Letzte 7 Tage",
+      "30": "Letzte 30 Tage",
+      "all": "Gesamter Zeitraum"
+    },
+    "incidents": {
+      "purge": "Bereinigen",
+      "clearFilters": "Filter zurücksetzen",
+      "empty": "Kein Vorfall im Zeitraum.",
+      "filters": {
+        "level": "Stufe",
+        "category": "Kategorie",
+        "period": "Zeitraum"
+      },
+      "columns": {
+        "level": "Stufe",
+        "category": "Kategorie",
+        "message": "Meldung",
+        "occurrences": "Vorkommen",
+        "lastSeen": "Zuletzt aufgetreten",
+        "firstSeen": "Zuerst aufgetreten"
+      },
+      "detail": {
+        "route": "Anfrage",
+        "user": "Benutzer",
+        "metadata": "Details",
+        "stack": "Aufrufstapel"
+      },
+      "purgeDialog": {
+        "title": "Vorfälle bereinigen",
+        "description": "Löscht endgültig die Vorfälle, die zuletzt vor dem gewählten Datum aufgetreten sind. Der gewählte Tag bleibt erhalten.",
+        "preview": "{count, plural, =0 {Kein Vorfall wird gelöscht.} one {# Vorfall wird gelöscht.} other {# Vorfälle werden gelöscht.}}"
+      }
+    },
+    "deliveries": {
+      "tabs": {
+        "emails": "E-Mails ({count})",
+        "sms": "SMS ({count})",
+        "webhooks": "Webhooks ({count})"
+      },
+      "columns": {
+        "date": "Datum",
+        "recipient": "Empfänger",
+        "subject": "Betreff",
+        "error": "Fehler",
+        "provider": "Dienst",
+        "event": "Ereignis",
+        "status": "Status"
+      },
+      "empty": "Keine fehlgeschlagene Zustellung im Zeitraum.",
+      "webhookStatus": {
+        "error": "Fehler",
+        "invalid_signature": "Ungültige Signatur"
+      }
     }
   }
 }

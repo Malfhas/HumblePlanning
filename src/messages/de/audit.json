@@ -58,7 +58,9 @@
     "email": "E-Mail",
     "webhook": "Webhook",
     "notification": "Benachrichtigung",
-    "system": "System"
+    "system": "System",
+    "ai_history": "KI-Assistent-Verlauf",
+    "system_health": "Systemzustand"
   },
   "fields": {
     "title": "Titel",

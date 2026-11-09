@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { AppError } from "@/lib/errors";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
@@ -12,6 +13,40 @@ import { getServerTranslator } from "@/i18n/server-translator";
 export const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
 /** Cap on the text sent to the model, per attachment. */
 const MAX_TEXT_LENGTH = 200_000;
+
+/** The image formats the models read through OpenRouter; any other is converted. */
+const MODEL_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+/**
+ * Models scale an image down to about 2000 px on its long side anyway: a photo
+ * sent in full (up to 20 MB, a third more in base64) only slowed the request.
+ */
+export const IMAGE_MAX_PX = 2048;
+const IMAGE_MAX_BYTES = 1024 * 1024;
+
+/**
+ * The image as the model gets it: as is when it is already small and in a
+ * format the models read, otherwise turned upright, reduced to IMAGE_MAX_PX and
+ * encoded in JPEG (on white: transparency means nothing to a model). An image
+ * that cannot be read here goes as is, as before.
+ */
+export async function imageForModel(buffer: Buffer, type: string): Promise<{ buffer: Buffer; type: string }> {
+  try {
+    const meta = await sharp(buffer).metadata();
+    const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+    if (MODEL_IMAGE_TYPES.includes(type) && longest <= IMAGE_MAX_PX && buffer.length <= IMAGE_MAX_BYTES) {
+      return { buffer, type };
+    }
+    const reduced = await sharp(buffer)
+      .rotate()
+      .resize({ width: IMAGE_MAX_PX, height: IMAGE_MAX_PX, fit: "inside", withoutEnlargement: true })
+      .flatten({ background: "#ffffff" })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    return { buffer: reduced, type: "image/jpeg" };
+  } catch {
+    return { buffer, type };
+  }
+}
 
 export interface Attachment {
   name: string;
@@ -86,7 +121,8 @@ export async function readAttachment(file: File): Promise<Attachment> {
   const ext = extension(name);
 
   if (type.startsWith("image/")) {
-    return { name, kind: "image", mediaType: type, dataUrl: `data:${type};base64,${buffer.toString("base64")}` };
+    const image = await imageForModel(buffer, type);
+    return { name, kind: "image", mediaType: image.type, dataUrl: `data:${image.type};base64,${image.buffer.toString("base64")}` };
   }
 
   if (ext === "pdf") {

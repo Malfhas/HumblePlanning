@@ -41,8 +41,28 @@
       "pastedCopy": "Eingefügt (Kopie)",
       "pastedMove": "Eingefügt (verschoben)"
     },
-    "noVisibleUsers": "Keine sichtbaren Benutzer. Prüfen Sie die Filter oder den Ansichtsmodus.",
-    "allDay": "Ganztägig"
+    "allDay": "Ganztägig",
+    "deleteShortcut": {
+      "confirm": "Zum Löschen erneut {key} drücken",
+      "key": "Entf",
+      "denied": "Keine Berechtigung, diese Aufgabe zu löschen"
+    }
+  },
+  "calendar": {
+    "weekShort": "KW {week}",
+    "weekTitle": "Kalenderwoche {week}",
+    "openWeek": "Kalenderwoche {week} anzeigen",
+    "openDay": "Tag öffnen",
+    "newTaskOn": "Neue Aufgabe am {date}",
+    "more": "{count, plural, one {+# weitere} other {+# weitere}}",
+    "showMore": "{count, plural, one {Die weitere Aufgabe in der Tagesansicht anzeigen} other {Die # weiteren Aufgaben in der Tagesansicht anzeigen}}",
+    "peopleTitle": "{busy, plural, one {# Person beschäftigt} other {# Personen beschäftigt}} von {total} · {free, plural, =0 {niemand verfügbar} other {# verfügbar}}",
+    "hours": "{hours} h",
+    "loadTitle": "{level, select, over {Überlastet: {planned} h geplant bei {capacity} h Arbeitszeit} full {Voller Tag: {planned} h geplant} other {{planned} von {capacity} h geplant}}",
+    "dayEmpty": "An diesem Tag ist nichts geplant.",
+    "empty": "Keine Aufgabe in diesem Zeitraum geplant",
+    "emptyHint": "Klicken Sie auf einen freien Zeitraum, um eine Aufgabe zu erstellen.",
+    "emptyHintMonth": "Fahren Sie über einen Tag und klicken Sie auf „+“, um eine Aufgabe zu erstellen."
   },
   "a11y": {
     "gridLabel": "Planungsraster",
@@ -64,9 +84,9 @@
   },
   "liveStatus": {
     "live": {
-      "label": "Live",
+      "label": "Echtzeit",
       "ariaLabel": "Echtzeitverbindung aktiv",
-      "tooltip": "Die Planung wird in Echtzeit synchronisiert. Änderungen anderer Benutzer erscheinen sofort."
+      "tooltip": "Die Planung wird in Echtzeit synchronisiert."
     },
     "offline": {
       "label": "Offline",
@@ -77,6 +97,7 @@
   "tooltips": {
     "untitled": "Ohne Titel",
     "task": {
+      "milestone": "Meilenstein",
       "resourceConflict": "Konflikt — diese Ressource ist in diesem Zeitraum bereits reserviert",
       "vehicleConflict": "Konflikt — dieses Fahrzeug ist in diesem Zeitraum bereits reserviert"
     },
@@ -133,8 +154,13 @@
     },
     "calendarModes": {
       "planning": "Planung",
-      "personal": "Mein Kalender",
-      "teamDay": "Team/Tag"
+      "personal": "Kalender"
+    },
+    "planningRows": {
+      "label": "Zeilen der Planung",
+      "users": "Nach Benutzern",
+      "projects": "Nach Projekten",
+      "choose": "Zeilen der Planung wählen"
     },
     "sort": {
       "nameAsc": "Name A → Z",
@@ -167,12 +193,25 @@
     "permissionDenied": "Unzureichende Berechtigung",
     "calendar": {
       "selectUser": "Auswählen...",
+      "everyone": "Alle Benutzer",
       "noUser": "Kein Benutzer",
       "hoursView": "Stundenansicht",
       "daysView": "Tagesansicht",
       "daysShort": "{count} T",
       "showWorkingHours": "Arbeitszeiten anzeigen",
-      "show24h": "24 Stunden anzeigen"
+      "show24h": "24 Stunden anzeigen",
+      "person": "Angezeigte Person",
+      "me": "(Sie)",
+      "month": "Monat",
+      "monthTooltip": "Ganzer Monat",
+      "daysTooltip": "{count, plural, one {# Tag} other {# Tage}}",
+      "previousMonth": "Vorheriger Monat",
+      "nextMonth": "Nächster Monat",
+      "previousDays": "Vorherige {count} Tage",
+      "nextDays": "Nächste {count} Tage",
+      "jumpTo": "Datum wählen",
+      "viewLabel": "Darstellung",
+      "periodLabel": "Angezeigter Zeitraum"
     },
     "filters": "Filter",
     "showMenu": "Menü einblenden",

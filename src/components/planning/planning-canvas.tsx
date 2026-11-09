@@ -48,14 +48,15 @@ import { VehicleReserveDialog } from "@/components/vehicles/vehicle-reserve-dial
 import { ResourceReserveDialog } from "@/components/resources/resource-reserve-dialog";
 import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
 import { gridScrollBounds, SCROLLBAR_SIZE, scrollThumbLength } from "@/lib/canvas/scroll-bounds";
-import { useQueryClient } from "@tanstack/react-query";
-import { socket, SOCKET_ENABLED } from "@/lib/socket-client";
-import { useSocket } from "@/hooks/use-socket";
+import { buildRowYMap, getTotalContentHeight as rowsTotalHeight } from "@/lib/canvas/hit-test";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useConfig } from "@/hooks/use-config";
 import { parseDailyTaskLimit, wouldExceedDailyLimit } from "@/lib/utils/daily-task-limit";
 import type { TaskWithUsers } from "@/types";
 import type { GridRow } from "@/lib/utils/sort-rows";
+import { useDeleteShortcut, clipRect } from "@/hooks/use-delete-shortcut";
+import { deleteOpensDialog, isRecurringTask, isSharedTask } from "@/lib/utils/delete-shortcut";
+import { DeleteShortcutHint } from "./delete-shortcut-hint";
 
 /**
  * Main component of the planning grid, rendered as a hybrid Canvas.
@@ -1266,91 +1267,46 @@ export function PlanningCanvas() {
     clipboardTask,
   ]);
 
+  // Delete key on the bar under the cursor: same rules and same action as the « Delete » item of the
+  // context menu (vehicle / resource assignments included). Key: the bar (`taskId`) and its row.
+  const deleteHint = useDeleteShortcut({
+    enabled: !!interactiveCanvas && !isTouchDevice,
+    resolve: (clientX, clientY) => {
+      if (!interactiveCanvas) return null;
+      const canvasRect = interactiveCanvas.getBoundingClientRect();
+      const hit = hitTest(clientX - canvasRect.left, clientY - canvasRect.top);
+      if (hit.kind !== "task") return null;
+      const bar = getTaskRect(hit.taskId);
+      const pseudo = hit.taskId.startsWith("va:") || hit.taskId.startsWith("ra:");
+      // The task as the context menu sees it (real ID, or the vehicle / resource assignment)
+      const task = taskIndex.get(pseudo ? hit.taskId : extractRealTaskId(hit.taskId));
+      let canDelete: boolean;
+      if (hit.taskId.startsWith("va:")) canDelete = can("vehicles:delete");
+      else if (hit.taskId.startsWith("ra:")) canDelete = can("resources:delete");
+      else canDelete = !!task && !task.isLocked && canDeleteTask(task);
+      return {
+        key: `${hit.taskId}|${hit.rowId}`,
+        // The visible part of the bar, right of the names column
+        rect: bar
+          ? clipRect(
+              { left: canvasRect.left + bar.x, top: canvasRect.top + bar.y, width: bar.width, height: bar.height },
+              { left: canvasRect.left + computedSidebarWidth, top: canvasRect.top, right: canvasRect.right, bottom: canvasRect.bottom },
+            )
+          : null,
+        canDelete,
+        opensDialog: deleteOpensDialog(isSharedTask(task), isRecurringTask(task)),
+      };
+    },
+    onConfirm: (key) => {
+      const sep = key.lastIndexOf("|");
+      handleDeleteTaskAction(key.slice(0, sep), key.slice(sep + 1) || undefined);
+    },
+  });
+
   // ──────────────────────────────────────────────────────────────────
-  // 9.quinquies Socket.io — real-time sync of remote changes
-  // (parity with legacy scheduler-grid.tsx)
+  // 9.quinquies Socket.io — the real-time sync of remote changes is
+  // mounted once by the planning page (`useTaskRealtime`), for every view.
   // ──────────────────────────────────────────────────────────────────
-  const queryClient = useQueryClient();
-  const { connected } = useSocket();
-  useEffect(() => {
-    if (!SOCKET_ENABLED || !connected) return;
-    type TaskCachePage = { data: unknown[]; total: number };
-    type RemoteTaskEvent = { action?: string; taskId?: string; taskIds?: string[] };
-    const handleTaskChanged = async (event?: RemoteTaskEvent) => {
-      // ── Deletions: remove from every list locally, no
-      // refetch needed. The individual query is purged FIRST
-      // to avoid a 404 if a `useTask(deletedId)` component is
-      // still mounted (closing modal, etc.).
-      if (event?.action === "deleted" && event.taskId) {
-        const deletedId = event.taskId;
-        queryClient.removeQueries({ queryKey: ["tasks", deletedId], exact: true });
-        queryClient.setQueriesData<TaskCachePage>({ queryKey: ["tasks"] }, (old) => {
-          if (!old?.data) return old;
-          const filtered = old.data.filter((t) => (t as { id: string }).id !== deletedId);
-          return { ...old, data: filtered, total: Math.max(0, old.total - (old.data.length - filtered.length)) };
-        });
-        return;
-      }
-      if (event?.action === "bulk-deleted" && event.taskIds) {
-        const ids = new Set(event.taskIds);
-        for (const id of event.taskIds) {
-          queryClient.removeQueries({ queryKey: ["tasks", id], exact: true });
-        }
-        queryClient.setQueriesData<TaskCachePage>({ queryKey: ["tasks"] }, (old) => {
-          if (!old?.data) return old;
-          const filtered = old.data.filter((t) => !ids.has((t as { id: string }).id));
-          return { ...old, data: filtered, total: Math.max(0, old.total - (old.data.length - filtered.length)) };
-        });
-        return;
-      }
-      // ── Creation / update / move / resize / copy of a
-      // remote task: we fetch ONLY that task (~5 KB) and
-      // merge it into the cache. Avoids the global refetch of /api/tasks
-      // (~5 MB) that caused a ~1 second display delay.
-      if (event?.taskId) {
-        try {
-          const res = await fetch(`/api/tasks/${event.taskId}`);
-          if (!res.ok) return;
-          const task = (await res.json()) as { id: string };
-          queryClient.setQueriesData<TaskCachePage>({ queryKey: ["tasks"] }, (old) => {
-            if (!old?.data) return old;
-            const idx = old.data.findIndex((t) => (t as { id: string }).id === task.id);
-            if (idx >= 0) {
-              const next = old.data.slice();
-              next[idx] = task;
-              return { ...old, data: next };
-            }
-            return { ...old, data: [...old.data, task], total: old.total + 1 };
-          });
-          queryClient.setQueryData(["tasks", task.id], task);
-        } catch {
-          // Fallback: if the fetch fails, invalidate to reconverge
-          queryClient.invalidateQueries({ queryKey: ["tasks"] });
-        }
-      } else {
-        // Event without taskId (generic bulk update): global invalidate
-        queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      }
-      // Dependent queries (vehicle / resource icons on the bars,
-      // project summaries) — vehicle/resource are required
-      // for the canvas (icons), hence an active refetch. Projects are lazy
-      // (refetchType: "none") because of the big payload + only /projects
-      // really needs it → refetch when that screen mounts again.
-      queryClient.invalidateQueries({ queryKey: ["projects"], refetchType: "none" });
-      queryClient.invalidateQueries({ queryKey: ["vehicle-assignments"] });
-      queryClient.invalidateQueries({ queryKey: ["resource-assignments"] });
-    };
-    const handleConnect = () => {
-      // On reconnect, we do not know what we missed → global refetch.
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-    };
-    socket.on("task:changed", handleTaskChanged);
-    socket.on("connect", handleConnect);
-    return () => {
-      socket.off("task:changed", handleTaskChanged);
-      socket.off("connect", handleConnect);
-    };
-  }, [connected, queryClient]);
 
   // ──────────────────────────────────────────────────────────────────
   // 10. Radix tooltip on canvas bar
@@ -1408,7 +1364,9 @@ export function PlanningCanvas() {
   // ──────────────────────────────────────────────────────────────────
   const MIN_THUMB = 36;
   const totalContentW = dayCount * cellWidth;
-  const totalContentH = getTotalContentHeight();
+  // Computed during render from the rows themselves: the renderer only receives its data in an effect, after this
+  // render, so reading its height here showed the scrollbars of the previous view until the next mouse move.
+  const totalContentH = useMemo(() => rowsTotalHeight(buildRowYMap(sortedRows, slotData), sortedRows), [sortedRows, slotData]);
   const viewportContentW = Math.max(0, size.width - computedSidebarWidth);
   const viewportContentH = Math.max(0, size.height - CANVAS_GEOMETRY.headerHeight);
   const {
@@ -1637,6 +1595,7 @@ export function PlanningCanvas() {
           {/* Ghost anchor — used for the tooltips. The position
               in screen coords (clientX/Y) is read from tooltipAnchor. */}
           <CanvasTooltipAnchor ref={tooltipAnchorRef} />
+          <DeleteShortcutHint hint={deleteHint} />
 
           {/* Controlled TaskTooltip — drives visible/anchor from the
               canvas hit-test. The internal portal handles the rendering. */}
@@ -1907,12 +1866,8 @@ export function PlanningCanvas() {
           state={contextMenu}
           onClose={closeContextMenu}
           hasClipboard={!!clipboardTask}
-          isMultiUser={
-            contextMenu?.taskId
-              ? (taskIndex.get(contextMenu.taskId)?.users?.length ?? 0) > 1
-              : false
-          }
-          isRecurring={ctxTask ? !!ctxTask.parentId : false}
+          isMultiUser={contextMenu?.taskId ? isSharedTask(taskIndex.get(contextMenu.taskId)) : false}
+          isRecurring={isRecurringTask(ctxTask)}
           isLocked={ctxTask ? !!ctxTask.isLocked : false}
           canCreate={menuCanCreate}
           canEdit={menuCanEdit}

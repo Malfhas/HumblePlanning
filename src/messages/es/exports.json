@@ -22,7 +22,7 @@
     "liveSettingsHint": "Los ajustes siguientes modifican la planificación en tiempo real.",
     "calendar": {
       "personal": "Calendario de {name}",
-      "teamDay": "Jornada del {date}",
+      "everyone": "Calendario de todos los usuarios",
       "hint": "La exportación refleja el modo de calendario activo."
     },
     "view": "Vista",
@@ -70,7 +70,6 @@
       "helpPdf": "Añade páginas con las horas consumidas, el tiempo de los usuarios y los presupuestos restantes."
     },
     "summary": {
-      "day": "Jornada",
       "period": "Periodo",
       "periodHint": "Modifique el periodo desde la barra de herramientas de la planificación."
     },
@@ -101,8 +100,33 @@
         "gantt": "Planificación (cuadrícula)",
         "list": "Lista (tabla)"
       },
-      "fitOnePage": "Ajustar a 1 página"
+      "fitOnePage": "Ajustar a 1 página",
+      "fullNames": "Nombres completos",
+      "fullNamesHelp": "Muestra los nombres de los proyectos y de las personas completos, en varias líneas si hace falta, en lugar de cortarlos con «…»."
     },
-    "generating": "Generando…"
+    "generating": "Generando…",
+    "kind": {
+      "label": "Tipo de exportación",
+      "planning": "Planificación",
+      "projectGantt": "Gantt de proyecto"
+    },
+    "projectGantt": {
+      "project": "Proyecto",
+      "choose": "Elegir un proyecto",
+      "search": "Buscar un proyecto…",
+      "empty": "Ningún proyecto",
+      "order": "Orden de las filas",
+      "orders": {
+        "date": "Por fecha de inicio (en escalera)",
+        "alpha": "Orden alfabético"
+      },
+      "hint": "Una fila por título de tarea del proyecto en el período, coloreada según su estado. Los filtros de la planificación no se aplican.",
+      "scale": "Escala",
+      "scales": {
+        "days": "Días",
+        "weeks": "Semanas"
+      },
+      "today": "Marcar el día de hoy"
+    }
   }
 }

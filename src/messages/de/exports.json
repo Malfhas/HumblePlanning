@@ -22,7 +22,7 @@
     "liveSettingsHint": "Die folgenden Einstellungen ändern die Planung in Echtzeit.",
     "calendar": {
       "personal": "Kalender von {name}",
-      "teamDay": "Tag vom {date}",
+      "everyone": "Kalender aller Benutzer",
       "hint": "Der Export entspricht dem aktiven Kalendermodus."
     },
     "view": "Ansicht",
@@ -70,7 +70,6 @@
       "helpPdf": "Fügt Seiten mit verbrauchten Stunden, Benutzerzeit und verbleibenden Budgets hinzu."
     },
     "summary": {
-      "day": "Tag",
       "period": "Zeitraum",
       "periodHint": "Ändern Sie den Zeitraum über die Symbolleiste der Planung."
     },
@@ -101,8 +100,33 @@
         "gantt": "Planung (Raster)",
         "list": "Liste (Tabelle)"
       },
-      "fitOnePage": "Auf 1 Seite einpassen"
+      "fitOnePage": "Auf 1 Seite einpassen",
+      "fullNames": "Vollständige Namen",
+      "fullNamesHelp": "Zeigt die Namen von Projekten und Personen vollständig an, bei Bedarf auf mehreren Zeilen, statt sie mit „…“ abzukürzen."
     },
-    "generating": "Wird generiert…"
+    "generating": "Wird generiert…",
+    "kind": {
+      "label": "Exportart",
+      "planning": "Planung",
+      "projectGantt": "Projekt-Gantt"
+    },
+    "projectGantt": {
+      "project": "Projekt",
+      "choose": "Projekt auswählen",
+      "search": "Projekt suchen…",
+      "empty": "Kein Projekt",
+      "order": "Reihenfolge der Zeilen",
+      "orders": {
+        "date": "Nach Startdatum (treppenförmig)",
+        "alpha": "Alphabetische Reihenfolge"
+      },
+      "hint": "Eine Zeile pro Aufgabentitel des Projekts im Zeitraum, nach Status eingefärbt. Die Planungsfilter gelten nicht.",
+      "scale": "Skala",
+      "scales": {
+        "days": "Tage",
+        "weeks": "Wochen"
+      },
+      "today": "Heutigen Tag markieren"
+    }
   }
 }

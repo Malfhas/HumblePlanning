@@ -214,9 +214,11 @@ export function StatusForm({ initialData, onSubmit, isPending, serverError }: St
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? tc("states.saving") : initialData ? tc("actions.edit") : tc("actions.create")}
-      </Button>
+      <div data-slot="dialog-footer">
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? tc("states.saving") : initialData ? tc("actions.edit") : tc("actions.create")}
+        </Button>
+      </div>
     </form>
   );
 }

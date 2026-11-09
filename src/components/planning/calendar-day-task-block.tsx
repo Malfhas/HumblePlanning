@@ -1,40 +1,36 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
+import { Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { contrastColor } from "@/lib/utils";
-import { TaskTooltip } from "./task-tooltip";
 import { usePlanningStore } from "@/stores/planning-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useDateFormat } from "@/hooks/use-date-format";
+import { CalendarPeople, CalendarTaskEnd, CalendarTaskTooltip, darkenColor, taskHeadline, TASK_FALLBACK_COLOR } from "./calendar-items";
 import type { TaskWithUsers } from "@/types";
-
-function darkenColor(hex: string, amount: number): string {
-  const c = hex.replace("#", "");
-  const r = Math.max(0, Math.round(parseInt(c.substring(0, 2), 16) * (1 - amount)));
-  const g = Math.max(0, Math.round(parseInt(c.substring(2, 4), 16) * (1 - amount)));
-  const b = Math.max(0, Math.round(parseInt(c.substring(4, 6), 16) * (1 - amount)));
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-}
-
-function parseHourFromTime(time: string): number {
-  return parseInt(time.split(":")[0], 10);
-}
 
 interface CalendarDayTaskBlockProps {
   task: TaskWithUsers;
   columnId: string;
   onClick: (taskId: string) => void;
   onContextMenu?: (e: React.MouseEvent, taskId: string) => void;
+  /** Unique draggable id when the same task appears more than once in the view. */
+  draggableKey?: string;
+  /** Calendar of everyone: the assignees of the task are shown. */
+  showPeople?: boolean;
 }
 
-export function CalendarDayTaskBlock({ task, columnId, onClick, onContextMenu }: CalendarDayTaskBlockProps) {
-  const bgColor = task.project?.color || "#9ca3af";
+/** Task card of the calendar day lists ("days" view, day agenda of the mobile month). */
+export function CalendarDayTaskBlock({ task, columnId, onClick, onContextMenu, draggableKey, showPeople }: CalendarDayTaskBlockProps) {
+  const t = useTranslations("planning");
+  const bgColor = task.project?.color || TASK_FALLBACK_COLOR;
   const txtColor = contrastColor(bgColor);
   const pendingDrop = usePlanningStore((s) => s.pendingDrop);
 
   const { canMoveTask, canCreateAnyTask } = usePermissions();
   const canDrag = (canMoveTask(task) || canCreateAnyTask) && task.isLocked !== true;
-  const draggableId = `cal-day:${task.id}:${columnId}`;
+  const draggableId = `cal-day:${task.id}:${columnId}${draggableKey ? `:${draggableKey}` : ""}`;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: draggableId,
     data: { taskId: task.id, rowId: columnId },
@@ -43,21 +39,13 @@ export function CalendarDayTaskBlock({ task, columnId, onClick, onContextMenu }:
 
   const isPendingSource = pendingDrop?.taskId === task.id;
   const isDeleting = usePlanningStore((s) => s.deletingTaskIds.has(task.id));
-  const { formatHourLabel } = useDateFormat();
+  const { formatTime } = useDateFormat();
   const timeLabel = task.startTime
-    ? `${formatHourLabel(parseHourFromTime(task.startTime))}${task.endTime ? ` – ${formatHourLabel(parseHourFromTime(task.endTime))}` : ""}`
+    ? `${formatTime(task.startTime)}${task.endTime ? ` – ${formatTime(task.endTime)}` : ""}`
     : "";
 
   return (
-    <TaskTooltip
-      task={{
-        ...task,
-        createdAt: task.createdAt ? String(task.createdAt) : null,
-        updatedAt: task.updatedAt ? String(task.updatedAt) : null,
-      }}
-      project={task.project}
-      status={task.status}
-    >
+    <CalendarTaskTooltip task={task}>
       <div
         ref={setNodeRef}
         {...listeners}
@@ -81,16 +69,29 @@ export function CalendarDayTaskBlock({ task, columnId, onClick, onContextMenu }:
           onContextMenu(e, task.id);
         }}
       >
-        {task.project?.name && (
-          <div className="truncate font-semibold leading-tight" style={{ color: txtColor }}>
-            {task.project.name}
+        {/* Text on the left; the assignees on the right, vertically centered */}
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start gap-1 font-medium leading-tight">
+              {task.isLocked && <Lock className="mt-px size-3 shrink-0 opacity-80" aria-hidden />}
+              <span className="line-clamp-2">{taskHeadline(task, t("canvas.untitled"))}</span>
+            </div>
+            {(timeLabel || (task.title && task.project?.name)) && (
+              <div className="mt-0.5 flex min-w-0 gap-1 text-[11px] leading-tight opacity-80">
+                {timeLabel && <span className="shrink-0 tabular-nums">{timeLabel}</span>}
+                {task.title && task.project?.name && <span className="truncate">{timeLabel ? "· " : ""}{task.project.name}</span>}
+              </div>
+            )}
           </div>
-        )}
-        {task.title && <div className="truncate leading-tight">{task.title}</div>}
-        {timeLabel && (
-          <div className="truncate leading-tight opacity-70">{timeLabel}</div>
-        )}
+          {/* At the end: attachments, notes, milestone, then the assignees */}
+          <CalendarTaskEnd
+            task={task}
+            after={showPeople ? <CalendarPeople users={task.users} max={3} size="sm" /> : undefined}
+            iconClassName="size-3"
+            className="gap-1.5"
+          />
+        </div>
       </div>
-    </TaskTooltip>
+    </CalendarTaskTooltip>
   );
 }

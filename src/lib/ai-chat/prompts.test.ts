@@ -1,12 +1,18 @@
 import { describe, expect, it } from "bun:test";
-import { DEFAULT_SYSTEM_PROMPT, TITLE_PROMPT, TYPOGRAPHY_RULE, documentsNotice, resolveSystemPrompt } from "./prompts";
+import { DEFAULT_SYSTEM_PROMPT, TYPOGRAPHY_RULE, documentsNotice, resolveSystemPrompt, titlePrompt } from "./prompts";
 
 describe("chat prompts", () => {
   it("the default prompt is in English, without em or en dashes", () => {
     expect(DEFAULT_SYSTEM_PROMPT.startsWith("You are the AI assistant built into {{appName}}")).toBe(true);
-    for (const text of [DEFAULT_SYSTEM_PROMPT, TITLE_PROMPT, TYPOGRAPHY_RULE]) {
+    for (const text of [DEFAULT_SYSTEM_PROMPT, titlePrompt("Français"), TYPOGRAPHY_RULE]) {
       expect(/[–—]/.test(text)).toBe(false);
     }
+  });
+
+  it("the title prompt names the interface language and never asks for a placeholder", () => {
+    const prompt = titlePrompt("Français");
+    expect(prompt).toContain("in Français (the user's interface language)");
+    expect(prompt).toContain("never a placeholder");
   });
 
   it("announces that every write is confirmed and that a refusal is not retried", () => {

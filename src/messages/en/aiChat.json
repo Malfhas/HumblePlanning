@@ -2,9 +2,7 @@
   "errors": {
     "unavailable": "AI assistant unavailable",
     "modelListUnavailable": "Model list unavailable",
-    "fixedScope": "The scope of this conversation is fixed: start a new one to change it",
     "modelNotAllowed": "This model is not allowed by the administrator",
-    "projectInaccessible": "Project not accessible",
     "replyInProgress": "A reply is already in progress in this conversation: wait for it to finish or stop it.",
     "tooManyReplies": "{count, plural, =1 {1 reply is already in progress: wait or stop it.} other {# replies are already in progress: wait or stop one of them.}}",
     "conversationNotFound": "Conversation not found",
@@ -117,20 +115,6 @@
     "placeholder": "Select…",
     "selectedCount": "{count, plural, one {# selected} other {# selected}}"
   },
-  "scope": {
-    "global": {
-      "name": "Whole planning",
-      "description": "All the projects you can see"
-    },
-    "none": "No scope",
-    "followsNavigation": "follows navigation",
-    "lockedTooltip": "The scope is fixed at the first question: the replies already given depend on it. Start a new conversation to change project.",
-    "choose": "Choose a scope…",
-    "useDataFrom": "Use data from:",
-    "searchProject": "Search for a project…",
-    "noProject": "No project",
-    "projects": "Projects"
-  },
   "browserNotifications": {
     "unsupported": "Your browser cannot display notifications from this page.",
     "displayFailed": "The browser could not display the notification: check that notifications are allowed for it in the system settings.",
@@ -188,7 +172,9 @@
     "confirmDeleteAll": {
       "title": "Delete all your conversations?",
       "description": "{count, plural, =0 {Your conversations and all their messages will be deleted.} one {Your conversation and all its messages will be deleted.} other {Your # conversations and all their messages will be deleted.}} This action cannot be undone."
-    }
+    },
+    "resize": "Width of the conversation list",
+    "resizeTooltip": "Drag to widen · double-click: default width"
   },
   "floating": {
     "title": "AI assistant",
@@ -199,7 +185,6 @@
       "ariaLabel": "Hide the assistant",
       "tooltip": "Hide the assistant until the page is next loaded"
     },
-    "scope": "Scope: {scope}",
     "history": {
       "ariaLabel": "Conversation history",
       "tooltip": "Resume a previous conversation",
@@ -232,12 +217,6 @@
     "welcome": "What can I do for you?",
     "suggestions": {
       "title": "Suggestions",
-      "project": {
-        "progress": "How is this project going? Planned, used and remaining hours.",
-        "whoThisWeek": "Who is working on this project this week?",
-        "lateOrUnassigned": "Which tasks in this project are overdue or unassigned?",
-        "conflicts": "Are there any vehicle or resource conflicts on this project?"
-      },
       "global": {
         "availableNextWeek": "Who is available next week?",
         "summaryByTeam": "Summarise this week’s planning by team.",
@@ -245,8 +224,6 @@
         "unassigned": "Which tasks have nobody assigned?"
       }
     },
-    "disclaimer": "The assistant can make mistakes: check important figures.",
-    "disclaimerReadOnly": "The assistant can make mistakes: check important figures. In read-only mode, it never changes your data.",
     "renameTooltip": "Click to rename the conversation",
     "untitled": "Conversation",
     "readOnly": "Read-only",
@@ -274,6 +251,12 @@
   "reasoning": {
     "inProgress": "The model is thinking…",
     "title": "Model reasoning"
+  },
+  "toolGroup": {
+    "used": "{count, plural, one {Tool used} other {# tools used}}",
+    "running": "Looking up the data…",
+    "input": "Parameters",
+    "output": "Result"
   },
   "approval": {
     "title": "Your approval is required",
@@ -339,8 +322,7 @@
     "attachmentsPending": "{count, plural, one {# attachment - it will be sent with your next message.} other {# attachments - they will be sent with your next message.}}",
     "placeholder": {
       "dictating": "Speak, I’m writing…",
-      "default": "How can I help you?",
-      "noScope": "Choose a scope first…"
+      "default": "How can I help you?"
     },
     "attach": {
       "tooltip": "Attach a document or an image (PDF, Word, Excel, CSV)",
@@ -362,7 +344,12 @@
       "downloading": "Downloading the {precision, select, high {high-accuracy} other {standard}} dictation model ({percent}%) - only once, then it stays in the cache. Transcription will follow.",
       "transcribing": "Transcribing…"
     },
-    "stopReply": "Stop the reply"
+    "stopReply": "Stop the reply",
+    "modelReads": {
+      "imagesAndPdf": "Reads images and PDFs",
+      "images": "Reads images",
+      "documents": "Reads text and documents"
+    }
   },
   "settings": {
     "reasons": {

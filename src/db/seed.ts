@@ -63,6 +63,7 @@ const SYSTEM_ROLES = [
 // Administrateur: full access by default, explicit permissions (no
 // isAdmin bypass) so a Super Admin can restrict this role.
 const ADMIN_PERMISSIONS = [
+  "ai_history:purge",
   "audit:purge", "audit:restore",
   "business_units:create", "business_units:delete", "business_units:edit",
   "export:use",
@@ -74,14 +75,14 @@ const ADMIN_PERMISSIONS = [
   "mcp:use", "mcp:write",
   "mobile_app:use",
   "notifications:view",
-  "pages:business_units", "pages:files", "pages:holidays", "pages:home",
+  "pages:ai_history", "pages:business_units", "pages:files", "pages:holidays", "pages:home",
   "pages:labor_types", "pages:places", "pages:planning", "pages:projects",
   "pages:qualifications", "pages:resource_types", "pages:resources",
   "pages:roles", "pages:stats_projects", "pages:stats_roi", "pages:stats_users",
-  "pages:tasks", "pages:teams", "pages:users",
+  "pages:system_health", "pages:tasks", "pages:teams", "pages:users",
   "pages:vehicle_types", "pages:vehicles",
   "places:edit",
-  "planning:view_calendar", "planning:view_resources", "planning:view_team_day",
+  "planning:view_calendar", "planning:view_resources",
   "planning:view_vehicles",
   "projects:archive", "projects:create", "projects:delete", "projects:edit",
   "qualifications:edit",
@@ -90,6 +91,7 @@ const ADMIN_PERMISSIONS = [
   "roles:create",
   "scope:bu_all", "scope:modify_all", "scope:projects_all", "scope:users_all",
   "statuses:edit",
+  "system_health:purge",
   "tasks:assign", "tasks:create", "tasks:delete", "tasks:lock", "tasks:move", "tasks:resize",
   "teams:edit",
   "users:create", "users:delete", "users:edit",
@@ -111,7 +113,7 @@ const MANAGER_PERMISSIONS = [
   "pages:resource_types", "pages:resources", "pages:stats_projects",
   "pages:stats_roi", "pages:stats_users", "pages:tasks", "pages:teams",
   "pages:users", "pages:vehicle_types", "pages:vehicles",
-  "planning:view_calendar", "planning:view_resources", "planning:view_team_day",
+  "planning:view_calendar", "planning:view_resources",
   "planning:view_vehicles",
   "projects:archive", "projects:create", "projects:delete", "projects:edit",
   "qualifications:edit",
@@ -131,7 +133,7 @@ const MEMBER_PLUS_PERMISSIONS = [
   "files:upload", "files:view",
   "notifications:view",
   "pages:home", "pages:planning",
-  "planning:view_calendar", "planning:view_team_day",
+  "planning:view_calendar",
   "scope:bu_own", "scope:modify_own", "scope:projects_bu", "scope:users_bu",
   "tasks:assign", "tasks:create", "tasks:delete", "tasks:move", "tasks:resize",
 ];
@@ -141,7 +143,7 @@ const MEMBER_PERMISSIONS = [
   "files:view",
   "notifications:view",
   "pages:home", "pages:planning",
-  "planning:view_calendar", "planning:view_team_day",
+  "planning:view_calendar",
   "scope:bu_own", "scope:modify_readonly", "scope:projects_bu", "scope:users_bu",
 ];
 
@@ -231,6 +233,8 @@ async function seed() {
     { key: "PLANNING_MIN_CELL_WIDTH", value: "55", description: "Largeur minimale cellule au zoom compact (px)" },
     { key: "PLANNING_LINE_HEIGHT", value: "24", description: "Hauteur ligne planning (px)" },
     { key: "PLANNING_CELL_FONTSIZE", value: "11", description: "Taille police cellules (px)" },
+    { key: "PLANNING_FONT_FAMILY", value: "inter", description: "Police d'écriture des tâches" },
+    { key: "PLANNING_DEFAULT_CELL_WIDTH", value: "135", description: "Largeur par défaut des cellules (px)" },
     { key: "PLANNING_REPEAT_HEADER", value: "0", description: "Repeter en-tete tous les X lignes (0=desactive)" },
     { key: "PLANNING_DAYS_OF_WEEK_DISPLAY", value: JSON.stringify({
       1: { inclus: true, affiche: true, grise: false },
@@ -286,6 +290,9 @@ async function seed() {
     { key: "AUDIT_USERS", value: "true", description: "Auditer les utilisateurs" },
     { key: "AUDIT_LOGINS", value: "true", description: "Auditer les connexions" },
     { key: "AUDIT_RETENTION", value: "30", description: "Retention audit (jours)" },
+    // Retention of the AI history and of the system events (days, 0 = never), nightly purge
+    { key: "CHAT_HISTORY_RETENTION", value: "365", description: "Rétention de l'historique de l'assistant IA (jours, 0 = jamais)" },
+    { key: "SYSTEM_EVENTS_RETENTION", value: "30", description: "Rétention des événements système (jours, 0 = jamais)" },
 
     // Security: password policy
     { key: "PWD_MIN_LENGTH", value: "8", description: "Longueur minimale mot de passe" },
@@ -293,7 +300,7 @@ async function seed() {
     { key: "PWD_REQUIRE_UPPERCASE", value: "true", description: "Exiger une majuscule" },
     { key: "PWD_REQUIRE_LOWERCASE", value: "true", description: "Exiger une minuscule" },
     { key: "PWD_REQUIRE_DIGIT", value: "true", description: "Exiger un chiffre" },
-    { key: "PWD_REQUIRE_SPECIAL", value: "false", description: "Exiger un caractere special" },
+    { key: "PWD_REQUIRE_SPECIAL", value: "true", description: "Exiger un caractere special" },
     { key: "PWD_GEN_LENGTH", value: "16", description: "Longueur par defaut des MDP generes" },
     { key: "PWD_GEN_INCLUDE_SPECIAL", value: "true", description: "Inclure caracteres speciaux dans generation" },
     { key: "WHITELIST_UPLOAD", value: "pdf,doc,docx,xls,xlsx,png,jpg,jpeg,gif,webp", description: "Extensions autorisees pour upload" },

@@ -195,19 +195,288 @@
       "nagerInvalidType": "Tipo no válido (status, countries o holidays)"
     }
   },
-  "logs": {
-    "title": "Registros del sistema",
-    "entries": "{count, plural, one {# entrada} other {# entradas}}",
-    "clear": "Vaciar",
-    "levelPlaceholder": "Nivel",
-    "allLevels": "Todos los niveles",
-    "categoryPlaceholder": "Categoría",
-    "allCategories": "Todas",
-    "loading": "Cargando los registros...",
-    "empty": "Ningún registro",
-    "clearDialog": {
-      "title": "Vaciar los registros del sistema",
-      "description": "Esta acción eliminará todos los registros en memoria. Los registros no se conservan y se perderán definitivamente."
+  "purgeBefore": {
+    "before": "Antes del {date}",
+    "datePlaceholder": "Elegir una fecha",
+    "confirm": "Purgar"
+  },
+  "aiHistory": {
+    "title": "Uso de la IA",
+    "exportCsv": "Exportar en CSV",
+    "purge": "Purgar",
+    "clearFilters": "Borrar los filtros",
+    "unknownUser": "Usuario eliminado",
+    "deletedBadge": "Eliminada por el usuario",
+    "empty": "Ninguna conversación en el periodo.",
+    "modelsCount": "{count, plural, one {# modelo} other {# modelos}}",
+    "filters": {
+      "period": "Periodo",
+      "user": "Usuario",
+      "model": "Modelo"
+    },
+    "periods": {
+      "7": "Últimos 7 días",
+      "30": "Últimos 30 días",
+      "90": "Últimos 90 días",
+      "all": "Todo el historial"
+    },
+    "kpis": {
+      "conversations": "Conversaciones",
+      "messages": "Mensajes",
+      "promptTokens": "Tokens de entrada",
+      "completionTokens": "Tokens de salida",
+      "cost": "Coste total",
+      "errors": "Errores",
+      "averageDuration": "Duración media de una respuesta: {seconds} s"
+    },
+    "chart": {
+      "title": "Coste por día",
+      "description": "Coste de las respuestas del asistente, en dólares (zona horaria de la instancia)",
+      "day": "Día",
+      "cost": "Coste ($)"
+    },
+    "columns": {
+      "lastActivity": "Último intercambio",
+      "title": "Conversación",
+      "deleted": "Eliminada por el usuario",
+      "user": "Usuario",
+      "models": "Modelos",
+      "messages": "Mensajes",
+      "tokens": "Tokens (entrada / salida)",
+      "promptTokens": "Tokens de entrada",
+      "completionTokens": "Tokens de salida",
+      "cost": "Coste ($)",
+      "errors": "Errores"
+    },
+    "detail": {
+      "title": "Conversación",
+      "subtitle": "{user} · iniciada el {date}",
+      "empty": "Conversación vacía.",
+      "roles": {
+        "USER": "Usuario",
+        "ASSISTANT": "Asistente",
+        "TOOL": "Herramienta"
+      },
+      "messageStatus": {
+        "DONE": "Terminada",
+        "RUNNING": "En curso",
+        "FAILED": "Fallida",
+        "CANCELLED": "Detenida",
+        "INTERRUPTED": "Interrumpida"
+      },
+      "toolStatus": {
+        "PROPOSED": "Propuesta",
+        "APPROVED": "Validada",
+        "REJECTED": "Rechazada",
+        "EXECUTED": "Ejecutada",
+        "FAILED": "Fallida"
+      },
+      "tokens": "{prompt} tokens de entrada · {completion} de salida",
+      "duration": "{seconds} s",
+      "toolCalls": "{count, plural, one {# herramienta llamada} other {# herramientas llamadas}}",
+      "arguments": "Parámetros",
+      "result": "Resultado"
+    },
+    "quota": {
+      "title": "Consumo del periodo de cuota en curso",
+      "period": "Desde el {start}, próximo reinicio el {next}",
+      "amount": "cuota mensual de {amount} por usuario",
+      "disabled": "cuota desactivada",
+      "manage": "Gestionar las cuotas",
+      "empty": "Ningún consumo en el periodo en curso.",
+      "unlimited": "Ilimitado",
+      "columns": {
+        "user": "Usuario",
+        "usage": "Consumido",
+        "share": "Parte de la cuota"
+      }
+    },
+    "purgeDialog": {
+      "title": "Purgar el historial del asistente de IA",
+      "description": "Elimina definitivamente las conversaciones cuyo último intercambio es anterior a la fecha elegida, con sus mensajes y sus llamadas a herramientas. Se conservan el día elegido y el consumo del periodo de cuota en curso.",
+      "preview": "Se eliminarán {conversations, plural, =0 {ninguna conversación} one {# conversación} other {# conversaciones}} y {messages, plural, =0 {ningún mensaje} one {# mensaje} other {# mensajes}}.",
+      "ledger": "También {count, plural, one {# línea} other {# líneas}} del registro de cuota (periodos pasados)."
+    },
+    "errors": {
+      "notFound": "Conversación no encontrada."
+    }
+  },
+  "systemHealth": {
+    "title": "Estado del sistema",
+    "sections": {
+      "live": "Estado en directo",
+      "alerts": "Alertas de configuración",
+      "tasks": "Tareas programadas",
+      "tasksDescription": "Última ejecución de las tareas en segundo plano y próxima ejecución prevista.",
+      "incidents": "Incidencias",
+      "incidentsDescription": "Advertencias y errores del servidor, agrupados cuando se repiten. La información habitual permanece en el registro del servidor (docker logs).",
+      "deliveries": "Envíos fallidos"
+    },
+    "live": {
+      "up": "Operativo",
+      "down": "Inaccesible",
+      "database": {
+        "title": "Base de datos",
+        "latency": "Responde en {ms} ms"
+      },
+      "realtime": {
+        "title": "Servidor en tiempo real",
+        "clients": "{count, plural, =0 {Ningún cliente conectado} one {# cliente conectado} other {# clientes conectados}}"
+      },
+      "version": {
+        "title": "Versión",
+        "details": "Ver",
+        "status": {
+          "up_to_date": "Actualizada",
+          "update_available": "Actualización disponible: v{version}",
+          "security_update": "Actualización de seguridad disponible: v{version}",
+          "error": "No se pudieron comprobar las actualizaciones",
+          "disabled": "Comprobación de actualizaciones desactivada",
+          "no_release": "Ninguna versión publicada"
+        }
+      },
+      "backup": {
+        "title": "Última copia de seguridad",
+        "none": "Ninguna copia de seguridad",
+        "detail": "{date} · {size} MB",
+        "status": {
+          "completed": "Correcta",
+          "failed": "Fallida",
+          "in_progress": "En curso"
+        }
+      }
+    },
+    "alerts": {
+      "none": "No se ha detectado ningún problema de configuración.",
+      "configEncryptionKey": {
+        "title": "Falta la clave de cifrado de los ajustes",
+        "description": "CONFIG_ENCRYPTION_KEY no está definida (o no es válida) en el archivo .env: las contraseñas y claves introducidas en los Ajustes se guardan sin cifrar en la base de datos. Añada una clave (openssl rand -hex 32) y reinicie la aplicación."
+      },
+      "smtpWithoutTls": {
+        "title": "SMTP sin cifrado",
+        "description": "El servidor SMTP está configurado sin TLS y sin comprobación del certificado: los correos y el usuario SMTP circulan sin cifrar. Elija TLS o SSL en Ajustes → Correo electrónico."
+      },
+      "temporaryAuthSecret": {
+        "title": "Secreto de autenticación temporal",
+        "description": "Falta BETTER_AUTH_SECRET en el archivo .env: se usa un secreto temporal y todas las sesiones se perderán en el próximo reinicio. Vuelva a ejecutar el instalador o defínalo en .env."
+      },
+      "captchaNotConfigured": {
+        "title": "Captcha activado pero sin configurar",
+        "description": "El captcha está activado sin sus claves (ALTCHA: secretos del archivo .env; Turnstile o reCAPTCHA: clave del sitio y clave secreta): la comprobación se omite al iniciar sesión."
+      },
+      "fcmInvalid": {
+        "title": "Cuenta de servicio de Firebase no válida",
+        "description": "FCM_SERVICE_ACCOUNT_JSON no es una cuenta de servicio de Firebase válida: las notificaciones push de la aplicación móvil no se envían."
+      }
+    },
+    "tasks": {
+      "columns": {
+        "task": "Tarea",
+        "lastRun": "Última ejecución",
+        "result": "Resultado",
+        "nextRun": "Próxima ejecución"
+      },
+      "names": {
+        "daily_purge": "Purga nocturna",
+        "backup": "Copia de seguridad automática",
+        "weekly_summary": "Resumen semanal",
+        "update_check": "Comprobación de actualizaciones"
+      },
+      "descriptions": {
+        "daily_purge": "Cada noche a las 3 h: historial del asistente de IA e incidencias que superan su periodo de conservación.",
+        "backup": "Con la frecuencia elegida en Ajustes → Copia de seguridad.",
+        "weekly_summary": "Correo con la planificación de la semana, según Ajustes → Comunicación.",
+        "update_check": "Como máximo una vez cada 24 horas, cuando un administrador visita la aplicación."
+      },
+      "status": {
+        "never": "Nunca ejecutada",
+        "running": "En curso",
+        "success": "Correcta",
+        "failed": "Fallida"
+      },
+      "summary": {
+        "dailyPurge": "{conversations, plural, =0 {ninguna conversación} one {# conversación} other {# conversaciones}} y {events, plural, =0 {ninguna incidencia} one {# incidencia} other {# incidencias}} eliminadas",
+        "backup": "{size} MB",
+        "weeklySummary": "{sent, plural, =0 {ningún correo enviado} one {# correo enviado} other {# correos enviados}}"
+      },
+      "disabled": "Desactivada",
+      "onDemand": "A demanda",
+      "interrupted": "Interrumpida: el servidor se detuvo durante la ejecución."
+    },
+    "levels": {
+      "ERROR": "Error",
+      "WARN": "Advertencia"
+    },
+    "categories": {
+      "system": "Sistema",
+      "auth": "Autenticación",
+      "api": "API",
+      "socket": "Tiempo real",
+      "db": "Base de datos",
+      "email": "Correo electrónico",
+      "push": "Notificaciones push",
+      "sms": "SMS",
+      "mcp": "MCP",
+      "backup": "Copia de seguridad",
+      "import": "Importación",
+      "migration": "Migración",
+      "ai_chat": "Asistente de IA"
+    },
+    "periods": {
+      "1": "Últimas 24 horas",
+      "7": "Últimos 7 días",
+      "30": "Últimos 30 días",
+      "all": "Todo el periodo"
+    },
+    "incidents": {
+      "purge": "Purgar",
+      "clearFilters": "Borrar los filtros",
+      "empty": "Ninguna incidencia en el periodo.",
+      "filters": {
+        "level": "Nivel",
+        "category": "Categoría",
+        "period": "Periodo"
+      },
+      "columns": {
+        "level": "Nivel",
+        "category": "Categoría",
+        "message": "Mensaje",
+        "occurrences": "Repeticiones",
+        "lastSeen": "Última aparición",
+        "firstSeen": "Primera aparición"
+      },
+      "detail": {
+        "route": "Petición",
+        "user": "Usuario",
+        "metadata": "Detalles",
+        "stack": "Pila de llamadas"
+      },
+      "purgeDialog": {
+        "title": "Purgar las incidencias",
+        "description": "Elimina definitivamente las incidencias cuya última aparición es anterior a la fecha elegida. Se conserva el día elegido.",
+        "preview": "{count, plural, =0 {No se eliminará ninguna incidencia.} one {Se eliminará # incidencia.} other {Se eliminarán # incidencias.}}"
+      }
+    },
+    "deliveries": {
+      "tabs": {
+        "emails": "Correos ({count})",
+        "sms": "SMS ({count})",
+        "webhooks": "Webhooks ({count})"
+      },
+      "columns": {
+        "date": "Fecha",
+        "recipient": "Destinatario",
+        "subject": "Asunto",
+        "error": "Error",
+        "provider": "Servicio",
+        "event": "Evento",
+        "status": "Estado"
+      },
+      "empty": "Ningún envío fallido en el periodo.",
+      "webhookStatus": {
+        "error": "Error",
+        "invalid_signature": "Firma no válida"
+      }
     }
   }
 }

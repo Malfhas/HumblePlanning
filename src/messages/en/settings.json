@@ -27,7 +27,7 @@
     "gdpr": "GDPR",
     "files": "Files",
     "audit": "Audit",
-    "logs": "Logs",
+    "retention": "History",
     "apiAccess": "API access",
     "cache": "Cache",
     "purge": "Purge",
@@ -68,7 +68,7 @@
     "footer": "Footer",
     "files": "Files",
     "audit": "Audit",
-    "logs": "Logs",
+    "retention": "History retention",
     "apiAccess": "API access",
     "cache": "Cache",
     "purge": "Purge",
@@ -587,8 +587,7 @@
       "label": "Application title"
     },
     "APP_BASE_URL": {
-      "label": "Application URL",
-      "description": "Used in emails (password reset links, notifications)"
+      "label": "Application URL"
     },
     "TIMEZONE": {
       "label": "Time zone",
@@ -719,8 +718,8 @@
       "label": "Task font",
       "description": "Fonts hosted locally (loaded at build time). No calls to an external server.",
       "options": {
-        "geist": "Geist Sans (default)",
-        "inter": "Inter",
+        "geist": "Geist Sans",
+        "inter": "Inter (default)",
         "roboto": "Roboto",
         "ibm-plex-sans": "IBM Plex Sans",
         "source-sans": "Source Sans 3"
@@ -949,7 +948,7 @@
     },
     "FORGOT_PASSWORD_ENABLED": {
       "label": "Enable the “Forgotten password” feature",
-      "description": "Shows a link on the sign-in page that lets users reset their password by email. Requires the email settings (SMTP or Mailgun) to be configured."
+      "description": "Shows a link on the sign-in page that lets users reset their password by email. Requires an email sending service to be configured."
     },
     "BRUTEFORCE_MAX_ATTEMPTS": {
       "label": "Number of attempts before lockout",
@@ -1088,22 +1087,13 @@
     "AUDIT_RETENTION": {
       "label": "Audit retention period"
     },
-    "LOGS_ENABLED": {
-      "label": "Enable system logs",
-      "description": "Records system events (errors, actions, sign-ins) in an in-memory buffer that can be viewed on the Logs page"
+    "CHAT_HISTORY_RETENTION": {
+      "label": "AI assistant history retention",
+      "description": "Every night, the conversations without any exchange for this long are deleted (Administration → AI usage). The usage of the current quota period is always kept."
     },
-    "LOGS_LEVEL": {
-      "label": "Minimum level",
-      "options": {
-        "ERROR": "Errors only",
-        "WARN": "Warnings and errors",
-        "INFO": "Information (recommended)",
-        "DEBUG": "Debug (verbose)"
-      }
-    },
-    "LOGS_MAX_ENTRIES": {
-      "label": "Maximum number of entries",
-      "description": "Size of the in-memory circular buffer (the oldest entries are replaced)"
+    "SYSTEM_EVENTS_RETENTION": {
+      "label": "System incidents retention",
+      "description": "Every night, the incidents last seen longer ago are deleted (Administration → System health)."
     },
     "API_ENABLED": {
       "label": "Enable API access",

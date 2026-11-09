@@ -37,3 +37,5 @@ export { smsLogs } from "./sms-logs";
 export { aiChatConversations, aiChatMessages, aiChatToolCalls, aiChatQuotaLedger, aiChatQuotaOverrides } from "./ai-chat";
 export { mobileDevices } from "./mobile-devices";
 export { mobileAlerts } from "./mobile-alerts";
+export { systemEvents } from "./system-events";
+export { systemTaskRuns } from "./system-task-runs";

@@ -10,12 +10,17 @@
  * WebCrypto/Node primitives, faster than the home-made iterated SHA-256
  * loop). No native dependency and no WASM on the server side.
  *
- * PoW parameters = canonical values from the altcha-lib v2 docs:
+ * PoW parameters:
  *     algorithm: 'PBKDF2/SHA-256'
- *     cost:      5_000           (HMAC-SHA-256 iterations per attempt)
- *     counter:   randomInt(5_000, 10_000)
- *   ≈ 7,500 attempts × 5,000 iterations = ~37 M HMAC-SHA-256 → 1 to 2 s with
- *   multiple Workers in the browser (PoW visible but not frustrating).
+ *     cost:      5_000           (HMAC-SHA-256 iterations per attempt, as the altcha-lib v2 docs advise)
+ *     counter:   randomInt(1_000, 3_000)
+ * The solve time is proportional to the counter: the client derives one key per
+ * attempt, from 0 up to the counter. The browser's Workers do not share the work:
+ * Chrome runs WebCrypto PBKDF2 one derivation at a time (~0.37 ms each on an
+ * Apple M4 Max, whatever the number of Workers). Measured in Chrome on that Mac:
+ * ~0.75 s on average with this range, ~3.2 s with the 5_000–10_000 of the docs,
+ * slower on phones. The brute-force protection is the lockouts of the sign-in
+ * (password-login-service.ts); the PoW only makes automated attempts costlier.
  *
  * Separate HMAC secrets (`ALTCHA_HMAC_SECRET` + `ALTCHA_HMAC_KEY_SECRET`)
  * generated automatically by the installer (`install.sh`). Unique per instance
@@ -48,7 +53,7 @@ export const altcha = create({
   createChallengeParameters: () => ({
     algorithm: "PBKDF2/SHA-256",
     cost: 5_000,
-    counter: randomInt(5_000, 10_000),
+    counter: randomInt(1_000, 3_000),
     expiresAt: new Date(Date.now() + 600_000), // 10 minutes
   }),
   deriveKey,

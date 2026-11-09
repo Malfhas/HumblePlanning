@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,25 +19,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { usePlanningStore, type ViewMode, type ZoomLevel, type SortMode, type CalendarMode } from "@/stores/planning-store";
+import { usePlanningStore, type ViewMode, type SortMode } from "@/stores/planning-store";
 import { useFilterStore } from "@/stores/filter-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useConfig } from "@/hooks/use-config";
-import { useUsers } from "@/hooks/use-users";
-import { useBuStore } from "@/stores/bu-store";
 import { FilterPanel } from "./filter-panel";
+import { CalendarNavigation, CalendarOptions } from "./calendar-toolbar";
 import { ExportPanel } from "./export-panel";
 import { DateRangePicker } from "@/components/shared/date-range-picker";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +42,6 @@ import {
   CalendarDays,
   Users,
   FolderKanban,
-  MapPin,
   Wrench,
   Truck,
   ZoomIn,
@@ -63,8 +54,7 @@ import {
   ArrowUpDown,
   Download,
   LayoutGrid,
-  Check,
-  ChevronsUpDown,
+  ChevronDown,
   MoreHorizontal,
   ChevronUp,
 } from "lucide-react";
@@ -72,24 +62,8 @@ import { useTranslations } from "next-intl";
 import { useDateFormat } from "@/hooks/use-date-format";
 import { tDyn } from "@/i18n/dynamic";
 
-// i18n-dynamic: planning.toolbar.viewModes.*
-// i18n-dynamic: planning.toolbar.calendarModes.*
 // i18n-dynamic: planning.toolbar.sort.*
 
-const VIEW_OPTIONS: { mode: ViewMode; icon: typeof Users; labelKey: string }[] = [
-  { mode: "users", icon: Users, labelKey: "users" },
-  { mode: "projects", icon: FolderKanban, labelKey: "projects" },
-];
-
-const ZOOM_ORDER: ZoomLevel[] = ["compact", "normal", "large", "xlarge", "xxlarge"];
-
-const CALENDAR_OPTIONS: { mode: CalendarMode; icon: typeof LayoutGrid; labelKey: string }[] = [
-  { mode: "off", icon: LayoutGrid, labelKey: "planning" },
-  { mode: "personal", icon: CalendarDays, labelKey: "personal" },
-  { mode: "team-day", icon: Users, labelKey: "teamDay" },
-];
-
-const CALENDAR_DAYS_OPTIONS = [1, 3, 5, 7] as const;
 
 /** Sort mode → key `planning.toolbar.sort.<key>` (label translated at render time). */
 const SORT_LABEL_KEYS: Record<SortMode, string> = {
@@ -212,6 +186,78 @@ function CellWidthSliderButton({
   );
 }
 
+/** Rows of the schedule ("Planning" tab): by users or by projects. */
+type PlanningRows = "users" | "projects";
+
+/**
+ * "Planning · Users ▾" tab: shows the schedule; its arrow (or the tab itself
+ * once active) opens the choice of rows (by users / by projects).
+ */
+function PlanningViewTab({
+  active,
+  rows,
+  onActivate,
+  onChooseRows,
+  labelClassName,
+}: {
+  active: boolean;
+  /** Last rows chosen (`null`: another grouping, e.g. places from the preferences). */
+  rows: PlanningRows | null;
+  onActivate: () => void;
+  onChooseRows: (rows: PlanningRows) => void;
+  /** Visibility of the text label (icons only on narrow toolbars). */
+  labelClassName: string;
+}) {
+  const t = useTranslations("planning.toolbar");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const rowsLabel = rows === "projects" ? t("viewModes.projects") : rows === "users" ? t("viewModes.users") : null;
+  const label = (
+    <>
+      <LayoutGrid className="h-4 w-4 shrink-0" />
+      <span className={cn("text-xs", labelClassName)}>
+        {t("calendarModes.planning")}
+        {rowsLabel && <span className="opacity-75"> · {rowsLabel}</span>}
+      </span>
+    </>
+  );
+
+  return (
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      {active ? (
+        <DropdownMenuTrigger asChild>
+          <Button variant="default" size="sm" className="h-8 gap-1 px-2 md:px-3" data-planning-tab="planning" aria-label={t("planningRows.choose")}>
+            {label}
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80" />
+          </Button>
+        </DropdownMenuTrigger>
+      ) : (
+        <span className="inline-flex items-center">
+          <Button variant="ghost" size="sm" className="h-8 gap-1 rounded-r-none pl-2 pr-1 md:pl-3" data-planning-tab="planning" onClick={onActivate}>
+            {label}
+          </Button>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-6 rounded-l-none px-0" aria-label={t("planningRows.choose")}>
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+            </Button>
+          </DropdownMenuTrigger>
+        </span>
+      )}
+      <DropdownMenuContent align="start" className="min-w-48">
+        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{t("planningRows.label")}</DropdownMenuLabel>
+        {/* Check mark on the current choice (one of the two is always set) */}
+        <DropdownMenuCheckboxItem checked={rows === "users"} onCheckedChange={() => onChooseRows("users")}>
+          <Users className="h-4 w-4" />
+          {t("planningRows.users")}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={rows === "projects"} onCheckedChange={() => onChooseRows("projects")}>
+          <FolderKanban className="h-4 w-4" />
+          {t("planningRows.projects")}
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function GridToolbar({ onCreateTask }: GridToolbarProps) {
   const t = useTranslations("planning.toolbar");
   const tCommon = useTranslations("common");
@@ -221,8 +267,6 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
     setViewMode,
     startDate,
     endDate,
-    zoomLevel,
-    setZoomLevel,
     cellWidth,
     setCellWidth,
     getCellWidthRange,
@@ -247,14 +291,6 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
     setSortMode,
     calendarMode,
     setCalendarMode,
-    calendarDays,
-    setCalendarDays,
-    calendarUserId,
-    setCalendarUserId,
-    calendarShow24h,
-    toggleCalendar24h,
-    calendarPersonalView,
-    setCalendarPersonalView,
   } = usePlanningStore();
 
   const { userId: currentUserId, can, canCreateAnyTask } = usePermissions();
@@ -264,26 +300,11 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
 
   // Planning view permissions
   const canViewCalendar = can("planning:view_calendar");
-  const canViewTeamDay = can("planning:view_team_day");
   const canViewVehicles = can("planning:view_vehicles");
   const canViewResources = can("planning:view_resources");
   const canExport = can("export:use");
   const canCreate = canCreateAnyTask;
-  const { data: allPlanningUsers } = useUsers(undefined, true);
-  const { selectedBuIds } = useBuStore();
-  const planningUsers = useMemo(() => {
-    if (selectedBuIds.length === 0 || !allPlanningUsers) return allPlanningUsers;
-    return allPlanningUsers.filter((u: any) => u.businessUnitId && selectedBuIds.includes(u.businessUnitId));
-  }, [allPlanningUsers, selectedBuIds]);
 
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const atTop = el.scrollTop === 0 && e.deltaY < 0;
-    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight && e.deltaY > 0;
-    if (!atTop && !atBottom) e.stopPropagation();
-  }, []);
-
-  const [userSelectorOpen, setUserSelectorOpen] = useState(false);
   const [dayPickerOpen, setDayPickerOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -306,8 +327,14 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
     window.localStorage.setItem("planning-mobile-menu-open", String(mobileMenuOpen));
   }, [mobileMenuOpen]);
   // Track last non-vehicles/resources viewMode to restore when switching back
-  const lastViewModeRef = useRef<ViewMode>(viewMode === "vehicles" || viewMode === "resources" ? "users" : viewMode);
-  if (viewMode !== "vehicles" && viewMode !== "resources") lastViewModeRef.current = viewMode;
+  // Kept as state derived during render (React "store information from
+  // previous renders" pattern) rather than a ref read while rendering.
+  const [lastPlanningView, setLastPlanningView] = useState<ViewMode>(
+    viewMode === "vehicles" || viewMode === "resources" ? "users" : viewMode,
+  );
+  if (viewMode !== "vehicles" && viewMode !== "resources" && viewMode !== lastPlanningView) {
+    setLastPlanningView(viewMode);
+  }
   const isVehiclesView = viewMode === "vehicles";
   const isResourcesView = viewMode === "resources";
   const isAssetView = isVehiclesView || isResourcesView;
@@ -317,9 +344,9 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
      s.qualificationIds.length, s.groupIds.length, s.search ? 1 : 0].filter(n => n > 0).length
   );
   const hasFilters = activeFilterCount > 0;
-  const zoomIdx = ZOOM_ORDER.indexOf(zoomLevel);
   const isHourMode = columnMode === "hours";
-  const isDayNavigation = isHourMode || calendarMode === "team-day";
+  const isCalendarView = calendarMode === "personal" && !isAssetView;
+  const isDayNavigation = isHourMode && !isCalendarView;
 
   // Uppercase on the first letter only (« Vendredi 30 octobre 2026 »,
   // like the canvas header): the CSS `capitalize` class uppercased
@@ -347,8 +374,22 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
     }
   }, [setSelectedDay]);
 
-  const showViewModeButtons = !isAssetView && calendarMode === "off";
   const showColumnToggle = calendarMode === "off" && !isAssetView;
+
+  // "Planning" tab: last rows chosen (users / projects), restored when coming
+  // back from another view.
+  const planningRows: PlanningRows | null =
+    lastPlanningView === "users" || lastPlanningView === "projects" ? lastPlanningView : null;
+  const isPlanningActive = calendarMode === "off" && !isAssetView;
+  const activatePlanning = useCallback(() => {
+    if (isAssetView) setViewMode(lastPlanningView);
+    setCalendarMode("off");
+  }, [isAssetView, lastPlanningView, setViewMode, setCalendarMode]);
+  const choosePlanningRows = useCallback((rows: ViewMode) => {
+    if (viewMode !== rows) setViewMode(rows);
+    if (calendarMode !== "off") setCalendarMode("off");
+  }, [viewMode, calendarMode, setViewMode, setCalendarMode]);
+  const calendarLabel = t("calendarModes.personal");
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -411,6 +452,8 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
                   </PopoverContent>
                 </Popover>
               </>
+            ) : isCalendarView ? (
+              <CalendarNavigation />
             ) : (
               <DateRangePicker startDate={startDate} endDate={endDate} onChange={setDateRange} onGoToToday={goToToday} />
             )}
@@ -419,43 +462,39 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
           {/* Separator (hidden on mobile since the following modes/views move to the expandable bar) */}
           <div className="hidden md:block w-px h-5 bg-border" />
 
-          {/* Display mode: Schedule | My calendar | Team/day | Vehicles | Resources
+          {/* Display mode: Planning (rows ▾) | Calendar | Vehicles | Resources
               Hidden on mobile (moved to the 2nd expandable bar). */}
           <div className="hidden md:flex items-center gap-0.5 md:gap-1">
-            {CALENDAR_OPTIONS.map(({ mode, icon: Icon, labelKey }) => {
-              const label = tDyn(t, `calendarModes.${labelKey}`);
-              // "off" (Planning) is always available. Others require specific permissions.
-              const permMap: Record<string, boolean> = {
-                off: true,
-                personal: canViewCalendar,
-                "team-day": canViewTeamDay,
-              };
-              const allowed = permMap[mode] ?? true;
-              return (
-                <Tooltip key={mode}>
-                  <TooltipTrigger asChild>
-                    <span tabIndex={!allowed ? 0 : undefined}>
-                    <Button
-                      variant={!isAssetView && calendarMode === mode ? "default" : "ghost"}
-                      size="sm"
-                      className="h-8 px-2 md:px-3"
-                      disabled={!allowed}
-                      onClick={allowed ? () => {
-                        if (isAssetView) setViewMode(lastViewModeRef.current);
-                        setCalendarMode(mode);
-                      } : undefined}
-                    >
-                      <Icon className="h-4 w-4 md:mr-1" />
-                      <span className="hidden md:inline text-xs">{label}</span>
-                    </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    {allowed ? label : t("permissionDenied")}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
+            <PlanningViewTab
+              active={isPlanningActive}
+              rows={planningRows}
+              onActivate={activatePlanning}
+              onChooseRows={choosePlanningRows}
+              labelClassName="hidden md:inline"
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={!canViewCalendar ? 0 : undefined}>
+                <Button
+                  variant={isCalendarView ? "default" : "ghost"}
+                  size="sm"
+                  className="h-8 px-2 md:px-3"
+                  disabled={!canViewCalendar}
+                  data-planning-tab="calendar"
+                  onClick={canViewCalendar ? () => {
+                    if (isAssetView) setViewMode(lastPlanningView);
+                    setCalendarMode("personal");
+                  } : undefined}
+                >
+                  <CalendarDays className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline text-xs">{calendarLabel}</span>
+                </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {canViewCalendar ? calendarLabel : t("permissionDenied")}
+              </TooltipContent>
+            </Tooltip>
 
             {(vehiclesEnabled || resourcesEnabled) && (
               <div className="w-px h-5 bg-border mx-0.5" />
@@ -472,7 +511,7 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
                     disabled={!canViewVehicles}
                     onClick={canViewVehicles ? () => {
                       if (isVehiclesView) {
-                        setViewMode(lastViewModeRef.current);
+                        setViewMode(lastPlanningView);
                       } else {
                         setCalendarMode("off");
                         setViewMode("vehicles");
@@ -501,7 +540,7 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
                     disabled={!canViewResources}
                     onClick={canViewResources ? () => {
                       if (isResourcesView) {
-                        setViewMode(lastViewModeRef.current);
+                        setViewMode(lastPlanningView);
                       } else {
                         setCalendarMode("off");
                         setViewMode("resources");
@@ -520,182 +559,18 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
             )}
           </div>
 
-          {/* Personal calendar sub-options (inline after the modes; on
-              mobile, on their own row under the date nav) */}
-          {calendarMode === "personal" && !isAssetView && (
-            <div className="order-last flex basis-full flex-wrap items-center gap-1 md:order-none md:basis-auto md:flex-nowrap">
-              <div className="hidden md:block w-px h-5 bg-border" />
-
-              {/* User selector */}
-              <Popover open={userSelectorOpen} onOpenChange={setUserSelectorOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-2 md:px-3 text-xs justify-between min-w-[180px]"
-                  >
-                    <span className="truncate max-w-[160px]">
-                      {(() => {
-                        const effectiveId = calendarUserId ?? currentUserId;
-                        const user = planningUsers?.find((u) => u.id === effectiveId);
-                        return user ? user.name : t("calendar.selectUser");
-                      })()}
-                    </span>
-                    <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0" align="start" onWheel={handleWheel}>
-                  <Command>
-                    <CommandInput placeholder={tCommon("actions.searchPlaceholder")} />
-                    <CommandList onWheel={handleWheel}>
-                      <CommandEmpty>{t("calendar.noUser")}</CommandEmpty>
-                      <CommandGroup>
-                        {(planningUsers ?? []).sort((a, b) => {
-                          if (a.id === currentUserId) return -1;
-                          if (b.id === currentUserId) return 1;
-                          return 0;
-                        }).map((user) => {
-                          const effectiveId = calendarUserId ?? currentUserId;
-                          return (
-                            <CommandItem
-                              key={user.id}
-                              value={user.id}
-                              keywords={[user.name]}
-                              onSelect={() => {
-                                setCalendarUserId(user.id === currentUserId ? null : user.id);
-                                setUserSelectorOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${effectiveId === user.id ? "opacity-100" : "opacity-0"}`}
-                              />
-                              {user.name}
-                            </CommandItem>
-                          );
-                        })}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-
-              {/* View toggle: hours / days */}
-              <div className="flex items-center gap-0.5">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={calendarPersonalView === "hours" ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-2 text-xs"
-                      onClick={() => setCalendarPersonalView("hours")}
-                    >
-                      <Clock className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{t("calendar.hoursView")}</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={calendarPersonalView === "days" ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-2 text-xs"
-                      onClick={() => setCalendarPersonalView("days")}
-                    >
-                      <LayoutGrid className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{t("calendar.daysView")}</TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Days selector */}
-              <div className="flex items-center gap-0.5">
-                {CALENDAR_DAYS_OPTIONS.map((d) => (
-                  <Button
-                    key={d}
-                    variant={calendarDays === d ? "default" : "outline"}
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => setCalendarDays(d)}
-                  >
-                    {t("calendar.daysShort", { count: d })}
-                  </Button>
-                ))}
-              </div>
-
-              {/* 24h toggle (only in hours view) */}
-              {calendarPersonalView === "hours" && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={calendarShow24h ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-2 text-xs"
-                      onClick={toggleCalendar24h}
-                    >
-                      24h
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    {calendarShow24h ? t("calendar.showWorkingHours") : t("calendar.show24h")}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          )}
-
-          {/* Team/day sub-option: 24h toggle (on mobile, on its
+          {/* Calendar options (inline after the modes; on mobile, on their
               own row under the date nav) */}
-          {calendarMode === "team-day" && !isAssetView && (
-            <div className="order-last flex basis-full items-center gap-1 md:order-none md:basis-auto">
+          {isCalendarView && (
+            <div className="order-last flex basis-full flex-wrap items-center gap-1.5 md:order-none md:basis-auto">
               <div className="hidden md:block w-px h-5 bg-border" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={calendarShow24h ? "default" : "outline"}
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={toggleCalendar24h}
-                  >
-                    24h
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {calendarShow24h ? t("calendar.showWorkingHours") : t("calendar.show24h")}
-                </TooltipContent>
-              </Tooltip>
+              <CalendarOptions currentUserId={currentUserId} />
             </div>
           )}
 
           {/* Spacer (desktop; on mobile the mini-toolbar is pushed to the
               right by `ml-auto` and the date nav takes the remaining space) */}
           <div className="hidden md:block flex-1" />
-
-          {/* Rows by (grouping) — hidden in Vehicles and Team/day.
-              Hidden on mobile (moved to the 2nd expandable bar). */}
-          {showViewModeButtons && (
-            <div className="hidden md:flex items-center gap-0.5 md:gap-1">
-              {VIEW_OPTIONS.map(({ mode, icon: Icon, labelKey }) => (
-                <Tooltip key={mode}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={viewMode === mode ? "default" : "ghost"}
-                      size="sm"
-                      className="h-8 px-2 md:px-3"
-                      onClick={() => setViewMode(mode)}
-                    >
-                      <Icon className="h-4 w-4 md:mr-1" />
-                      <span className="hidden md:inline text-xs">{tDyn(t, `viewModes.${labelKey}`)}</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="md:hidden">
-                    {tDyn(t, `viewModes.${labelKey}`)}
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          )}
 
           {/*
             MOBILE-ONLY mini-toolbar stuck to the right of the date bar:
@@ -747,49 +622,33 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
           "flex-wrap items-center gap-2 border-t border-border/50 px-3 py-1.5 md:px-4 md:flex",
           mobileMenuOpen ? "flex" : "hidden",
         )}>
-          {/* MOBILE-ONLY: Display modes (Schedule, My calendar, Team/day, Veh., Res.)
-              and Grouping moved here from row 1 (saves space on mobile). */}
-          <div className="flex md:hidden items-center gap-0.5 w-full border-b border-border/30 pb-1.5 mb-1">
-            {CALENDAR_OPTIONS.map(({ mode, icon: Icon, labelKey }) => {
-              const label = tDyn(t, `calendarModes.${labelKey}`);
-              const permMap: Record<string, boolean> = {
-                off: true,
-                personal: canViewCalendar,
-                "team-day": canViewTeamDay,
-              };
-              const allowed = permMap[mode] ?? true;
-              if (!allowed) return null;
-              return (
-                <Button
-                  key={mode}
-                  variant={calendarMode === mode ? "default" : "ghost"}
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => setCalendarMode(mode)}
-                  aria-label={label}
-                >
-                  <Icon className="h-4 w-4" />
-                </Button>
-              );
-            })}
-            {showViewModeButtons && (
-              <>
-                <div className="w-px h-5 bg-border mx-1" />
-                {VIEW_OPTIONS.map(({ mode, icon: Icon, labelKey }) => (
-                  <Button
-                    key={mode}
-                    variant={viewMode === mode ? "default" : "ghost"}
-                    size="sm"
-                    className="h-8 px-2"
-                    onClick={() => setViewMode(mode)}
-                    aria-label={tDyn(t, `viewModes.${labelKey}`)}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </Button>
-                ))}
-              </>
+          {/* MOBILE-ONLY: display modes (Planning with its rows, Calendar)
+              moved here from row 1 (saves space on mobile). */}
+          <div className="flex md:hidden items-center gap-1 w-full border-b border-border/30 pb-1.5 mb-1">
+            <PlanningViewTab
+              active={isPlanningActive}
+              rows={planningRows}
+              onActivate={activatePlanning}
+              onChooseRows={choosePlanningRows}
+              labelClassName="inline"
+            />
+            {canViewCalendar && (
+              <Button
+                variant={isCalendarView ? "default" : "ghost"}
+                size="sm"
+                className="h-8 gap-1 px-2"
+                data-planning-tab="calendar"
+                onClick={() => {
+                  if (isAssetView) setViewMode(lastPlanningView);
+                  setCalendarMode("personal");
+                }}
+              >
+                <CalendarDays className="h-4 w-4" />
+                <span className="text-xs">{calendarLabel}</span>
+              </Button>
             )}
           </div>
+
 
           {/* + New task */}
           {!canCreate ? (
@@ -811,11 +670,11 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
             </Button>
           )}
 
+          {/* Real-time Socket.io status indicator, then who else is on the planning */}
+          <LiveStatusBadge />
+
           {/* Presence */}
           <PresenceBar />
-
-          {/* Real-time Socket.io status indicator */}
-          <LiveStatusBadge />
 
           {/* Spacer */}
           <div className="flex-1" />

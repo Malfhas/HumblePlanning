@@ -24,7 +24,8 @@
     "error": "Der QR-Code konnte nicht erstellt werden.",
     "notAllowed": "Ihre Rolle erlaubt die mobile App nicht.",
     "expired": "Dieser QR-Code ist abgelaufen.",
-    "regenerate": "Neuen QR-Code erstellen"
+    "regenerate": "Neuen QR-Code erstellen",
+    "regenerateIn": "Neuer QR-Code in {seconds} s"
   },
   "quickAccess": {
     "button": "Mobile App",

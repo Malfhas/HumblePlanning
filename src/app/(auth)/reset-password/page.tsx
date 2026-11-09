@@ -13,6 +13,7 @@ import { Eye, EyeOff, Wand2, ShieldCheck, AlertTriangle, CheckCircle2, Loader2, 
 import { useTheme } from "next-themes";
 import { resolveThemedAsset } from "@/lib/utils/themed-asset";
 import { CaptchaWidget } from "@/components/shared/captcha-widget";
+import { copyText } from "@/lib/utils/clipboard";
 
 export default function ResetPasswordPage() {
   return (
@@ -272,7 +273,7 @@ function ResetPasswordContent() {
                 setPassword(pwd);
                 setConfirm(pwd);
                 setShowPassword(true);
-                navigator.clipboard.writeText(pwd).catch(() => {});
+                void copyText(pwd);
               }}
             >
               <Wand2 className="h-4 w-4" />

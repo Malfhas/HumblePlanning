@@ -32,7 +32,16 @@ function getRowKey(viewMode: ViewMode): string {
   }
 }
 
-export function usePlanningData() {
+export interface PlanningDataOptions {
+  /** Dates to load instead of the planning period (calendar view: the
+   *  displayed days or month when they go beyond it). */
+  range?: { start: Date; end: Date };
+  /** `false`: the dated queries (tasks, assignments, holidays) do not run
+   *  for this caller; another component with the same range loads them. */
+  enabled?: boolean;
+}
+
+export function usePlanningData({ range, enabled = true }: PlanningDataOptions = {}) {
   // Fallback labels of pseudo-tasks (assignments, public holidays) and of
   // group headers: translated here (React hook) and not stored in the
   // TanStack Query cache (only the values derived by the useMemos carry them).
@@ -58,8 +67,8 @@ export function usePlanningData() {
     () => selectedBuIds.length > 0 ? selectedBuIds : businessUnitIds,
     [selectedBuIds, businessUnitIds]
   );
-  const startStr = toDateString(startDate);
-  const endStr = toDateString(endDate);
+  const startStr = toDateString(range?.start ?? startDate);
+  const endStr = toDateString(range?.end ?? endDate);
 
   // Smart polling: no periodic refetch while Socket.io is
   // connected (the server-side `task:changed` events already trigger
@@ -94,7 +103,7 @@ export function usePlanningData() {
       ),
     placeholderData: keepPreviousData,
     refetchInterval,
-    enabled: storesHydrated,
+    enabled: enabled && storesHydrated,
   });
 
   const tasksData = useMemo<TaskWithUsers[]>(() => {
@@ -102,7 +111,8 @@ export function usePlanningData() {
   }, [tasksQuery.data]);
 
   const rowsQuery = useQuery({
-    queryKey: [viewMode, "planning-rows"],
+    // The users view shares the cache of the visible users below (same request): one download, not two
+    queryKey: viewMode === "users" ? ["users", "planning-visible"] : [viewMode, "planning-rows"],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queryFn: () => fetchApi<any[]>(`/api/${viewMode === "vehicles" ? "vehicles" : viewMode}${viewMode === "users" ? "?planning=true" : ""}`),
     placeholderData: keepPreviousData,
@@ -117,6 +127,7 @@ export function usePlanningData() {
       ),
     placeholderData: keepPreviousData,
     refetchInterval,
+    enabled,
   });
 
   // Resource assignments query — loaded in all views for resource icons on tasks
@@ -128,6 +139,7 @@ export function usePlanningData() {
       ),
     placeholderData: keepPreviousData,
     refetchInterval,
+    enabled,
   });
 
   // Always load visible user IDs to filter tasks across all view modes
@@ -172,6 +184,7 @@ export function usePlanningData() {
     queryFn: () =>
       fetchApi<Holiday[]>(`/api/holidays?startDate=${startStr}&endDate=${endStr}`),
     placeholderData: keepPreviousData,
+    enabled,
   });
 
   // Map userId → qualificationIds for qualification filtering

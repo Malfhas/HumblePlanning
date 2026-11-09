@@ -58,7 +58,9 @@
     "email": "Email",
     "webhook": "Webhook",
     "notification": "Notification",
-    "system": "Système"
+    "system": "Système",
+    "ai_history": "Historique de l'assistant IA",
+    "system_health": "Santé du système"
   },
   "fields": {
     "title": "Titre",

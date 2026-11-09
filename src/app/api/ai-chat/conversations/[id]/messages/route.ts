@@ -1,11 +1,10 @@
 import { z } from "zod";
 import type { UIMessage } from "ai";
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { aiChatConversations, aiChatMessages } from "@/db/schema";
-import { AppError, requireAuth, assertUuid, validateBody } from "@/lib/utils/api";
+import { aiChatMessages } from "@/db/schema";
+import { requireAuth, assertUuid, validateBody } from "@/lib/utils/api";
 import { assertAiChatAvailable } from "@/lib/ai-chat/availability";
-import { assertReplyLimits, assertScope, getUserConversation, respond } from "@/lib/ai-chat/chat-service";
+import { assertReplyLimits, getUserConversation, respond } from "@/lib/ai-chat/chat-service";
 import { handleChatError } from "@/lib/ai-chat/http";
 import { assertQuotaNotReached } from "@/lib/ai-chat/quota-service";
 
@@ -15,8 +14,6 @@ const sendSchema = z.object({
   messages: z.array(z.any()).min(1),
   model: z.string().max(200).optional(),
   reasoning: z.enum(["none", "low", "medium", "high"]).optional(),
-  /** Scope of a floating orb message: the open project, otherwise the whole schedule (null). */
-  projectId: z.string().uuid().nullable().optional(),
   /** The open page (floating orb): bounds the turn's tools. Absent in full-screen mode. */
   page: z.string().max(60).nullable().optional(),
 });
@@ -47,24 +44,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // One response at a time per conversation, N per user: refused (409) before writing
     await assertReplyLimits(userId, id, config.maxConcurrentPerUser);
 
-    /**
-     * Message scope. The floating orb sends it with each message; it is
-     * checked as at creation, then becomes the conversation's current
-     * scope. A conversation from the Assistant page froze its scope at the
-     * first question: it cannot be changed through this path.
-     */
-    let projectId = conversation.projectId;
-    if (input.projectId !== undefined) {
-      if (!conversation.followsNavigation) {
-        throw new AppError("aiChat.errors.fixedScope");
-      }
-      projectId = input.projectId ?? null;
-      await assertScope(perms, projectId);
-      if (projectId !== conversation.projectId) {
-        await db.update(aiChatConversations).set({ projectId }).where(eq(aiChatConversations.id, id));
-      }
-    }
-
     // The question is recorded before the call: if the model fails, we still know
     // what was asked. A resume after approval or a regeneration
     // re-sends the history without a new question: nothing to write.
@@ -77,7 +56,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             .map((part) => part.text)
             .join("\n");
     if (text) {
-      await db.insert(aiChatMessages).values({ conversationId: id, role: "USER", content: text, projectId });
+      await db.insert(aiChatMessages).values({ conversationId: id, role: "USER", content: text });
     }
 
     /**

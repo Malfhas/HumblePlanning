@@ -21,6 +21,7 @@ import {
   Shield,
   Languages,
 } from "lucide-react";
+import { copyText } from "@/lib/utils/clipboard";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -927,7 +928,7 @@ function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(text);
+    if (!(await copyText(text))) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [text]);

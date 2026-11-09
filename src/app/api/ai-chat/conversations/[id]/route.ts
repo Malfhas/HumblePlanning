@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { aiChatConversations, aiChatMessages } from "@/db/schema";
 import { requireAuth, apiSuccess, assertUuid, validateBody } from "@/lib/utils/api";
 import { assertAiChatAvailable } from "@/lib/ai-chat/availability";
-import { assertScope, getUserConversation } from "@/lib/ai-chat/chat-service";
+import { getUserConversation } from "@/lib/ai-chat/chat-service";
 import { getListedConversation } from "@/lib/ai-chat/conversations";
 import { handleChatError } from "@/lib/ai-chat/http";
 
@@ -50,26 +50,22 @@ const updateSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   /** Pinned at the top of the list (true) or put back among the recent ones (false). */
   pinned: z.boolean().optional(),
-  projectId: z.string().uuid().nullable().optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
     const session = await requireAuth();
-    const { perms } = await assertAiChatAvailable(session.user.id);
+    await assertAiChatAvailable(session.user.id);
     const { id } = await params;
     const invalid = assertUuid(id);
     if (invalid) return invalid;
     const input = await validateBody(request, updateSchema);
     await getUserConversation(session.user.id, id);
-    // Changing scope mid-conversation is still subject to the same rights
-    if (input.projectId !== undefined) await assertScope(perms, input.projectId);
     await db
       .update(aiChatConversations)
       .set({
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.pinned !== undefined ? { pinnedAt: input.pinned ? new Date() : null } : {}),
-        ...(input.projectId !== undefined ? { projectId: input.projectId } : {}),
       })
       .where(and(eq(aiChatConversations.id, id), eq(aiChatConversations.userId, session.user.id)));
     return apiSuccess(await getListedConversation(session.user.id, id));

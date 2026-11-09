@@ -2,9 +2,7 @@
   "errors": {
     "unavailable": "KI-Assistent nicht verfügbar",
     "modelListUnavailable": "Modellliste nicht verfügbar",
-    "fixedScope": "Der Bereich dieser Unterhaltung ist festgelegt: Starten Sie eine neue, um ihn zu ändern",
     "modelNotAllowed": "Dieses Modell ist von der Administration nicht zugelassen",
-    "projectInaccessible": "Projekt nicht zugänglich",
     "replyInProgress": "In dieser Unterhaltung wird bereits eine Antwort erstellt: Warten Sie, bis sie fertig ist, oder stoppen Sie sie.",
     "tooManyReplies": "{count, plural, =1 {1 Antwort wird bereits erstellt: Warten Sie oder stoppen Sie sie.} other {# Antworten werden bereits erstellt: Warten Sie oder stoppen Sie eine davon.}}",
     "conversationNotFound": "Unterhaltung nicht gefunden",
@@ -117,20 +115,6 @@
     "placeholder": "Auswählen…",
     "selectedCount": "{count, plural, one {# ausgewählt} other {# ausgewählt}}"
   },
-  "scope": {
-    "global": {
-      "name": "Gesamte Planung",
-      "description": "Alle Projekte, die Sie sehen"
-    },
-    "none": "Ohne Bereich",
-    "followsNavigation": "folgt der Navigation",
-    "lockedTooltip": "Der Bereich wird bei der ersten Frage festgelegt: Die bisherigen Antworten hängen davon ab. Starten Sie eine neue Unterhaltung, um das Projekt zu wechseln.",
-    "choose": "Bereich wählen…",
-    "useDataFrom": "Daten verwenden aus:",
-    "searchProject": "Projekt suchen…",
-    "noProject": "Kein Projekt",
-    "projects": "Projekte"
-  },
   "browserNotifications": {
     "unsupported": "Ihr Browser kann auf dieser Seite keine Benachrichtigungen anzeigen.",
     "displayFailed": "Der Browser konnte die Benachrichtigung nicht anzeigen: Prüfen Sie, ob Benachrichtigungen für ihn in den Systemeinstellungen erlaubt sind.",
@@ -188,7 +172,9 @@
     "confirmDeleteAll": {
       "title": "Alle Ihre Unterhaltungen löschen?",
       "description": "{count, plural, one {Ihre Unterhaltung und alle zugehörigen Nachrichten werden gelöscht.} other {Ihre # Unterhaltungen und alle zugehörigen Nachrichten werden gelöscht.}} Dieser Vorgang ist endgültig."
-    }
+    },
+    "resize": "Breite der Unterhaltungsliste",
+    "resizeTooltip": "Ziehen zum Verbreitern · Doppelklick: Standardbreite"
   },
   "floating": {
     "title": "KI-Assistent",
@@ -199,7 +185,6 @@
       "ariaLabel": "Assistenten ausblenden",
       "tooltip": "Assistenten bis zum nächsten Laden der Seite ausblenden"
     },
-    "scope": "Bereich: {scope}",
     "history": {
       "ariaLabel": "Verlauf der Unterhaltungen",
       "tooltip": "Frühere Unterhaltung fortsetzen",
@@ -232,12 +217,6 @@
     "welcome": "Was kann ich für Sie tun?",
     "suggestions": {
       "title": "Vorschläge",
-      "project": {
-        "progress": "Wie steht es um dieses Projekt? Geplante, verbrauchte und verbleibende Stunden.",
-        "whoThisWeek": "Wer arbeitet diese Woche an diesem Projekt?",
-        "lateOrUnassigned": "Welche Aufgaben dieses Projekts sind überfällig oder nicht zugewiesen?",
-        "conflicts": "Gibt es in diesem Projekt Konflikte bei Fahrzeugen oder Ressourcen?"
-      },
       "global": {
         "availableNextWeek": "Wer ist nächste Woche verfügbar?",
         "summaryByTeam": "Zusammenfassung der Planung dieser Woche nach Team.",
@@ -245,8 +224,6 @@
         "unassigned": "Welchen Aufgaben ist niemand zugewiesen?"
       }
     },
-    "disclaimer": "Der Assistent kann sich irren: Prüfen Sie wichtige Zahlen.",
-    "disclaimerReadOnly": "Der Assistent kann sich irren: Prüfen Sie wichtige Zahlen. Mit Nur-Lesezugriff ändert er Ihre Daten nie.",
     "renameTooltip": "Klicken, um die Unterhaltung umzubenennen",
     "untitled": "Unterhaltung",
     "readOnly": "Nur Lesezugriff",
@@ -274,6 +251,12 @@
   "reasoning": {
     "inProgress": "Das Modell denkt nach…",
     "title": "Denkprozess des Modells"
+  },
+  "toolGroup": {
+    "used": "{count, plural, one {Werkzeug verwendet} other {# Werkzeuge verwendet}}",
+    "running": "Daten werden abgefragt…",
+    "input": "Parameter",
+    "output": "Ergebnis"
   },
   "approval": {
     "title": "Ihre Zustimmung ist erforderlich",
@@ -339,8 +322,7 @@
     "attachmentsPending": "{count, plural, one {# Anhang - er wird mit Ihrer nächsten Nachricht gesendet.} other {# Anhänge - sie werden mit Ihrer nächsten Nachricht gesendet.}}",
     "placeholder": {
       "dictating": "Sprechen Sie, ich schreibe…",
-      "default": "Wie kann ich Ihnen helfen?",
-      "noScope": "Wählen Sie zuerst einen Bereich…"
+      "default": "Wie kann ich Ihnen helfen?"
     },
     "attach": {
       "tooltip": "Dokument oder Bild anhängen (PDF, Word, Excel, CSV)",
@@ -362,7 +344,12 @@
       "downloading": "Download des {precision, select, high {hochpräzisen Diktiermodells} other {Standard-Diktiermodells}} ({percent} %) - nur einmal, danach bleibt es im Cache. Die Transkription folgt.",
       "transcribing": "Transkription läuft…"
     },
-    "stopReply": "Antwort stoppen"
+    "stopReply": "Antwort stoppen",
+    "modelReads": {
+      "imagesAndPdf": "Liest Bilder und PDFs",
+      "images": "Liest Bilder",
+      "documents": "Liest Text und Dokumente"
+    }
   },
   "settings": {
     "reasons": {

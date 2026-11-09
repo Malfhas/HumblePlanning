@@ -22,7 +22,7 @@
     "liveSettingsHint": "The settings below update the schedule in real time.",
     "calendar": {
       "personal": "{name}’s calendar",
-      "teamDay": "Day of {date}",
+      "everyone": "Calendar of all users",
       "hint": "The export reflects the active calendar mode."
     },
     "view": "View",
@@ -70,7 +70,6 @@
       "helpPdf": "Adds pages with hours used, user time and remaining budgets."
     },
     "summary": {
-      "day": "Day",
       "period": "Period",
       "periodHint": "Change the period from the schedule toolbar."
     },
@@ -101,8 +100,33 @@
         "gantt": "Schedule (grid)",
         "list": "List (table)"
       },
-      "fitOnePage": "Fit on 1 page"
+      "fitOnePage": "Fit on 1 page",
+      "fullNames": "Full names",
+      "fullNamesHelp": "Shows the names of projects and people in full, on several lines if needed, instead of cutting them with “…”."
     },
-    "generating": "Generating…"
+    "generating": "Generating…",
+    "kind": {
+      "label": "Export type",
+      "planning": "Planning",
+      "projectGantt": "Project Gantt"
+    },
+    "projectGantt": {
+      "project": "Project",
+      "choose": "Choose a project",
+      "search": "Search a project…",
+      "empty": "No project",
+      "order": "Row order",
+      "orders": {
+        "date": "By start date (staircase)",
+        "alpha": "Alphabetical order"
+      },
+      "hint": "One row per task title of the project over the period, coloured by status. The planning filters do not apply.",
+      "scale": "Scale",
+      "scales": {
+        "days": "Days",
+        "weeks": "Weeks"
+      },
+      "today": "Mark today"
+    }
   }
 }

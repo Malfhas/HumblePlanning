@@ -12,6 +12,8 @@ import * as path from "node:path";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
 import { parseDatabaseUrl, hasPgDumpLocal, getDockerContainer } from "@/lib/utils/database";
+import { recordTaskRun } from "@/lib/services/system-task-service";
+import { setNextRun } from "@/lib/system-health/next-runs";
 
 const execFileAsync = promisify(execFile);
 
@@ -174,13 +176,13 @@ export async function createBackup(userId: string | null, triggerType: "manual" 
     applyRetentionPolicy().catch(() => {});
 
     return updated;
-  } catch (error: any) {
+  } catch (error) {
     const durationMs = Date.now() - startTime;
     await db.update(backupHistory)
       .set({
         status: "failed",
         // Error code (translated at display time) or technical pg_dump message.
-        errorMessage: error.message?.slice(0, 1000) ?? "errors.unknown",
+        errorMessage: error instanceof Error ? error.message.slice(0, 1000) : "errors.unknown",
         durationMs,
       })
       .where(eq(backupHistory.id, record.id));
@@ -315,7 +317,9 @@ async function schedulerTick() {
     const enabled = await getConfigValue("BACKUP_ENABLED");
     if (enabled !== "true") return;
 
-    await createBackup(null, "scheduled");
+    await recordTaskRun("backup", () => createBackup(null, "scheduled"), (backup) => ({
+      detail: { filename: backup.filename, sizeBytes: backup.sizeBytes, durationMs: backup.durationMs },
+    }));
   } catch (error) {
     logger.error("backup", "Backup scheduler error", { error: error instanceof Error ? error.message : String(error) });
   } finally {
@@ -329,6 +333,7 @@ async function scheduleNext() {
     const enabled = await getConfigValue("BACKUP_ENABLED");
     if (enabled !== "true") {
       schedulerTimer = null;
+      setNextRun("backup", null);
       return;
     }
 
@@ -337,6 +342,7 @@ async function scheduleNext() {
     const delay = getNextRunTime(schedule, targetTime);
 
     schedulerTimer = setTimeout(schedulerTick, delay);
+    setNextRun("backup", new Date(Date.now() + delay));
   } catch {
     // Retry in 5 minutes on config read error
     schedulerTimer = setTimeout(scheduleNext, 5 * 60 * 1000);
@@ -353,6 +359,19 @@ export function stopBackupScheduler() {
     clearTimeout(schedulerTimer);
     schedulerTimer = null;
   }
+}
+
+/** Settings that decide when the scheduled backups run. */
+export const BACKUP_SCHEDULE_KEYS = ["BACKUP_ENABLED", "BACKUP_SCHEDULE", "BACKUP_TIME"] as const;
+
+/**
+ * Plans the next scheduled backup again from the current settings. The scheduler reads them only when it plans a
+ * run: without this, backups turned on after the start of the server never ran, and a new time or frequency only
+ * applied after the next run.
+ */
+export function rescheduleBackups() {
+  stopBackupScheduler();
+  void scheduleNext();
 }
 
 // --- Encryption key status ---

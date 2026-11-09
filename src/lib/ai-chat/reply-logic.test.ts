@@ -3,6 +3,7 @@ import {
   abortOutcome,
   Cadence,
   cleanTitle,
+  isPlaceholderTitle,
   notificationTitle,
   phaseOfChunk,
   tooManyRepliesError,
@@ -109,5 +110,13 @@ describe('automatic title', () => {
     expect(cleanTitle('  ')).toBe('');
     expect(cleanTitle('Reste \u2014 à planifier')).toBe('Reste - à planifier');
     expect(cleanTitle('x'.repeat(120))).toHaveLength(80);
+  });
+
+  it('recognises the default title in every language as a placeholder, not a real title', () => {
+    for (const placeholder of ['New conversation', 'nouvelle conversation', 'Nueva conversacion', 'Neue Unterhaltung']) {
+      expect(isPlaceholderTitle(placeholder)).toBe(true);
+    }
+    expect(isPlaceholderTitle('Salutations')).toBe(false);
+    expect(isPlaceholderTitle('Nouvelle conversation avec Emma')).toBe(false);
   });
 });

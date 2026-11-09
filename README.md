@@ -133,19 +133,19 @@
 
 | Area | Highlights |
 | --- | --- |
-| **Schedule** | Day and hour views; views by people, projects, vehicles and resources, plus a team/day view and a personal calendar; drag and drop, resize and copy; multi-person tasks, recurring tasks, milestones, half days; public holidays; filters, sorting and zoom; live presence |
+| **Schedule** | Day and hour views; views by people, projects, vehicles and resources, plus a calendar (day, week and month, one person or everyone); drag and drop, resize and copy; multi-person tasks, recurring tasks, milestones, half days; public holidays; filters, sorting and zoom; live presence |
 | **Tasks** | Task list with search and filters, statuses, notes, attachments, locking and change history |
 | **People** | Users, teams, business units, qualifications, labour types, contract types (employee, temporary worker, subcontractor, apprentice, intern, freelancer), job titles, hourly rates |
 | **Projects and worksites** | Job numbers, project groups, custom statuses and colours, site address on a map, labour budgets in hours and cost, archiving |
 | **Logistics** | Vehicles and resources with their types, assignments and availability on the schedule |
 | **Analytics** | User statistics (workload, occupancy, hours by labour type), project statistics (consumed, upcoming and remaining hours), ROI |
-| **Exports and calendars** | PDF (schedule grid or list, with optional statistics pages), Excel and CSV exports; personal iCal feeds |
+| **Exports and calendars** | PDF (schedule grid or list, calendar, with optional statistics pages), project Gantt in PDF and Excel, Excel and CSV exports; personal iCal feeds |
 | **Notifications** | In-app notifications, e-mail (SMTP, Mailgun or Nuntly), weekly summary e-mails, push notifications, SMS and WhatsApp (Sent.dm) |
 | **Android app** | [Native app](https://github.com/Malfhas/HumblePlanning-Android) for the same server: day, week and month views and the team grid, task creation and editing, real-time alerts, the AI assistant, your own tasks readable offline; sign-in by password, second factor or QR code, a role permission decides who may use it |
 | **AI assistant** | Full-page chat and floating assistant, answers from live data, approval card before any change, model of your choice through OpenRouter, monthly quota per user, local voice dictation, PDF and image attachments |
 | **MCP server** | 40 tools for Claude, ChatGPT, Copilot and any MCP client, OAuth 2.1 with a consent screen or API keys, the user's own permissions on every call |
 | **Security** | Argon2id, TOTP two-factor authentication with backup codes, password policy, brute-force protection, captcha (ALTCHA, Cloudflare Turnstile, reCAPTCHA), session management, audit trail with restore |
-| **Administration** | Roles and permissions with scopes, white-label branding (logo, favicon, sign-in background for light and dark themes), announcement banner, working hours, date and time formats, time zone, maintenance mode, module switches, logs and purge tools |
+| **Administration** | Roles and permissions with scopes, white-label branding (logo, favicon, sign-in background for light and dark themes), announcement banner, working hours, date and time formats, time zone, maintenance mode, module switches, system health (live status, configuration alerts, scheduled tasks, grouped incidents, failed deliveries), AI assistant history (usage and cost) and purge tools |
 | **Data** | Encrypted backups and restore, import from SoPlanning 1.56 and 1.57, REST API with API keys and built-in documentation |
 | **Languages** | English, French, Spanish and German, per user, with e-mails, notifications and exports in each recipient's language |
 

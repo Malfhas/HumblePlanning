@@ -21,7 +21,7 @@ import {
 import { AppError } from "@/lib/errors";
 import { isEquipmentVisible } from "@/lib/services/equipment-scope";
 import type { SortMode, ViewMode, CalendarMode } from "@/lib/types/planning";
-import { sortAndGroupRows, type PlanningRow, type GridRow, type NoneGroupLabels } from "@/lib/utils/sort-rows";
+import { sortAndGroupRows, type PlanningRow, type NoneGroupLabels } from "@/lib/utils/sort-rows";
 import { INTL_TAG, type AppLocale } from "@/i18n/config";
 import { translateKey, type ServerTranslator } from "@/i18n/server-translator";
 
@@ -88,7 +88,6 @@ export interface ExportFilters {
   includeStats?: boolean;
   calendarMode?: CalendarMode;
   calendarUserId?: string;
-  selectedDay?: string;
   calendarDays?: number;
 }
 
@@ -185,7 +184,8 @@ export interface ExportTask {
   status: { id: string; name: string; color: string | null; bold: boolean | null; italic: boolean | null; strikethrough: boolean | null; underline: boolean | null } | null;
   place: { id: string; name: string } | null;
   resource: { id: string; name: string } | null;
-  users: { id: string; name: string; username: string | null }[];
+  /** `color`: of the person's avatar (the PDF calendar of everyone draws their initials). */
+  users: { id: string; name: string; username: string | null; color?: string | null }[];
   // Vehicle export fields (only present in vehicle mode)
   vehicleId?: string;
   vehicleName?: string;
@@ -234,11 +234,11 @@ interface RawTaskWithRelations {
   status: { id: string; name: string; color: string | null; bold: boolean | null; italic: boolean | null; strikethrough: boolean | null; underline: boolean | null } | null;
   place: { id: string; name: string } | null;
   resource: { id: string; name: string } | null;
-  taskUsers: { user: { id: string; name: string; firstName?: string | null; username: string | null } }[];
+  taskUsers: { user: { id: string; name: string; firstName?: string | null; username: string | null; color?: string | null } }[];
 }
 
 function mapTaskWithUsers(task: RawTaskWithRelations): ExportTask {
-  const tu = task.taskUsers?.map(t => ({ id: t.user.id, name: [t.user.firstName, t.user.name].filter(Boolean).join(" "), username: t.user.username ?? null })).filter(Boolean) ?? [];
+  const tu = task.taskUsers?.map(t => ({ id: t.user.id, name: [t.user.firstName, t.user.name].filter(Boolean).join(" "), username: t.user.username ?? null, color: t.user.color ?? null })).filter(Boolean) ?? [];
   return {
     id: task.id,
     title: task.title,
@@ -314,14 +314,8 @@ function isVisible(visibleIds: Set<string> | null, id: string): boolean {
  */
 export async function getExportData(filters: ExportFilters, exportedBy: string, i18n: ExportI18n, perms: UserPermissions): Promise<ExportData> {
   const scope = await getExportScope(perms);
-  // Override date range for calendar modes
-  let effectiveStartDate = filters.startDate;
-  let effectiveEndDate = filters.endDate;
-
-  if (filters.calendarMode === "team-day" && filters.selectedDay) {
-    effectiveStartDate = filters.selectedDay;
-    effectiveEndDate = filters.selectedDay;
-  }
+  const effectiveStartDate = filters.startDate;
+  const effectiveEndDate = filters.endDate;
 
   // Overlap condition: task overlaps the date range
   // taskStart <= filterEnd AND COALESCE(taskEnd, taskStart) >= filterStart
@@ -751,6 +745,29 @@ export async function getVehicleExportData(filters: ExportFilters, exportedBy: s
   };
 }
 
+/** True if `task` shows on the planning row `rowId` (whatever the day). */
+function isTaskOnRow(data: ExportData, task: ExportTask, rowId: string): boolean {
+  switch (data.metadata.filters.viewMode) {
+    case "vehicles":
+      return task.vehicleId === rowId;
+    case "users":
+      return task.users.some(u => u.id === rowId);
+    case "projects":
+      return task.project?.id === rowId;
+    case "places":
+      return task.place?.id === rowId;
+    case "resources":
+      return task.resource?.id === rowId;
+    default:
+      return false;
+  }
+}
+
+/** Tasks of a planning row over the whole period (`getTasksForRowAndDay` without the day). */
+export function getTasksForRow(data: ExportData, rowId: string): ExportTask[] {
+  return data.tasks.filter(task => isTaskOnRow(data, task, rowId));
+}
+
 export function getTasksForRowAndDay(
   data: ExportData,
   rowId: string,
@@ -760,25 +777,7 @@ export function getTasksForRowAndDay(
     const taskStart = task.startDate;
     const taskEnd = task.endDate ?? task.startDate;
     if (day < taskStart || day > taskEnd) return false;
-
-    const isVehicleMode = data.metadata.filters.viewMode === "vehicles";
-
-    if (isVehicleMode) {
-      return task.vehicleId === rowId;
-    }
-
-    switch (data.metadata.filters.viewMode) {
-      case "users":
-        return task.users.some(u => u.id === rowId);
-      case "projects":
-        return task.project?.id === rowId;
-      case "places":
-        return task.place?.id === rowId;
-      case "resources":
-        return task.resource?.id === rowId;
-      default:
-        return false;
-    }
+    return isTaskOnRow(data, task, rowId);
   });
 }
 

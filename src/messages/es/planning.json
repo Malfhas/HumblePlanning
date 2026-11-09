@@ -41,8 +41,28 @@
       "pastedCopy": "Pegado (copia)",
       "pastedMove": "Pegado (movido)"
     },
-    "noVisibleUsers": "Ningún usuario visible. Compruebe los filtros o el modo de vista.",
-    "allDay": "Todo el día"
+    "allDay": "Todo el día",
+    "deleteShortcut": {
+      "confirm": "Pulse {key} de nuevo para eliminar",
+      "key": "Supr",
+      "denied": "Permiso insuficiente para eliminar esta tarea"
+    }
+  },
+  "calendar": {
+    "weekShort": "S{week}",
+    "weekTitle": "Semana {week}",
+    "openWeek": "Mostrar la semana {week}",
+    "openDay": "Abrir el día",
+    "newTaskOn": "Nueva tarea el {date}",
+    "more": "{count, plural, one {+# más} other {+# más}}",
+    "showMore": "{count, plural, one {Ver la otra tarea en la vista por días} other {Ver las # otras tareas en la vista por días}}",
+    "peopleTitle": "{busy, plural, one {# persona ocupada} other {# personas ocupadas}} de {total} · {free, plural, =0 {nadie disponible} one {# disponible} other {# disponibles}}",
+    "hours": "{hours} h",
+    "loadTitle": "{level, select, over {Sobrecarga: {planned} h planificadas para una jornada de {capacity} h} full {Jornada completa: {planned} h planificadas} other {{planned} h planificadas de {capacity} h}}",
+    "dayEmpty": "Nada previsto ese día.",
+    "empty": "Ninguna tarea planificada en este periodo",
+    "emptyHint": "Haga clic en una franja libre para crear una tarea.",
+    "emptyHintMonth": "Pase el cursor sobre un día y haga clic en «+» para crear una tarea."
   },
   "a11y": {
     "gridLabel": "Cuadrícula de planificación",
@@ -64,9 +84,9 @@
   },
   "liveStatus": {
     "live": {
-      "label": "En directo",
+      "label": "Tiempo real",
       "ariaLabel": "Conexión en tiempo real activa",
-      "tooltip": "La planificación se sincroniza en tiempo real. Los cambios realizados por otros usuarios aparecen inmediatamente."
+      "tooltip": "La planificación se sincroniza en tiempo real."
     },
     "offline": {
       "label": "Sin conexión",
@@ -77,6 +97,7 @@
   "tooltips": {
     "untitled": "Sin título",
     "task": {
+      "milestone": "Hito",
       "resourceConflict": "Conflicto — este recurso ya está reservado en este periodo",
       "vehicleConflict": "Conflicto — este vehículo ya está reservado en este periodo"
     },
@@ -133,8 +154,13 @@
     },
     "calendarModes": {
       "planning": "Planificación",
-      "personal": "Mi calendario",
-      "teamDay": "Equipo/día"
+      "personal": "Calendario"
+    },
+    "planningRows": {
+      "label": "Filas de la planificación",
+      "users": "Por usuarios",
+      "projects": "Por proyectos",
+      "choose": "Elegir las filas de la planificación"
     },
     "sort": {
       "nameAsc": "Nombre A → Z",
@@ -167,12 +193,25 @@
     "permissionDenied": "Permiso insuficiente",
     "calendar": {
       "selectUser": "Seleccionar...",
+      "everyone": "Todos los usuarios",
       "noUser": "Ningún usuario",
       "hoursView": "Vista por horas",
       "daysView": "Vista por días",
       "daysShort": "{count} d",
       "showWorkingHours": "Mostrar el horario laboral",
-      "show24h": "Mostrar 24 horas"
+      "show24h": "Mostrar 24 horas",
+      "person": "Persona mostrada",
+      "me": "(usted)",
+      "month": "Mes",
+      "monthTooltip": "Mes completo",
+      "daysTooltip": "{count, plural, one {# día} other {# días}}",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "previousDays": "{count} días anteriores",
+      "nextDays": "{count} días siguientes",
+      "jumpTo": "Elegir una fecha",
+      "viewLabel": "Visualización",
+      "periodLabel": "Periodo mostrado"
     },
     "filters": "Filtros",
     "showMenu": "Mostrar el menú",

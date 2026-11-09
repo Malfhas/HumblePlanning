@@ -23,6 +23,7 @@ import { TeamUsersReorder } from "@/components/teams/team-users-reorder";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { Plus, Pencil, Trash2, ChevronRight, Users, GripVertical, Building2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ErrorState } from "@/components/shared/error-state";
 import { useBuStore } from "@/stores/bu-store";
@@ -134,31 +135,34 @@ export default function TeamsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("teams.title")}</h1>
-        {!can("teams:edit") ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button size="sm" disabled>
-                  <Plus className="mr-1 h-4 w-4" /> {tc("actions.add")}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{t("shared.insufficientPermission")}</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button
-            size="sm"
-            onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-1 h-4 w-4" /> {tc("actions.add")}
-          </Button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold">{t("teams.title")}</h1>
+
+      <ListToolbar
+        actions={
+          !can("teams:edit") ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" disabled>
+                    <Plus className="mr-1 h-4 w-4" /> {tc("actions.add")}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t("shared.insufficientPermission")}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" /> {tc("actions.add")}
+            </Button>
+          )
+        }
+      />
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">{tc("states.loading")}</p>
@@ -166,16 +170,17 @@ export default function TeamsPage() {
         <p className="text-sm text-muted-foreground">{t("teams.empty")}</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="space-y-6">
+          <div className="space-y-4">
+            {/* One frame per business unit, like the tables of the other lists: its name as the header row */}
             {buSections.map((section) => (
-              <div key={section.buId ?? "none"} className="space-y-2">
-                <div className="flex items-center gap-2 px-1">
+              <div key={section.buId ?? "none"} className="overflow-hidden rounded-md border">
+                <div className="flex h-10 items-center gap-2 border-b bg-muted/40 px-3">
                   <Building2 className="h-4 w-4" style={{ color: section.buColor }} />
                   <h2 className="text-sm font-semibold text-foreground">{section.buName}</h2>
                   <span className="text-xs text-muted-foreground">({section.teams.length})</span>
                 </div>
                 <SortableContext items={section.teams.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2">
+                  <div className="divide-y">
                     {section.teams.map((team) => (
                       <SortableTeamCard
                         key={team.id}
@@ -261,7 +266,7 @@ function SortableTeamCard({
   return (
     <div ref={setNodeRef} style={style}>
       <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
-        <div className="rounded-lg border bg-card">
+        <div className="bg-card">
           <div className="flex items-center gap-2 px-3 py-3">
             {canEdit && (
               <button

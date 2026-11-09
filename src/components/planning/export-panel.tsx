@@ -18,16 +18,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePlanningStore, type ViewMode, type SortMode, type CalendarMode } from "@/stores/planning-store";
+import { usePlanningStore, type ViewMode, type SortMode } from "@/stores/planning-store";
 import { useFilterStore } from "@/stores/filter-store";
 import { useBuStore } from "@/stores/bu-store";
+import { startOfMonth, endOfMonth } from "date-fns";
+import { CALENDAR_EVERYONE, calendarWindow } from "@/lib/utils/calendar-view";
 import {
   FileText,
   FileSpreadsheet,
   FileDown,
   Download,
   Loader2,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn, formatProjectName } from "@/lib/utils";
 import { useDateFormat } from "@/hooks/use-date-format";
 import { throwIfNotOk, ApiClientError } from "@/lib/api-client";
 import { useTeams } from "@/hooks/use-teams";
@@ -126,7 +133,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
   const { format } = useDateFormat();
   const [exportError, setExportError] = useState<string | null>(null);
   // Read directly from stores — changes update the planning in real time
-  const { viewMode, setViewMode, startDate, endDate, sortMode, setSortMode, calendarMode, calendarUserId, calendarDays, selectedDay, calendarPersonalView } = usePlanningStore();
+  const { viewMode, setViewMode, startDate, endDate, sortMode, setSortMode, calendarMode, calendarUserId, calendarDays, calendarPersonalView } = usePlanningStore();
   const filters = useFilterStore();
   const { selectedBuIds } = useBuStore();
   // Merge header BU selector with filter store BU filter
@@ -137,10 +144,11 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
   const viewModes = VIEW_MODES.filter((v) => v !== "vehicles" || can("planning:view_vehicles"));
 
   const isPersonalMode = calendarMode === "personal";
-  const isTeamDayMode = calendarMode === "team-day";
   const isVehicleMode = viewMode === "vehicles";
-  const isCalendarMode = isPersonalMode || isTeamDayMode;
-  const effectiveCalendarUserId = calendarUserId ?? currentUserId;
+  const isCalendarMode = isPersonalMode;
+  // Calendar of everyone: no person filter, every task the user may see is exported
+  const isEveryone = isPersonalMode && calendarUserId === CALENDAR_EVERYONE;
+  const effectiveCalendarUserId = isEveryone ? null : calendarUserId ?? currentUserId;
 
   type CellContent = "project" | "title" | "user-name" | "user-login";
 
@@ -159,26 +167,47 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
 
   // PDF-only options (don't affect the planning)
   const [paperSize, setPaperSize] = useState("A4");
-  const [orientation, setOrientation] = useState(isCalendarMode ? "portrait" : "landscape");
+  // The month grid reads best in landscape, a few days in portrait
+  const [orientation, setOrientation] = useState(isCalendarMode && calendarDays !== "month" ? "portrait" : "landscape");
   const [pdfFormat, setPdfFormat] = useState(isCalendarMode ? "calendar" : "gantt");
+  const effectivePdfFormat = pdfFormat;
   const [fitOnePage, setFitOnePage] = useState(false);
+  // Names of projects and people in full (several lines) instead of cut with "…"
+  const [fullNames, setFullNames] = useState(false);
+  // Project Gantt (PDF and Excel): one project, a row per task title, the days in the colour of the status
+  const [exportKind, setExportKind] = useState<"planning" | "project-gantt">("planning");
+  const [ganttProjectId, setGanttProjectId] = useState<string | null>(null);
+  const [ganttSort, setGanttSort] = useState<"date" | "alpha">("date");
+  const [ganttScale, setGanttScale] = useState<"days" | "weeks">("days");
+  const [ganttToday, setGanttToday] = useState(false);
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
+  const isProjectGantt = exportKind === "project-gantt" && (exportFormat === "pdf" || exportFormat === "excel");
 
-  const effectiveStartDate = isTeamDayMode ? selectedDay : startDate;
-  const effectiveEndDate = isTeamDayMode ? selectedDay : endDate;
-  const rangeLabel = isTeamDayMode
-    ? format(selectedDay, "EEEE d MMMM yyyy")
-    : `${format(startDate, "d MMM yyyy")} — ${format(endDate, "d MMM yyyy")}`;
+  // Calendar: the period it shows (the whole month in the Month view), not the loaded planning range
+  const [exportStart, exportEnd] = useMemo(() => {
+    if (!isCalendarMode) return [startDate, endDate];
+    if (calendarDays === "month") return [startOfMonth(startDate), endOfMonth(startDate)];
+    const { start, end } = calendarWindow(startDate, calendarDays);
+    return [start, end];
+  }, [isCalendarMode, calendarDays, startDate, endDate]);
+  const rangeLabel = `${format(exportStart, "d MMM yyyy")} — ${format(exportEnd, "d MMM yyyy")}`;
 
   // Resolve calendar user name — calendarUserId is null when viewing own calendar
-  const { data: calendarUser } = useUser(isPersonalMode && calendarUserId ? calendarUserId : null);
+  const { data: calendarUser } = useUser(isPersonalMode && calendarUserId && !isEveryone ? calendarUserId : null);
+  const calendarPerson = calendarUserId ? calendarUser : currentUser;
   const calendarUserName = isPersonalMode
-    ? (calendarUserId ? calendarUser?.name : currentUser?.name) ?? "..."
+    ? [(calendarPerson as { firstName?: string | null } | null | undefined)?.firstName, calendarPerson?.name].filter(Boolean).join(" ") || "..."
     : null;
 
   // Resolve filter names from cached queries
   const { data: teams } = useTeams();
   const { data: allUsers } = useUsers(undefined, false);
   const { data: allProjects } = useProjects();
+  // The projects of the task form: those the user may see, in the selected business units, not archived
+  const ganttProjects = useMemo(() => (allProjects ?? []).filter((p) => p.status !== "archived"
+    && (selectedBuIds.length === 0 || ((p as { businessUnitId?: string | null }).businessUnitId != null
+      && selectedBuIds.includes((p as { businessUnitId?: string | null }).businessUnitId!)))), [allProjects, selectedBuIds]);
+  const ganttProject = ganttProjects.find((p) => p.id === ganttProjectId);
   const { data: statuses } = useStatuses();
   const { data: allPlaces } = usePlaces();
   const { data: allResources } = useResources();
@@ -200,8 +229,8 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
   const buildQueryParams = useCallback((): string => {
     const params = new URLSearchParams();
     params.set("viewMode", isCalendarMode ? "users" : viewMode);
-    params.set("startDate", toISODate(isTeamDayMode ? selectedDay : startDate));
-    params.set("endDate", toISODate(isTeamDayMode ? selectedDay : endDate));
+    params.set("startDate", toISODate(exportStart));
+    params.set("endDate", toISODate(exportEnd));
     params.set("sortMode", sortMode);
     params.set("cellContent", cellContent);
     if (filters.teamIds.length) params.set("teamIds", filters.teamIds.join(","));
@@ -216,24 +245,33 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
     if (isPersonalMode) {
       params.set("calendarMode", "personal");
       if (effectiveCalendarUserId) params.set("calendarUserId", effectiveCalendarUserId);
-      if (calendarDays) params.set("calendarDays", String(calendarDays));
-    } else if (isTeamDayMode) {
-      params.set("calendarMode", "team-day");
-      params.set("selectedDay", toISODate(selectedDay));
+      // Number of days shown (none for the month grid)
+      if (typeof calendarDays === "number") params.set("calendarDays", String(calendarDays));
+    }
+    if (isProjectGantt) {
+      params.set("format", "project-gantt");
+      if (ganttProjectId) params.set("projectId", ganttProjectId);
+      params.set("ganttSort", ganttSort);
+      params.set("ganttScale", ganttScale);
+      if (ganttToday) params.set("ganttToday", "1");
     }
     if (exportFormat === "pdf") {
       params.set("paperSize", paperSize);
       params.set("orientation", orientation);
-      params.set("format", pdfFormat);
-      if (pdfFormat === "gantt" && fitOnePage) {
+      if (!isProjectGantt) params.set("format", effectivePdfFormat);
+      if (!isProjectGantt && effectivePdfFormat === "gantt" && fitOnePage) {
         params.set("fitOnePage", "1");
       }
-      if (pdfFormat === "calendar" && isPersonalMode) {
-        params.set("calendarView", calendarPersonalView);
+      if ((isProjectGantt || effectivePdfFormat === "gantt" || effectivePdfFormat === "list") && fullNames) {
+        params.set("fullNames", "1");
+      }
+      if (!isProjectGantt && effectivePdfFormat === "calendar" && isPersonalMode) {
+        // The month grid in the Month view, else the hours or the cards of the days shown
+        params.set("calendarView", calendarDays === "month" ? "month" : calendarPersonalView);
       }
     }
     return params.toString();
-  }, [viewMode, startDate, endDate, sortMode, cellContent, filters, exportFormat, paperSize, orientation, pdfFormat, fitOnePage, excludeWeekends, includeStats, calendarMode, calendarUserId, calendarDays, selectedDay, isPersonalMode, isTeamDayMode, isVehicleMode, isCalendarMode]);
+  }, [viewMode, exportStart, exportEnd, sortMode, cellContent, filters, exportFormat, paperSize, orientation, effectivePdfFormat, fitOnePage, fullNames, isProjectGantt, ganttProjectId, ganttSort, ganttScale, ganttToday, excludeWeekends, includeStats, calendarDays, calendarPersonalView, effectiveBuIds, effectiveCalendarUserId, isPersonalMode, isCalendarMode]);
 
   const handleExport = async () => {
     setLoading(true);
@@ -249,7 +287,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
       const ext = exportFormat === "excel" ? "xlsx" : exportFormat;
       const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
       // Neutral file names, identical in every language (i18n decision).
-      const prefix = isPersonalMode ? "calendrier" : isTeamDayMode ? "journee" : isVehicleMode ? "vehicules" : "planning";
+      const prefix = isProjectGantt ? "gantt" : isPersonalMode ? "calendrier" : isVehicleMode ? "vehicules" : "planning";
       a.download = `${prefix}_${today}.${ext}`;
       document.body.appendChild(a);
       a.click();
@@ -293,6 +331,102 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             </div>
           </div>
 
+          {/* Kind of export: the planning, or the Gantt of one project (PDF and Excel) */}
+          {(exportFormat === "pdf" || exportFormat === "excel") && (
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">{t("kind.label")}</Label>
+              <Select value={exportKind} onValueChange={(v) => setExportKind(v as "planning" | "project-gantt")}>
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="planning">{t("kind.planning")}</SelectItem>
+                  <SelectItem value="project-gantt">{t("kind.projectGantt")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {isProjectGantt && (
+            <div className="space-y-3">
+              {/* The projects list of the task form */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">{t("projectGantt.project")}</Label>
+                <Popover open={projectPickerOpen} onOpenChange={setProjectPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn("h-9 w-full justify-start font-normal", !ganttProject && "text-muted-foreground")}
+                    >
+                      {ganttProject && (
+                        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: ganttProject.color || "#ccc" }} />
+                      )}
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        {ganttProject ? formatProjectName(ganttProject) : t("projectGantt.choose")}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                    <Command defaultValue={ganttProjectId ?? undefined}>
+                      <CommandInput placeholder={t("projectGantt.search")} />
+                      <CommandList className="overscroll-contain">
+                        <CommandEmpty>{t("projectGantt.empty")}</CommandEmpty>
+                        <CommandGroup>
+                          {ganttProjects.map((p) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.id}
+                              keywords={[p.name, p.businessNumber].filter(Boolean) as string[]}
+                              onSelect={() => {
+                                setGanttProjectId(p.id);
+                                setProjectPickerOpen(false);
+                              }}
+                            >
+                              <span className="mr-2 inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: p.color || "#ccc" }} />
+                              {formatProjectName(p)}
+                              {ganttProjectId === p.id && <Check className="ml-auto h-4 w-4" />}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">{t("projectGantt.order")}</Label>
+                <Select value={ganttSort} onValueChange={(v) => setGanttSort(v as "date" | "alpha")}>
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">{t("projectGantt.orders.date")}</SelectItem>
+                    <SelectItem value="alpha">{t("projectGantt.orders.alpha")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">{t("projectGantt.scale")}</Label>
+                <Select value={ganttScale} onValueChange={(v) => setGanttScale(v as "days" | "weeks")}>
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="days">{t("projectGantt.scales.days")}</SelectItem>
+                    <SelectItem value="weeks">{t("projectGantt.scales.weeks")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="gantt-today" className="text-sm font-medium">{t("projectGantt.today")}</Label>
+                <Switch id="gantt-today" checked={ganttToday} onCheckedChange={setGanttToday} />
+              </div>
+              <p className="text-xs text-muted-foreground">{t("projectGantt.hint")}</p>
+            </div>
+          )}
+
           {/* Current planning settings (read from stores, editable) */}
           <div className="space-y-3 border-t pt-3">
             <p className="text-xs text-muted-foreground">
@@ -300,12 +434,10 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             </p>
 
             {/* Calendar mode indicator */}
-            {isCalendarMode && (
+            {isCalendarMode && !isProjectGantt && (
               <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 text-sm">
                 <span className="font-medium text-blue-700 dark:text-blue-300">
-                  {isPersonalMode
-                    ? t("calendar.personal", { name: calendarUserName ?? "" })
-                    : t("calendar.teamDay", { date: format(selectedDay, "EEEE d MMMM yyyy") })}
+                  {isEveryone ? t("calendar.everyone") : t("calendar.personal", { name: calendarUserName ?? "" })}
                 </span>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   {t("calendar.hint")}
@@ -314,7 +446,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             )}
 
             {/* View mode — hidden in calendar mode (locked to users) */}
-            {!isCalendarMode && (
+            {!isCalendarMode && !isProjectGantt && (
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">{t("view")}</Label>
                 <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
@@ -331,7 +463,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             )}
 
             {/* Sort mode */}
-            {!isCalendarMode && (
+            {!isCalendarMode && !isProjectGantt && (
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">{t("sort")}</Label>
                 <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
@@ -348,7 +480,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             )}
 
             {/* Cell content choice */}
-            {exportFormat !== "csv" && (
+            {exportFormat !== "csv" && !isProjectGantt && (
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">{t("cellContent.label")}</Label>
                 <Select value={cellContent} onValueChange={(v) => setCellContent(v as CellContent)}>
@@ -385,7 +517,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             </div>
 
             {/* Include project stats (PDF / Excel only) */}
-            {(exportFormat === "pdf" || exportFormat === "excel") && !isVehicleMode && (
+            {(exportFormat === "pdf" || exportFormat === "excel") && !isVehicleMode && !isProjectGantt && (
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Label className="text-sm font-medium">{t("stats.label")}</Label>
@@ -401,7 +533,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             <div className="rounded-md border bg-muted/30 p-3 space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  {isTeamDayMode ? t("summary.day") : t("summary.period")}
+                  {t("summary.period")}
                 </span>
                 <span className="font-medium">{rangeLabel}</span>
               </div>
@@ -412,8 +544,8 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
               )}
             </div>
 
-            {/* Summary: filters */}
-            <div className="rounded-md border bg-muted/30 p-3 space-y-2 text-sm">
+            {/* Summary: filters (the project Gantt shows every task of its project) */}
+            {!isProjectGantt && <div className="rounded-md border bg-muted/30 p-3 space-y-2 text-sm">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">{t("filters.title")}</span>
                 <span className="font-medium">
@@ -439,7 +571,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
               <p className="text-xs text-muted-foreground">
                 {t("filters.hint")}
               </p>
-            </div>
+            </div>}
           </div>
 
           {/* PDF specific options */}
@@ -474,25 +606,36 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t("pdf.viewType")}</Label>
-                <Select value={pdfFormat} onValueChange={setPdfFormat}>
-                  <SelectTrigger className="h-9 w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isCalendarMode && (
-                      <SelectItem value="calendar">{t("pdf.viewTypes.calendar")}</SelectItem>
-                    )}
-                    <SelectItem value="gantt">{t("pdf.viewTypes.gantt")}</SelectItem>
-                    <SelectItem value="list">{t("pdf.viewTypes.list")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {pdfFormat === "gantt" && (
+              {!isProjectGantt && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t("pdf.viewType")}</Label>
+                  <Select value={effectivePdfFormat} onValueChange={setPdfFormat}>
+                    <SelectTrigger className="h-9 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isCalendarMode && (
+                        <SelectItem value="calendar">{t("pdf.viewTypes.calendar")}</SelectItem>
+                      )}
+                      <SelectItem value="gantt">{t("pdf.viewTypes.gantt")}</SelectItem>
+                      <SelectItem value="list">{t("pdf.viewTypes.list")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {effectivePdfFormat === "gantt" && !isProjectGantt && (
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">{t("pdf.fitOnePage")}</Label>
                   <Switch checked={fitOnePage} onCheckedChange={setFitOnePage} />
+                </div>
+              )}
+              {(isProjectGantt || effectivePdfFormat === "gantt" || effectivePdfFormat === "list") && (
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Label htmlFor="export-full-names" className="text-xs">{t("pdf.fullNames")}</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("pdf.fullNamesHelp")}</p>
+                  </div>
+                  <Switch id="export-full-names" checked={fullNames} onCheckedChange={setFullNames} />
                 </div>
               )}
             </div>
@@ -507,7 +650,7 @@ function ExportPanelInner({ open, onOpenChange }: ExportPanelProps) {
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="flex-1">
               {tc("actions.cancel")}
             </Button>
-            <Button onClick={handleExport} disabled={loading} className="flex-1">
+            <Button onClick={handleExport} disabled={loading || (isProjectGantt && !ganttProject)} className="flex-1">
               {loading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (

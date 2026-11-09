@@ -1,6 +1,8 @@
 import { getConfigValue } from "./config-service";
 import { runWeeklySummary } from "./weekly-summary-service";
 import { logger } from "@/lib/logger";
+import { recordTaskRun } from "./system-task-service";
+import { setNextRun } from "@/lib/system-health/next-runs";
 
 let schedulerTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -37,7 +39,7 @@ async function schedulerTick() {
   try {
     const enabled = await getConfigValue("WEEKLY_SUMMARY_ENABLED");
     if (enabled === "true") {
-      await runWeeklySummary();
+      await recordTaskRun("weekly_summary", () => runWeeklySummary(), (result) => ({ detail: result }));
     }
   } catch (error) {
     logger.error("email", "Weekly summary scheduler error", {
@@ -53,6 +55,7 @@ async function scheduleNext() {
     const enabled = await getConfigValue("WEEKLY_SUMMARY_ENABLED");
     if (enabled !== "true") {
       schedulerTimer = null;
+      setNextRun("weekly_summary", null);
       // Re-check in 1 hour in case admin enables it
       schedulerTimer = setTimeout(scheduleNext, 60 * 60 * 1000);
       return;
@@ -64,6 +67,7 @@ async function scheduleNext() {
 
     const delay = getNextRunDelay(day, time);
     schedulerTimer = setTimeout(schedulerTick, delay);
+    setNextRun("weekly_summary", new Date(Date.now() + delay));
     logger.info("email", "Weekly summary scheduled", { day, time, delayMinutes: Math.round(delay / 60000) });
   } catch {
     // Retry in 5 minutes on error

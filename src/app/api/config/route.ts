@@ -1,5 +1,6 @@
 import { requireAuth, requirePermission, validateBody, apiSuccess, apiError, handleApiError } from "@/lib/utils/api";
 import { getAllConfig, setConfigValues, getDbConfiguredSecrets, getUnreadableSecrets, getConfigEncryptionStatus } from "@/lib/services/config-service";
+import { BACKUP_SCHEDULE_KEYS, rescheduleBackups } from "@/lib/services/backup-service";
 import { clearLegalTextDefaults } from "@/lib/services/legal-texts";
 import { isSecretKey, isPrivateConfigKey, getEnvManagedKeys, isEnvManaged, getEnvValue, ENV_OVERRIDE_KEYS } from "@/lib/services/config-secrets";
 import { reloadCacheSettings } from "@/lib/cache";
@@ -153,7 +154,7 @@ export async function PUT(request: Request) {
     };
     const cellMin = numeric("PLANNING_MIN_CELL_WIDTH", 55);
     const cellMax = numeric("PLANNING_MAX_CELL_WIDTH", 170);
-    const cellDefault = numeric("PLANNING_DEFAULT_CELL_WIDTH", 75);
+    const cellDefault = numeric("PLANNING_DEFAULT_CELL_WIDTH", 135);
     const cellMobileMax = numeric("PLANNING_MAX_CELL_WIDTH_MOBILE", 140);
     if (cellMin <= 0 || cellMax <= 0 || cellDefault <= 0 || cellMobileMax <= 0) {
       return apiError("settings.errors.cellWidthsNotPositive");
@@ -193,6 +194,10 @@ export async function PUT(request: Request) {
     // Reload cache settings if cache config changed
     if (data.CACHE_ENABLED !== undefined || data.CACHE_TTL !== undefined) {
       reloadCacheSettings();
+    }
+    // Scheduled backups: planned again with their new settings
+    if (BACKUP_SCHEDULE_KEYS.some((key) => data[key] !== undefined)) {
+      rescheduleBackups();
     }
     const config = await getAllConfig();
     const map: Record<string, string | null> = {};

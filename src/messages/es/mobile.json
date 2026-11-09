@@ -24,7 +24,8 @@
     "error": "No se pudo generar el código QR.",
     "notAllowed": "Su rol no permite usar la aplicación móvil.",
     "expired": "Este código QR ha caducado.",
-    "regenerate": "Generar un nuevo código QR"
+    "regenerate": "Generar un nuevo código QR",
+    "regenerateIn": "Nuevo código QR en {seconds} s"
   },
   "quickAccess": {
     "button": "Aplicación móvil",

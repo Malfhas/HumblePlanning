@@ -43,6 +43,13 @@
       "when": 1793837031534,
       "tag": "0005_mobile_app",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794240258534,
+      "tag": "0006_system_health",
+      "breakpoints": true
     }
   ]
 }

@@ -2,9 +2,7 @@
   "errors": {
     "unavailable": "Asistente de IA no disponible",
     "modelListUnavailable": "Lista de modelos no disponible",
-    "fixedScope": "El ámbito de esta conversación es fijo: abra una nueva para cambiarlo",
     "modelNotAllowed": "La administración no autoriza este modelo",
-    "projectInaccessible": "Proyecto inaccesible",
     "replyInProgress": "Ya hay una respuesta en curso en esta conversación: espere a que termine o deténgala.",
     "tooManyReplies": "{count, plural, =1 {Ya hay 1 respuesta en curso: espere o deténgala.} other {Ya hay # respuestas en curso: espere o detenga una de ellas.}}",
     "conversationNotFound": "Conversación no encontrada",
@@ -117,20 +115,6 @@
     "placeholder": "Seleccionar…",
     "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}"
   },
-  "scope": {
-    "global": {
-      "name": "Toda la planificación",
-      "description": "Todos los proyectos que usted puede ver"
-    },
-    "none": "Sin ámbito",
-    "followsNavigation": "sigue la navegación",
-    "lockedTooltip": "El ámbito se fija con la primera pregunta: las respuestas ya dadas dependen de él. Abra una nueva conversación para cambiar de proyecto.",
-    "choose": "Elegir un ámbito…",
-    "useDataFrom": "Usar los datos de:",
-    "searchProject": "Buscar un proyecto…",
-    "noProject": "Ningún proyecto",
-    "projects": "Proyectos"
-  },
   "browserNotifications": {
     "unsupported": "Su navegador no puede mostrar notificaciones desde esta página.",
     "displayFailed": "El navegador no ha podido mostrar la notificación: compruebe que tiene permiso para mostrar notificaciones en la configuración del sistema.",
@@ -188,7 +172,9 @@
     "confirmDeleteAll": {
       "title": "¿Eliminar todas sus conversaciones?",
       "description": "{count, plural, one {Se eliminarán su conversación y todos sus intercambios.} other {Se eliminarán sus # conversaciones y todos sus intercambios.}} Esta acción es definitiva."
-    }
+    },
+    "resize": "Ancho de la lista de conversaciones",
+    "resizeTooltip": "Arrastrar para ensanchar · doble clic: ancho por defecto"
   },
   "floating": {
     "title": "Asistente de IA",
@@ -199,7 +185,6 @@
       "ariaLabel": "Ocultar el asistente",
       "tooltip": "Ocultar el asistente hasta la próxima carga de la página"
     },
-    "scope": "Ámbito: {scope}",
     "history": {
       "ariaLabel": "Historial de conversaciones",
       "tooltip": "Retomar una conversación anterior",
@@ -232,12 +217,6 @@
     "welcome": "¿Qué puedo hacer por usted?",
     "suggestions": {
       "title": "Sugerencias",
-      "project": {
-        "progress": "¿Cómo va este proyecto? Horas previstas, consumidas y restantes.",
-        "whoThisWeek": "¿Quién trabaja en este proyecto esta semana?",
-        "lateOrUnassigned": "¿Qué tareas de este proyecto van con retraso o no están asignadas?",
-        "conflicts": "¿Hay conflictos de vehículos o de recursos en este proyecto?"
-      },
       "global": {
         "availableNextWeek": "¿Quién está disponible la semana que viene?",
         "summaryByTeam": "Resume la planificación de esta semana por equipo.",
@@ -245,8 +224,6 @@
         "unassigned": "¿Qué tareas no tienen a nadie asignado?"
       }
     },
-    "disclaimer": "El asistente puede equivocarse: compruebe las cifras importantes.",
-    "disclaimerReadOnly": "El asistente puede equivocarse: compruebe las cifras importantes. En solo lectura, nunca modifica sus datos.",
     "renameTooltip": "Haga clic para cambiar el nombre de la conversación",
     "untitled": "Conversación",
     "readOnly": "Solo lectura",
@@ -274,6 +251,12 @@
   "reasoning": {
     "inProgress": "El modelo está razonando…",
     "title": "Razonamiento del modelo"
+  },
+  "toolGroup": {
+    "used": "{count, plural, one {Herramienta usada} other {# herramientas usadas}}",
+    "running": "Consultando los datos…",
+    "input": "Parámetros",
+    "output": "Resultado"
   },
   "approval": {
     "title": "Se necesita su aprobación",
@@ -339,8 +322,7 @@
     "attachmentsPending": "{count, plural, one {# archivo adjunto: se enviará con su próximo mensaje.} other {# archivos adjuntos: se enviarán con su próximo mensaje.}}",
     "placeholder": {
       "dictating": "Hable, yo escribo…",
-      "default": "¿En qué puedo ayudarle?",
-      "noScope": "Elija primero un ámbito…"
+      "default": "¿En qué puedo ayudarle?"
     },
     "attach": {
       "tooltip": "Adjuntar un documento o una imagen (PDF, Word, Excel, CSV)",
@@ -362,7 +344,12 @@
       "downloading": "Descargando el modelo de dictado {precision, select, high {de alta precisión} other {estándar}} ({percent} %): solo una vez, después queda en la caché. A continuación se hará la transcripción.",
       "transcribing": "Transcribiendo…"
     },
-    "stopReply": "Detener la respuesta"
+    "stopReply": "Detener la respuesta",
+    "modelReads": {
+      "imagesAndPdf": "Lee imágenes y PDF",
+      "images": "Lee imágenes",
+      "documents": "Lee texto y documentos"
+    }
   },
   "settings": {
     "reasons": {

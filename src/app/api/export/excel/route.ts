@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import ExcelJS from "exceljs";
 import { requireAuth, requirePermission, handleApiError } from "@/lib/utils/api";
-import { getExportData, getVehicleExportData, getProjectStatsForExport, getTasksForRowAndDay, buildExportI18n, shortDayName, type ExportTask, type ExportStatsData } from "@/lib/services/export-service";
+import { getExportData, getVehicleExportData, getProjectStatsForExport, getTasksForRowAndDay, buildExportI18n, shortDayName, type ExportRow, type ExportTask, type ExportStatsData } from "@/lib/services/export-service";
 import { parseExportFilters, type CellContent } from "@/lib/utils/export-params";
+import { getProjectGantt, parseProjectGanttScale, parseProjectGanttSort, toWeekScale, weekOf } from "@/lib/services/project-gantt";
 import { getConfigValue, getConfigValues } from "@/lib/services/config-service";
 import { formatTime, formatDate, dateSettingsFromConfig, type DateSettings } from "@/lib/utils/dates";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
@@ -363,9 +364,24 @@ export async function GET(request: NextRequest) {
     const defaultContent = filters.viewMode === "projects" ? "user-name" : "project";
     const cellContent: CellContent = filters.cellContent || defaultContent;
 
+    // Project Gantt: one project, a row per task title, the days in the colour of the task status
+    const params = request.nextUrl.searchParams;
+    const ganttByDay = params.get("format") === "project-gantt"
+      ? await getProjectGantt(filters, params.get("projectId") ?? "", parseProjectGanttSort(params.get("ganttSort")), locale, session.user.name, i18n, perms)
+      : null;
+    // By week: one column per week (its Monday)
+    const byWeek = parseProjectGanttScale(params.get("ganttScale")) === "weeks";
+    const projectGantt = ganttByDay && byWeek ? toWeekScale(ganttByDay) : ganttByDay;
+    // Today, on demand: its column header in red
+    const todayIso = new Intl.DateTimeFormat("en-CA", { timeZone: dates.timezone && dates.timezone !== "auto" ? dates.timezone : undefined, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const todayColumn = projectGantt && params.get("ganttToday") === "1" ? (byWeek ? weekOf(todayIso) : todayIso) : null;
+    const ganttTasks = new Map(projectGantt?.rows.map(row => [row.id, row.tasks]) ?? []);
+
     // Dispatch data fetching based on calendar mode
-    const isVehicleMode = filters.viewMode === "vehicles";
-    const data = isVehicleMode
+    const isVehicleMode = !projectGantt && filters.viewMode === "vehicles";
+    const data = projectGantt
+      ? { ...projectGantt.data, rows: projectGantt.rows.map((row): ExportRow => ({ id: row.id, label: row.label, type: "row" })) }
+      : isVehicleMode
       ? await getVehicleExportData(filters, session.user.name, i18n, perms)
       : await getExportData(filters, session.user.name, i18n, perms);
 
@@ -379,13 +395,13 @@ export async function GET(request: NextRequest) {
     const appTitle = await getConfigValue("APP_TITLE") || "HumblePlanning";
     const range = { start: fmt(filters.startDate), end: fmt(filters.endDate) };
     let headerTitle: string;
-    if (filters.calendarMode === "personal" && filters.calendarUserId) {
+    if (projectGantt) {
+      headerTitle = t("exportFiles.excel.titles.projectGantt", { project: projectGantt.projectLabel, ...range });
+    } else if (filters.calendarMode === "personal" && filters.calendarUserId) {
       const userRow = data.rows.find(r => r.id === filters.calendarUserId);
       headerTitle = userRow
         ? t("exportFiles.excel.titles.personal", { name: userRow.label, ...range })
         : t("exportFiles.excel.titles.personalUnknown", range);
-    } else if (filters.calendarMode === "team-day" && filters.selectedDay) {
-      headerTitle = t("exportFiles.excel.titles.teamDay", { appTitle, date: fmt(filters.selectedDay) });
     } else if (isVehicleMode) {
       headerTitle = t("exportFiles.excel.titles.vehicles", { appTitle, ...range });
     } else {
@@ -443,7 +459,7 @@ export async function GET(request: NextRequest) {
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
       const holiday = data.holidays.get(day);
       const cell = wsGantt.getCell(3, i + 2);
-      cell.value = shortDayName(day, locale);
+      cell.value = projectGantt && byWeek ? fmt(day, "MMM yy") : shortDayName(day, locale);
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: holiday ? hexToArgb(holiday.color) : isWeekend ? "FFDCDCE6" : "FFE5E7EB" } };
       cell.font = { size: 9, color: holiday ? { argb: contrastArgb(holiday.color) } : undefined };
       cell.alignment = { horizontal: "center" };
@@ -462,8 +478,8 @@ export async function GET(request: NextRequest) {
       const holiday = data.holidays.get(day);
       const cell = wsGantt.getCell(4, i + 2);
       cell.value = fmt(day, "dd/MM");
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: holiday ? hexToArgb(holiday.color) : isWeekend ? "FFDCDCE6" : "FFE5E7EB" } };
-      cell.font = { size: 9, color: holiday ? { argb: contrastArgb(holiday.color) } : undefined };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: day === todayColumn ? "FFDC2626" : holiday ? hexToArgb(holiday.color) : isWeekend ? "FFDCDCE6" : "FFE5E7EB" } };
+      cell.font = { size: 9, bold: day === todayColumn, color: day === todayColumn ? { argb: "FFFFFFFF" } : holiday ? { argb: contrastArgb(holiday.color) } : undefined };
       cell.alignment = { horizontal: "center" };
       cell.border = THIN_BORDER;
     });
@@ -508,8 +524,17 @@ export async function GET(request: NextRequest) {
           cell.font = { size: 8, color: { argb: contrastArgb(holiday.color) } };
           cell.alignment = { wrapText: true };
         } else {
-          const dayTasks = getTasksForRowAndDay(data, row.id, day);
-          if (dayTasks.length > 0) {
+          const dayTasks = projectGantt
+            ? (ganttTasks.get(row.id) ?? []).filter(task => day >= task.startDate && day <= (task.endDate ?? task.startDate))
+            : getTasksForRowAndDay(data, row.id, day);
+          if (projectGantt && dayTasks.length > 0) {
+            // Gantt: the colour of the status, a diamond on a milestone
+            const color = dayTasks[0].status?.color || "#9ca3af";
+            cell.value = dayTasks.some(task => task.isMilestone) ? "◆" : "";
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: hexToArgb(color) } };
+            cell.font = { size: 9, bold: true, color: { argb: contrastArgb(color) } };
+            cell.alignment = { horizontal: "center", vertical: "middle" };
+          } else if (dayTasks.length > 0) {
             cell.value = dayTasks.map(t => getCellText(t, cellContent)).join(", ");
             const projectColor = dayTasks[0].project?.color;
             cell.font = { size: 8, color: projectColor && projectColor.toLowerCase() !== "#ffffff" ? { argb: contrastArgb(projectColor) } : undefined };
@@ -531,9 +556,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Column widths
-    wsGantt.getColumn(1).width = 25;
+    // The Gantt is read at a glance: its titles wide, its days narrow
+    wsGantt.getColumn(1).width = projectGantt ? 45 : 25;
     for (let i = 2; i <= totalCols; i++) {
-      wsGantt.getColumn(i).width = 12;
+      wsGantt.getColumn(i).width = projectGantt ? (byWeek ? 8 : 6) : 12;
     }
 
     // Freeze panes
@@ -640,7 +666,7 @@ export async function GET(request: NextRequest) {
     });
 
     // === Sheet 3 (optional): Project / user stats ===
-    if (filters.includeStats && !isVehicleMode) {
+    if (filters.includeStats && !isVehicleMode && !projectGantt) {
       const stats = await getProjectStatsForExport(filters, i18n, perms);
       buildStatsWorksheet(workbook, stats, filters.startDate, filters.endDate, t, locale, dates);
     }

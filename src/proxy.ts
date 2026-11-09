@@ -4,6 +4,7 @@ import { LOCALE_COOKIE, type AppLocale } from "@/i18n/config";
 import { pickLocale } from "@/i18n/accept-language";
 import { isDemoMode } from "@/lib/demo";
 import { isDemoBlockedRoute } from "@/lib/demo/firewall";
+import { METHOD_HEADER, ROUTE_HEADER } from "@/lib/system-health/request-headers";
 import frErrors from "@/messages/fr/errors.json";
 import enErrors from "@/messages/en/errors.json";
 import esErrors from "@/messages/es/errors.json";
@@ -89,6 +90,14 @@ export async function proxy(request: NextRequest) {
       return errorResponse(request, "unauthenticated", 401);
     }
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // API: route and method of the request, for the unhandled errors of System health
+  if (pathname.startsWith("/api/")) {
+    const headers = new Headers(request.headers);
+    headers.set(ROUTE_HEADER, pathname);
+    headers.set(METHOD_HEADER, request.method);
+    return NextResponse.next({ request: { headers } });
   }
 
   return NextResponse.next();

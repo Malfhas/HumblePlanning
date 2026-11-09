@@ -17,7 +17,7 @@ export const ReplyMarkdown = memo(function ReplyMarkdown({ text }: { text: strin
     // A wide table or code block scrolls within its frame and never widens
     // the page, wherever the reply is rendered: the thread, the floating panel, or the
     // conversation detail in the administration.
-    <div className="min-w-0 max-w-full space-y-2 text-ai-sm leading-relaxed text-ai-primary max-md:break-words">
+    <div className="min-w-0 max-w-full space-y-3.5 text-ai-md leading-relaxed text-ai-primary max-md:break-words">
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -25,11 +25,11 @@ export const ReplyMarkdown = memo(function ReplyMarkdown({ text }: { text: strin
           strong: ({ children }) => (
             <strong className="font-semibold text-ai-primary">{children}</strong>
           ),
-          ul: ({ children }) => <ul className="list-disc space-y-0.5 pl-5">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal space-y-0.5 pl-5">{children}</ol>,
-          h1: ({ children }) => <h3 className="text-ai-sm font-semibold text-ai-primary">{children}</h3>,
-          h2: ({ children }) => <h3 className="text-ai-sm font-semibold text-ai-primary">{children}</h3>,
-          h3: ({ children }) => <h4 className="text-ai-sm font-medium text-ai-primary">{children}</h4>,
+          ul: ({ children }) => <ul className="list-disc space-y-1.5 pl-5">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal space-y-1.5 pl-5">{children}</ol>,
+          h1: ({ children }) => <h3 className="pt-2 text-ai-md font-semibold text-ai-primary">{children}</h3>,
+          h2: ({ children }) => <h3 className="pt-2 text-ai-md font-semibold text-ai-primary">{children}</h3>,
+          h3: ({ children }) => <h4 className="pt-1.5 text-ai-md font-medium text-ai-primary">{children}</h4>,
           // Images are never loaded: a prompt injection (task note, attached document)
           // could make the model write ![](https://site/?data=…) and leak data without a click.
           img: ({ alt }) => (alt ? <span className="italic text-ai-muted">{alt}</span> : null),
@@ -39,26 +39,26 @@ export const ReplyMarkdown = memo(function ReplyMarkdown({ text }: { text: strin
             </a>
           ),
           code: ({ children }) => (
-            <code className="rounded-ai-sm bg-ai-sunken px-1 py-0.5 font-ai-mono text-[12px]">{children}</code>
+            <code className="rounded-ai-sm bg-ai-sunken px-1 py-0.5 font-ai-mono text-[13px]">{children}</code>
           ),
           pre: ({ children }) => (
-            <pre className="max-w-full overflow-x-auto rounded-ai-md bg-ai-sunken p-2 font-ai-mono text-[11px]">
+            <pre className="max-w-full overflow-x-auto rounded-ai-md bg-ai-sunken p-3 font-ai-mono text-[12px]">
               {children}
             </pre>
           ),
           // A table of amounts must read like in the rest of the tool
           table: ({ children }) => (
             <div className="max-w-full overflow-x-auto rounded-ai-md border border-ai-border-subtle">
-              <table className="w-full text-ai-xs">{children}</table>
+              <table className="w-full text-ai-sm">{children}</table>
             </div>
           ),
           thead: ({ children }) => <thead className="bg-ai-sunken text-ai-muted">{children}</thead>,
           // Phone: cells do not shrink, the table scrolls within its frame
           th: ({ children }) => (
-            <th className="px-2 py-1 text-left font-medium max-md:whitespace-nowrap">{children}</th>
+            <th className="px-3 py-2 text-left font-medium max-md:whitespace-nowrap">{children}</th>
           ),
           td: ({ children }) => (
-            <td className="border-t border-ai-border-subtle px-2 py-1 max-md:whitespace-nowrap">
+            <td className="border-t border-ai-border-subtle px-3 py-2 align-top max-md:whitespace-nowrap">
               {children}
             </td>
           ),

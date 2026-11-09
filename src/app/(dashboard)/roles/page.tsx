@@ -8,6 +8,7 @@ import { useDateFormat } from "@/hooks/use-date-format";
 import { useUsers } from "@/hooks/use-users";
 import { DataTable, sortableHeader } from "@/components/shared/data-table";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { RoleForm } from "@/components/roles/role-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -224,20 +225,15 @@ export default function RolesPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">{t("list.title")}</h1>
-        <div className="flex items-center gap-2">
-          <DataTableSearchToggle
-            value={searchValue}
-            onChange={setSearchValue}
-            placeholder={t("list.searchPlaceholder")}
-            inputClassName="max-w-[260px]"
-          />
-          {!can("roles:create") ? (
+      <h1 className="text-2xl font-bold">{t("list.title")}</h1>
+
+      <ListToolbar
+        actions={
+          !can("roles:create") ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span tabIndex={0}>
-                  <Button disabled>
+                  <Button size="sm" disabled>
                     <Plus className="h-4 w-4 mr-1" />
                     {tc("actions.add")}
                   </Button>
@@ -246,13 +242,20 @@ export default function RolesPage() {
               <TooltipContent>{t("list.insufficientPermission")}</TooltipContent>
             </Tooltip>
           ) : (
-            <Button onClick={openCreate}>
+            <Button size="sm" onClick={openCreate}>
               <Plus className="h-4 w-4 mr-1" />
               {tc("actions.add")}
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      >
+        <DataTableSearchToggle
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder={t("list.searchPlaceholder")}
+          inputClassName="max-w-[260px]"
+        />
+      </ListToolbar>
 
       <DataTable
         columns={columns}
@@ -268,7 +271,7 @@ export default function RolesPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogContent className="max-w-2xl">
           <DialogHeader className="shrink-0">
             <DialogTitle>
               {editData
