@@ -1191,8 +1191,12 @@
       "description": "Eine ältere App wird gesperrt und zur Aktualisierung aufgefordert. Diese Serverversion verlangt bereits mindestens {version}, und jedes Server-Update hebt dieses Minimum bei Bedarf von selbst an. Geben Sie nur dann eine neuere Version ein, wenn Sie sie früher verlangen möchten, zum Beispiel 1.2.0. Leer = Minimum des Servers."
     },
     "MOBILE_STORE_URL": {
-      "label": "Download-Seite der App",
-      "description": "Wird von einer zu alten App geöffnet. Leer = die neueste Version auf GitHub."
+      "label": "Download-Seite der Android-App",
+      "description": "Wird von einer zu alten Android-App geöffnet. Leer = die neueste Version auf GitHub."
+    },
+    "MOBILE_IOS_STORE_URL": {
+      "label": "Download-Seite der iOS-App",
+      "description": "Ihre Seite im App Store, die eine zu alte iOS-App öffnet. Leer = die App bittet nur um ein Update."
     },
     "MOBILE_PUSH_ENABLED": {
       "label": "Benachrichtigungen an die mobile App senden",

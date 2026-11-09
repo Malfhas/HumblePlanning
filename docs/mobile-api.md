@@ -12,7 +12,9 @@ profile signs the device out: `session:revoked` goes to every session of the
 user (see [Real time](#real-time)).
 
 The app also sends `X-App-Version: <version>` on every request. The web client
-never sends this header.
+never sends this header. The iOS app adds `X-App-Platform: ios`; without it (the
+Android app), the server answers as to Android. The platform chooses the store page
+(`storeUrl`) and whether the app gets push (`pushEnabled`).
 
 | Route | Auth | Body | Response |
 |---|---|---|---|
@@ -87,8 +89,12 @@ The minimum app version is the one of the server release
 this rule). **Maintainers:** when a server release changes the API in a way an older
 app cannot handle, raise `RELEASE_MIN_APP_VERSION` in that release (and say so in
 the changelog): every server applies it with its update, without any setting.
-`MOBILE_MIN_APP_VERSION` and `MOBILE_STORE_URL` are in the settings, under
-Security > Mobile app. The role permission `mobile_app:use`
+The minimum is the same for both apps: their versions follow the compatibility of
+this API. `storeUrl` is the download page of the app's platform: `MOBILE_STORE_URL`
+for Android (empty: the latest GitHub release of the Android app) and
+`MOBILE_IOS_STORE_URL` for iOS (its App Store page; empty: `null` in `GET /info` and
+`""` in the 426, the app then only asks to be updated). `MOBILE_MIN_APP_VERSION` and
+both store pages are in the settings, under Security > Mobile app. The role permission `mobile_app:use`
 (Roles > Mobile app; Super Administrateur, Administrateur and Manager by default)
 decides who may use the app. In this order:
 
@@ -197,9 +203,10 @@ client does not retry).
 `pushToken` is the device's Firebase Installation ID (FID), which the app gets from
 `FirebaseMessaging.register()` / `onRegistered()` (FCM registration tokens are
 deprecated since firebase-messaging 25.1); `null` turns push off for the device.
-Push goes through Firebase, to Android devices: the iOS app sends no `pushToken` yet
-(push through Apple's APNs is planned) and gets its alerts through Socket.IO and its
-background checks.
+Push goes through Firebase, to Android devices only: for the iOS app, `GET /info`
+answers `pushEnabled: false`, a `pushToken` of an iOS device is never used (its
+`pushEnabled` stays `false`), and the app gets its alerts through Socket.IO and its
+background checks until push through Apple's APNs is added.
 
 ## Alerts
 

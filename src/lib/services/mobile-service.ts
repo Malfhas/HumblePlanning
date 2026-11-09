@@ -12,6 +12,7 @@ import { addressBucket } from "@/lib/utils/rate-limit";
 import { tokenFromCookieValue, type SessionCookie } from "@/lib/utils/session-cookie";
 import type { CounterPolicy } from "@/lib/utils/security-counter";
 import type { MobileDevice, UpdateMobileDevice } from "@/lib/validators/mobile";
+import { hasPush, PUSH_PLATFORMS } from "@/lib/utils/mobile-platform";
 import { getConfigValues } from "./config-service";
 import { logAudit } from "./audit-service";
 import { recordHit } from "./security-counter-service";
@@ -256,7 +257,7 @@ export async function listDevices(userId: string, currentSessionId: string) {
     .orderBy(desc(mobileDevices.lastSeenAt));
   return rows.map(({ sessionId, pushToken, ...device }) => ({
     ...device,
-    pushEnabled: pushToken !== null,
+    pushEnabled: pushToken !== null && hasPush(device.platform),
     current: sessionId === currentSessionId,
   }));
 }
@@ -287,17 +288,25 @@ export async function updateCurrentDevice(userId: string, sessionId: string, dat
   const [device] = await db.insert(mobileDevices)
     .values({ userId, sessionId, platform: data.platform ?? "android", ...set })
     .onConflictDoUpdate({ target: mobileDevices.sessionId, set })
-    .returning({ id: mobileDevices.id, lastSeenAt: mobileDevices.lastSeenAt, pushToken: mobileDevices.pushToken });
-  return { id: device.id, lastSeenAt: device.lastSeenAt, pushEnabled: device.pushToken !== null };
+    .returning({ id: mobileDevices.id, lastSeenAt: mobileDevices.lastSeenAt, pushToken: mobileDevices.pushToken, platform: mobileDevices.platform });
+  return { id: device.id, lastSeenAt: device.lastSeenAt, pushEnabled: device.pushToken !== null && hasPush(device.platform) };
 }
 
-/** Push tokens of the users' devices whose session is still valid (an expired one gets nothing). */
+/**
+ * Push tokens of the users' devices whose session is still valid (an expired one
+ * gets nothing), on the platforms that get push (Firebase: Android).
+ */
 export async function getPushTokens(userIds: string[]): Promise<{ userId: string; pushToken: string }[]> {
   if (userIds.length === 0) return [];
   const rows = await db.select({ userId: mobileDevices.userId, pushToken: mobileDevices.pushToken })
     .from(mobileDevices)
     .innerJoin(sessions, eq(sessions.id, mobileDevices.sessionId))
-    .where(and(inArray(mobileDevices.userId, userIds), isNotNull(mobileDevices.pushToken), gt(sessions.expiresAt, new Date())));
+    .where(and(
+      inArray(mobileDevices.userId, userIds),
+      isNotNull(mobileDevices.pushToken),
+      inArray(mobileDevices.platform, [...PUSH_PLATFORMS]),
+      gt(sessions.expiresAt, new Date()),
+    ));
   return rows.flatMap((r) => (r.pushToken ? [{ userId: r.userId, pushToken: r.pushToken }] : []));
 }
 

@@ -480,6 +480,7 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       { key: "MOBILE_PAIRING_ENABLED", type: "boolean", defaultValue: "true" },
       { key: "MOBILE_MIN_APP_VERSION", type: "text", placeholder: RELEASE_MIN_APP_VERSION, descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
       { key: "MOBILE_STORE_URL", type: "text", placeholder: DEFAULT_MOBILE_STORE_URL },
+      { key: "MOBILE_IOS_STORE_URL", type: "text", placeholder: "https://apps.apple.com/app/…" },
       { key: "MOBILE_PUSH_ENABLED", type: "boolean", defaultValue: "true" },
       { key: "MOBILE_PUSH_TRIGGERS", type: "multiselect", optionLabels: "options.triggers", defaultValue: "task_created,task_deleted,task_title_changed,task_dates_changed,task_times_changed,task_status_changed,task_project_changed,task_notes_changed,task_user_added,task_user_removed,task_file_added,task_file_deleted", options: [
         { value: "task_created" },

@@ -1191,8 +1191,12 @@
       "description": "Une application plus ancienne est bloquée et invitée à se mettre à jour. Cette version du serveur exige déjà au moins la {version}, et chaque mise à jour du serveur relève ce minimum d'elle-même si besoin. Renseignez une version plus récente seulement pour l'imposer plus tôt, par exemple 1.2.0. Vide = minimum du serveur."
     },
     "MOBILE_STORE_URL": {
-      "label": "Page de téléchargement de l'application",
-      "description": "Ouverte par une application trop ancienne. Vide = la dernière version publiée sur GitHub."
+      "label": "Page de téléchargement de l'application Android",
+      "description": "Ouverte par une application Android trop ancienne. Vide = la dernière version publiée sur GitHub."
+    },
+    "MOBILE_IOS_STORE_URL": {
+      "label": "Page de téléchargement de l'application iOS",
+      "description": "Sa page sur l'App Store, ouverte par une application iOS trop ancienne. Vide = l'application demande seulement d'être mise à jour."
     },
     "MOBILE_PUSH_ENABLED": {
       "label": "Envoyer des alertes à l'application mobile",
