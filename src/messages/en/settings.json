@@ -1191,8 +1191,12 @@
       "description": "An older app is blocked and asked to update. This server version already requires at least {version}, and every server update raises this minimum by itself when needed. Enter a newer version only to require it sooner, for example 1.2.0. Empty = the server's minimum."
     },
     "MOBILE_STORE_URL": {
-      "label": "App download page",
-      "description": "Opened by an app that is too old. Empty = the latest release on GitHub."
+      "label": "Android app download page",
+      "description": "Opened by an Android app that is too old. Empty = the latest release on GitHub."
+    },
+    "MOBILE_IOS_STORE_URL": {
+      "label": "iOS app download page",
+      "description": "Its App Store page, opened by an iOS app that is too old. Empty = the app only asks to be updated."
     },
     "MOBILE_PUSH_ENABLED": {
       "label": "Send alerts to the mobile app",

@@ -1,7 +1,8 @@
 // What the server enforces on the mobile app. The app identifies itself with
 // the `X-App-Version` header on every request; the web client never sends it.
 import { AppError } from "@/lib/errors";
-import { compareVersions, DEFAULT_MOBILE_STORE_URL, effectiveMinimumVersion } from "@/lib/utils/app-version";
+import { compareVersions, effectiveMinimumVersion } from "@/lib/utils/app-version";
+import { mobilePlatformOf, storeUrlFor, type MobilePlatform } from "@/lib/utils/mobile-platform";
 import { getConfigValues } from "./config-service";
 import { hasPermission, loadUserPermissions } from "./permission-service";
 
@@ -9,7 +10,7 @@ export const MOBILE_VERSION_HEADER = "x-app-version";
 /** Role permission without which an account cannot use the mobile app (Super Admin: always). */
 export const MOBILE_APP_PERMISSION = "mobile_app:use";
 
-const CONFIG_KEYS = ["MOBILE_MIN_APP_VERSION", "MOBILE_STORE_URL", "MAINTENANCE_MODE"];
+const CONFIG_KEYS = ["MOBILE_MIN_APP_VERSION", "MOBILE_STORE_URL", "MOBILE_IOS_STORE_URL", "MAINTENANCE_MODE"];
 
 function isOn(value: string | null | undefined): boolean {
   return value === "true" || value === "1";
@@ -17,13 +18,15 @@ function isOn(value: string | null | undefined): boolean {
 
 /**
  * Minimum version (the one of this release, or the setting when newer: an
- * update of the server raises it by itself), store page and maintenance state.
+ * update of the server raises it by itself), the store page of the app's
+ * platform (none yet for iOS) and the maintenance state. The minimum version
+ * is the same for both apps: their versions follow the compatibility of the API.
  */
-export async function getMobileClientPolicy() {
+export async function getMobileClientPolicy(platform: MobilePlatform = "android") {
   const config = await getConfigValues(CONFIG_KEYS);
   return {
     minimumVersion: effectiveMinimumVersion(config.MOBILE_MIN_APP_VERSION),
-    storeUrl: config.MOBILE_STORE_URL?.trim() || DEFAULT_MOBILE_STORE_URL,
+    storeUrl: storeUrlFor(platform, config),
     maintenance: isOn(config.MAINTENANCE_MODE),
   };
 }
@@ -32,9 +35,9 @@ export async function getMobileClientPolicy() {
 export async function assertMobileAppVersion(headers: Headers): Promise<void> {
   const version = headers.get(MOBILE_VERSION_HEADER);
   if (!version) return;
-  const { minimumVersion, storeUrl } = await getMobileClientPolicy();
+  const { minimumVersion, storeUrl } = await getMobileClientPolicy(mobilePlatformOf(headers));
   if (minimumVersion && compareVersions(version, minimumVersion) < 0) {
-    throw new AppError("mobile.errors.upgradeRequired", { status: 426, params: { minimumVersion, storeUrl } });
+    throw new AppError("mobile.errors.upgradeRequired", { status: 426, params: { minimumVersion, storeUrl: storeUrl ?? "" } });
   }
 }
 

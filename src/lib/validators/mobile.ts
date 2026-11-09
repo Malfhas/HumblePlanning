@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { MOBILE_PLATFORMS } from "@/lib/utils/mobile-platform";
 
 export const mobileDeviceSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  platform: z.enum(["android"]).optional(),
+  platform: z.enum(MOBILE_PLATFORMS).optional(),
   appVersion: z.string().trim().min(1).max(30).optional(),
   locale: z.string().trim().min(2).max(10).optional(),
 });

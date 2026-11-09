@@ -1191,8 +1191,12 @@
       "description": "Una aplicación más antigua se bloquea y se le pide que se actualice. Esta versión del servidor ya exige al menos la {version}, y cada actualización del servidor eleva este mínimo por sí sola si hace falta. Indique una versión más reciente solo para exigirla antes, por ejemplo 1.2.0. Vacío = mínimo del servidor."
     },
     "MOBILE_STORE_URL": {
-      "label": "Página de descarga de la aplicación",
-      "description": "La abre una aplicación demasiado antigua. Vacío = la última versión publicada en GitHub."
+      "label": "Página de descarga de la aplicación Android",
+      "description": "La abre una aplicación Android demasiado antigua. Vacío = la última versión publicada en GitHub."
+    },
+    "MOBILE_IOS_STORE_URL": {
+      "label": "Página de descarga de la aplicación iOS",
+      "description": "Su página en la App Store, que abre una aplicación iOS demasiado antigua. Vacío = la aplicación solo pide que se actualice."
     },
     "MOBILE_PUSH_ENABLED": {
       "label": "Enviar alertas a la aplicación móvil",
