@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccessCompressed, handleApiError, requireAuth } from "@/lib/utils/api";
+import { apiSuccess, handleApiError, requireAuth } from "@/lib/utils/api";
 import { loadUserPermissions } from "@/lib/services/permission-service";
 import { getConfigValues } from "@/lib/services/config-service";
 import { getProfile } from "@/lib/services/profile-service";
@@ -39,7 +39,7 @@ async function section(call: Promise<Response>): Promise<unknown> {
 
 /**
  * GET /api/mobile/bootstrap: everything the app loads at start-up, in one
- * compressed response. Each list comes from its regular route, so permissions,
+ * response. Each list comes from its regular route, so permissions,
  * scopes and hidden contact fields stay the ones of the web client.
  */
 export async function GET(request: NextRequest) {
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
           .map(({ users: members, ...team }) => ({ ...team, userIds: (members ?? []).map((m) => m.id) }))
       : null;
 
-    return apiSuccessCompressed({
+    return apiSuccess({
       serverTime: new Date().toISOString(),
       user,
       permissions: perms.permissions,
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       holidays,
       resources,
       vehicles,
-    }, request);
+    });
   } catch (error) {
     return handleApiError(error);
   }

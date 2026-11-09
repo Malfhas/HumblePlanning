@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AppError, apiSuccessCompressed, handleApiError, requireAuth } from "@/lib/utils/api";
+import { AppError, apiSuccess, handleApiError, requireAuth } from "@/lib/utils/api";
 import { getTaskAccessScope, hasPermission, loadUserPermissions } from "@/lib/services/permission-service";
 import { getTasks } from "@/lib/services/task-service";
 import { taskFiltersSchema } from "@/lib/validators/task";
@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
       ? data
       : data.filter((task) => new Date(task.updatedAt).getTime() >= sinceTime);
 
-    return apiSuccessCompressed({
+    return apiSuccess({
       serverTime: serverTime.toISOString(),
       changed,
       ids: data.map((task) => task.id),
-    }, request);
+    });
   } catch (error) {
     return handleApiError(error);
   }
