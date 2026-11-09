@@ -285,6 +285,13 @@ server {
 
     client_max_body_size 500M;
 
+    # The application sends raw JSON (several MB for a long planning range)
+    gzip on;
+    gzip_proxied any;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types application/json text/plain text/css application/javascript image/svg+xml;
+
     location /socket.io/ {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
@@ -309,6 +316,8 @@ server {
 ```
 
 The application reads the visitor address (rate limits, brute-force lockout, audit log) from `X-Real-IP`: your proxy must overwrite it with the address of the connection, as above. Behind the Cloudflare proxy, see below.
+
+Your proxy also compresses the responses: the API sends raw JSON, which reaches several MB for a long planning range (about 10 times less once compressed). With nginx, that is the `gzip` lines above. With Apache, enable `mod_deflate` and add `AddOutputFilterByType DEFLATE application/json text/html text/css application/javascript` to the site.
 
 ## Behind the Cloudflare proxy
 

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireAuth, validateBody, apiSuccess, apiSuccessCompressed, apiError, handleApiError, AppError } from "@/lib/utils/api";
+import { requireAuth, validateBody, apiSuccess, apiError, handleApiError, AppError } from "@/lib/utils/api";
 import {
   loadUserPermissions,
   canCreateTask,
@@ -24,10 +24,9 @@ export async function GET(request: NextRequest) {
 
     // Apply role-based scope filtering in SQL (defense-in-depth on top of client filters)
     const result = await getTasks(filters, await getTaskAccessScope(perms));
-    // Gzipped response because the payload can reach several tens of MB
-    // on long ranges (`unpaginated=true` multi-month schedule).
-    // Observed savings: ~10× on the wire (50 MB → 5 MB transfer).
-    return apiSuccessCompressed(result, request);
+    // Up to several tens of MB on long ranges (`unpaginated=true`): the
+    // reverse proxy compresses it (about 10× smaller on the wire).
+    return apiSuccess(result);
   } catch (error) {
     return handleApiError(error);
   }

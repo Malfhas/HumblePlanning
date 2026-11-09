@@ -1744,6 +1744,13 @@ server {
 
     client_max_body_size 500M;
 
+    # The application sends raw JSON (several MB for a long planning range)
+    gzip on;
+    gzip_proxied any;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types application/json text/plain text/css application/javascript image/svg+xml;
+
     location /socket.io/ {
         proxy_pass http://127.0.0.1:$SOCKET_PORT;
         proxy_http_version 1.1;
@@ -1870,8 +1877,8 @@ prepare_files() {
   env_plan "Application" BETTER_AUTH_URL "$APP_URL" "$fresh"
   env_plan "Application" TIMEZONE "$tz" keep
   env_plan "Application" UPLOAD_DIR ./uploads keep
-  # Caddy compresses the responses: Node.js can skip its own gzip.
-  [ "$CADDY" = 1 ] && env_plan "Application" TRUST_PROXY_COMPRESSION true keep
+  # The reverse proxy compresses the responses: this setting no longer applies.
+  env_unset TRUST_PROXY_COMPRESSION
   # Client address: X-Real-IP from the reverse proxy. Caddy resolves it itself
   # (CF-Connecting-IP from Cloudflare's addresses only); behind the Cloudflare
   # proxy without Caddy, the application reads CF-Connecting-IP.

@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { gzip } from "node:zlib";
-import { promisify } from "node:util";
 import type { z } from "zod";
 import { loadUserPermissions, hasPermission, type UserPermissions } from "@/lib/services/permission-service";
 import { db } from "@/db";
@@ -18,8 +16,6 @@ import { localizeErrorParams } from "@/lib/utils/error-params";
 import { assertMobileClientAllowed } from "@/lib/services/mobile-client-policy";
 
 export { AppError } from "@/lib/errors";
-
-const gzipAsync = promisify(gzip);
 
 /** REST API by key (`Bearer hp_…`): allowed requests per minute. */
 export const API_RATE_LIMIT_PER_KEY = 120;
@@ -119,65 +115,6 @@ export async function apiError(code: string, status?: number, details?: unknown,
 
 export function apiSuccess<T>(data: T, status = 200) {
   return NextResponse.json(data, { status });
-}
-
-/**
- * Variant of `apiSuccess` that gzips the response if the client supports it.
- *
- * Use on endpoints whose JSON payload can be large
- * (e.g. `/api/tasks?unpaginated=true`, which can reach several tens
- * of MB). Without gzip: `Transfer-Encoding: chunked` sends the raw JSON over
- * the wire, which can amount to 30-50 MB for one-year ranges.
- *
- * Next.js / `bun next start` do **not** automatically compress
- * API routes (the `compress: true` flag only applies to static
- * assets). So compression is handled explicitly here, honoring the
- * client's `Accept-Encoding`.
- *
- * ⚡ If `TRUST_PROXY_COMPRESSION=true` is set in the environment
- * (recommended prod config behind Nginx/Caddy, which already gzip
- * in native C), Node compression is **disabled**: we return the
- * raw JSON and the reverse proxy compresses on the fly. Benefits:
- *  - +50-100 ms of Node CPU freed per request (zlib.gzip is synchronous)
- *  - Nginx compression 5× faster than JS zlib
- *  - No double compression
- * In dev (`bun next dev` on localhost without nginx), leave the variable
- * unset → the helper keeps compressing to save bandwidth.
- *
- * Compression cost: ~50-100 ms server-side for 30 MB → 3 MB. Largely
- * offset by the transfer gain (about 10× smaller) when no compressing
- * proxy sits upstream.
- */
-export async function apiSuccessCompressed<T>(
-  data: T,
-  request: Request | { headers: Headers },
-  status = 200,
-): Promise<Response> {
-  // "Delegate to the reverse proxy" mode: we return the raw JSON, and
-  // Nginx/Caddy handles on-the-fly compression (gzip config
-  // already enabled in nginx_config.md).
-  if (process.env.TRUST_PROXY_COMPRESSION === "true") {
-    return NextResponse.json(data, { status });
-  }
-
-  const accept = request.headers.get("accept-encoding") ?? "";
-  const acceptsGzip = accept.includes("gzip");
-  const json = JSON.stringify(data);
-
-  if (!acceptsGzip || json.length < 1024) {
-    // Small payload or client without gzip support: return as is.
-    return NextResponse.json(data, { status });
-  }
-
-  const compressed = await gzipAsync(Buffer.from(json, "utf8"));
-  return new Response(compressed as unknown as BodyInit, {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Content-Encoding": "gzip",
-      "Vary": "Accept-Encoding",
-    },
-  });
 }
 
 /**

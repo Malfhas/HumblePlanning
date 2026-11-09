@@ -83,8 +83,8 @@ export function usePlanningData() {
   // degradation (O(visible) rendering, not O(total)). Time-based pagination
   // (rolling window) is therefore removed: it needlessly complicated the code and
   // introduced scroll bugs. SoPlanning pattern: a single fetch
-  // for the whole requested range. The payload is gzipped by the API (~5 MB
-  // for 30k tasks), acceptable for scheduling use.
+  // for the whole requested range. The payload is compressed by the reverse
+  // proxy (~5 MB for 30k tasks), acceptable for scheduling use.
   // ────────────────────────────────────────────────────────────────────
   const tasksQuery = useQuery({
     queryKey: ["tasks", "planning", startStr, endStr, effectiveBuIds],
