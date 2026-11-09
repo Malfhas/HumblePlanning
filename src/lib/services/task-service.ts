@@ -10,6 +10,7 @@ import { rm, unlink } from "node:fs/promises";
 import { isValidStorageKey, safeUploadPath } from "@/lib/utils/upload-paths";
 import { logger } from "@/lib/logger";
 import { AppError } from "@/lib/errors";
+import { handOverSeriesRoots } from "./series-root-service";
 
 /**
  * Invalidates the `scope:projects:${userId}:*` cache for users whose
@@ -512,6 +513,8 @@ export async function deleteTask(id: string, deleterId?: string) {
   // Extract files metadata BEFORE deletion (needed for content-addressable cleanup)
   const taskFiles = (oldTask?.files as { storageKey?: string; name?: string }[] ?? []);
 
+  // The root of a series hands it over to its next occurrence
+  await handOverSeriesRoots(eq(tasks.id, id));
   const [task] = await db.delete(tasks).where(eq(tasks.id, id)).returning();
 
   if (task && oldTask) {
@@ -553,6 +556,8 @@ export async function purgeTasksBefore(
 ): Promise<{ deleted: number }> {
   const beforeIso = before.toISOString().slice(0, 10);
 
+  // A series purged from its start goes on from its first occurrence kept
+  await handOverSeriesRoots(lt(tasks.startDate, beforeIso));
   const deletedRows = await db
     .delete(tasks)
     .where(lt(tasks.startDate, beforeIso))
