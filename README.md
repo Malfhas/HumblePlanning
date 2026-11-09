@@ -179,11 +179,24 @@ Humble Planning runs with Docker. On a server running Ubuntu 22.04/24.04 LTS or 
 curl -fsSL https://raw.githubusercontent.com/Malfhas/HumblePlanning/main/install.sh | sudo bash
 ```
 
+[![The installer: system checks, a few questions with sensible defaults, then a summary before anything is installed](docs/screenshots/installer.webp)](docs/screenshots/installer.webp)
+
 The installer:
 
 - installs Docker Engine and Docker Compose when needed;
 - asks for the public URL, a short name and a label for the instance, the database (built-in PostgreSQL 18 or an existing server), and whether to serve it with Caddy for automatic HTTPS (Let's Encrypt, optionally through the Cloudflare DNS challenge);
 - generates the secrets, applies the database migrations, creates the administrator account and starts the stack.
+
+**Caddy, the reverse proxy.** Unless you already run your own, the installer puts [Caddy](https://caddyserver.com/), an open-source web server, in front of Humble Planning. Caddy:
+
+- gets the HTTPS certificates and renews them by itself, from Let's Encrypt or through the Cloudflare DNS challenge;
+- serves HTTP/2 and HTTP/3;
+- compresses the responses (zstd and gzip);
+- routes the real-time Socket.io traffic to the right container;
+- adds the security headers;
+- shows a maintenance page while an instance restarts.
+
+Behind nginx, Apache or another reverse proxy instead, see [Behind an existing reverse proxy](docs/installation.md#behind-an-existing-reverse-proxy).
 
 Several instances can run on one server, each with its own domain, database, files, backups and version, behind one shared Caddy: run `sudo humble-planning new` (or the installer again) to add another one.
 
@@ -241,3 +254,4 @@ In short: you may use, study, modify and redistribute this software, including w
 
 - Humble Planning is designed, built and maintained by **[Indumia](https://indumia.com/)**. Learn more at [humbleplanning.com](https://humbleplanning.com/).
 - AI model icons come from [lobe-icons](https://github.com/lobehub/lobe-icons) (MIT, see `public/modeles/LICENCE.txt`).
+- The installer serves the instances with [Caddy](https://caddyserver.com/) (Apache-2.0), in its own container image.
