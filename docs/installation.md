@@ -52,7 +52,7 @@ The command reads the releases published on GitHub (`HUMBLE_UPDATE_REPO` in `.en
 
 1. downloads the images of the new version (nothing is changed if this fails);
 2. stops the application and backs up the database (`pg_dump`, custom format) into `<install dir>/backups/pre-update-<from>-to-<to>-<date>.dump` — the 5 most recent pre-update backups are kept, and the update stops if the backup fails;
-3. applies the database migrations of the new version;
+3. brings `.env` up to date (adds the settings the new version needs, such as `CONFIG_ENCRYPTION_KEY`, and removes those no version reads any more, such as `TRUST_PROXY_COMPRESSION`), then applies the database migrations of the new version;
 4. starts the new version and waits for its health check.
 
 If step 3 or 4 fails, the previous version is started again and the database is restored from the backup taken in step 2; the command then explains what failed and where the backup is. `.env` only records the new version (`HUMBLE_VERSION`, previous one in `HUMBLE_PREVIOUS_VERSION`) once everything succeeded. The log of each instance is `/var/log/humble-planning/<instance>.log`.

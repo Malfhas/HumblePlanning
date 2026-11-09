@@ -247,6 +247,20 @@ kv_set() {
   mv -f "$tmp" "$file"
 }
 
+# kv_unset FILE MODE KEY — atomic removal of the lines setting KEY; fails when
+# there was none (the file is then left as it was)
+kv_unset() {
+  local file=$1 mode=$2 key=$3 tmp line found=0
+  [ -f "$file" ] || return 1
+  tmp=$(mktemp "$file.XXXXXX")
+  chmod "$mode" "$tmp"
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [[ $line =~ ^[[:space:]]*${key}= ]]; then found=1; else printf '%s\n' "$line" >>"$tmp"; fi
+  done <"$file"
+  if [ "$found" = 1 ]; then mv -f "$tmp" "$file"; else rm -f "$tmp"; fi
+  [ "$found" = 1 ]
+}
+
 env_get() { kv_get "$ENV_FILE" "$1"; }
 env_set() { kv_set "$ENV_FILE" 600 "$@"; }
 penv_get() { kv_get "$PROXY_ENV" "$1"; }
@@ -799,6 +813,18 @@ ensure_config_key() {
   log "KEY   CONFIG_ENCRYPTION_KEY added to $ENV_FILE"
 }
 
+# Settings that no version reads any more: an update removes them from .env.
+# TRUST_PROXY_COMPRESSION (up to 1.2.1): since 1.2.2 the reverse proxy compresses
+# every response; an older version started by a rollback compresses by itself.
+OBSOLETE_ENV_KEYS=(TRUST_PROXY_COMPRESSION)
+drop_obsolete_env() {
+  local key
+  for key in "${OBSOLETE_ENV_KEYS[@]}"; do
+    if kv_unset "$ENV_FILE" 600 "$key"; then log "ENV   $key removed from $ENV_FILE (no longer used)"; fi
+  done
+  return 0
+}
+
 # Where to find the encryption keys, never their value (the output is logged).
 config_key_notice() {
   warn "${BOLD}A settings encryption key (CONFIG_ENCRYPTION_KEY) was added to $ENV_FILE.${RESET}"
@@ -885,6 +911,7 @@ do_update() { # do_update FROM TO
     if [ "$COMPOSE_CHANGED" = 1 ]; then info "Compose files of v$to installed (those of v$from kept in $BACKUP_DIR/compose-v$from)"; fi
   fi
   ensure_config_key
+  drop_obsolete_env
   migrated=1
   if ! spin "Applying the database migrations of v$to" compose_at "$to" run --rm -T --no-deps app provision migrate; then
     auto_rollback "$from" "$to" "applying the database migrations" "$backup" "$migrated"
