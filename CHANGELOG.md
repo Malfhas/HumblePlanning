@@ -4,6 +4,17 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-11-09
+
+### Changed
+
+- The API sends its JSON uncompressed and leaves compression to the reverse proxy, as Next.js 16.4.5 no longer lets the application do it. Instances served by Caddy, as set up by the installer, already compress every response: nothing changes for them. Behind your own reverse proxy, turn compression on there: with nginx, the `gzip` lines now in the installer's `nginx-example.conf` and in `docs/installation.md`; with Apache, `mod_deflate`. Without it, the schedule of a long period travels uncompressed (several MB). The `TRUST_PROXY_COMPRESSION` setting is no longer read and can be removed from `.env`.
+- Dependencies updated: Next.js 16.4.5 (a security release of Next.js), Better Auth 1.7.18, AI SDK 7.0.166, Tiptap 3.33, TanStack Query 5.107, lucide-react 1.70, zustand 5.1, nodemailer 10.4, otplib 13.6, isomorphic-dompurify 4.7, vanilla-cookieconsent 3.3, Tailwind CSS 4.3.5 and ESLint 10.14.
+
+### Fixed
+
+- Recurring tasks: deleting the first task of a series on its own turned the other occurrences into separate tasks and lost the repetition rule. This happened with "This occurrence", a multiple deletion, a purge, the deletion of the only person assigned to it, or "Whole series" and "This and following" when some occurrences are locked or out of reach. The next occurrence now takes over the series and its rule; a single remaining occurrence becomes a simple task.
+
 ## [1.2.1] - 2026-11-08
 
 ### Added
