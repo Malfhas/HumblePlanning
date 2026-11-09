@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const mobileDeviceSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  platform: z.enum(["android"]).optional(),
+  platform: z.enum(["android", "ios"]).optional(),
   appVersion: z.string().trim().min(1).max(30).optional(),
   locale: z.string().trim().min(2).max(10).optional(),
 });

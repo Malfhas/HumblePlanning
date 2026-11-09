@@ -1,7 +1,7 @@
 # Mobile API
 
-Routes used by the native Android app, under `/api/mobile/`. Everything else the
-app needs goes through the regular REST routes and Socket.io.
+Routes used by the native apps (Android; iOS in development), under `/api/mobile/`.
+Everything else the apps need goes through the regular REST routes and Socket.io.
 
 ## Authentication
 
@@ -23,7 +23,8 @@ never sends this header.
 | `POST /auth/logout` | session | | `{success: true}` |
 | `POST /pairing` | browser session | | 201 `{link, expiresAt}` (QR code content), see [QR code](#qr-code) |
 
-`device` is `{name?, platform?, appVersion?, locale?}`. Sign-in answers either
+`device` is `{name?, platform?, appVersion?, locale?}`, `platform` being `android`
+(the default) or `ios`. Sign-in answers either
 `{status: "two_factor_required", pendingToken}` or
 `{status: "authenticated", session: {userId, cookieName, cookieValue, expiresAt}, forcePasswordChange, setupTwoFactorRequired}`.
 The app honors the two flags with `POST /api/auth/change-password` and
@@ -196,6 +197,9 @@ client does not retry).
 `pushToken` is the device's Firebase Installation ID (FID), which the app gets from
 `FirebaseMessaging.register()` / `onRegistered()` (FCM registration tokens are
 deprecated since firebase-messaging 25.1); `null` turns push off for the device.
+Push goes through Firebase, to Android devices: the iOS app sends no `pushToken` yet
+(push through Apple's APNs is planned) and gets its alerts through Socket.IO and its
+background checks.
 
 ## Alerts
 
