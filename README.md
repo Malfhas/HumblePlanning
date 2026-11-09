@@ -20,6 +20,7 @@
   <a href="#quick-start"><strong>Quick start</strong></a> ·
   <a href="docs/installation.md"><strong>Installation guide</strong></a> ·
   <a href="https://github.com/Malfhas/HumblePlanning-Android"><strong>Android app</strong></a> ·
+  <a href="https://github.com/Malfhas/HumblePlanning-iOS"><strong>iOS app</strong></a> ·
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
@@ -95,7 +96,7 @@
       <h3>On the phone, in the field</h3>
       <p>The whole application is responsive. On a phone, each person opens on their own week: today's tasks, public holidays and the days ahead. Schedules can also be subscribed to from any calendar app (iCal), so the week shows up next to personal appointments.</p>
       <p>Notifications follow the team wherever they are: in-app, e-mail, push, and SMS or WhatsApp if enabled.</p>
-      <p>A native Android app is also available: <a href="https://github.com/Malfhas/HumblePlanning-Android">Humble Planning for Android</a>, with real-time alerts and the team grid, on the same server and permissions.</p>
+      <p>Native apps are also available: <a href="https://github.com/Malfhas/HumblePlanning-Android">Humble Planning for Android</a> and <a href="https://github.com/Malfhas/HumblePlanning-iOS">Humble Planning for iOS</a> (iPhone and iPad), with alerts and the team grid, on the same server and permissions.</p>
       <p><sub>The screenshots show the interface in French and English. Humble Planning is available in English, French, Spanish and German: each user picks their language, and e-mails and exports follow it.</sub></p>
     </td>
   </tr>
@@ -120,6 +121,25 @@
 
 <p align="center"><sub>The <a href="https://github.com/Malfhas/HumblePlanning-Android">Android app</a>: the team grid, a task, real-time alerts and the AI assistant. Sign in with a password or by scanning a QR code from your web profile.</sub></p>
 
+<table>
+  <tr>
+    <td width="25%" valign="top">
+      <a href="docs/screenshots/ios-grid.jpg"><img src="docs/screenshots/ios-grid.jpg" alt="The iOS app: the team grid"></a>
+    </td>
+    <td width="25%" valign="top">
+      <a href="docs/screenshots/ios-task.jpg"><img src="docs/screenshots/ios-task.jpg" alt="The iOS app: a task"></a>
+    </td>
+    <td width="25%" valign="top">
+      <a href="docs/screenshots/ios-alerts.jpg"><img src="docs/screenshots/ios-alerts.jpg" alt="The iOS app: alerts"></a>
+    </td>
+    <td width="25%" valign="top">
+      <a href="docs/screenshots/ios-assistant.jpg"><img src="docs/screenshots/ios-assistant.jpg" alt="The iOS app: the AI assistant"></a>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><sub>The <a href="https://github.com/Malfhas/HumblePlanning-iOS">iOS app</a>, for iPhone and iPad with the design of iOS 26: the same screens, the same server and permissions.</sub></p>
+
 ## Why Humble Planning
 
 - **As simple as a spreadsheet, far more powerful.** A grid everybody understands, with drag and drop, colours and filters, backed by a real database instead of a shared file.
@@ -141,7 +161,7 @@
 | **Analytics** | User statistics (workload, occupancy, hours by labour type), project statistics (consumed, upcoming and remaining hours), ROI |
 | **Exports and calendars** | PDF (schedule grid or list, calendar, with optional statistics pages), project Gantt in PDF and Excel, Excel and CSV exports; personal iCal feeds |
 | **Notifications** | In-app notifications, e-mail (SMTP, Mailgun or Nuntly), weekly summary e-mails, push notifications, SMS and WhatsApp (Sent.dm) |
-| **Android app** | [Native app](https://github.com/Malfhas/HumblePlanning-Android) for the same server: day, week and month views and the team grid, task creation and editing, real-time alerts, the AI assistant, your own tasks readable offline; sign-in by password, second factor or QR code, a role permission decides who may use it |
+| **Mobile apps** | Native apps for [Android](https://github.com/Malfhas/HumblePlanning-Android) and [iOS](https://github.com/Malfhas/HumblePlanning-iOS) (iPhone and iPad) on the same server: day, week and month views and the team grid, task creation and editing, alerts (push on Android), the AI assistant, your own tasks readable offline; sign-in by password, second factor or QR code, a role permission decides who may use them |
 | **AI assistant** | Full-page chat and floating assistant, answers from live data, approval card before any change, model of your choice through OpenRouter, monthly quota per user, local voice dictation, PDF and image attachments |
 | **MCP server** | 40 tools for Claude, ChatGPT, Copilot and any MCP client, OAuth 2.1 with a consent screen or API keys, the user's own permissions on every call |
 | **Security** | Argon2id, TOTP two-factor authentication with backup codes, password policy, brute-force protection, captcha (ALTCHA, Cloudflare Turnstile, reCAPTCHA), session management, audit trail with restore |
