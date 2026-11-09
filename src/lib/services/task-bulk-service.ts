@@ -14,6 +14,7 @@ import {
 } from "./permission-service";
 import { invalidateCachePrefix } from "@/lib/cache";
 import { AppError } from "@/lib/errors";
+import { handOverSeriesRoots } from "./series-root-service";
 
 export type BulkTaskAction = "update" | "delete";
 
@@ -175,6 +176,8 @@ export async function bulkDeleteTasks(ids: string[], deleterId?: string) {
   const oldTasks = await db.query.tasks.findMany({ where: inArray(tasks.id, ids) });
   const oldUserRows = await db.select().from(taskUsers).where(inArray(taskUsers.taskId, ids));
 
+  // A series whose root is deleted goes on from its first occurrence kept
+  await handOverSeriesRoots(inArray(tasks.id, ids));
   const result = await db
     .delete(tasks)
     .where(inArray(tasks.id, ids))

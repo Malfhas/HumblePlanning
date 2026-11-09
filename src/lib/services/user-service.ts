@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { users, userQualifications, projects, tasks, taskUsers } from "@/db/schema";
 import { accounts, sessions } from "@/db/schema";
-import { eq, and as drizzleAnd, ne, sql, getTableColumns } from "drizzle-orm";
+import { eq, and as drizzleAnd, ne, sql, getTableColumns, inArray } from "drizzle-orm";
 import type { CreateUser, UpdateUser } from "@/lib/validators/user";
 import { logAudit, computeChanges, pickAuditFields } from "./audit-service";
 import { hashPassword } from "@/lib/password";
@@ -13,6 +13,7 @@ import { sendEmail } from "./email-service";
 import { isPasswordReused, isPasswordBlacklisted, addPasswordToHistory } from "./password-history-service";
 import { invalidatePermissionsCache } from "./permission-service";
 import { logger } from "@/lib/logger";
+import { handOverSeriesRoots } from "./series-root-service";
 import { USER_SECRET_COLUMNS_EXCLUDED } from "@/lib/utils/user-columns";
 import { AppError, type FieldErrorSpec } from "@/lib/errors";
 import { assertNotDemoAccount } from "@/lib/demo";
@@ -535,6 +536,8 @@ export async function deleteUser(id: string, deleterId?: string) {
 
     if (orphanTasks.length > 0) {
       const orphanIds = orphanTasks.map((t) => t.taskId);
+      // A series whose root goes keeps its other occurrences (other assignees)
+      await handOverSeriesRoots(inArray(tasks.id, orphanIds));
       // Nullify creator/modifier refs on orphan tasks before deleting them
       for (const taskId of orphanIds) {
         await db.delete(tasks).where(eq(tasks.id, taskId));

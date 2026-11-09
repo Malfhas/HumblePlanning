@@ -14,6 +14,7 @@ import {
   type UserPermissions,
 } from "./permission-service";
 import { invalidateCachePrefix } from "@/lib/cache";
+import { handOverSeriesRoots } from "./series-root-service";
 import type { RecurRule } from "@/lib/validators/task";
 
 const MAX_OCCURRENCES = 2555;
@@ -282,6 +283,8 @@ async function deleteOccurrences(ids: string[]) {
   // Read files metadata BEFORE deletion for content-addressable cleanup
   const tasksWithFiles = await db.query.tasks.findMany({ where: inArray(tasks.id, ids), columns: { files: true } });
   const allTaskFiles = tasksWithFiles.flatMap(t => (t.files as { storageKey?: string; name?: string }[] ?? []));
+  // Occurrences left out (locked, out of scope, before or after) keep their series
+  await handOverSeriesRoots(inArray(tasks.id, ids));
   await db.delete(taskUsers).where(inArray(taskUsers.taskId, ids));
   // Set parentId to null to avoid FK issues, then delete
   await db.update(tasks).set({ parentId: null }).where(inArray(tasks.id, ids));
@@ -306,6 +309,7 @@ export async function deleteRecurringTasks(
 
   if (scope === "single") {
     const taskFiles = (task.files as { storageKey?: string; name?: string }[] ?? []);
+    await handOverSeriesRoots(eq(tasks.id, taskId));
     await db.delete(taskUsers).where(eq(taskUsers.taskId, taskId));
     await db.delete(tasks).where(eq(tasks.id, taskId));
     await cleanupTaskFilesContent(taskFiles);
