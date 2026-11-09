@@ -28,7 +28,6 @@ import {
   useChatDate,
   type ChatAccess,
   type Conversation,
-  type FollowedScope,
 } from "./thread";
 import { ReplyDots } from "./reply-indicator";
 import { QuotaGauge } from "./quota-gauge";
@@ -40,7 +39,7 @@ import { useReplyNotification } from "./use-reply-notification";
  * the AI chat in a panel without leaving the page.
  *
  * It is the same chat as the Assistant page (same thread, same composer, same
- * confirmations), with one difference: the scope follows navigation. You talk
+ * confirmations), with one difference: it follows navigation. You talk
  * from the home page, move to the schedule, and the conversation goes on: the
  * tools offered to the model follow the page being viewed. A single conversation at a
  * time, carried from one page to the next; only the user starts a new one.
@@ -215,9 +214,6 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
   const formatDate = useChatDate();
   const router = useRouter();
   const queryClient = useQueryClient();
-  // The application has no page dedicated to a project: the floating assistant
-  // scope is the whole schedule, and the tools follow the page being viewed.
-  const projectId: string | null = null;
   const collapse = useAssistantStore((state) => state.collapse);
   const selection = useAssistantStore((state) => state.selection);
   const newConversation = useAssistantStore((state) => state.newConversation);
@@ -258,11 +254,6 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
   const threadKey = !listKnown ? 'loading' : validChoice ? selection.key : 'blank';
   const conversation = (id && conversations?.find((candidate) => candidate.id === id)) || null;
 
-  /** Scope of the next message: the whole schedule. */
-  const followedScope = useMemo<FollowedScope>(() => ({ projectId, project: null }), [projectId]);
-  // Always stated in the header: what the next message relates to
-  const scopeName = t('scope.global.name');
-
   const openFullPage = () => {
     collapse();
     router.push(conversation ? `/assistant?conversation=${conversation.id}` : '/assistant');
@@ -281,14 +272,17 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
       )}
     >
       <header className="flex items-center gap-1 border-b border-ai-border-subtle px-3 py-2 max-md:gap-0">
-        {/* The sphere in miniature: the same identity as the button that opened the panel */}
-        <Sphere className="size-6 shrink-0" />
-        <div className="min-w-0 flex-1 pl-1">
-          <p className="text-ai-sm font-medium text-ai-primary">{t('floating.title')}</p>
-          <p className="truncate text-[11px] text-ai-muted" data-assistant-scope>
-            {t('floating.scope', { scope: scopeName })}
-          </p>
-        </div>
+        <p className="min-w-0 flex-1 truncate pl-1 text-ai-sm font-medium text-ai-primary">{t('floating.title')}</p>
+        {/* First of the buttons: starting over is what one does most here */}
+        <button
+          type="button"
+          aria-label={t('conversations.new')}
+          data-tooltip={t('conversations.new')}
+          onClick={newConversation}
+          className={BUTTON_CLASS}
+        >
+          <MessageSquarePlus className="size-4" />
+        </button>
         {/* The monthly quota, small next to the bell: the thread, collapsed in this panel, does not carry it */}
         <QuotaGauge quota={access.quota} size={16} className="mx-1" />
         {notification.offerable ? (
@@ -337,10 +331,7 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
                       <ReplyDots small className="shrink-0" />
                     ) : null}
                   </span>
-                  <span className="text-[11px] text-ai-muted">
-                    {formatDate(candidate.updatedAt)} ·{' '}
-                    {candidate.project?.number ?? t('scope.global.name')}
-                  </span>
+                  <span className="text-[11px] text-ai-muted">{formatDate(candidate.updatedAt)}</span>
                 </DropdownMenuItem>
               ))
             ) : (
@@ -348,15 +339,6 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <button
-          type="button"
-          aria-label={t('conversations.new')}
-          data-tooltip={t('conversations.new')}
-          onClick={newConversation}
-          className={BUTTON_CLASS}
-        >
-          <MessageSquarePlus className="size-4" />
-        </button>
         <button
           type="button"
           aria-label={t('floating.fullPage.ariaLabel')}
@@ -385,9 +367,8 @@ function Panel({ access, visible }: { access: ChatAccess; visible: boolean }) {
         <ChatThread
           key={threadKey}
           conversation={conversation}
-          initialProjectId={null}
           access={access}
-          followedScope={followedScope}
+          followsNavigation
           compact
           onCreated={(newId) => {
             created(newId);

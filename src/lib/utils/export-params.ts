@@ -3,8 +3,13 @@ import type { SortMode, CalendarMode } from "@/lib/types/planning";
 
 export type CellContent = "project" | "title" | "user-name" | "user-login";
 
+// The only calendar export is the person calendar (an unknown or removed mode,
+// such as the former "team-day", exports the schedule).
+const CALENDAR_MODES: CalendarMode[] = ["personal"];
+
 export function parseExportFilters(params: URLSearchParams): ExportFilters {
-  const calendarMode = (params.get("calendarMode") as CalendarMode) || undefined;
+  const rawCalendarMode = params.get("calendarMode") as CalendarMode | null;
+  const calendarMode = rawCalendarMode && CALENDAR_MODES.includes(rawCalendarMode) ? rawCalendarMode : undefined;
   return {
     viewMode: (params.get("viewMode") as ExportFilters["viewMode"]) || "users",
     startDate: params.get("startDate") || new Date().toISOString().split("T")[0],
@@ -20,9 +25,8 @@ export function parseExportFilters(params: URLSearchParams): ExportFilters {
     businessUnitIds: params.get("businessUnitIds")?.split(",").filter(Boolean),
     includeStats: params.get("includeStats") === "1",
     excludeWeekends: params.get("excludeWeekends") === "1",
-    calendarMode: calendarMode && calendarMode !== "off" ? calendarMode : undefined,
+    calendarMode,
     calendarUserId: params.get("calendarUserId") || undefined,
-    selectedDay: params.get("selectedDay") || undefined,
     calendarDays: params.get("calendarDays") ? parseInt(params.get("calendarDays")!, 10) : undefined,
   };
 }

@@ -32,7 +32,8 @@ export function lookupProjectInCache(
   return null;
 }
 
-export function useVehicleAssignments(vehicleId?: string, startDate?: string, endDate?: string) {
+/** `enabled: false` loads nothing (without a filter, the list would hold every assignment ever made). */
+export function useVehicleAssignments(vehicleId?: string, startDate?: string, endDate?: string, { enabled = true }: { enabled?: boolean } = {}) {
   const params = new URLSearchParams();
   if (vehicleId) params.set("vehicleId", vehicleId);
   if (startDate) params.set("startDate", startDate);
@@ -42,6 +43,7 @@ export function useVehicleAssignments(vehicleId?: string, startDate?: string, en
   return useQuery({
     queryKey: ["vehicle-assignments", vehicleId, startDate, endDate],
     queryFn: () => fetchApi<VehicleAssignmentWithRelations[]>(`/api/vehicle-assignments${qs ? `?${qs}` : ""}`),
+    enabled,
   });
 }
 

@@ -46,7 +46,9 @@ import { XCircle } from "lucide-react";
 // Labels: `roles.categories.<id>` for categories and
 // `roles.permissions.<group>.<action>.label|description` for permissions
 // (key derived from the permission: `pages:tasks` → `roles.permissions.pages.tasks`).
-// Any permission added here must also be added to src/messages/{fr,en}/roles.json.
+// Any permission added here must also be added to src/messages/{fr,en,es,de}/roles.json.
+// The Pages and Actions blocks follow the sidebar menu: an administrator finds a
+// permission in the same group as its page (src/components/layout/sidebar.tsx).
 
 // i18n-dynamic: roles.categories.*
 // i18n-dynamic: roles.permissions.*
@@ -70,7 +72,7 @@ export interface CatalogCategory {
 
 export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
   // ════════════════════════════════════════════════════════════════════
-  // BLOCK 1 — PAGES
+  // BLOCK 1 — PAGES (one category per menu group, in the menu order)
   // ════════════════════════════════════════════════════════════════════
   {
     id: "pages",
@@ -80,31 +82,68 @@ export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
       { key: "pages:home" },
       { key: "pages:planning" },
       { key: "pages:tasks" },
-      { key: "pages:projects" },
+      { key: "pages:business_units" },
+    ],
+  },
+  {
+    id: "pages_team",
+    type: "binary",
+    block: "pages",
+    permissions: [
       { key: "pages:users" },
       { key: "pages:teams" },
-      { key: "pages:business_units" },
       { key: "pages:qualifications" },
+      { key: "pages:labor_types" },
+    ],
+  },
+  {
+    id: "pages_worksites",
+    type: "binary",
+    block: "pages",
+    permissions: [
+      { key: "pages:projects" },
+    ],
+  },
+  {
+    id: "pages_logistics",
+    type: "binary",
+    block: "pages",
+    permissions: [
       { key: "pages:vehicles" },
       { key: "pages:vehicle_types" },
       { key: "pages:resources" },
       { key: "pages:resource_types" },
-      { key: "pages:labor_types" },
-      { key: "pages:places" },
-      { key: "pages:holidays" },
-      { key: "pages:files" },
-      { key: "pages:audit" },
+    ],
+  },
+  {
+    id: "pages_analysis",
+    type: "binary",
+    block: "pages",
+    permissions: [
       { key: "pages:stats_users" },
       { key: "pages:stats_projects" },
       { key: "pages:stats_roi" },
+    ],
+  },
+  {
+    id: "pages_admin",
+    type: "binary",
+    block: "pages",
+    permissions: [
       { key: "pages:settings" },
       { key: "pages:roles" },
       { key: "pages:backups" },
+      { key: "pages:holidays" },
+      { key: "pages:places" },
+      { key: "pages:files" },
+      { key: "pages:audit" },
+      { key: "pages:ai_history" },
+      { key: "pages:system_health" },
     ],
   },
 
   // ════════════════════════════════════════════════════════════════════
-  // BLOCK 2 — ADMINISTRATIVE ACTIONS
+  // BLOCK 2 — ADMINISTRATIVE ACTIONS (menu order, then integrations)
   // ════════════════════════════════════════════════════════════════════
 
   {
@@ -157,26 +196,10 @@ export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
   },
 
   {
-    id: "referentials",
+    id: "analysis",
     type: "binary",
     block: "actions",
     permissions: [
-      { key: "places:edit" },
-      { key: "holidays:edit" },
-    ],
-  },
-
-  {
-    id: "audit_export",
-    type: "binary",
-    block: "actions",
-    permissions: [
-      { key: "files:view" },
-      { key: "files:upload" },
-      { key: "files:delete" },
-      { key: "files:purge" },
-      { key: "audit:restore" },
-      { key: "audit:purge" },
       { key: "export:use" },
     ],
   },
@@ -195,6 +218,40 @@ export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
       { key: "backups:delete" },
       { key: "maintenance:bypass" },
       { key: "notifications:view" },
+    ],
+  },
+
+  {
+    id: "referentials",
+    type: "binary",
+    block: "actions",
+    permissions: [
+      { key: "holidays:edit" },
+      { key: "places:edit" },
+    ],
+  },
+
+  {
+    id: "files",
+    type: "binary",
+    block: "actions",
+    permissions: [
+      { key: "files:view" },
+      { key: "files:upload" },
+      { key: "files:delete" },
+      { key: "files:purge" },
+    ],
+  },
+
+  {
+    id: "history",
+    type: "binary",
+    block: "actions",
+    permissions: [
+      { key: "audit:restore" },
+      { key: "audit:purge" },
+      { key: "ai_history:purge" },
+      { key: "system_health:purge" },
     ],
   },
 
@@ -285,7 +342,6 @@ export const PERMISSIONS_CATALOG: readonly CatalogCategory[] = [
     block: "scope",
     permissions: [
       { key: "planning:view_calendar" },
-      { key: "planning:view_team_day" },
       { key: "planning:view_vehicles" },
       { key: "planning:view_resources" },
     ],
@@ -584,7 +640,7 @@ export function RoleForm({ initialData, duplicateFrom, onClose }: RoleFormProps)
         </div>
       )}
 
-      <div className="flex justify-end gap-2 shrink-0">
+      <div data-slot="dialog-footer" className="flex justify-end gap-2 shrink-0">
         <Button type="button" variant="outline" onClick={onClose}>
           {tc("actions.cancel")}
         </Button>

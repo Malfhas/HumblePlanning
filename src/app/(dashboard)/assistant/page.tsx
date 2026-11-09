@@ -13,19 +13,18 @@ export const dynamic = "force-dynamic";
 export default async function AssistantPage({
   searchParams,
 }: {
-  searchParams: Promise<{ conversation?: string; project?: string; projet?: string }>;
+  searchParams: Promise<{ conversation?: string }>;
 }) {
   const session = await getAuthSession();
   if (!session) redirect("/login");
   const availability = await getAiChatAvailability(session.user.id);
   // "/" resolves the user's default page
   if (!availability.available) redirect("/");
-  const { conversation, project, projet } = await searchParams;
-  // `?projet=` is the former name of `?project=`: still accepted so existing links keep working
-  const projectId = project ?? projet;
+  // The assistant always works on the whole planning: a former `?project=` link simply opens it
+  const { conversation } = await searchParams;
   return (
     <div data-ai-chat className="ai-chat-root -m-3 h-[calc(100dvh-3.5rem)] bg-ai-surface md:-m-6">
-      <ChatView projectId={projectId} initialConversation={conversation} />
+      <ChatView initialConversation={conversation} />
     </div>
   );
 }

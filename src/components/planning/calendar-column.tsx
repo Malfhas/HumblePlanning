@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { CalendarTaskBlock, isCalendarResizing } from "./calendar-task-block";
 import { allocateTimeSlots, type TimeSlotTask } from "@/lib/utils/slot-allocator-time";
 import { usePlanningStore } from "@/stores/planning-store";
@@ -23,9 +24,20 @@ interface CalendarColumnProps {
   defaultEndTime: string;
   workStartHour: number;
   workEndHour: number;
-  columnId: string; // userId (team-day) or dateStr (personal) for cell-id
+  /** Lunch break (AM_END → PM_START), shaded like the hours outside work. */
+  breakStartHour?: number;
+  breakEndHour?: number;
+  columnId: string; // calendar person (userId) for cell ids and drag data
   onResize?: (taskId: string, startTime: string, endTime: string) => void;
+  /** Calendar of everyone: the assignees of the tasks are shown. */
+  showPeople?: boolean;
+  /** At most this many overlapping tasks side by side; the others behind a "+N" opening `onShowMore`. */
+  maxColumns?: number;
+  onShowMore?: () => void;
 }
+
+/** Width kept on the right of a day for the "+N" of the tasks left out (px). */
+const MORE_GUTTER = 26;
 
 function parseMinutes(timeStr: string): number {
   const parts = timeStr.split(":");
@@ -50,12 +62,17 @@ export function CalendarColumn({
   defaultEndTime,
   workStartHour,
   workEndHour,
+  breakStartHour,
+  breakEndHour,
   columnId,
   onResize,
+  showPeople,
+  maxColumns,
+  onShowMore,
 }: CalendarColumnProps) {
+  const t = useTranslations("planning.calendar");
   const totalHeight = slots.length * slotHeight;
   const firstHour = slots.length > 0 ? slots[0].hour : 0;
-  const lastHour = slots.length > 0 ? slots[slots.length - 1].hour + 1 : 24;
   const totalMinutes = slots.length * 60; // Each slot = 1 hour = 60 min
 
   // Build a map of hour → slot index for accurate pixel positioning
@@ -150,7 +167,12 @@ export function CalendarColumn({
     return allocateTimeSlots(slotTasks);
   }, [tasks, defaultStartTime, defaultEndTime]);
 
-  const totalColumns = maxSlot + 1;
+  // Overlapping tasks beyond `maxColumns` stay out of the column, counted in "+N"
+  const columnCap = maxColumns ?? Number.POSITIVE_INFINITY;
+  const totalColumns = Math.min(maxSlot + 1, columnCap);
+  const hidden = useMemo(() => allocated.filter((a) => a.slot >= columnCap), [allocated, columnCap]);
+  // Room on the right for the "+N" of the tasks left out, so that it hides none
+  const gutter = hidden.length > 0 ? MORE_GUTTER : 0;
 
   // Map allocated tasks by id for quick lookup
   const allocationMap = useMemo(() => {
@@ -197,7 +219,7 @@ export function CalendarColumn({
       style={{
         height: totalHeight,
         backgroundColor: isToday
-          ? "color-mix(in oklch, var(--primary) 7%, transparent)"
+          ? "color-mix(in oklch, var(--primary) 4%, transparent)"
           : isHoliday
             ? `${isHoliday.color}15`
             : isWeekendDay
@@ -207,19 +229,10 @@ export function CalendarColumn({
       onClick={handleColumnClick}
       onContextMenu={handleColumnContextMenu}
     >
-      {/* Holiday label */}
-      {isHoliday && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center px-1 py-0.5 text-[10px] font-medium opacity-60"
-          style={{ color: isHoliday.color }}
-        >
-          {isHoliday.label}
-        </div>
-      )}
-
       {/* Horizontal grid lines + cell overlays + work period highlighting */}
       {slots.map((slot, i) => {
-        const isOutsideWork = slot.hour < workStartHour || slot.hour >= workEndHour;
+        const isOutsideWork = slot.hour < workStartHour || slot.hour >= workEndHour
+          || (breakStartHour != null && breakEndHour != null && slot.hour >= breakStartHour && slot.hour < breakEndHour);
         const cellId = `${columnId}:${dateStr}:${slot.hour}`;
         const isDragOver = dragHighlightRange != null && slot.hour >= dragHighlightRange.startHour && slot.hour < dragHighlightRange.endHour;
         const isDragOverExact = dragOverCellId === cellId;
@@ -259,17 +272,17 @@ export function CalendarColumn({
       {/* Tasks */}
       {tasks.map((task) => {
         const alloc = allocationMap.get(task.id);
-        if (!alloc) return null;
+        if (!alloc || alloc.slot >= columnCap) return null;
 
         // Compute vertical position using slot-based mapping
         const top = minutesToPixel(alloc.startMinutes);
         const bottom = minutesToPixel(alloc.endMinutes);
         const height = bottom - top;
 
-        // Horizontal position for overlap
+        // Horizontal position for overlap (beside the "+N" gutter, if any)
         const colWidth = 100 / totalColumns;
-        const left = alloc.slot * colWidth;
-        const width = colWidth;
+        const left = gutter ? `calc(${alloc.slot} * (100% - ${gutter}px) / ${totalColumns})` : alloc.slot * colWidth;
+        const width = gutter ? `calc((100% - ${gutter}px) / ${totalColumns})` : colWidth;
 
         return (
           <CalendarTaskBlock
@@ -287,9 +300,27 @@ export function CalendarColumn({
             firstHour={firstHour}
             columnId={columnId}
             dateStr={dateStr}
+            showPeople={showPeople}
           />
         );
       })}
+
+      {/* Tasks left out (too many side by side): "+N" at the first of them, opens the day */}
+      {hidden.length > 0 && (
+        <button
+          type="button"
+          className="absolute right-0.5 min-w-[22px] rounded-full bg-foreground/85 px-1 text-center text-[10px] font-semibold leading-4 text-background shadow-sm transition-colors hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{ top: Math.max(0, Math.min(...hidden.map((a) => minutesToPixel(a.startMinutes)))) + 2, zIndex: 3 }}
+          title={t("showMore", { count: hidden.length })}
+          aria-label={t("showMore", { count: hidden.length })}
+          onClick={(e) => {
+            e.stopPropagation();
+            onShowMore?.();
+          }}
+        >
+          +{hidden.length}
+        </button>
+      )}
     </div>
   );
 }

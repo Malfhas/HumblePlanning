@@ -45,6 +45,7 @@ import { parseFieldErrors, clearFieldError, zodIssuesToFieldErrors } from "@/lib
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PhoneInputCustom, isValidPhoneNumber } from "@/components/shared/phone-input";
+import { copyText } from "@/lib/utils/clipboard";
 
 interface UserFormProps {
   id: string | null;
@@ -860,11 +861,12 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
                     const pwd = generatePasswordFromConfig(configData ?? {});
                     setForm({ ...form, password: pwd });
                     setShowPassword(true);
-                    navigator.clipboard.writeText(pwd).then(() => {
+                    void copyText(pwd).then((ok) => {
+                      if (!ok) return;
                       if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
                       setCopiedPwd(true);
                       copiedTimerRef.current = setTimeout(() => setCopiedPwd(false), 3000);
-                    }).catch(() => {});
+                    });
                   }}
                 >
                   <Wand2 className="h-4 w-4" />
@@ -1303,7 +1305,7 @@ export function UserForm({ id, duplicateFromId, onClose, onDelete }: UserFormPro
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div data-slot="dialog-footer" className="flex items-center gap-2">
         {isEdit && onDelete && (
           <Button
             type="button"

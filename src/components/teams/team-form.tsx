@@ -179,7 +179,7 @@ export function TeamForm({ initialData, onSuccess }: TeamFormProps) {
         </div>
       )}
 
-      <div className="flex justify-end gap-2">
+      <div data-slot="dialog-footer" className="flex justify-end gap-2">
         <Button type="submit" disabled={isLoading}>
           {isLoading
             ? tc("actions.saving")

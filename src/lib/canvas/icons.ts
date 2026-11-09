@@ -87,6 +87,28 @@ const ICON_CHEVRON_RIGHT: CanvasIcon = {
   strokeWidth: 2.5,
 };
 
+/** Milestone (lucide `Milestone`) — a milestone task, at the end of its bar. */
+const ICON_MILESTONE: CanvasIcon = {
+  getPath: memoSvgPath(
+    "M12 13v8 M12 3v3 M18.172 6a2 2 0 0 1 1.414.586l2.06 2.06a1.207 1.207 0 0 1 0 1.708l-2.06 2.06a2 2 0 0 1-1.414.586H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"
+  ),
+  defaultColor: "currentColor",
+  defaultOpacity: 0.9,
+  mode: "stroke",
+  strokeWidth: 2.5,
+};
+
+/** Note (lucide `StickyNote`, as the notes line of the task tooltip) — a task with notes, at the end of its bar. */
+const ICON_NOTE: CanvasIcon = {
+  getPath: memoSvgPath(
+    "M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z M15 3v5a1 1 0 0 0 1 1h5"
+  ),
+  defaultColor: "currentColor",
+  defaultOpacity: 0.85,
+  mode: "stroke",
+  strokeWidth: 2.5,
+};
+
 /** Clock — time range indicator. */
 const ICON_CLOCK: CanvasIcon = {
   getPath: memoBuilderPath((p) => {
@@ -254,6 +276,8 @@ export const CANVAS_ICONS: Record<string, CanvasIcon> = {
   chevronLeft: ICON_CHEVRON_LEFT,
   chevronRight: ICON_CHEVRON_RIGHT,
   clock: ICON_CLOCK,
+  milestone: ICON_MILESTONE,
+  note: ICON_NOTE,
   parent: ICON_PARENT,
   file: ICON_FILE,
   conflict: ICON_CONFLICT,
@@ -269,6 +293,43 @@ export const CANVAS_ICONS: Record<string, CanvasIcon> = {
 /** Standard icon sizes (see Tailwind h-3, h-3.5). */
 export const ICON_SIZE_DEFAULT = 12; // px (h-3 w-3)
 export const ICON_SIZE_MEDIUM = 14; // px (h-3.5 w-3.5) — conflict only
+
+/** Icons at the end of a bar, from the label towards the end of the bar. */
+export type EndIcon = "file" | "note" | "milestone";
+
+/** Icons that may go at the end of a task bar, in their order from the label towards the end of the bar. */
+export function endIconsOf(task: { notes?: string | null; isMilestone?: boolean | null }, hasFiles: boolean): EndIcon[] {
+  const icons: EndIcon[] = [];
+  if (hasFiles) icons.push("file");
+  if (task.notes?.trim()) icons.push("note");
+  if (task.isMilestone) icons.push("milestone");
+  return icons;
+}
+
+/**
+ * Icons at the end of a bar (`icons`, from the label towards the end), between `labelStart` and `labelEnd`:
+ * where each goes and where the label must stop. The icons keep priority over the text: on a bar too narrow
+ * for them and `minLabel` px of text (a label cut to « … »), the icons alone; when even they do not fit, the
+ * first ones are dropped (attachment, then note), the last one (the milestone) kept longest.
+ */
+export function layoutEndIcons<K extends string>(
+  icons: readonly K[],
+  labelStart: number,
+  labelEnd: number,
+  iconSize: number,
+  gap: number,
+  minLabel: number = 20,
+): { icons: { key: K; x: number }[]; labelEnd: number } {
+  const room = labelEnd - labelStart;
+  const widthOf = (n: number) => n * iconSize + Math.max(0, n - 1) * gap;
+  let kept = icons.slice();
+  while (kept.length > 0 && widthOf(kept.length) > room) kept = kept.slice(1);
+  if (kept.length === 0) return { icons: [], labelEnd };
+  const start = labelEnd - widthOf(kept.length);
+  const placed = kept.map((key, i) => ({ key, x: start + i * (iconSize + gap) }));
+  if (room < widthOf(kept.length) + gap + minLabel) return { icons: placed, labelEnd: labelStart };
+  return { icons: placed, labelEnd: start - gap };
+}
 
 /**
  * Draws an icon at the given position and size. If Path2D is not

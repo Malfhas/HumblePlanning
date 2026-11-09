@@ -83,7 +83,7 @@ never the code).
 ## Minimum app version, permission and maintenance
 
 The minimum app version is the one of the server release
-(`RELEASE_MIN_APP_VERSION` in `src/lib/utils/app-version.ts`, 1.0.0 today), or the
+(`RELEASE_MIN_APP_VERSION` in `src/lib/utils/app-version.ts`, 1.0.2 today), or the
 `MOBILE_MIN_APP_VERSION` setting when it is newer: the setting can only raise it.
 `GET /info` returns the version enforced in `minimumAppVersion` (never `null` since
 this rule). **Maintainers:** when a server release changes the API in a way an older
@@ -94,7 +94,7 @@ this API. `storeUrl` is the download page of the app's platform: `MOBILE_STORE_U
 for Android (empty: the latest GitHub release of the Android app) and
 `MOBILE_IOS_STORE_URL` for iOS (its App Store page; empty: `null` in `GET /info` and
 `""` in the 426, the app then only asks to be updated). `MOBILE_MIN_APP_VERSION` and
-both store pages are in the settings, under Security > Mobile app. The role permission `mobile_app:use`
+both store pages are in the settings, under General > Mobile app. The role permission `mobile_app:use`
 (Roles > Mobile app; Super Administrateur, Administrateur and Manager by default)
 decides who may use the app. In this order:
 
@@ -214,7 +214,7 @@ Task events produce alerts for the mobile app, on the same levels as the e-mails
 
 | Level | Where |
 |---|---|
-| Instance on or off | Settings > Security > Mobile app, `MOBILE_PUSH_ENABLED` |
+| Instance on or off | Settings > General > Mobile app, `MOBILE_PUSH_ENABLED` |
 | Events | Same section, `MOBILE_PUSH_TRIGGERS` (empty = all) |
 | Per user, by an administrator | User form, `users.mobilePushNotifications` |
 | By the user | Web profile or the app: `PUT /api/profile/preferences {mobilePushNotifications}`, read back as `mobilePushNotificationsUser` on the profile |
@@ -243,7 +243,7 @@ the Firebase project of the app build, so a server sends the push in one of two 
 
 | Setting | Use |
 |---|---|
-| `FCM_SERVICE_ACCOUNT_JSON`, in `.env` or pasted in Settings > Security > Mobile app (`.env` first) | The server owns the app's Firebase project and calls Firebase itself |
+| `FCM_SERVICE_ACCOUNT_JSON`, in `.env` or pasted in Settings > General > Mobile app (`.env` first) | The server owns the app's Firebase project and calls Firebase itself |
 | `MOBILE_PUSH_RELAY_URL`, optional `MOBILE_PUSH_RELAY_KEY` | The server goes through the relay of the published app, see `deploy/push-relay` |
 
 A device's `pushToken` is forgotten (`pushEnabled` becomes false, the device stays

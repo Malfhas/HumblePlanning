@@ -16,7 +16,6 @@ import {
   aiChatMessages,
   aiChatQuotaLedger,
   aiChatToolCalls,
-  businessUnits,
   projects,
   users,
 } from "@/db/schema";
@@ -31,12 +30,13 @@ import { resolveRecipientLocale, resolveRequestLocale } from "@/i18n/resolve-loc
 import { getServerTranslator, type ServerTranslator } from "@/i18n/server-translator";
 import { effectiveDefaultModel, type AiChatConfig, type AiChatReasoning } from "./config";
 import { getInstanceTimezone } from "@/lib/services/config-service";
-import { documentsNotice, resolveSystemPrompt, TITLE_PROMPT, TYPOGRAPHY_RULE } from "./prompts";
+import { documentsNotice, resolveSystemPrompt, titlePrompt, TYPOGRAPHY_RULE } from "./prompts";
 import { emitToUser } from "./realtime";
 import {
   abortOutcome,
   Cadence,
   cleanTitle,
+  isPlaceholderTitle,
   notificationTitle,
   phaseOfChunk,
   tooManyRepliesError,
@@ -253,16 +253,7 @@ export function allowedModel(requested: string | undefined, config: Pick<AiChatC
 
 // ─── Scope ───
 
-/** A conversation only targets a project the user can see (null: the whole schedule). */
-export async function assertScope(perms: UserPermissions, projectId: string | null | undefined): Promise<void> {
-  if (!projectId) return;
-  const visibleIds = await getVisibleProjectIds(perms);
-  if (visibleIds && !visibleIds.includes(projectId)) throw new AppError("aiChat.errors.projectInaccessible", { status: 403 });
-  const [project] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId)).limit(1);
-  if (!project) throw new AppError("aiChat.errors.projectInaccessible", { status: 403 });
-}
-
-/** Projects offered for the scope: visible, not archived. */
+/** The projects this user can see, not archived: the assistant's scope. */
 export async function scopeProjects(perms: UserPermissions, limit?: number) {
   const visibleIds = await getVisibleProjectIds(perms);
   if (visibleIds && visibleIds.length === 0) return [];
@@ -295,38 +286,10 @@ function today(timeZone: string): string {
   return `Today is ${weekday} ${date}, time zone ${timeZone}.`;
 }
 
-async function projectContext(perms: UserPermissions, projectId: string): Promise<string> {
-  await assertScope(perms, projectId);
-  const [project] = await db
-    .select({
-      businessNumber: projects.businessNumber,
-      name: projects.name,
-      status: projects.status,
-      bu: businessUnits.name,
-      ownerFirstName: users.firstName,
-      ownerName: users.name,
-    })
-    .from(projects)
-    .leftJoin(businessUnits, eq(businessUnits.id, projects.businessUnitId))
-    .leftJoin(users, eq(users.id, projects.ownerId))
-    .where(eq(projects.id, projectId))
-    .limit(1);
-  const owner = [project?.ownerFirstName, project?.ownerName].filter(Boolean).join(" ") || "-";
-  // Context for the model, in English like the system prompt (project data as is)
-  return [
-    `SELECTED PROJECT - technical id: ${projectId}`,
-    // i18n-ignore project data (number and name as entered)
-    project?.businessNumber ? `${project.businessNumber} - ${project.name}` : (project?.name ?? ""),
-    // i18n-ignore context for the model, in English
-    `Status: ${project?.status ?? "-"} · Business unit: ${project?.bu ?? "-"} · Owner: ${owner}`,
-    "Use this id in every tool call without asking the user for it.",
-  ].join("\n");
-}
-
 /**
- * « Tout le planning » scope: the assistant works on the projects the user
- * can see. The list is given upfront, which avoids a tool round trip on
- * almost every question.
+ * The assistant always works on the whole planning, within the user's rights:
+ * the projects they can see. The list is given upfront, which avoids a tool
+ * round trip on almost every question.
  */
 async function wholePlanningContext(perms: UserPermissions): Promise<string> {
   const projectList = await scopeProjects(perms, PROJECT_LIST_LIMIT);
@@ -349,22 +312,21 @@ async function buildContext(
   userId: string,
   perms: UserPermissions,
   canWrite: boolean,
-  scope: { projectId: string | null; followsNavigation: boolean },
+  conversation: { followsNavigation: boolean },
   locale: AppLocale,
 ): Promise<string> {
   const timeZone = await getInstanceTimezone();
   /**
-   * Floating sphere: the scope may have changed since the previous turns,
-   * whose tools targeted another project. The model must know that only
-   * this one applies to the current question.
+   * Floating sphere: its tools follow the page being viewed, so earlier turns
+   * may have used tools that are not offered any more. The model must know it.
    */
-  const navigationNote = scope.followsNavigation
-    ? "The scope of this conversation follows the user's navigation: it may differ from earlier messages. Only the scope below applies to the current question."
+  const navigationNote = conversation.followsNavigation
+    ? "This conversation follows the user's navigation: the tools offered depend on the page being viewed and may differ from earlier messages."
     : "";
   const accessLevel = canWrite
     ? "Access level: read and write (every change still requires the user's explicit approval in the interface)."
     : "Access level: read-only: no write tool is available, you cannot change anything.";
-  const scopeContext = scope.projectId ? await projectContext(perms, scope.projectId) : await wholePlanningContext(perms);
+  const scopeContext = await wholePlanningContext(perms);
   // The reply follows the language of the last message; the UI language settles an ambiguous message
   const languageNote = `The user's interface language is ${LOCALE_NAMES[locale]} (${locale}): reply in the language of their latest message, and use this one when it is unclear.`;
   return [await userFirstName(userId), today(timeZone), languageNote, accessLevel, navigationNote, scopeContext].filter(Boolean).join("\n");
@@ -439,6 +401,7 @@ async function generateTitle(params: {
   question: string;
   model: string;
   config: AiChatConfig;
+  locale: AppLocale;
 }): Promise<void> {
   if (!params.question || !params.config.apiKey) return;
   try {
@@ -450,7 +413,7 @@ async function generateTitle(params: {
         },
         reasoning: { effort: "none" },
       }),
-      system: TITLE_PROMPT,
+      system: titlePrompt(LOCALE_NAMES[params.locale]),
       prompt: params.question.slice(0, 2000),
       maxOutputTokens: 40,
       temperature: 0.3,
@@ -462,6 +425,8 @@ async function generateTitle(params: {
       logger.warn("ai_chat", `Empty automatic title (model ${params.model})`);
       return;
     }
+    // A placeholder ("New conversation") says less than the question itself, which stays
+    if (isPlaceholderTitle(title)) return;
     if (title === params.temporaryTitle) return;
     const updated = await db
       .update(aiChatConversations)
@@ -603,8 +568,6 @@ export async function respond(params: {
   const t = await getServerTranslator(locale);
 
   const conversation = await getUserConversation(params.userId, params.conversationId);
-  // Turn scope, written on the reply as on the question (traceability)
-  const scope = { projectId: conversation.projectId };
 
   const model = allowedModel(params.model, config);
   const ctx = await buildContext(params.userId, params.perms, params.canWrite, conversation, locale);
@@ -625,7 +588,7 @@ export async function respond(params: {
    */
   const [replyRow] = await db
     .insert(aiChatMessages)
-    .values({ conversationId: conversation.id, ...scope, role: "ASSISTANT", content: "", model, status: "RUNNING" })
+    .values({ conversationId: conversation.id, role: "ASSISTANT", content: "", model, status: "RUNNING" })
     .returning({ id: aiChatMessages.id });
 
   // First turn: the temporary title (the question) is replaced by a real title,
@@ -648,6 +611,7 @@ export async function respond(params: {
       question: questionText(params.messages),
       model,
       config,
+      locale,
     });
   }
 

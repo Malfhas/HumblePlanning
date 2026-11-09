@@ -77,18 +77,19 @@
     "titles": {
       "personal": "{name}’s calendar — {start} to {end}",
       "personalUnknown": "User calendar — {start} to {end}",
-      "teamDay": "{appTitle} schedule — {date}",
       "vehicles": "{appTitle} vehicle schedule — {start} to {end}",
-      "default": "{appTitle} schedule — {start} to {end}"
+      "default": "{appTitle} schedule — {start} to {end}",
+      "projectGantt": "Gantt — {project} — {start} to {end}"
     }
   },
   "pdf": {
     "titles": {
       "personal": "{name}’s calendar — {start} to {end}",
       "personalUnknown": "User calendar — {start} to {end}",
-      "teamDay": "Schedule for {date}",
+      "everyone": "Calendar of all users — {start} to {end}",
       "vehicles": "Vehicle schedule — {start} to {end}",
-      "default": "Schedule from {start} to {end}"
+      "default": "Schedule from {start} to {end}",
+      "projectGantt": "Gantt — {project} — {start} to {end}"
     },
     "cover": {
       "summaryTitle": "Export summary",
@@ -102,7 +103,8 @@
       "formats": {
         "gantt": "Schedule",
         "list": "List",
-        "calendar": "Calendar"
+        "calendar": "Calendar",
+        "projectGantt": "Project Gantt"
       },
       "views": {
         "users": "Users",
@@ -143,6 +145,17 @@
         "statuses": "Statuses",
         "places": "Locations",
         "resources": "Resources"
+      },
+      "project": "Project: {value}",
+      "ganttSort": "Order: {value}",
+      "ganttSorts": {
+        "date": "By start date",
+        "alpha": "Alphabetical"
+      },
+      "ganttScale": "Scale: {value}",
+      "ganttScales": {
+        "days": "Days",
+        "weeks": "Weeks"
       }
     },
     "footer": {
@@ -151,6 +164,12 @@
     },
     "calendar": {
       "allDay": "All day"
+    },
+    "projectGantt": {
+      "corner": "Task",
+      "milestone": "Milestone",
+      "today": "Today",
+      "noStatus": "No status"
     }
   },
   "ical": {

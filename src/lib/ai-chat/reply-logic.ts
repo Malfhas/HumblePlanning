@@ -9,6 +9,8 @@
  * language.
  */
 import { AppError } from "@/lib/errors";
+import { LOCALES } from "@/i18n/config";
+import { getServerTranslatorSync } from "@/i18n/server-translator";
 
 /**
  * Typography safety net: em dashes (U+2014) and en dashes (U+2013) become a
@@ -114,4 +116,18 @@ export function cleanTitle(raw: string): string {
     .replace(/[–—]/g, "-")
     .trim()
     .slice(0, 80);
+}
+
+/** The default conversation title in every language, compared without case or accents. */
+let placeholders: Set<string> | null = null;
+const comparable = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/**
+ * A placeholder rather than a title: the default conversation title, in any
+ * language, which a model may still return for a greeting. The question then
+ * stays the title: "Salut ça va ?" says more than "New conversation".
+ */
+export function isPlaceholderTitle(title: string): boolean {
+  placeholders ??= new Set(LOCALES.map((locale) => comparable(getServerTranslatorSync(locale)("aiChat.conversations.defaultTitle"))));
+  return placeholders.has(comparable(title));
 }

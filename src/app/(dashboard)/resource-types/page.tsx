@@ -15,6 +15,7 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { RowActions } from "@/components/shared/row-actions";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { QualificationIcon } from "@/components/shared/icon-picker";
 import { contrastColor } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -95,34 +96,35 @@ export default function ResourceTypesPage() {
   return (
     <ModuleGuard configKey="MODULE_RESOURCES">
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{tc("entities.resourceTypes")}</h1>
-        {!can("resource_types:edit") ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button disabled>
-                  <Plus className="h-4 w-4 mr-1" /> {tc("actions.add")}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{t("list.permissionDenied")}</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-1" /> {tc("actions.add")}
-          </Button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold">{tc("entities.resourceTypes")}</h1>
 
-      <div className="flex items-center gap-2">
+      <ListToolbar
+        actions={
+          !can("resource_types:edit") ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" disabled>
+                    <Plus className="h-4 w-4 mr-1" /> {tc("actions.add")}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{t("list.permissionDenied")}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-1" /> {tc("actions.add")}
+            </Button>
+          )
+        }
+      >
         <DataTableSearchToggle
           value={searchValue}
           onChange={setSearchValue}
           placeholder={t("resourceTypes.searchPlaceholder")}
           inputClassName="max-w-[260px]"
         />
-      </div>
+      </ListToolbar>
 
       <DataTable
         className="flex flex-col gap-3 flex-1 min-h-0"

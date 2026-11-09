@@ -17,7 +17,7 @@ import { FALLBACK_LOCALE, INTL_TAG, type AppLocale } from "@/i18n/config";
 export const DEFAULT_TIMEZONE = "Europe/Paris";
 
 /** Year, month (1 to 12) and day of an instant, read in the given time zone. */
-function localDate(instant: Date, timeZone: string): { year: number; month: number; day: number } {
+export function localDate(instant: Date, timeZone: string): { year: number; month: number; day: number } {
   // « en-CA » writes YYYY-MM-DD: the only locale that splits without surprises
   const [year, month, day] = new Intl.DateTimeFormat("en-CA", {
     timeZone,

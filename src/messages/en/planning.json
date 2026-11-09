@@ -41,8 +41,28 @@
       "pastedCopy": "Pasted (copy)",
       "pastedMove": "Pasted (moved)"
     },
-    "noVisibleUsers": "No visible users. Check the filters or the view mode.",
-    "allDay": "All day"
+    "allDay": "All day",
+    "deleteShortcut": {
+      "confirm": "Press {key} again to delete",
+      "key": "Delete",
+      "denied": "You are not allowed to delete this task"
+    }
+  },
+  "calendar": {
+    "weekShort": "W{week}",
+    "weekTitle": "Week {week}",
+    "openWeek": "Show week {week}",
+    "openDay": "Open the day",
+    "newTaskOn": "New task on {date}",
+    "more": "{count, plural, one {+# more} other {+# more}}",
+    "showMore": "{count, plural, one {See the other task in the day view} other {See the # other tasks in the day view}}",
+    "peopleTitle": "{busy, plural, one {# person busy} other {# people busy}} out of {total} · {free, plural, =0 {nobody available} other {# available}}",
+    "hours": "{hours} h",
+    "loadTitle": "{level, select, over {Overloaded: {planned} h planned for a {capacity} h working day} full {Full day: {planned} h planned} other {{planned} h planned out of {capacity} h}}",
+    "dayEmpty": "Nothing planned that day.",
+    "empty": "No task planned in this period",
+    "emptyHint": "Click a free slot to create a task.",
+    "emptyHintMonth": "Hover over a day and click “+” to create a task."
   },
   "a11y": {
     "gridLabel": "Schedule grid",
@@ -64,9 +84,9 @@
   },
   "liveStatus": {
     "live": {
-      "label": "Live",
+      "label": "Real time",
       "ariaLabel": "Real-time connection active",
-      "tooltip": "The schedule is synchronised in real time. Changes made by other users appear immediately."
+      "tooltip": "The schedule is synchronised in real time."
     },
     "offline": {
       "label": "Offline",
@@ -77,6 +97,7 @@
   "tooltips": {
     "untitled": "Untitled",
     "task": {
+      "milestone": "Milestone",
       "resourceConflict": "Conflict — this resource is already booked for this period",
       "vehicleConflict": "Conflict — this vehicle is already booked for this period"
     },
@@ -133,8 +154,13 @@
     },
     "calendarModes": {
       "planning": "Schedule",
-      "personal": "My calendar",
-      "teamDay": "Team/day"
+      "personal": "Calendar"
+    },
+    "planningRows": {
+      "label": "Schedule rows",
+      "users": "By users",
+      "projects": "By projects",
+      "choose": "Choose the schedule rows"
     },
     "sort": {
       "nameAsc": "Name A → Z",
@@ -167,12 +193,25 @@
     "permissionDenied": "Insufficient permissions",
     "calendar": {
       "selectUser": "Select...",
+      "everyone": "All users",
       "noUser": "No user",
       "hoursView": "Hour view",
       "daysView": "Day view",
       "daysShort": "{count}d",
       "showWorkingHours": "Show working hours",
-      "show24h": "Show 24 hours"
+      "show24h": "Show 24 hours",
+      "person": "Person shown",
+      "me": "(you)",
+      "month": "Month",
+      "monthTooltip": "Whole month",
+      "daysTooltip": "{count, plural, one {# day} other {# days}}",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "previousDays": "Previous {count} days",
+      "nextDays": "Next {count} days",
+      "jumpTo": "Pick a date",
+      "viewLabel": "Display",
+      "periodLabel": "Period shown"
     },
     "filters": "Filters",
     "showMenu": "Show the menu",

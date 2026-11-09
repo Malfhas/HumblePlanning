@@ -3,8 +3,9 @@
 import { create } from "zustand";
 import { addDays, addMonths } from "date-fns";
 
-import type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode } from "@/lib/types/planning";
-export type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode } from "@/lib/types/planning";
+import type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode, CalendarSpan } from "@/lib/types/planning";
+import { anchorFor, parseCalendarSpan, rangeLength, shiftCalendarAnchor } from "@/lib/utils/calendar-view";
+export type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode, CalendarSpan } from "@/lib/types/planning";
 
 interface PlanningState {
   // View settings
@@ -25,7 +26,8 @@ interface PlanningState {
 
   // Calendar mode
   calendarMode: CalendarMode;
-  calendarDays: number;
+  /** Period of the calendar view, from `startDate` (its anchor). */
+  calendarDays: CalendarSpan;
   calendarUserId: string | null;
   calendarShow24h: boolean;
   calendarPersonalView: "hours" | "days";
@@ -123,7 +125,15 @@ interface PlanningState {
   ) => void;
   applyUserDefaults: (defaults: { viewMode?: string; columnMode?: string }) => void;
   setCalendarMode: (mode: CalendarMode) => void;
-  setCalendarDays: (days: number) => void;
+  setCalendarDays: (days: CalendarSpan) => void;
+  /** Calendar view: previous / next period (days or month). The planning
+   *  period keeps its length, it only moves. */
+  navigateCalendar: (direction: 1 | -1) => void;
+  /** Calendar view: shows the period containing `day`. */
+  jumpCalendarTo: (day: Date) => void;
+  /** Calendar view: shows `span` days from `day` (a day or a week
+   *  opened from the month grid). */
+  showCalendarPeriod: (day: Date, span: Exclude<CalendarSpan, "month">) => void;
   setCalendarUserId: (userId: string | null) => void;
   toggleCalendar24h: () => void;
   setCalendarPersonalView: (view: "hours" | "days") => void;
@@ -134,7 +144,7 @@ interface PlanningState {
 // truth remains the "Planning display" settings.
 const DEFAULT_CELL_MIN = 55;
 const DEFAULT_CELL_MAX = 170;
-const DEFAULT_CELL_FALLBACK = 75;
+const DEFAULT_CELL_FALLBACK = 135;
 const DEFAULT_CELL_MOBILE_MAX = 140;
 
 // Current bounds (mutable — re-read from the DB on mount through initFromConfig).
@@ -175,17 +185,31 @@ const ROW_AVATAR_KEY = "humble-planning-row-avatar";
 const DATE_RANGE_KEY = "humble-planning-date-range";
 const SORT_KEY_PREFIX = "humble-planning-sort-";
 const CALENDAR_MODE_KEY = "humble-planning-calendar-mode";
+const CALENDAR_DAYS_KEY = "humble-planning-calendar-days";
+const CALENDAR_VIEW_KEY = "humble-planning-calendar-view";
+const CALENDAR_24H_KEY = "humble-planning-calendar-24h";
 const VIEW_MODE_KEY = "humble-planning-view-mode";
 const COLUMN_MODE_KEY = "humble-planning-column-mode";
 const SELECTED_DAY_KEY = "humble-planning-selected-day";
 
-const VALID_CALENDAR_MODES: CalendarMode[] = ["off", "personal", "team-day"];
+// A mode that no longer exists (the former "team-day" view) falls back to the schedule.
+const VALID_CALENDAR_MODES: CalendarMode[] = ["off", "personal"];
 
 function getSavedCalendarMode(): CalendarMode {
   if (typeof window === "undefined") return "off";
   const saved = localStorage.getItem(CALENDAR_MODE_KEY);
   if (saved && VALID_CALENDAR_MODES.includes(saved as CalendarMode)) return saved as CalendarMode;
   return "off";
+}
+
+function getSavedCalendarDays(): CalendarSpan {
+  if (typeof window === "undefined") return 5;
+  return parseCalendarSpan(localStorage.getItem(CALENDAR_DAYS_KEY)) ?? 5;
+}
+
+function getSavedCalendarView(): "hours" | "days" {
+  if (typeof window === "undefined") return "hours";
+  return localStorage.getItem(CALENDAR_VIEW_KEY) === "days" ? "days" : "hours";
 }
 
 const VALID_SORT_MODES: Record<ViewMode, SortMode[]> = {
@@ -313,10 +337,10 @@ export const usePlanningStore = create<PlanningState>((set, get) => {
     rowHeight: 52,
     sortMode: getSavedSort(getSavedViewMode()),
     calendarMode: getSavedCalendarMode(),
-    calendarDays: 5,
+    calendarDays: getSavedCalendarDays(),
     calendarUserId: null,
-    calendarShow24h: false,
-    calendarPersonalView: "hours",
+    calendarShow24h: typeof window !== "undefined" ? localStorage.getItem(CALENDAR_24H_KEY) === "true" : false,
+    calendarPersonalView: getSavedCalendarView(),
     columnMode: getSavedColumnMode(),
     selectedDay: getSavedSelectedDay() ?? today,
     showSummary: typeof window !== "undefined" ? localStorage.getItem(SUMMARY_KEY) === "true" : false,
@@ -494,11 +518,46 @@ export const usePlanningStore = create<PlanningState>((set, get) => {
       set({ calendarMode: mode });
     },
 
-    setCalendarDays: (days) => set({ calendarDays: days }),
+    setCalendarDays: (days) => {
+      localStorage.setItem(CALENDAR_DAYS_KEY, String(days));
+      set({ calendarDays: days });
+    },
+
+    navigateCalendar: (direction) => {
+      const { startDate, endDate, calendarDays } = get();
+      const start = shiftCalendarAnchor(startDate, calendarDays, direction);
+      const end = addDays(start, rangeLength(startDate, endDate) - 1);
+      saveDateRange(start, end);
+      set({ startDate: start, endDate: end });
+    },
+
+    jumpCalendarTo: (day) => {
+      const { startDate, endDate, calendarDays } = get();
+      const start = anchorFor(day, calendarDays);
+      const end = addDays(start, rangeLength(startDate, endDate) - 1);
+      saveDateRange(start, end);
+      set({ startDate: start, endDate: end });
+    },
+
+    showCalendarPeriod: (day, span) => {
+      const { startDate, endDate } = get();
+      const start = anchorFor(day, span);
+      const end = addDays(start, rangeLength(startDate, endDate) - 1);
+      saveDateRange(start, end);
+      localStorage.setItem(CALENDAR_DAYS_KEY, String(span));
+      set({ calendarDays: span, startDate: start, endDate: end });
+    },
 
     setCalendarUserId: (userId) => set({ calendarUserId: userId }),
-    toggleCalendar24h: () => set((s) => ({ calendarShow24h: !s.calendarShow24h })),
-    setCalendarPersonalView: (view) => set({ calendarPersonalView: view }),
+    toggleCalendar24h: () => set((s) => {
+      const next = !s.calendarShow24h;
+      localStorage.setItem(CALENDAR_24H_KEY, String(next));
+      return { calendarShow24h: next };
+    }),
+    setCalendarPersonalView: (view) => {
+      localStorage.setItem(CALENDAR_VIEW_KEY, view);
+      set({ calendarPersonalView: view });
+    },
 
     initFromConfig: (months, cellWidthConfig) => {
       // Store the config value for goToToday

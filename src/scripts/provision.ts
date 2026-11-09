@@ -254,6 +254,10 @@ async function ensureDefaultSettings(sql: ReturnType<typeof connect>): Promise<v
   // Mobile app: on by default; existing values are kept. Not in a migration: the seed
   // runs only on an empty app_config.
   await sql`insert into app_config (key, value) values ('MOBILE_LOGIN_ENABLED', 'true'), ('MOBILE_PAIRING_ENABLED', 'true'), ('MOBILE_PUSH_ENABLED', 'true') on conflict (key) do nothing`;
+  // Planning font and cell width, special character in passwords: new installations get Inter, 135 px and the
+  // special character from the seed; an instance installed before 1.3.0 keeps what it has, with the defaults of
+  // that time (Geist, 75 px, no special character required)
+  await sql`insert into app_config (key, value) values ('PLANNING_FONT_FAMILY', 'geist'), ('PLANNING_DEFAULT_CELL_WIDTH', '75'), ('PWD_REQUIRE_SPECIAL', 'false') on conflict (key) do nothing`;
   if (!process.env.ALTCHA_HMAC_SECRET || !process.env.ALTCHA_HMAC_KEY_SECRET) return;
   await sql`insert into app_config (key, value) values ('CAPTCHA_PROVIDER', 'altcha') on conflict (key) do nothing`;
   const enabled = await sql`

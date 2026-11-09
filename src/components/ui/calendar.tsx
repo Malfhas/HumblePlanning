@@ -222,6 +222,11 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
+        // Hover: a rounded ring on top of the grey background, which a day inside a range or today already has
+        // (the grey of the ghost button alone did not show there). Drawn on an overlay, not on the button: a day
+        // inside a range keeps square corners so that the range reads as one band, its ring stays rounded.
+        // A lighter fill on the dark selected ends.
+        "relative after:pointer-events-none after:absolute after:inset-0 after:rounded-md after:content-[''] hover:after:ring-1 hover:after:ring-inset hover:after:ring-foreground/35 data-[range-start=true]:hover:bg-primary/85 data-[range-end=true]:hover:bg-primary/85 data-[selected-single=true]:hover:bg-primary/85",
         "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground dark:hover:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className

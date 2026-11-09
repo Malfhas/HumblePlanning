@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -77,6 +78,14 @@ interface TaskFormDialogProps {
   taskId: string | null;
   prefill: { rowId?: string; date?: string; startTime?: string; endTime?: string } | null;
   viewMode: ViewMode;
+}
+
+/** The history opens above the action row that stays in view: brought into view, again once its entries are loaded. */
+function revealHistory(node: HTMLDivElement | null) {
+  if (!node) return;
+  const observer = new ResizeObserver(() => node.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+  observer.observe(node);
+  return () => observer.disconnect();
 }
 
 /**
@@ -744,11 +753,13 @@ function TaskFormDialogInner({
               />
             </div>
 
+            {/* Status, and beside it whether the task is a milestone (a key date, a diamond on the project Gantt) */}
+            <div className="flex items-end gap-4">
             <FormField
               control={form.control}
               name="statusId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0 flex-1">
                   <FormLabel>{t("fields.status.label")}</FormLabel>
                   <Select name={field.name} onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -772,6 +783,21 @@ function TaskFormDialogInner({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="isMilestone"
+              render={({ field }) => (
+                <FormItem className="shrink-0">
+                  <div className="flex h-9 items-center gap-2">
+                    <FormControl>
+                      <Switch id="milestone-switch" checked={!!field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel htmlFor="milestone-switch" className="text-sm font-medium">{t("fields.milestone.label")}</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
@@ -1098,7 +1124,14 @@ function TaskFormDialogInner({
               </div>
             )}
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-between pt-2">
+            {/* Audit history: after the fields, above the action row that stays in view */}
+            {historyOpen && isEditing && taskId && (
+              <div ref={revealHistory} className="scroll-mb-32 border-t pt-2 sm:scroll-mb-24">
+                <TaskAuditHistory taskId={taskId} canRestore={canRestoreAudit} />
+              </div>
+            )}
+
+            <div data-slot="dialog-footer" className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-between pt-2">
               {isEditing && (
                 canDeleteTask ? (
                   <Button
@@ -1207,12 +1240,6 @@ function TaskFormDialogInner({
               </div>
             </div>
 
-            {/* Audit history — below action buttons */}
-            {historyOpen && isEditing && taskId && (
-              <div className="border-t pt-2">
-                <TaskAuditHistory taskId={taskId} canRestore={canRestoreAudit} />
-              </div>
-            )}
           </form>
         </Form>
       </DialogContent>

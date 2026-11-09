@@ -23,7 +23,7 @@ docker run -d --name hp-push-relay -p 8080:8080 \
 | `RELAY_KEY` | When set, servers must send `Authorization: Bearer <key>` |
 | `TRUSTED_PROXY` | `cloudflare` only when the relay is reached through the Cloudflare proxy and its port accepts no other connection: the address is then read from `CF-Connecting-IP` |
 
-Serve it behind HTTPS, then set its address in Settings > Security > Mobile app >
+Serve it behind HTTPS, then set its address in Settings > General > Mobile app >
 Push relay address on each server. A server holding its own
 `FCM_SERVICE_ACCOUNT_JSON` calls Firebase directly and does not use the relay.
 

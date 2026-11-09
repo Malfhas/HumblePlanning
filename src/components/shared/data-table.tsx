@@ -222,64 +222,70 @@ export function DataTable<TData, TValue>({
     initialState: { pagination: { pageSize } },
   });
 
+  const showInternalSearch = searchable && !externalSearch;
+
   return (
     <div className={className ? className : "space-y-3"}>
-      <div className="flex items-center gap-2">
-        {searchable && !externalSearch && (
-          <>
-            {/* Desktop ≥ sm: input always visible */}
-            <Input
-              name="search"
-              autoComplete="off"
-              placeholder={searchPlaceholder}
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="hidden sm:block max-w-xs h-9"
-            />
-            {/* Mobile < sm: collapsible magnifier icon */}
-            <div className="sm:hidden flex-1 flex items-center">
-              {searchExpanded ? (
-                <div className="relative w-full">
-                  <Input
-                    ref={searchInputRef}
-                    name="search-mobile"
-                    autoComplete="off"
-                    placeholder={searchPlaceholder}
-                    value={globalFilter}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                    onBlur={() => {
-                      if (!globalFilter) setSearchExpanded(false);
-                    }}
-                    className="h-9 pr-9"
-                  />
-                  <button
-                    type="button"
-                    aria-label={t("search.close")}
-                    onClick={() => {
-                      setGlobalFilter("");
-                      setSearchExpanded(false);
-                    }}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground"
+      {/* Only render the top row when it has content: an empty row would
+          still add the container gap above the table. */}
+      {(showInternalSearch || !!toolbar) && (
+        <div className="flex items-center gap-2">
+          {showInternalSearch && (
+            <>
+              {/* Desktop ≥ sm: input always visible */}
+              <Input
+                name="search"
+                autoComplete="off"
+                placeholder={searchPlaceholder}
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className="hidden sm:block max-w-xs h-9"
+              />
+              {/* Mobile < sm: collapsible magnifier icon */}
+              <div className="sm:hidden flex-1 flex items-center">
+                {searchExpanded ? (
+                  <div className="relative w-full">
+                    <Input
+                      ref={searchInputRef}
+                      name="search-mobile"
+                      autoComplete="off"
+                      placeholder={searchPlaceholder}
+                      value={globalFilter}
+                      onChange={(e) => setGlobalFilter(e.target.value)}
+                      onBlur={() => {
+                        if (!globalFilter) setSearchExpanded(false);
+                      }}
+                      className="h-9 pr-9"
+                    />
+                    <button
+                      type="button"
+                      aria-label={t("search.close")}
+                      onClick={() => {
+                        setGlobalFilter("");
+                        setSearchExpanded(false);
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSearchExpanded(true)}
+                    aria-label={tCommon("actions.search")}
+                    className="h-9 w-9"
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSearchExpanded(true)}
-                  aria-label={tCommon("actions.search")}
-                  className="h-9 w-9"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </>
-        )}
-        <div className="ml-auto flex items-center gap-2">{toolbar}</div>
-      </div>
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+          <div className="ml-auto flex items-center gap-2">{toolbar}</div>
+        </div>
+      )}
 
       <div className="rounded-md border flex-1 min-h-0 overflow-auto">
         <Table>

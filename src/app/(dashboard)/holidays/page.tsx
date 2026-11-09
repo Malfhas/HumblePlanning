@@ -43,6 +43,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { PermissionButton } from "@/components/shared/permission-button";
 import { RowActions } from "@/components/shared/row-actions";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ErrorState } from "@/components/shared/error-state";
 import { cn } from "@/lib/utils";
@@ -503,28 +504,11 @@ export default function HolidaysPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-      </div>
+      <h1 className="text-2xl font-bold">{t("title")}</h1>
 
-      <div className="flex items-center gap-2">
-        <DataTableSearchToggle
-          value={searchValue}
-          onChange={setSearchValue}
-          placeholder={t("searchPlaceholder")}
-          inputClassName="max-w-[260px]"
-        />
-      </div>
-
-      <DataTable
-        className="flex flex-col gap-3 flex-1 min-h-0"
-        columns={columns}
-        data={data ?? []}
-        externalSearch
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        toolbar={
-          <div className="flex gap-2">
+      <ListToolbar
+        actions={
+          <>
             {can("holidays:edit") && (
               <Button
                 size="sm"
@@ -556,8 +540,24 @@ export default function HolidaysPage() {
                 <Plus className="mr-1 h-4 w-4" /> {tc("actions.add")}
               </Button>
             )}
-          </div>
+          </>
         }
+      >
+        <DataTableSearchToggle
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder={t("searchPlaceholder")}
+          inputClassName="max-w-[260px]"
+        />
+      </ListToolbar>
+
+      <DataTable
+        className="flex flex-col gap-3 flex-1 min-h-0"
+        columns={columns}
+        data={data ?? []}
+        externalSearch
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

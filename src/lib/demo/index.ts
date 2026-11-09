@@ -54,6 +54,10 @@ export const DEMO_BLOCKED_PERMISSIONS: ReadonlySet<string> = new Set([
   "pages:settings", "settings:edit",
   "pages:roles", "roles:create", "roles:edit", "roles:delete",
   "pages:audit", "audit:purge", "audit:restore",
+  // System health shows the instance internals; the AI history holds every
+  // visitor's conversations (and the assistant is off in demo anyway)
+  "pages:system_health", "system_health:purge",
+  "pages:ai_history", "ai_history:purge",
   "pages:backups", "backups:create", "backups:delete", "backups:download",
   // Uploads (the demo must not host files)
   "pages:files", "files:upload", "files:delete", "files:purge",
@@ -78,7 +82,7 @@ export const DEMO_ROLE_PERMISSIONS: readonly string[] = [
   "pages:tasks", "pages:teams", "pages:users",
   "pages:vehicle_types", "pages:vehicles",
   "places:edit",
-  "planning:view_calendar", "planning:view_resources", "planning:view_team_day",
+  "planning:view_calendar", "planning:view_resources",
   "planning:view_vehicles",
   "projects:archive", "projects:create", "projects:delete", "projects:edit",
   "qualifications:edit",

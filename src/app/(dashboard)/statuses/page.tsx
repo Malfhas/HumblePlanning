@@ -4,6 +4,7 @@ import { useState } from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { DataTable, sortableHeader } from "@/components/shared/data-table";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { StatusForm } from "@/components/statuses/status-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -163,20 +164,15 @@ export default function StatusesPage() {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">{tc("entities.statuses")}</h1>
-        <div className="flex items-center gap-2">
-          <DataTableSearchToggle
-            value={searchValue}
-            onChange={setSearchValue}
-            placeholder={t("statuses.searchPlaceholder")}
-            inputClassName="max-w-[260px]"
-          />
-          {!can("statuses:edit") ? (
+      <h1 className="text-2xl font-bold">{tc("entities.statuses")}</h1>
+
+      <ListToolbar
+        actions={
+          !can("statuses:edit") ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span tabIndex={0}>
-                  <Button disabled>
+                  <Button size="sm" disabled>
                     <Plus className="mr-2 h-4 w-4" />
                     {tc("actions.add")}
                   </Button>
@@ -185,13 +181,20 @@ export default function StatusesPage() {
               <TooltipContent>{t("permissionDenied")}</TooltipContent>
             </Tooltip>
           ) : (
-            <Button onClick={openCreate}>
+            <Button size="sm" onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
               {tc("actions.add")}
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      >
+        <DataTableSearchToggle
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder={t("statuses.searchPlaceholder")}
+          inputClassName="max-w-[260px]"
+        />
+      </ListToolbar>
 
       <DataTable
         className="flex flex-col gap-3 flex-1 min-h-0"

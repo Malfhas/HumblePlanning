@@ -4,7 +4,7 @@
  * it as soon as they are updated, without any setting. The MOBILE_MIN_APP_VERSION
  * setting can only raise it (`effectiveMinimumVersion`).
  */
-export const RELEASE_MIN_APP_VERSION = "1.0.0";
+export const RELEASE_MIN_APP_VERSION = "1.0.2";
 
 /** Download page opened by an outdated app when MOBILE_STORE_URL is empty: the app's GitHub releases. */
 export const DEFAULT_MOBILE_STORE_URL = "https://github.com/Malfhas/HumblePlanning-Android/releases/latest";

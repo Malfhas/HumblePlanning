@@ -17,11 +17,12 @@ export function GlobalTaskPreview() {
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // Load vehicle/resource assignments for the task's date range to enrich the preview
+  // Load vehicle/resource assignments for the task's date range to enrich the preview.
+  // Nothing while no task is open: without dates the lists would hold the whole history.
   const startDate = task?.startDate;
   const endDate = task?.endDate || task?.startDate;
-  const { data: vehicleAssignments } = useVehicleAssignments(undefined, startDate, endDate);
-  const { data: resourceAssignments } = useResourceAssignments(undefined, startDate, endDate);
+  const { data: vehicleAssignments } = useVehicleAssignments(undefined, startDate, endDate, { enabled: !!startDate });
+  const { data: resourceAssignments } = useResourceAssignments(undefined, startDate, endDate, { enabled: !!startDate });
 
   const { userId } = usePermissions();
 

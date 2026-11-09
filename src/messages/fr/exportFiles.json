@@ -75,20 +75,21 @@
       "stats": "Stats projets"
     },
     "titles": {
-      "personal": "Calendrier de {name} — Du {start} au {end}",
+      "personal": "Calendrier : {name} — Du {start} au {end}",
       "personalUnknown": "Calendrier de l'utilisateur — Du {start} au {end}",
-      "teamDay": "Planning {appTitle} — {date}",
       "vehicles": "Planning véhicules {appTitle} — Du {start} au {end}",
-      "default": "Planning {appTitle} — Du {start} au {end}"
+      "default": "Planning {appTitle} — Du {start} au {end}",
+      "projectGantt": "Gantt — {project} — Du {start} au {end}"
     }
   },
   "pdf": {
     "titles": {
-      "personal": "Calendrier de {name} — {start} au {end}",
+      "personal": "Calendrier : {name} — {start} au {end}",
       "personalUnknown": "Calendrier de l'utilisateur — {start} au {end}",
-      "teamDay": "Planning du {date}",
+      "everyone": "Calendrier de tous les utilisateurs — {start} au {end}",
       "vehicles": "Planning véhicules — {start} au {end}",
-      "default": "Planning du {start} au {end}"
+      "default": "Planning du {start} au {end}",
+      "projectGantt": "Gantt — {project} — {start} au {end}"
     },
     "cover": {
       "summaryTitle": "Résumé de l'export",
@@ -102,7 +103,8 @@
       "formats": {
         "gantt": "Planning",
         "list": "Liste",
-        "calendar": "Calendrier"
+        "calendar": "Calendrier",
+        "projectGantt": "Gantt de projet"
       },
       "views": {
         "users": "Utilisateurs",
@@ -143,6 +145,17 @@
         "statuses": "Statuts",
         "places": "Lieux",
         "resources": "Ressources"
+      },
+      "project": "Projet : {value}",
+      "ganttSort": "Ordre : {value}",
+      "ganttSorts": {
+        "date": "Par date de début",
+        "alpha": "Alphabétique"
+      },
+      "ganttScale": "Échelle : {value}",
+      "ganttScales": {
+        "days": "Jours",
+        "weeks": "Semaines"
       }
     },
     "footer": {
@@ -151,6 +164,12 @@
     },
     "calendar": {
       "allDay": "Journée"
+    },
+    "projectGantt": {
+      "corner": "Tâche",
+      "milestone": "Jalon",
+      "today": "Aujourd'hui",
+      "noStatus": "Sans statut"
     }
   },
   "ical": {

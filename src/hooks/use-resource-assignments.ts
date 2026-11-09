@@ -12,7 +12,8 @@ async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
 
 const OPTIMISTIC_PREFIX = "__optimistic_ra_";
 
-export function useResourceAssignments(resourceId?: string, startDate?: string, endDate?: string) {
+/** `enabled: false` loads nothing (without a filter, the list would hold every assignment ever made). */
+export function useResourceAssignments(resourceId?: string, startDate?: string, endDate?: string, { enabled = true }: { enabled?: boolean } = {}) {
   const params = new URLSearchParams();
   if (resourceId) params.set("resourceId", resourceId);
   if (startDate) params.set("startDate", startDate);
@@ -20,6 +21,7 @@ export function useResourceAssignments(resourceId?: string, startDate?: string, 
   return useQuery({
     queryKey: ["resource-assignments", resourceId, startDate, endDate],
     queryFn: () => fetchApi<any[]>(`/api/resource-assignments?${params}`),
+    enabled,
   });
 }
 

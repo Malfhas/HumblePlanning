@@ -64,13 +64,20 @@
     }
   },
   "categories": {
-    "pages": "Seitenzugriff",
+    "pages": "Hauptseiten",
+    "pages_team": "Team",
+    "pages_worksites": "Baustellen",
+    "pages_logistics": "Logistik",
+    "pages_analysis": "Analyse",
+    "pages_admin": "Verwaltung",
     "projects": "Projekte — Aktionen",
     "users_teams": "Benutzer & Teams — Aktionen",
     "logistics": "Logistik — Aktionen",
-    "referentials": "Stammdaten — Aktionen",
-    "audit_export": "Audit, Dateien & Exporte — Aktionen",
+    "analysis": "Analyse — Aktionen",
     "admin": "Verwaltung & Sicherheit — Aktionen",
+    "referentials": "Stammdaten — Aktionen",
+    "files": "Dateien — Aktionen",
+    "history": "Audit, KI-Assistent & Systemzustand — Aktionen",
     "integrations": "KI-Integrationen (MCP) — Aktionen",
     "ai_chat": "KI-Assistent (integrierter Chat) — Aktionen",
     "mobile_app": "Mobile App",
@@ -149,7 +156,7 @@
       },
       "audit": {
         "label": "Audit & Verlauf",
-        "description": "Zugriff auf das Audit-Protokoll, die Systemprotokolle und den Aufgabenverlauf."
+        "description": "Zugriff auf das Audit-Protokoll und den Aufgabenverlauf."
       },
       "stats_users": {
         "label": "Benutzerstatistik",
@@ -174,6 +181,14 @@
       "backups": {
         "label": "Sicherungen",
         "description": "Zugriff auf den Sicherungsverlauf in den Einstellungen."
+      },
+      "ai_history": {
+        "label": "KI-Nutzung",
+        "description": "Zugriff auf die Unterhaltungen des KI-Assistenten aller Benutzer, ihre Kosten und den Kontingentverbrauch."
+      },
+      "system_health": {
+        "label": "Systemzustand",
+        "description": "Zugriff auf die Seite Systemzustand: Dienststatus, Konfigurationswarnungen, geplante Aufgaben, Vorfälle und fehlgeschlagene Zustellungen."
       }
     },
     "projects": {
@@ -340,6 +355,18 @@
         "description": "Einträge des Audit-Protokolls vor einem bestimmten Datum endgültig löschen."
       }
     },
+    "ai_history": {
+      "purge": {
+        "label": "KI-Assistent-Verlauf bereinigen",
+        "description": "Unterhaltungen des KI-Assistenten ohne Aktivität seit einem Datum endgültig löschen (das Kontingentregister des laufenden Zeitraums bleibt erhalten)."
+      }
+    },
+    "system_health": {
+      "purge": {
+        "label": "Systemvorfälle bereinigen",
+        "description": "Vorfälle, die zuletzt vor einem Datum aufgetreten sind, endgültig löschen."
+      }
+    },
     "export": {
       "use": {
         "label": "Exporte verwenden",
@@ -486,12 +513,8 @@
     },
     "planning": {
       "view_calendar": {
-        "label": "Persönlicher Kalender",
-        "description": "Erlaubt den Zugriff auf die Ansicht „Mein Kalender“, die die Aufgaben des angemeldeten Benutzers in einem Tageskalender anzeigt."
-      },
-      "view_team_day": {
-        "label": "Ansicht Team / Tag",
-        "description": "Erlaubt den Zugriff auf die Ansicht „Team/Tag“, die die Aufgaben des Teams stundenweise für einen Tag anzeigt."
+        "label": "Kalenderansicht",
+        "description": "Erlaubt den Zugriff auf die Ansicht „Kalender“, die die Aufgaben einer Person nach Tag, Woche oder Monat anzeigt."
       },
       "view_vehicles": {
         "label": "Fahrzeugansicht",

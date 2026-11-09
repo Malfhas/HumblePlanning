@@ -195,19 +195,288 @@
       "nagerInvalidType": "Invalid type (status, countries or holidays)"
     }
   },
-  "logs": {
-    "title": "System logs",
-    "entries": "{count, plural, one {# entry} other {# entries}}",
-    "clear": "Clear",
-    "levelPlaceholder": "Level",
-    "allLevels": "All levels",
-    "categoryPlaceholder": "Category",
-    "allCategories": "All",
-    "loading": "Loading logs...",
-    "empty": "No logs",
-    "clearDialog": {
-      "title": "Clear system logs",
-      "description": "This will delete all in-memory logs. Logs are not persisted and will be permanently lost."
+  "purgeBefore": {
+    "before": "Before {date}",
+    "datePlaceholder": "Pick a date",
+    "confirm": "Purge"
+  },
+  "aiHistory": {
+    "title": "AI usage",
+    "exportCsv": "Export as CSV",
+    "purge": "Purge",
+    "clearFilters": "Clear filters",
+    "unknownUser": "Deleted user",
+    "deletedBadge": "Deleted by the user",
+    "empty": "No conversation in this period.",
+    "modelsCount": "{count, plural, one {# model} other {# models}}",
+    "filters": {
+      "period": "Period",
+      "user": "User",
+      "model": "Model"
+    },
+    "periods": {
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days",
+      "all": "Whole history"
+    },
+    "kpis": {
+      "conversations": "Conversations",
+      "messages": "Messages",
+      "promptTokens": "Input tokens",
+      "completionTokens": "Output tokens",
+      "cost": "Total cost",
+      "errors": "Errors",
+      "averageDuration": "Average reply time: {seconds} s"
+    },
+    "chart": {
+      "title": "Cost per day",
+      "description": "Cost of the assistant's replies, in dollars (instance time zone)",
+      "day": "Day",
+      "cost": "Cost ($)"
+    },
+    "columns": {
+      "lastActivity": "Last exchange",
+      "title": "Conversation",
+      "deleted": "Deleted by the user",
+      "user": "User",
+      "models": "Models",
+      "messages": "Messages",
+      "tokens": "Tokens (input / output)",
+      "promptTokens": "Input tokens",
+      "completionTokens": "Output tokens",
+      "cost": "Cost ($)",
+      "errors": "Errors"
+    },
+    "detail": {
+      "title": "Conversation",
+      "subtitle": "{user} · started on {date}",
+      "empty": "Empty conversation.",
+      "roles": {
+        "USER": "User",
+        "ASSISTANT": "Assistant",
+        "TOOL": "Tool"
+      },
+      "messageStatus": {
+        "DONE": "Done",
+        "RUNNING": "In progress",
+        "FAILED": "Failed",
+        "CANCELLED": "Stopped",
+        "INTERRUPTED": "Interrupted"
+      },
+      "toolStatus": {
+        "PROPOSED": "Proposed",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "EXECUTED": "Executed",
+        "FAILED": "Failed"
+      },
+      "tokens": "{prompt} input tokens · {completion} output",
+      "duration": "{seconds} s",
+      "toolCalls": "{count, plural, one {# tool called} other {# tools called}}",
+      "arguments": "Parameters",
+      "result": "Result"
+    },
+    "quota": {
+      "title": "Usage of the current quota period",
+      "period": "Since {start}, next reset on {next}",
+      "amount": "monthly quota of {amount} per user",
+      "disabled": "quota off",
+      "manage": "Manage quotas",
+      "empty": "No usage in the current period.",
+      "unlimited": "Unlimited",
+      "columns": {
+        "user": "User",
+        "usage": "Used",
+        "share": "Share of the quota"
+      }
+    },
+    "purgeDialog": {
+      "title": "Purge the AI assistant history",
+      "description": "Permanently deletes the conversations whose last exchange is before the chosen date, with their messages and tool calls. The chosen day is kept, and so is the usage of the current quota period.",
+      "preview": "{conversations, plural, =0 {No conversation} one {# conversation} other {# conversations}} and {messages, plural, =0 {no message} one {# message} other {# messages}} will be deleted.",
+      "ledger": "Also {count, plural, one {# row} other {# rows}} of the quota ledger (past periods)."
+    },
+    "errors": {
+      "notFound": "Conversation not found."
+    }
+  },
+  "systemHealth": {
+    "title": "System health",
+    "sections": {
+      "live": "Live status",
+      "alerts": "Configuration alerts",
+      "tasks": "Scheduled tasks",
+      "tasksDescription": "Last run of the background tasks and next planned run.",
+      "incidents": "Incidents",
+      "incidentsDescription": "Server warnings and errors, grouped when they repeat. Routine information stays in the server log (docker logs).",
+      "deliveries": "Failed deliveries"
+    },
+    "live": {
+      "up": "Operational",
+      "down": "Unreachable",
+      "database": {
+        "title": "Database",
+        "latency": "Responds in {ms} ms"
+      },
+      "realtime": {
+        "title": "Real-time server",
+        "clients": "{count, plural, =0 {No client connected} one {# client connected} other {# clients connected}}"
+      },
+      "version": {
+        "title": "Version",
+        "details": "View",
+        "status": {
+          "up_to_date": "Up to date",
+          "update_available": "Update available: v{version}",
+          "security_update": "Security update available: v{version}",
+          "error": "Update check failed",
+          "disabled": "Update check disabled",
+          "no_release": "No published release"
+        }
+      },
+      "backup": {
+        "title": "Last backup",
+        "none": "No backup",
+        "detail": "{date} · {size} MB",
+        "status": {
+          "completed": "Succeeded",
+          "failed": "Failed",
+          "in_progress": "In progress"
+        }
+      }
+    },
+    "alerts": {
+      "none": "No configuration problem detected.",
+      "configEncryptionKey": {
+        "title": "Settings encryption key missing",
+        "description": "CONFIG_ENCRYPTION_KEY is not set (or invalid) in the .env file: the passwords and keys entered in Settings are stored in plain text in the database. Add a key (openssl rand -hex 32) and restart the application."
+      },
+      "smtpWithoutTls": {
+        "title": "SMTP without encryption",
+        "description": "The SMTP server is configured without TLS and without certificate check: e-mails and the SMTP login travel in plain text. Choose TLS or SSL in Settings → E-mail."
+      },
+      "temporaryAuthSecret": {
+        "title": "Temporary authentication secret",
+        "description": "BETTER_AUTH_SECRET is missing from the .env file: a temporary secret is used and every session will be lost at the next restart. Run the installer again or set it in .env."
+      },
+      "captchaNotConfigured": {
+        "title": "Captcha on but not configured",
+        "description": "The captcha is on without its keys (ALTCHA: secrets in the .env file; Turnstile or reCAPTCHA: site key and secret key): the check is skipped at sign-in."
+      },
+      "fcmInvalid": {
+        "title": "Invalid Firebase service account",
+        "description": "FCM_SERVICE_ACCOUNT_JSON is not a valid Firebase service account: the mobile app push notifications are not sent."
+      }
+    },
+    "tasks": {
+      "columns": {
+        "task": "Task",
+        "lastRun": "Last run",
+        "result": "Result",
+        "nextRun": "Next run"
+      },
+      "names": {
+        "daily_purge": "Nightly purge",
+        "backup": "Automatic backup",
+        "weekly_summary": "Weekly summary",
+        "update_check": "Update check"
+      },
+      "descriptions": {
+        "daily_purge": "Every night at 3 am: AI assistant history and incidents past their retention.",
+        "backup": "At the frequency chosen in Settings → Backup.",
+        "weekly_summary": "E-mail with the week's schedule, as set in Settings → Communication.",
+        "update_check": "At most once every 24 hours, when an administrator visits."
+      },
+      "status": {
+        "never": "Never run",
+        "running": "In progress",
+        "success": "Succeeded",
+        "failed": "Failed"
+      },
+      "summary": {
+        "dailyPurge": "{conversations, plural, =0 {no conversation} one {# conversation} other {# conversations}} and {events, plural, =0 {no incident} one {# incident} other {# incidents}} deleted",
+        "backup": "{size} MB",
+        "weeklySummary": "{sent, plural, =0 {no e-mail sent} one {# e-mail sent} other {# e-mails sent}}"
+      },
+      "disabled": "Off",
+      "onDemand": "On demand",
+      "interrupted": "Interrupted: the server stopped during the run."
+    },
+    "levels": {
+      "ERROR": "Error",
+      "WARN": "Warning"
+    },
+    "categories": {
+      "system": "System",
+      "auth": "Authentication",
+      "api": "API",
+      "socket": "Real time",
+      "db": "Database",
+      "email": "E-mail",
+      "push": "Push notifications",
+      "sms": "SMS",
+      "mcp": "MCP",
+      "backup": "Backup",
+      "import": "Import",
+      "migration": "Migration",
+      "ai_chat": "AI assistant"
+    },
+    "periods": {
+      "1": "Last 24 hours",
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "all": "All time"
+    },
+    "incidents": {
+      "purge": "Purge",
+      "clearFilters": "Clear filters",
+      "empty": "No incident in this period.",
+      "filters": {
+        "level": "Level",
+        "category": "Category",
+        "period": "Period"
+      },
+      "columns": {
+        "level": "Level",
+        "category": "Category",
+        "message": "Message",
+        "occurrences": "Occurrences",
+        "lastSeen": "Last seen",
+        "firstSeen": "First seen"
+      },
+      "detail": {
+        "route": "Request",
+        "user": "User",
+        "metadata": "Details",
+        "stack": "Stack trace"
+      },
+      "purgeDialog": {
+        "title": "Purge incidents",
+        "description": "Permanently deletes the incidents last seen before the chosen date. The chosen day is kept.",
+        "preview": "{count, plural, =0 {No incident will be deleted.} one {# incident will be deleted.} other {# incidents will be deleted.}}"
+      }
+    },
+    "deliveries": {
+      "tabs": {
+        "emails": "E-mails ({count})",
+        "sms": "SMS ({count})",
+        "webhooks": "Webhooks ({count})"
+      },
+      "columns": {
+        "date": "Date",
+        "recipient": "Recipient",
+        "subject": "Subject",
+        "error": "Error",
+        "provider": "Service",
+        "event": "Event",
+        "status": "Status"
+      },
+      "empty": "No failed delivery in this period.",
+      "webhookStatus": {
+        "error": "Error",
+        "invalid_signature": "Invalid signature"
+      }
     }
   }
 }

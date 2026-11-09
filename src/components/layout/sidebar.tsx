@@ -30,8 +30,9 @@ import {
   Truck,
   Tags,
   Building2,
-  Terminal,
   Sparkles,
+  MessagesSquare,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { create } from "zustand";
@@ -147,8 +148,6 @@ const ALL_NAV_ITEMS: NavItem[] = [
       { id: "statsProjects", href: "/stats/projects", icon: FolderKanban, permission: "pages:stats_projects" },
       // ROI temporarily hidden (code kept in /stats/roi)
       // { id: "statsRoi", href: "/stats/roi", icon: BarChart3, permission: "pages:stats_roi" },
-      { id: "audit", href: "/audit", icon: Shield, configKey: "MODULE_AUDIT", permission: "pages:audit" },
-      { id: "logs", href: "/logs", icon: Terminal, configKey: "MODULE_AUDIT", permission: "pages:audit" },
       { id: "export", href: "/export", icon: FileText, permission: "export:use" },
     ],
   },
@@ -161,6 +160,9 @@ const ALL_NAV_ITEMS: NavItem[] = [
       { id: "roles", href: "/roles", icon: ShieldCheck, permission: "pages:roles" },
       { id: "holidays", href: "/holidays", icon: CalendarOff, permission: "pages:holidays" },
       { id: "files", href: "/files", icon: FileText, permission: "pages:files" },
+      { id: "audit", href: "/audit", icon: Shield, configKey: "MODULE_AUDIT", permission: "pages:audit" },
+      { id: "aiHistory", href: "/ai-history", icon: MessagesSquare, permission: "pages:ai_history" },
+      { id: "systemHealth", href: "/system-health", icon: Activity, permission: "pages:system_health" },
     ],
   },
 ];

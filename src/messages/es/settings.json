@@ -27,7 +27,7 @@
     "gdpr": "RGPD",
     "files": "Archivos",
     "audit": "Auditoría",
-    "logs": "Registros",
+    "retention": "Historiales",
     "apiAccess": "Acceso a la API",
     "cache": "Caché",
     "purge": "Purga",
@@ -68,7 +68,7 @@
     "footer": "Pie de página",
     "files": "Archivos",
     "audit": "Auditoría",
-    "logs": "Registros",
+    "retention": "Conservación de los historiales",
     "apiAccess": "Acceso a la API",
     "cache": "Caché",
     "purge": "Purga",
@@ -587,8 +587,7 @@
       "label": "Título de la aplicación"
     },
     "APP_BASE_URL": {
-      "label": "URL de la aplicación",
-      "description": "Se utiliza en los correos electrónicos (enlaces de restablecimiento, notificaciones)"
+      "label": "URL de la aplicación"
     },
     "TIMEZONE": {
       "label": "Zona horaria",
@@ -719,8 +718,8 @@
       "label": "Fuente de las tareas",
       "description": "Fuentes alojadas localmente (cargadas durante la compilación). Ninguna llamada a un servidor externo.",
       "options": {
-        "geist": "Geist Sans (predeterminada)",
-        "inter": "Inter",
+        "geist": "Geist Sans",
+        "inter": "Inter (predeterminada)",
         "roboto": "Roboto",
         "ibm-plex-sans": "IBM Plex Sans",
         "source-sans": "Source Sans 3"
@@ -949,7 +948,7 @@
     },
     "FORGOT_PASSWORD_ENABLED": {
       "label": "Activar la función «Contraseña olvidada»",
-      "description": "Muestra un enlace en la página de inicio de sesión que permite a los usuarios restablecer su contraseña por correo electrónico. Requiere que la configuración de correo electrónico (SMTP o Mailgun) esté definida."
+      "description": "Muestra un enlace en la página de inicio de sesión que permite a los usuarios restablecer su contraseña por correo electrónico. Requiere que haya un servicio de envío de correo configurado."
     },
     "BRUTEFORCE_MAX_ATTEMPTS": {
       "label": "Número de intentos antes del bloqueo",
@@ -1088,22 +1087,13 @@
     "AUDIT_RETENTION": {
       "label": "Plazo de conservación de las auditorías"
     },
-    "LOGS_ENABLED": {
-      "label": "Activar los registros del sistema",
-      "description": "Guarda los eventos del sistema (errores, acciones, inicios de sesión) en un búfer en memoria que se puede consultar desde la página Registros"
+    "CHAT_HISTORY_RETENTION": {
+      "label": "Conservación del historial del asistente de IA",
+      "description": "Cada noche se eliminan las conversaciones sin intercambio desde hace este tiempo (Administración → Uso de la IA). Siempre se conserva el consumo del periodo de cuota en curso."
     },
-    "LOGS_LEVEL": {
-      "label": "Nivel mínimo",
-      "options": {
-        "ERROR": "Solo errores",
-        "WARN": "Advertencias y errores",
-        "INFO": "Información (recomendado)",
-        "DEBUG": "Depuración (detallado)"
-      }
-    },
-    "LOGS_MAX_ENTRIES": {
-      "label": "Número máximo de entradas",
-      "description": "Tamaño del búfer circular en memoria (las entradas más antiguas se sustituyen)"
+    "SYSTEM_EVENTS_RETENTION": {
+      "label": "Conservación de las incidencias del sistema",
+      "description": "Cada noche se eliminan las incidencias cuya última aparición es más antigua (Administración → Estado del sistema)."
     },
     "API_ENABLED": {
       "label": "Activar el acceso a la API",

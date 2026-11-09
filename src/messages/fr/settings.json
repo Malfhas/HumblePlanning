@@ -27,7 +27,7 @@
     "gdpr": "RGPD",
     "files": "Fichiers",
     "audit": "Audit",
-    "logs": "Logs",
+    "retention": "Historiques",
     "apiAccess": "Accès API",
     "cache": "Cache",
     "purge": "Purge",
@@ -68,7 +68,7 @@
     "footer": "Pied de page",
     "files": "Fichiers",
     "audit": "Audit",
-    "logs": "Logs",
+    "retention": "Conservation des historiques",
     "apiAccess": "Accès API",
     "cache": "Cache",
     "purge": "Purge",
@@ -587,8 +587,7 @@
       "label": "Titre de l'application"
     },
     "APP_BASE_URL": {
-      "label": "URL de l'application",
-      "description": "Utilisée dans les emails (liens de reset, notifications)"
+      "label": "URL de l'application"
     },
     "TIMEZONE": {
       "label": "Fuseau horaire",
@@ -719,8 +718,8 @@
       "label": "Police d'écriture des tâches",
       "description": "Polices hébergées localement (chargées au build). Aucun appel à un serveur externe.",
       "options": {
-        "geist": "Geist Sans (par défaut)",
-        "inter": "Inter",
+        "geist": "Geist Sans",
+        "inter": "Inter (par défaut)",
         "roboto": "Roboto",
         "ibm-plex-sans": "IBM Plex Sans",
         "source-sans": "Source Sans 3"
@@ -949,7 +948,7 @@
     },
     "FORGOT_PASSWORD_ENABLED": {
       "label": "Activer la fonction « Mot de passe oublié »",
-      "description": "Affiche un lien sur la page de connexion permettant aux utilisateurs de réinitialiser leur mot de passe par email. Nécessite que les paramètres email (SMTP ou Mailgun) soient configurés."
+      "description": "Affiche un lien sur la page de connexion permettant aux utilisateurs de réinitialiser leur mot de passe par email. Nécessite qu'un service d'envoi d'emails soit configuré."
     },
     "BRUTEFORCE_MAX_ATTEMPTS": {
       "label": "Nombre de tentatives avant blocage",
@@ -1088,22 +1087,13 @@
     "AUDIT_RETENTION": {
       "label": "Durée de rétention des audits"
     },
-    "LOGS_ENABLED": {
-      "label": "Activer les logs système",
-      "description": "Enregistre les événements système (erreurs, actions, connexions) dans un buffer mémoire consultable depuis la page Logs"
+    "CHAT_HISTORY_RETENTION": {
+      "label": "Conservation de l'historique de l'assistant IA",
+      "description": "Chaque nuit, les conversations sans échange depuis cette durée sont supprimées (Administration → Usage de l'IA). La consommation de la période de quota en cours est toujours conservée."
     },
-    "LOGS_LEVEL": {
-      "label": "Niveau minimum",
-      "options": {
-        "ERROR": "Erreur uniquement",
-        "WARN": "Avertissements et erreurs",
-        "INFO": "Informations (recommandé)",
-        "DEBUG": "Debug (verbeux)"
-      }
-    },
-    "LOGS_MAX_ENTRIES": {
-      "label": "Nombre max d'entrées",
-      "description": "Taille du buffer circulaire en mémoire (les plus anciens sont remplacés)"
+    "SYSTEM_EVENTS_RETENTION": {
+      "label": "Conservation des incidents système",
+      "description": "Chaque nuit, les incidents dont la dernière apparition est plus ancienne sont supprimés (Administration → Santé du système)."
     },
     "API_ENABLED": {
       "label": "Activer l'accès API",

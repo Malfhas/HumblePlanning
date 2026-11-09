@@ -10,10 +10,10 @@ type Rule = { methods: "all" | "write"; path: RegExp };
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 const RULES: readonly Rule[] = [
-  // Administration: settings, roles, audit, backups, import, migration, cache, purges
+  // Administration: settings, roles, audit, AI history, system health, backups, import, migration, cache, purges
   { methods: "write", path: /^\/api\/config$/ },
   { methods: "write", path: /^\/api\/roles(\/|$)/ },
-  { methods: "all", path: /^\/api\/(audit|logs|backups|import|migration|cache|system|storage)(\/|$)/ },
+  { methods: "all", path: /^\/api\/(audit|ai-history|system-health|backups|import|migration|cache|system|storage)(\/|$)/ },
   { methods: "all", path: /^\/api\/[a-z-]+\/purge$/ },
   // Outgoing services and their settings: e-mail, SMS, weekly summary, API keys, MCP, AI chat
   { methods: "all", path: /^\/api\/(email|sms|webhook-logs|webhook-status|weekly-summary|api-keys)(\/|$)/ },
@@ -22,7 +22,7 @@ const RULES: readonly Rule[] = [
   { methods: "all", path: /^\/api\/mcp(\/|$)/ },
   { methods: "all", path: /^\/(mcp-authorize|\.well-known\/oauth-[a-z-]+)(\/|$)/ },
   { methods: "all", path: /^\/api\/profile\/mcp-keys(\/|$)/ },
-  { methods: "all", path: /^\/api\/ai-chat\/(admin|conversations|attachments|scope-projects)(\/|$)/ },
+  { methods: "all", path: /^\/api\/ai-chat\/(admin|conversations|attachments)(\/|$)/ },
   { methods: "all", path: /^\/api\/auth\/send-reset$/ },
   { methods: "all", path: /^\/api\/mobile\/devices\/current\/push-test$/ },
   // Uploads: branding, avatars, task attachments

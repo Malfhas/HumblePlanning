@@ -64,13 +64,20 @@
     }
   },
   "categories": {
-    "pages": "Accès aux pages",
+    "pages": "Pages principales",
+    "pages_team": "Équipe",
+    "pages_worksites": "Chantiers",
+    "pages_logistics": "Logistique",
+    "pages_analysis": "Analyse",
+    "pages_admin": "Administration",
     "projects": "Projets — actions",
     "users_teams": "Utilisateurs & équipes — actions",
     "logistics": "Logistique — actions",
-    "referentials": "Référentiels — actions",
-    "audit_export": "Audit, fichiers & exports — actions",
+    "analysis": "Analyse — actions",
     "admin": "Administration & sécurité — actions",
+    "referentials": "Référentiels — actions",
+    "files": "Fichiers — actions",
+    "history": "Audit, assistant IA et santé du système — actions",
     "integrations": "Intégrations IA (MCP) — actions",
     "ai_chat": "Assistant IA (chat intégré) — actions",
     "mobile_app": "Application mobile",
@@ -149,7 +156,7 @@
       },
       "audit": {
         "label": "Audit & historiques",
-        "description": "Accéder au journal d'audit, aux logs système et à l'historique des tâches."
+        "description": "Accéder au journal d'audit et à l'historique des tâches."
       },
       "stats_users": {
         "label": "Stats utilisateurs",
@@ -174,6 +181,14 @@
       "backups": {
         "label": "Sauvegardes",
         "description": "Accéder à l'historique des sauvegardes dans les paramètres."
+      },
+      "ai_history": {
+        "label": "Usage de l'IA",
+        "description": "Accéder aux conversations de l'assistant IA de tous les utilisateurs, à leur coût et à la consommation des quotas."
+      },
+      "system_health": {
+        "label": "Santé du système",
+        "description": "Accéder à la page Santé du système : état des services, alertes de configuration, tâches planifiées, incidents et envois en échec."
       }
     },
     "projects": {
@@ -340,6 +355,18 @@
         "description": "Supprimer définitivement les entrées du journal d'audit antérieures à une date."
       }
     },
+    "ai_history": {
+      "purge": {
+        "label": "Purger l'historique de l'assistant IA",
+        "description": "Supprimer définitivement les conversations de l'assistant IA sans activité depuis une date (le registre de quota de la période en cours est conservé)."
+      }
+    },
+    "system_health": {
+      "purge": {
+        "label": "Purger les incidents système",
+        "description": "Supprimer définitivement les incidents dont la dernière apparition est antérieure à une date."
+      }
+    },
     "export": {
       "use": {
         "label": "Utiliser les exports",
@@ -486,12 +513,8 @@
     },
     "planning": {
       "view_calendar": {
-        "label": "Calendrier personnel",
-        "description": "Autorise l'accès à la vue « Calendrier perso » qui affiche les tâches de l'utilisateur connecté dans un format calendrier journalier."
-      },
-      "view_team_day": {
-        "label": "Vue équipe / jour",
-        "description": "Autorise l'accès à la vue « Équipe/jour » qui affiche les tâches de l'équipe heure par heure sur une journée."
+        "label": "Vue calendrier",
+        "description": "Autorise l'accès à la vue « Calendrier », qui affiche les tâches d'une personne par jour, par semaine ou par mois."
       },
       "view_vehicles": {
         "label": "Vue véhicules",

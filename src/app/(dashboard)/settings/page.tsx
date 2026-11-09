@@ -54,6 +54,7 @@ import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { VersionPanel } from "@/components/settings/version-panel";
 import { DEFAULT_MOBILE_STORE_URL, RELEASE_MIN_APP_VERSION } from "@/lib/utils/app-version";
 import { Textarea } from "@/components/ui/textarea";
+import { copyText } from "@/lib/utils/clipboard";
 
 // Labels resolved at render time from the identifiers (`settings` catalog):
 // i18n-dynamic: settings.categories.*
@@ -120,6 +121,7 @@ const CATEGORY_NAV: Record<string, NavItem[]> = {
     { id: "appearance" },
     { id: "workDurations" },
     { id: "announcement" },
+    { id: "mobile" },
   ],
   communication: [
     { id: "email" },
@@ -135,13 +137,12 @@ const CATEGORY_NAV: Record<string, NavItem[]> = {
     { id: "twoFactor" },
     { id: "sessions" },
     { id: "captcha" },
-    { id: "mobile" },
     { id: "gdpr", section: "cookieBanner" },
   ],
   system: [
     { id: "files" },
     { id: "audit" },
-    { id: "logs" },
+    { id: "retention" },
     { id: "apiAccess" },
     { id: "cache" },
     { id: "purge" },
@@ -298,7 +299,7 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       // ── Planning display ──
       { key: "PLANNING_MIN_CELL_WIDTH", type: "number", defaultValue: "55", section: "planningDisplay" },
       { key: "PLANNING_MAX_CELL_WIDTH", type: "number", defaultValue: "170" },
-      { key: "PLANNING_DEFAULT_CELL_WIDTH", type: "number", defaultValue: "75" },
+      { key: "PLANNING_DEFAULT_CELL_WIDTH", type: "number", defaultValue: "135" },
       { key: "PLANNING_MAX_CELL_WIDTH_MOBILE", type: "number", defaultValue: "140" },
       { key: "PLANNING_SIDEBAR_WIDTH", type: "text", defaultValue: "auto" },
       { key: "PLANNING_SIDEBAR_WIDTH_MOBILE", type: "number", defaultValue: "140" },
@@ -307,7 +308,7 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       {
         key: "PLANNING_FONT_FAMILY",
         type: "select",
-        defaultValue: "geist",
+        defaultValue: "inter",
         options: [
           { value: "geist" },
           { value: "inter" },
@@ -339,6 +340,30 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
         { value: "week" },
         { value: "month" },
       ], visibleWhen: { key: "ANNOUNCEMENT_ENABLED", value: "true" } },
+      // Mobile app
+      { key: "MOBILE_LOGIN_ENABLED", type: "boolean", defaultValue: "true", section: "mobile" },
+      { key: "MOBILE_PAIRING_ENABLED", type: "boolean", defaultValue: "true" },
+      { key: "MOBILE_MIN_APP_VERSION", type: "text", placeholder: RELEASE_MIN_APP_VERSION, descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
+      { key: "MOBILE_STORE_URL", type: "text", placeholder: DEFAULT_MOBILE_STORE_URL },
+      { key: "MOBILE_IOS_STORE_URL", type: "text", placeholder: "https://apps.apple.com/app/…" },
+      { key: "MOBILE_PUSH_ENABLED", type: "boolean", defaultValue: "true" },
+      { key: "MOBILE_PUSH_TRIGGERS", type: "multiselect", optionLabels: "options.triggers", defaultValue: "task_created,task_deleted,task_title_changed,task_dates_changed,task_times_changed,task_status_changed,task_project_changed,task_notes_changed,task_user_added,task_user_removed,task_file_added,task_file_deleted", options: [
+        { value: "task_created" },
+        { value: "task_deleted" },
+        { value: "task_title_changed" },
+        { value: "task_dates_changed" },
+        { value: "task_times_changed" },
+        { value: "task_status_changed" },
+        { value: "task_project_changed" },
+        { value: "task_notes_changed" },
+        { value: "task_user_added" },
+        { value: "task_user_removed" },
+        { value: "task_file_added" },
+        { value: "task_file_deleted" },
+      ], visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
+      { key: "FCM_SERVICE_ACCOUNT_JSON", type: "password", multiline: true, accept: ".json,application/json", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
+      { key: "MOBILE_PUSH_RELAY_URL", type: "text", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
+      { key: "MOBILE_PUSH_RELAY_KEY", type: "password", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
     ],
   },
   {
@@ -475,30 +500,6 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       ], visibleWhen: { key: "CAPTCHA_ENABLED", value: "true" } },
       { key: "CAPTCHA_SITE_KEY", type: "text", visibleWhen: { key: "CAPTCHA_ENABLED", value: "true", and: { key: "CAPTCHA_PROVIDER", value: ["turnstile", "recaptcha"] } } },
       { key: "CAPTCHA_SECRET_KEY", type: "password", visibleWhen: { key: "CAPTCHA_ENABLED", value: "true", and: { key: "CAPTCHA_PROVIDER", value: ["turnstile", "recaptcha"] } } },
-      // Mobile app
-      { key: "MOBILE_LOGIN_ENABLED", type: "boolean", defaultValue: "true", section: "mobile" },
-      { key: "MOBILE_PAIRING_ENABLED", type: "boolean", defaultValue: "true" },
-      { key: "MOBILE_MIN_APP_VERSION", type: "text", placeholder: RELEASE_MIN_APP_VERSION, descriptionParams: { version: RELEASE_MIN_APP_VERSION } },
-      { key: "MOBILE_STORE_URL", type: "text", placeholder: DEFAULT_MOBILE_STORE_URL },
-      { key: "MOBILE_IOS_STORE_URL", type: "text", placeholder: "https://apps.apple.com/app/…" },
-      { key: "MOBILE_PUSH_ENABLED", type: "boolean", defaultValue: "true" },
-      { key: "MOBILE_PUSH_TRIGGERS", type: "multiselect", optionLabels: "options.triggers", defaultValue: "task_created,task_deleted,task_title_changed,task_dates_changed,task_times_changed,task_status_changed,task_project_changed,task_notes_changed,task_user_added,task_user_removed,task_file_added,task_file_deleted", options: [
-        { value: "task_created" },
-        { value: "task_deleted" },
-        { value: "task_title_changed" },
-        { value: "task_dates_changed" },
-        { value: "task_times_changed" },
-        { value: "task_status_changed" },
-        { value: "task_project_changed" },
-        { value: "task_notes_changed" },
-        { value: "task_user_added" },
-        { value: "task_user_removed" },
-        { value: "task_file_added" },
-        { value: "task_file_deleted" },
-      ], visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
-      { key: "FCM_SERVICE_ACCOUNT_JSON", type: "password", multiline: true, accept: ".json,application/json", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
-      { key: "MOBILE_PUSH_RELAY_URL", type: "text", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
-      { key: "MOBILE_PUSH_RELAY_KEY", type: "password", visibleWhen: { key: "MOBILE_PUSH_ENABLED", value: "true" } },
       // GDPR
       { key: "COOKIE_BANNER_ENABLED", type: "boolean", section: "cookieBanner" },
       // GDPR texts: no saved default value; empty = text translated
@@ -557,15 +558,23 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
         { value: "365" },
         { value: "0" },
       ]},
-      // System logs
-      { key: "LOGS_ENABLED", type: "boolean", section: "logs", defaultValue: "true" },
-      { key: "LOGS_LEVEL", type: "select" as const, defaultValue: "INFO", visibleWhen: { key: "LOGS_ENABLED", value: "true" }, options: [
-        { value: "ERROR" },
-        { value: "WARN" },
-        { value: "INFO" },
-        { value: "DEBUG" },
+      // History retention (nightly purge; 0 = never)
+      { key: "CHAT_HISTORY_RETENTION", type: "select", section: "retention", optionLabels: "options.retention", defaultValue: "365", options: [
+        { value: "7" },
+        { value: "30" },
+        { value: "90" },
+        { value: "180" },
+        { value: "365" },
+        { value: "0" },
       ]},
-      { key: "LOGS_MAX_ENTRIES", type: "number", defaultValue: "500", visibleWhen: { key: "LOGS_ENABLED", value: "true" } },
+      { key: "SYSTEM_EVENTS_RETENTION", type: "select", optionLabels: "options.retention", defaultValue: "30", options: [
+        { value: "7" },
+        { value: "30" },
+        { value: "90" },
+        { value: "180" },
+        { value: "365" },
+        { value: "0" },
+      ]},
       // API access
       { key: "API_ENABLED", type: "boolean", section: "apiAccess" },
       { key: "API_RATE_LIMIT_MINUTE", type: "number", defaultValue: "60", visibleWhen: { key: "API_ENABLED", value: "true" } },
@@ -805,7 +814,8 @@ function SettingsSectionNav({ navItems, activeSection, onSelect }: {
         </Select>
       </div>
       <nav className="hidden lg:block w-44 shrink-0">
-        <div className="sticky top-0 space-y-0.5">
+        {/* top-4 = the margin above the tab content: the nav sticks where it already stands, without moving up */}
+        <div className="sticky top-4 space-y-0.5">
           {navItems.map((nav, i) => {
             const btn = (
               <button
@@ -1490,7 +1500,8 @@ function SentDmTemplatesPanel() {
   const renderBold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(baseTemplate).then(() => {
+    void copyText(baseTemplate).then((ok) => {
+      if (!ok) return;
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -2510,7 +2521,8 @@ function ApiKeysPanel({ baseUrl }: { baseUrl: string }) {
   };
 
   const copyKey = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
+    void copyText(text).then((ok) => {
+      if (!ok) return;
       setKeyCopied(true);
       setTimeout(() => setKeyCopied(false), 2000);
     });
@@ -2910,7 +2922,8 @@ function McpSetupGuide({ baseUrl }: { baseUrl: string }) {
   const renderCode = (chunks: React.ReactNode) => <code className="bg-muted px-1 rounded">{chunks}</code>;
 
   function copy(text: string, id: string) {
-    navigator.clipboard.writeText(text).then(() => {
+    void copyText(text).then((ok) => {
+      if (!ok) return;
       setCopiedText(id);
       setTimeout(() => setCopiedText(""), 2000);
     });
@@ -3767,7 +3780,7 @@ function MigrationPanel() {
         <div className="max-w-xl">
           <Label htmlFor="migration-source" className="text-xs text-muted-foreground mb-1.5 block">{t("panels.migration.source")}</Label>
           <Select value={source} onValueChange={(v) => setSource(v as MigrationSource)}>
-            <SelectTrigger id="migration-source" className="h-11">
+            <SelectTrigger id="migration-source" className="h-11 w-full">
               <SelectValue placeholder={t("panels.migration.sourcePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -3897,9 +3910,11 @@ function SoPlanningMigration() {
   };
 
   const copyToClipboard = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(key);
-    setTimeout(() => setCopied(null), 2000);
+    void copyText(text).then((ok) => {
+      if (!ok) return;
+      setCopied(key);
+      setTimeout(() => setCopied(null), 2000);
+    });
   };
 
   // Sessions were purged by the migration: start again from a clean

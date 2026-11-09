@@ -33,6 +33,7 @@ import {
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { FilterMultiSelect, type FilterItem } from "@/components/shared/filter-multi-select";
 import { DataTableSearchToggle } from "@/components/shared/data-table-search-toggle";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TruncatedCell } from "@/components/shared/truncated-cell";
 import { Pencil, Trash2, Plus, UserMinus, Eye, X, Filter } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -323,30 +324,30 @@ export default function TasksPage() {
     <div className="flex flex-col gap-4 h-[calc(100vh-7rem)]">
       <h1 className="text-2xl font-bold">{t("list.title")}</h1>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1">
-          <DateRangePicker startDate={startDate} endDate={endDate} onChange={setDateRange} />
-        </div>
-        <div className="ml-auto">
-          {!canCreateAnyTask ? (
+      <ListToolbar
+        actions={
+          !canCreateAnyTask ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span tabIndex={0}>
-                  <Button disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+                  <Button size="sm" disabled><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>{t("permissionDenied")}</TooltipContent>
             </Tooltip>
           ) : (
-            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
-          )}
+            <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" />{tc("actions.add")}</Button>
+          )
+        }
+      >
+        <div className="flex items-center gap-1">
+          <DateRangePicker startDate={startDate} endDate={endDate} onChange={setDateRange} />
         </div>
-      </div>
-
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        <FilterMultiSelect label={t("list.filters.project")} items={projectOptions} selected={filterProjectIds} onChange={setFilterProjectIds} />
+        {/* Keep the filter icon with the first filter when the bar wraps */}
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <FilterMultiSelect label={t("list.filters.project")} items={projectOptions} selected={filterProjectIds} onChange={setFilterProjectIds} />
+        </div>
         <FilterMultiSelect label={t("list.filters.status")} items={statusOptions} selected={filterStatusIds} onChange={setFilterStatusIds} />
         <FilterMultiSelect label={t("list.filters.user")} items={userOptions} selected={filterUserIds} onChange={setFilterUserIds} />
         {teamOptions.length > 1 && (
@@ -379,7 +380,7 @@ export default function TasksPage() {
             </Tooltip>
           )}
           <Select value={String(taskLimit)} onValueChange={(v) => setTaskLimit(Number(v))}>
-            <SelectTrigger className="h-7 w-[100px] text-xs">
+            <SelectTrigger size="sm" className="w-[100px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -391,7 +392,7 @@ export default function TasksPage() {
             </SelectContent>
           </Select>
         </span>
-      </div>
+      </ListToolbar>
 
       <DataTable
         className="flex flex-col gap-3 flex-1 min-h-0"

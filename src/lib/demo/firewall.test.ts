@@ -14,7 +14,9 @@ describe("demo firewall", () => {
   it("closes administration, outgoing services and uploads", () => {
     for (const [method, path] of [
       ["PUT", "/api/config"], ["POST", "/api/roles"], ["DELETE", "/api/roles/abc"], ["GET", "/api/audit"],
-      ["POST", "/api/audit/abc/restore"], ["GET", "/api/logs"], ["GET", "/api/backups"], ["POST", "/api/import/analyze"],
+      ["POST", "/api/audit/abc/restore"], ["GET", "/api/ai-history"], ["GET", "/api/ai-history/abc"],
+      ["DELETE", "/api/ai-history/purge"], ["GET", "/api/system-health"], ["GET", "/api/system-health/events"],
+      ["DELETE", "/api/system-health/purge"], ["GET", "/api/backups"], ["POST", "/api/import/analyze"],
       ["POST", "/api/migration/execute"], ["DELETE", "/api/cache"], ["POST", "/api/system/version/check"], ["GET", "/api/storage"],
       ["DELETE", "/api/tasks/purge"], ["DELETE", "/api/files/purge"], ["POST", "/api/email/test"], ["GET", "/api/email-blocklist"],
       ["DELETE", "/api/email-blocklist/abc"], ["POST", "/api/sms/test"], ["POST", "/api/weekly-summary/test"], ["GET", "/api/api-keys"],

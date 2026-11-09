@@ -11,7 +11,7 @@ import type { TaskTimeSlot } from "./utils/time-slots";
 const twMerge = extendTailwindMerge({
   extend: {
     theme: {
-      text: ["ai-xs", "ai-sm"],
+      text: ["ai-xs", "ai-sm", "ai-md"],
       radius: ["ai-xs", "ai-sm", "ai-md", "ai-lg", "ai-xl"],
       shadow: ["ai-raised", "ai-overlay", "ai-modal"],
       font: ["ai-mono"],

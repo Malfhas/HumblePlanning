@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Check, AlertTriangle, CircleCheck, Webhook } from "lucide-react";
 import { useDateFormat } from "@/hooks/use-date-format";
+import { copyText } from "@/lib/utils/clipboard";
 
 export function WebhookStatusCard() {
   const t = useTranslations("settings");
@@ -29,7 +30,7 @@ export function WebhookStatusCard() {
 
   const copyUrl = async () => {
     if (!data.webhookUrl) return;
-    await navigator.clipboard.writeText(data.webhookUrl);
+    if (!(await copyText(data.webhookUrl))) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

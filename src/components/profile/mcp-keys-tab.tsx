@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Plus, X, Loader2, Check, Copy, AlertTriangle } from "lucide-react";
+import { copyText } from "@/lib/utils/clipboard";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -79,7 +80,8 @@ export function McpKeysTab() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
+    void copyText(text).then((ok) => {
+      if (!ok) return;
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });

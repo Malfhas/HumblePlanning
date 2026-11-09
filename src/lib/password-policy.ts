@@ -33,7 +33,7 @@ export const DEFAULT_POLICY: PasswordPolicy = {
   requireUppercase: true,
   requireLowercase: true,
   requireDigit: true,
-  requireSpecial: false,
+  requireSpecial: true,
 };
 
 const PWD_CONFIG_KEYS = [
@@ -59,7 +59,7 @@ export function policyFromConfig(config: Record<string, string | null>): Passwor
     requireUppercase: (config.PWD_REQUIRE_UPPERCASE ?? "true") === "true",
     requireLowercase: (config.PWD_REQUIRE_LOWERCASE ?? "true") === "true",
     requireDigit: (config.PWD_REQUIRE_DIGIT ?? "true") === "true",
-    requireSpecial: (config.PWD_REQUIRE_SPECIAL ?? "false") === "true",
+    requireSpecial: (config.PWD_REQUIRE_SPECIAL ?? "true") === "true",
   };
 }
 

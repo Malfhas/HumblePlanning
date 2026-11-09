@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { notifications, users } from "@/db/schema";
-import { eq, and, desc, inArray, lte, sql, count } from "drizzle-orm";
+import { eq, and, desc, inArray, lte, count } from "drizzle-orm";
 import { getConfigValues } from "./config-service";
 import { emitPushNotification } from "@/lib/socket-events";
 import { getActivePushTriggers, isPushTriggerActive } from "./push-notification-triggers";
@@ -179,5 +179,5 @@ export async function notifyPushRecipients(params: {
   // Fire-and-forget retention
   applyRetentionPolicy().catch(() => {});
 
-  logger.info("push", `Sent ${inserted.length} push notifications`, { type: params.type });
+  logger.debug("push", `Sent ${inserted.length} push notifications`, { type: params.type });
 }

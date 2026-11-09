@@ -295,7 +295,7 @@ export function TaskDetail({ task, open, onOpenChange, onEdit, collaborators }: 
 
         {/* Action bar */}
         {canEdit && (
-          <div className="flex justify-end pt-1">
+          <div data-slot="dialog-footer" className="flex justify-end pt-1">
             <Button variant="outline" size="sm" onClick={() => onEdit!(task)}>
               <Pencil className="h-4 w-4 mr-1" />
               {tc("actions.edit")}
@@ -307,7 +307,7 @@ export function TaskDetail({ task, open, onOpenChange, onEdit, collaborators }: 
       {/* File preview overlay */}
       {previewFile && (
         <Dialog open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
-          <DialogContent className={`p-4 pt-12 sm:p-6 sm:pt-12 ${previewFile.type === "pdf" ? "sm:max-w-[95vw] w-[95vw]" : "sm:max-w-5xl w-[95vw]"}`}>
+          <DialogContent bodyClassName="pt-12" className={`${previewFile.type === "pdf" ? "sm:max-w-[95vw] w-[95vw]" : "sm:max-w-5xl w-[95vw]"}`}>
             <DialogHeader className="sr-only">
               <DialogTitle>{t("preview")}</DialogTitle>
             </DialogHeader>

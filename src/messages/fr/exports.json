@@ -21,8 +21,8 @@
     "format": "Format",
     "liveSettingsHint": "Les réglages ci-dessous modifient le planning en temps réel.",
     "calendar": {
-      "personal": "Calendrier de {name}",
-      "teamDay": "Journée du {date}",
+      "personal": "Calendrier : {name}",
+      "everyone": "Calendrier de tous les utilisateurs",
       "hint": "L'export reflète le mode calendrier actif."
     },
     "view": "Vue",
@@ -70,7 +70,6 @@
       "helpPdf": "Ajoute des pages avec heures consommées, temps utilisateurs et budgets restants."
     },
     "summary": {
-      "day": "Journée",
       "period": "Période",
       "periodHint": "Modifiez la période depuis la barre d'outils du planning."
     },
@@ -101,8 +100,33 @@
         "gantt": "Planning (grille)",
         "list": "Liste (tableau)"
       },
-      "fitOnePage": "Adapter sur 1 page"
+      "fitOnePage": "Adapter sur 1 page",
+      "fullNames": "Noms complets",
+      "fullNamesHelp": "Affiche les noms des projets et des personnes en entier, sur plusieurs lignes si besoin, au lieu de les couper par « … »."
     },
-    "generating": "Génération…"
+    "generating": "Génération…",
+    "kind": {
+      "label": "Type d'export",
+      "planning": "Planning",
+      "projectGantt": "Gantt de projet"
+    },
+    "projectGantt": {
+      "project": "Projet",
+      "choose": "Choisir un projet",
+      "search": "Rechercher un projet…",
+      "empty": "Aucun projet",
+      "order": "Ordre des lignes",
+      "orders": {
+        "date": "Par date de début (en escalier)",
+        "alpha": "Ordre alphabétique"
+      },
+      "hint": "Une ligne par titre de tâche du projet sur la période, en couleur selon le statut. Les filtres du planning ne s'appliquent pas.",
+      "scale": "Échelle",
+      "scales": {
+        "days": "Jours",
+        "weeks": "Semaines"
+      },
+      "today": "Marquer le jour actuel"
+    }
   }
 }

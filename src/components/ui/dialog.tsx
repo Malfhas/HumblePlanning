@@ -51,22 +51,24 @@ function DialogOverlay({
 
 function DialogContent({
   className,
+  bodyClassName,
   children,
   showCloseButton = true,
   onOpenAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /** Classes of the scrolling body (padding, gap); `className` styles the frame (width, height). */
+  bodyClassName?: string
 }) {
   const tA11y = useTranslations("common.a11y")
   // Container ref exposed via PortalContainerContext to child Popovers /
-  // Selects / DropdownMenus: they portal into the DialogContent
-  // (not body) so `react-remove-scroll` does not block them
-  // on mobile.
+  // Selects / DropdownMenus: they portal into the scrolling body of the
+  // dialog (not body) so `react-remove-scroll` does not block them
+  // on mobile, and they scroll with the fields they belong to.
   const [container, setContainer] = React.useState<HTMLElement | null>(null);
 
-  // Combined callback ref: (a) captures the node for PortalContainerContext,
-  // (b) blurs the current `activeElement` to avoid the Chrome/Edge warning
+  // Callback ref of the frame: blurs the current `activeElement` to avoid the Chrome/Edge warning
   // "Blocked aria-hidden on an element because its descendant retained focus".
   // Radix Dialog sets `aria-hidden="true"` on the portal's siblings when
   // the dialog opens, but the trigger button keeps its focus → a11y
@@ -74,7 +76,6 @@ function DialogContent({
   // sets aria-hidden and before it runs its internal focus trap
   // (which `handleOpenAutoFocus` below already neutralizes via preventDefault).
   const refCallback = React.useCallback((node: HTMLDivElement | null) => {
-    setContainer(node);
     if (node && typeof document !== "undefined") {
       const active = document.activeElement;
       if (active instanceof HTMLElement && !node.contains(active)) {
@@ -108,41 +109,52 @@ function DialogContent({
         data-slot="dialog-content"
         onOpenAutoFocus={handleOpenAutoFocus}
         className={cn(
+          // The frame does not scroll: its body does (below), so the close
+          // button stays in its corner, and the header and footer of the
+          // dialog stay in view (sticky, see `dialog-header` and
+          // `dialog-footer` in globals.css). Only what lies between scrolls.
           // Mobile: full-screen (the 4 edges of the viewport).
-          // grid-cols-[minmax(0,1fr)]: without this constraint, the grid's
-          // implicit auto cell stretches to the min-content of the widest
-          // child (e.g. a combobox trigger with a long project name).
-          // With minmax(0,1fr), the column stays capped at 100% of the
-          // container and `w-full` children shrink correctly.
-          // content-start: stops the grid from spreading the free
-          // vertical space between rows when a `min-h` is set
-          // by the consumer (otherwise a big gap between DialogHeader
-          // and the first field).
-          "fixed top-0 right-0 bottom-0 left-0 z-50 grid grid-cols-[minmax(0,1fr)] content-start w-auto max-w-none max-h-[100dvh] overflow-x-hidden overflow-y-auto gap-4 rounded-none border-0 bg-background p-4 shadow-lg outline-none duration-200",
+          "fixed top-0 right-0 bottom-0 left-0 z-50 flex flex-col w-auto max-w-none max-h-[100dvh] rounded-none border-0 bg-background shadow-lg outline-none duration-200",
           "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
           // Desktop (≥ sm): centered, max-w-2xl, rounded border/corners.
-          // Same as mobile: we keep `grid-cols-[minmax(0,1fr)]` so
-          // that `w-full` children shrink inside the grid cell
-          // instead of pushing it to their min-content.
           // max-h-[85vh]: on large screens, capped at 85% of the
           // viewport height so the dialog does not visually grow
           // when an inner Collapsible is expanded. Beyond
-          // 85vh, the content scrolls inside the dialog (combined
-          // with the existing overflow-y-auto), and the dialog itself
-          // keeps a stable size.
-          "sm:top-1/2 sm:left-1/2 sm:right-auto sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:max-h-[85vh] sm:rounded-lg sm:border sm:p-6",
+          // 85vh, the body scrolls inside the dialog, and the dialog
+          // itself keeps a stable size.
+          "sm:top-1/2 sm:left-1/2 sm:right-auto sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:max-h-[85vh] sm:rounded-lg sm:border",
           "sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
           className
         )}
         {...props}
       >
-        <PortalContainerContext.Provider value={container}>
-          {children}
-        </PortalContainerContext.Provider>
+        <div
+          ref={setContainer}
+          data-slot="dialog-body"
+          className={cn(
+            // grid-cols-[minmax(0,1fr)]: without this constraint, the grid's
+            // implicit auto cell stretches to the min-content of the widest
+            // child (e.g. a combobox trigger with a long project name).
+            // With minmax(0,1fr), the column stays capped at 100% of the
+            // container and `w-full` children shrink correctly.
+            // content-start: stops the grid from spreading the free
+            // vertical space between rows when the dialog is taller than
+            // its content (full-screen on mobile).
+            // --dialog-pad: the padding, also used by the sticky header and
+            // footer to cover it. rounded-[inherit]: clips them to the
+            // rounded corners of the frame.
+            "grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-4 overflow-x-hidden overflow-y-auto rounded-[inherit] p-(--dialog-pad) [--dialog-pad:--spacing(4)] sm:[--dialog-pad:--spacing(6)]",
+            bodyClassName
+          )}
+        >
+          <PortalContainerContext.Provider value={container}>
+            {children}
+          </PortalContainerContext.Provider>
+        </div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 rounded-sm p-1.5 text-muted-foreground/70 ring-offset-background transition-all duration-200 hover:bg-muted hover:text-foreground hover:rotate-90 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="absolute top-4 right-4 z-20 rounded-sm p-1.5 text-muted-foreground/70 ring-offset-background transition-all duration-200 hover:bg-muted hover:text-foreground hover:rotate-90 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
             <span className="sr-only">{tA11y("close")}</span>

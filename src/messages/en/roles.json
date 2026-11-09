@@ -64,13 +64,20 @@
     }
   },
   "categories": {
-    "pages": "Page access",
+    "pages": "Main pages",
+    "pages_team": "Team",
+    "pages_worksites": "Worksites",
+    "pages_logistics": "Logistics",
+    "pages_analysis": "Analysis",
+    "pages_admin": "Administration",
     "projects": "Projects — actions",
     "users_teams": "Users & teams — actions",
     "logistics": "Logistics — actions",
-    "referentials": "Reference data — actions",
-    "audit_export": "Audit, files & exports — actions",
+    "analysis": "Analysis — actions",
     "admin": "Administration & security — actions",
+    "referentials": "Reference data — actions",
+    "files": "Files — actions",
+    "history": "Audit, AI assistant & system health — actions",
     "integrations": "AI integrations (MCP) — actions",
     "ai_chat": "AI assistant (built-in chat) — actions",
     "mobile_app": "Mobile app",
@@ -149,7 +156,7 @@
       },
       "audit": {
         "label": "Audit & history",
-        "description": "Access the audit log, system logs and task history."
+        "description": "Access the audit log and task history."
       },
       "stats_users": {
         "label": "User statistics",
@@ -174,6 +181,14 @@
       "backups": {
         "label": "Backups",
         "description": "Access the backup history in the settings."
+      },
+      "ai_history": {
+        "label": "AI usage",
+        "description": "Access the AI assistant conversations of every user, their cost and the quota usage."
+      },
+      "system_health": {
+        "label": "System health",
+        "description": "Access the System health page: service status, configuration alerts, scheduled tasks, incidents and failed deliveries."
       }
     },
     "projects": {
@@ -340,6 +355,18 @@
         "description": "Permanently delete audit log entries older than a given date."
       }
     },
+    "ai_history": {
+      "purge": {
+        "label": "Purge the AI assistant history",
+        "description": "Permanently delete the AI assistant conversations with no activity since a date (the quota ledger of the current period is kept)."
+      }
+    },
+    "system_health": {
+      "purge": {
+        "label": "Purge system incidents",
+        "description": "Permanently delete the incidents last seen before a date."
+      }
+    },
     "export": {
       "use": {
         "label": "Use exports",
@@ -486,12 +513,8 @@
     },
     "planning": {
       "view_calendar": {
-        "label": "Personal calendar",
-        "description": "Allows access to the “Personal calendar” view, which shows the signed-in user's tasks in a daily calendar layout."
-      },
-      "view_team_day": {
-        "label": "Team / day view",
-        "description": "Allows access to the “Team/day” view, which shows the team's tasks hour by hour over a single day."
+        "label": "Calendar view",
+        "description": "Allows access to the “Calendar” view, which shows a person's tasks by day, week or month."
       },
       "view_vehicles": {
         "label": "Vehicles view",

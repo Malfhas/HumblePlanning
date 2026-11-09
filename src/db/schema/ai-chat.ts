@@ -32,6 +32,8 @@ export const aiChatConversations = pgTable("ai_chat_conversations", {
 }, (t) => [
   index("ai_chat_conv_user_updated_idx").on(t.userId, t.updatedAt),
   index("ai_chat_conv_project_idx").on(t.projectId),
+  // AI history (administration): period filters and purge on the last activity
+  index("ai_chat_conv_updated_idx").on(t.updatedAt),
 ]);
 
 export const aiChatMessages = pgTable("ai_chat_messages", {

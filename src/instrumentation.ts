@@ -6,6 +6,10 @@ export async function register() {
     const { startWeeklySummaryScheduler } = await import("@/lib/services/weekly-summary-scheduler");
     startWeeklySummaryScheduler();
 
+    // Nightly purge of the AI history and of the system events (retention settings)
+    const { startMaintenanceScheduler } = await import("@/lib/services/maintenance-scheduler");
+    startMaintenanceScheduler();
+
     // Ensure the Super Administrateur role always exists (first deploy +
     // recovery after DB imports / SoPlanning migrations). Fire-and-forget:
     // ensureSuperAdminRole() swallows its own errors and logs them.

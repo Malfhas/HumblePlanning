@@ -1,12 +1,12 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import type { z } from "zod";
+import { z } from "zod";
 import { loadUserPermissions, hasPermission, type UserPermissions } from "@/lib/services/permission-service";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { logger } from "@/lib/logger";
+import { logger, type LogContext } from "@/lib/logger";
 import { checkRateLimit, getClientIp } from "@/lib/utils/rate-limit";
 import { AppError, type ErrorParams } from "@/lib/errors";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
@@ -14,6 +14,7 @@ import { getServerTranslator, translateKey, type ServerTranslator } from "@/i18n
 import type { AppLocale } from "@/i18n/config";
 import { localizeErrorParams } from "@/lib/utils/error-params";
 import { assertMobileClientAllowed } from "@/lib/services/mobile-client-policy";
+import { METHOD_HEADER, ROUTE_HEADER } from "@/lib/system-health/request-headers";
 
 export { AppError } from "@/lib/errors";
 
@@ -215,6 +216,36 @@ export async function handleApiError(error: unknown): Promise<NextResponse> {
     return handleApiError(new AppError("errors.conflict"));
   }
 
-  logger.error("api", "Unhandled API error", { error: error instanceof Error ? error.message : String(error) });
+  // A schema `.parse()` of the request (query parameters, typically) that failed: the client sent invalid
+  // data, as with validateBody, and not a server error
+  if (error instanceof z.ZodError) {
+    return handleApiError(new AppError("errors.invalidData", { status: 422, details: error.issues }));
+  }
+
+  const detail = error instanceof Error ? error.message : String(error);
+  logger.error(
+    "api",
+    `Unhandled API error: ${detail}`,
+    error instanceof Error ? { name: error.name, ...(error.cause ? { cause: String(error.cause) } : {}) } : undefined,
+    { error, ...(await unhandledErrorContext()) },
+  );
   return handleApiError(new AppError("errors.internal", { status: 500 }));
+}
+
+/** Delay granted to the session lookup of an unhandled error: the response must not wait for a down database. */
+const ERROR_SESSION_TIMEOUT_MS = 1000;
+
+/** Route, method (set by the proxy) and user of the current request, best effort. */
+async function unhandledErrorContext(): Promise<LogContext> {
+  try {
+    const hdrs = await headers();
+    const userId = await Promise.race([
+      getAuthSession().then((session) => session?.user.id ?? null, () => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), ERROR_SESSION_TIMEOUT_MS).unref?.()),
+    ]);
+    return { route: hdrs.get(ROUTE_HEADER), method: hdrs.get(METHOD_HEADER), userId };
+  } catch {
+    // Outside a request (script, background task)
+    return {};
+  }
 }

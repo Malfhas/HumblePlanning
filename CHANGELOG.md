@@ -4,6 +4,58 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-09
+
+### Added
+
+- *Administration > System health* (replaces *Logs*; `/logs` leads there): live status of the database, the real-time server and email delivery, configuration alerts, scheduled tasks with their last and next run, incidents grouped with their number of occurrences, failed deliveries, and a purge by date. New permissions `pages:system_health` and `system_health:purge`, given to Administrateur by the update.
+- *Administration > AI usage* (`/ai-history`): the assistant conversations of everyone, with their cost and usage charts, and a purge by date. New permissions `pages:ai_history` and `ai_history:purge`, given to Administrateur by the update.
+- Daily automatic purge at 3 am: assistant history after 365 days and system incidents after 30 days by default (*Settings > System > History*).
+- Server log: INFO and above go to the standard output (`docker logs`), warnings and errors are also kept on the System health page; `LOG_DEBUG=true` in `.env` adds the DEBUG messages.
+- Calendar (formerly "Personal calendar"):
+  - a Month view: week numbers, tasks over several days as continuous bars, "+N more", today, holidays and weekends; a click on a day opens it, a click on a task opens the task;
+  - an "All users" option: each task once with the initials of its people, and a "busy / shown" badge;
+  - the planned hours of each day in its header, real-time updates, the people of a task in its tooltip, a person picker with photo and full name, the chosen mode remembered.
+- Project Gantt export, in PDF and Excel: pick a project (same list and permissions as the task form); one row per task title (case and spaces ignored; untitled tasks on a row named after the project), bars in the colour of their status, milestones as diamonds; sorted by date or by title, by day or by week, with an optional line for today.
+- Milestones: a "Milestone" switch next to the status in the task form; a milestone icon at the end of the task in the schedule and the Calendar, and a "Milestone" line in the tooltip.
+- A notes icon at the end of the tasks that have notes.
+- Delete key: deletes the selected task, with the same confirmation as the context menu.
+- PDF export: a "Full names" option (names wrap instead of ending with "…"), and the Month view of the Calendar.
+- Mobile app: the QR code that signs the app in can be renewed (at most every 30 seconds while it is valid, at once when it has expired).
+
+### Changed
+
+- AI assistant:
+  - conversation titles are written in the language of the interface and are never left as "New conversation";
+  - the scope selector is gone: the assistant always works on the whole schedule, within the rights of the person; a conversation tied to a project now covers everything, and the project sent by an app is ignored;
+  - a wider home, the model menu shows the logo of the model and what it can read, the conversation list can be resized (double-click on its edge to reset it), messages use the schedule font at 14 px with airier answers, and the sphere is softer and livelier under the mouse;
+  - the "may make mistakes" warning is removed.
+- Windows: the title, the close button and the buttons stay visible; only the content scrolls.
+- List pages share one toolbar (filters on the left, actions on the right next to the table); Teams and Groups are framed by business unit.
+- Menu: *Administration* holds Settings, Roles, Holidays, Files, Audit, AI usage and System health; *Analysis* keeps the statistics and the export.
+- Schedule: the Team/day view and its permission `planning:view_team_day` are removed; a "Schedule · Users ▾" tab switches between people and projects. The attachment icon moves to the end of the task, before the notes and milestone icons. The "Real time" badge (formerly "Live") comes before the avatars of the people online.
+- PDF export: the Inter font, adjusted sizes, taller task bars and wider cells; a large logo no longer makes the file heavy and slow. The Calendar export covers the period of its view (the whole month in Month view).
+- *Settings*: the *Mobile app* section moves from *Security* to *General*; the system prompt field scrolls; clearer wording of a few settings.
+- New installations: the schedule uses Inter at 11 px with 135 px columns, and passwords require a special character. Existing instances keep their settings.
+- The sign-in captcha (ALTCHA) is solved in under a second on a recent computer, instead of about 3 seconds.
+- Minimum mobile app version: 1.0.2. An older app is asked to update: publish [Humble Planning for Android 1.0.2](https://github.com/Malfhas/HumblePlanning-Android/releases/tag/v1.0.2) to your users before updating the server.
+
+### Fixed
+
+- An invalid page or limit in the query of an API list (for example `/api/audit?page=abc`) answered 500 instead of 422.
+- Scheduled backups: turning them on, or changing their frequency or time, now takes effect without restarting the server.
+- Every page downloaded all the vehicle and resource assignments ever made, even with no task open.
+- The schedule downloaded the list of visible people twice.
+- Schedule: going to Vehicles or Resources and back showed the scrollbars of the previous view until the mouse moved over the grid.
+- Settings: the section menu on the left moved up when the page scrolled.
+- Calendar: text cut at the bottom of the bars, initials not aligned, tooltip going off the screen.
+- Copy buttons now also work on an instance served over plain HTTP.
+
+### Removed
+
+- The *Logs* page and its settings (logging on or off, level, number of entries kept): System health replaces them, and the update removes the old settings.
+- API routes `GET /api/logs` (replaced by `/api/system-health`) and `GET /api/ai-chat/scope-projects` (no more scope).
+
 ## [1.2.3] - 2026-11-09
 
 ### Added
@@ -255,6 +307,9 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.3.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.3.0
+[1.2.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.3
+[1.2.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.2
 [1.2.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.1
 [1.2.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.0
 [1.1.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.1.3

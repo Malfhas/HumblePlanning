@@ -53,7 +53,7 @@ import { setupHiDPI, observeResize } from "@/lib/canvas/dpr";
 import { vibrantizeColor } from "@/lib/canvas/theme";
 import { getTaskLabel } from "@/lib/utils/task-label";
 import type { ViewMode } from "@/stores/planning-store";
-import { CANVAS_ICONS, drawCanvasIcon, ICON_SIZE_DEFAULT, ICON_SIZE_MEDIUM, getIconLayoutWidth } from "@/lib/canvas/icons";
+import { CANVAS_ICONS, drawCanvasIcon, ICON_SIZE_DEFAULT, ICON_SIZE_MEDIUM, getIconLayoutWidth, endIconsOf, layoutEndIcons } from "@/lib/canvas/icons";
 import { headerIconFor } from "@/lib/canvas/renderer";
 import { drawSkeletonCell } from "@/lib/canvas/skeleton";
 import { CONTRACT_TYPES, getContractSuffix, type ContractTypeKey } from "@/lib/constants/contract-types";
@@ -85,6 +85,9 @@ import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { RecurringDeleteDialog } from "./recurring-delete-dialog";
 import type { GridRow } from "@/lib/utils/sort-rows";
 import type { TaskWithUsers } from "@/types";
+import { useDeleteShortcut, clipRect } from "@/hooks/use-delete-shortcut";
+import { deleteOpensDialog, isRecurringTask, isSharedTask } from "@/lib/utils/delete-shortcut";
+import { DeleteShortcutHint } from "./delete-shortcut-hint";
 
 // ──────────────────────────────────────────────────────────────────
 // Geometry constants
@@ -613,7 +616,7 @@ export function PlanningCanvasHours() {
 
   // ───── Hit-test ─────
   type HitResult =
-    | { kind: "task"; taskId: string; rowId: string; subzone: "body" | "resize-left" | "resize-right"; barTop: number; barBottom: number }
+    | { kind: "task"; taskId: string; rowId: string; subzone: "body" | "resize-left" | "resize-right"; barTop: number; barBottom: number; barLeft: number; barWidth: number }
     | { kind: "cell"; rowId: string; hour: number }
     | { kind: "header" }
     | { kind: "sidebar"; rowId: string }
@@ -665,6 +668,8 @@ export function PlanningCanvasHours() {
             subzone,
             barTop: r.y,
             barBottom: r.y + r.height,
+            barLeft: r.x,
+            barWidth: r.width,
           };
         }
         return { kind: "cell", rowId: ar.row.id, hour: slot.hour };
@@ -1305,6 +1310,32 @@ export function PlanningCanvasHours() {
     [clipboardTask, taskIndex, canCreateAnyTask, canMoveTask, sortedRows, canCreateOnPlanningRow, viewMode, dailyLimit, tasks, firstHour, lastHour, copyTask, moveTask, clearClipboard, showClipFeedback]
   );
 
+  // ───── Delete key: same rules and same action as the « Delete » item of the context menu ─────
+  const deleteHint = useDeleteShortcut({
+    enabled: !!interactiveCanvas && !isTouchDevice,
+    resolve: (clientX, clientY) => {
+      if (!interactiveCanvas) return null;
+      const canvasRect = interactiveCanvas.getBoundingClientRect();
+      const hit = hitTest(clientX - canvasRect.left, clientY - canvasRect.top);
+      if (hit.kind !== "task") return null;
+      const task = taskIndex.get(hit.taskId.includes(":") ? hit.taskId.split(":")[0] : hit.taskId);
+      return {
+        key: `${hit.taskId}|${hit.rowId}`,
+        // The visible part of the bar, right of the names column
+        rect: clipRect(
+          { left: canvasRect.left + hit.barLeft, top: canvasRect.top + hit.barTop, width: hit.barWidth, height: hit.barBottom - hit.barTop },
+          { left: canvasRect.left + computedSidebarWidth, top: canvasRect.top, right: canvasRect.right, bottom: canvasRect.bottom },
+        ),
+        canDelete: !!task && !task.isLocked && canDeleteTask(task),
+        opensDialog: deleteOpensDialog(isSharedTask(task), isRecurringTask(task)),
+      };
+    },
+    onConfirm: (key) => {
+      const sep = key.lastIndexOf("|");
+      handleDeleteTaskAction(key.slice(0, sep), key.slice(sep + 1) || undefined);
+    },
+  });
+
   // ───── Ctrl+C/X/V shortcuts ─────
   useEffect(() => {
     if (!interactiveCanvas) return;
@@ -1559,6 +1590,7 @@ export function PlanningCanvasHours() {
               style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 2, cursor: "default", touchAction: "none" }}
             />
             <CanvasTooltipAnchor ref={tooltipAnchorRef} />
+            <DeleteShortcutHint hint={deleteHint} />
             {hoveredTask && !isDragActiveRef.current && !isTouchDevice && contextMenu === null && dropInfo === null && (
               <TaskTooltip
                 task={hoveredTask as Parameters<typeof TaskTooltip>[0]["task"]}
@@ -1729,8 +1761,8 @@ export function PlanningCanvasHours() {
           state={contextMenu}
           onClose={closeContextMenu}
           hasClipboard={!!clipboardTask}
-          isMultiUser={contextMenu?.taskId ? (taskIndex.get(contextMenu.taskId)?.users?.length ?? 0) > 1 : false}
-          isRecurring={ctxTask ? !!ctxTask.parentId : false}
+          isMultiUser={contextMenu?.taskId ? isSharedTask(taskIndex.get(contextMenu.taskId)) : false}
+          isRecurring={isRecurringTask(ctxTask)}
           isLocked={ctxTask ? !!ctxTask.isLocked : false}
           canCreate={menuCanCreate}
           canEdit={menuCanEdit}
@@ -2512,11 +2544,9 @@ function drawTaskBar(ctx: CanvasRenderingContext2D, task: TaskWithUsers, x: numb
     drawCanvasIcon(ctx, CANVAS_ICONS.parent, cursorX, iconY, ICON_SIZE_DEFAULT, iconColor);
     cursorX += getIconLayoutWidth(ICON_SIZE_DEFAULT, 4);
   }
+  // Attachments, notes and milestone: icons at the end of the bar (drawn after the label is placed)
   const fileCount = (task as unknown as { fileCount?: number }).fileCount ?? task.files?.length ?? 0;
-  if (fileCount > 0) {
-    drawCanvasIcon(ctx, CANVAS_ICONS.file, cursorX, iconY, ICON_SIZE_DEFAULT, iconColor);
-    cursorX += getIconLayoutWidth(ICON_SIZE_DEFAULT, 4);
-  }
+  const endIcons = endIconsOf(task, fileCount > 0);
   if ((task as unknown as { hasConflict?: boolean }).hasConflict) {
     drawCanvasIcon(ctx, CANVAS_ICONS.conflict, cursorX, y + (barH - ICON_SIZE_MEDIUM) / 2, ICON_SIZE_MEDIUM);
     cursorX += getIconLayoutWidth(ICON_SIZE_MEDIUM, 4);
@@ -2533,7 +2563,14 @@ function drawTaskBar(ctx: CanvasRenderingContext2D, task: TaskWithUsers, x: numb
   ctx.font = `${fontBold ? "600" : "500"} ${cellFontSize}px ${fontFamily}`;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  const fitted = fitText(ctx, label, x + width - cursorX - 6);
+  // End icons (attachments, notes, milestone), after the label; alone on a bar too narrow for both
+  let labelEnd = x + width - 6;
+  if (endIcons.length > 0) {
+    const end = layoutEndIcons(endIcons, cursorX, labelEnd, ICON_SIZE_DEFAULT, 4);
+    for (const icon of end.icons) drawCanvasIcon(ctx, CANVAS_ICONS[icon.key], icon.x, iconY, ICON_SIZE_DEFAULT, iconColor);
+    labelEnd = end.labelEnd;
+  }
+  const fitted = fitText(ctx, label, labelEnd - cursorX);
   if (fitted) ctx.fillText(fitted, cursorX, y + barH / 2 + 0.5);
 
   // Resize handles — visible on hover, unless the task is locked.

@@ -49,6 +49,8 @@ import {
   ICON_SIZE_DEFAULT,
   ICON_SIZE_MEDIUM,
   getIconLayoutWidth,
+  endIconsOf,
+  layoutEndIcons,
 } from "./icons";
 import {
   buildBucketMap,
@@ -1279,11 +1281,9 @@ export class CanvasRenderer {
       drawCanvasIcon(ctx, CANVAS_ICONS.parent, cursorX, iconY, ICON_SIZE_DEFAULT, iconColor);
       cursorX += getIconLayoutWidth(ICON_SIZE_DEFAULT, CANVAS_GEOMETRY.barGapX);
     }
+    // Attachments, notes and milestone: icons at the end of the bar (drawn after the label is placed)
     const fileCount = (task as unknown as { fileCount?: number }).fileCount ?? task.files?.length ?? 0;
-    if (data.showFileIcon && fileCount > 0) {
-      drawCanvasIcon(ctx, CANVAS_ICONS.file, cursorX, iconY, ICON_SIZE_DEFAULT, iconColor);
-      cursorX += getIconLayoutWidth(ICON_SIZE_DEFAULT, CANVAS_GEOMETRY.barGapX);
-    }
+    const endIcons = endIconsOf(task, !!data.showFileIcon && fileCount > 0);
     if ((task as unknown as { hasConflict?: boolean }).hasConflict) {
       drawCanvasIcon(ctx, CANVAS_ICONS.conflict, cursorX, y + (height - ICON_SIZE_MEDIUM) / 2, ICON_SIZE_MEDIUM);
       cursorX += getIconLayoutWidth(ICON_SIZE_MEDIUM, CANVAS_GEOMETRY.barGapX);
@@ -1316,7 +1316,16 @@ export class CanvasRenderer {
     const fontStyle = status?.italic ? "italic" : "normal";
     const fontFamily = data.fontFamily || "Geist Sans, ui-sans-serif, system-ui, sans-serif";
     ctx.font = `${fontStyle} ${fontWeight} ${data.cellFontSize ?? 11}px ${fontFamily}`;
-    const labelEnd = visibleRightEdge - CANVAS_GEOMETRY.barPaddingX - (showRightArrow ? arrowGutter : 0);
+    let labelEnd = visibleRightEdge - CANVAS_GEOMETRY.barPaddingX - (showRightArrow ? arrowGutter : 0);
+    // End icons (attachments, notes, milestone), after the label; alone on a bar too narrow for both
+    if (endIcons.length > 0) {
+      const end = layoutEndIcons(endIcons, cursorX, labelEnd, ICON_SIZE_DEFAULT, CANVAS_GEOMETRY.barGapX);
+      // On a half-day bar the end icons lie on the other half (white for a morning, coloured for an afternoon)
+      const endSlot = timeSlot === "morning" ? "afternoon" : timeSlot === "afternoon" ? "morning" : timeSlot;
+      const endIconColor = getTaskBarIconColor(bgColor, endSlot);
+      for (const icon of end.icons) drawCanvasIcon(ctx, CANVAS_ICONS[icon.key], icon.x, iconY, ICON_SIZE_DEFAULT, endIconColor);
+      labelEnd = end.labelEnd;
+    }
     const labelMaxWidth = Math.max(0, labelEnd - cursorX);
     const label = this.computeTaskLabel(task);
     const fitted = fitText(ctx, label, labelMaxWidth);

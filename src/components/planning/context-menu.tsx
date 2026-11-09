@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react
 import { ClipboardCopy, ClipboardPaste, Copy, Edit, Lock, Move, Plus, Scissors, Trash2, Unlock, User, UserPlus, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslations } from "next-intl";
+import { deleteOpensDialog } from "@/lib/utils/delete-shortcut";
 
 // --- Shared popup wrapper ---
 
@@ -272,7 +273,9 @@ export function PlanningContextMenu({
             />
           )}
           <div className="my-1 h-px bg-border/60" />
-          {isMultiUser || isRecurring ? (
+          {/* A dialog follows (shared or recurring task): one click; otherwise a second click confirms.
+              The delete key (use-delete-shortcut.ts) follows the same rule. */}
+          {deleteOpensDialog(isMultiUser, isRecurring) ? (
             <MenuItem
               icon={<Trash2 className="mr-2 h-4 w-4" />}
               label={tCommon("actions.delete")}

@@ -31,6 +31,7 @@ import {
   type UpdateStatus,
   type VersionStatusResponse,
 } from "@/hooks/use-update-check";
+import { copyText } from "@/lib/utils/clipboard";
 
 // i18n-dynamic: version.panel.status.*
 // i18n-dynamic: version.panel.errors.*
@@ -234,32 +235,6 @@ function InfoItem({ label, value, sub, mono }: { label: string; value: string; s
       {sub && <dd className="text-xs text-muted-foreground truncate">{sub}</dd>}
     </div>
   );
-}
-
-/** navigator.clipboard only exists in a secure context (HTTPS or localhost). */
-async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    // Fallback below.
-  }
-  try {
-    const area = document.createElement("textarea");
-    area.value = text;
-    area.setAttribute("readonly", "");
-    area.style.position = "fixed";
-    area.style.opacity = "0";
-    document.body.appendChild(area);
-    area.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(area);
-    return ok;
-  } catch {
-    return false;
-  }
 }
 
 function UpdateCommand({ command, label, highlight }: { command: string; label: string; highlight: boolean }) {

@@ -17,6 +17,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useConfig } from "@/hooks/use-config";
 import { ErrorState } from "@/components/shared/error-state";
 import { apiFetch, throwIfNotOk, ApiClientError } from "@/lib/api-client";
+import { copyText } from "@/lib/utils/clipboard";
 
 export default function ExportPage() {
   const t = useTranslations("exports.page");
@@ -76,9 +77,11 @@ export default function ExportPage() {
 
   const handleCopyIcalUrl = () => {
     if (!icalUrl) return;
-    navigator.clipboard.writeText(icalUrl);
-    setIcalCopied(true);
-    setTimeout(() => setIcalCopied(false), 2000);
+    void copyText(icalUrl).then((ok) => {
+      if (!ok) return;
+      setIcalCopied(true);
+      setTimeout(() => setIcalCopied(false), 2000);
+    });
   };
 
   return (

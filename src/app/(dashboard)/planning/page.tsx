@@ -13,6 +13,7 @@ import { PlanningSkeleton } from "@/components/planning/planning-skeleton";
 import { CalendarGrid } from "@/components/planning/calendar-grid";
 import { ErrorState } from "@/components/shared/error-state";
 import { usePlanningData } from "@/hooks/use-planning-data";
+import { useTaskRealtime } from "@/hooks/use-task-realtime";
 import { throwIfNotOk } from "@/lib/api-client";
 
 /**
@@ -158,8 +159,13 @@ export default function PlanningPage() {
   const isHoursMode = calendarMode === "off" && columnMode === "hours";
   const isCanvasMode = calendarMode === "off";
   // These queries are already fired by usePlanningData elsewhere; TanStack
-  // dedupes via an identical queryKey → no network cost.
-  const planningData = usePlanningData();
+  // dedupes via an identical queryKey → no network cost. Calendar view: its
+  // dated queries are left to CalendarGrid, which may load another range
+  // (displayed month) — no request for a period it does not show.
+  const planningData = usePlanningData({ enabled: isCanvasMode });
+  // Remote task changes (other users, the AI assistant…): once for every
+  // view of the page, day grid, hours grid and calendar alike.
+  useTaskRealtime();
 
   if (!permLoading && !can("pages:planning")) {
     return <ErrorState code={403} compact showBack={false} />;

@@ -25,6 +25,7 @@ import { eq } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 import { isDemoMode } from "@/lib/demo";
 import { UPDATE_CHECK_STATE_KEY } from "./config-secrets";
+import { recordTaskRun } from "./system-task-service";
 
 // ════════════════════════════════════════════════════════════════════════
 // Constants
@@ -349,7 +350,10 @@ async function fetchReleases(source: string): Promise<FetchResult> {
 function runCheck(source: string, previous: PersistedState | null): Promise<PersistedState> {
   if (store.inflight) return store.inflight;
   const promise = (async () => {
-    const result = await fetchReleases(source);
+    const result = await recordTaskRun("update_check", () => fetchReleases(source), (r) => ({
+      success: r.ok,
+      detail: r.ok ? { releases: r.releases.length } : { error: r.error },
+    }));
     const now = new Date().toISOString();
     // Same source: keep the data of the last success in case of failure.
     const kept = previous && previous.source === source ? previous : null;

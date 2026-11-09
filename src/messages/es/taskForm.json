@@ -110,6 +110,9 @@
       "notes": {
         "label": "Notas",
         "placeholder": "Notas..."
+      },
+      "milestone": {
+        "label": "Hito"
       }
     },
     "morning": "Mañana",

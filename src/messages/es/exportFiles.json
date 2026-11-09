@@ -77,18 +77,19 @@
     "titles": {
       "personal": "Calendario de {name} — Del {start} al {end}",
       "personalUnknown": "Calendario del usuario — Del {start} al {end}",
-      "teamDay": "Planificación {appTitle} — {date}",
       "vehicles": "Planificación de vehículos {appTitle} — Del {start} al {end}",
-      "default": "Planificación {appTitle} — Del {start} al {end}"
+      "default": "Planificación {appTitle} — Del {start} al {end}",
+      "projectGantt": "Gantt — {project} — Del {start} al {end}"
     }
   },
   "pdf": {
     "titles": {
       "personal": "Calendario de {name} — del {start} al {end}",
       "personalUnknown": "Calendario del usuario — del {start} al {end}",
-      "teamDay": "Planificación del {date}",
+      "everyone": "Calendario de todos los usuarios — del {start} al {end}",
       "vehicles": "Planificación de vehículos — del {start} al {end}",
-      "default": "Planificación del {start} al {end}"
+      "default": "Planificación del {start} al {end}",
+      "projectGantt": "Gantt — {project} — del {start} al {end}"
     },
     "cover": {
       "summaryTitle": "Resumen de la exportación",
@@ -102,7 +103,8 @@
       "formats": {
         "gantt": "Planificación",
         "list": "Lista",
-        "calendar": "Calendario"
+        "calendar": "Calendario",
+        "projectGantt": "Gantt de proyecto"
       },
       "views": {
         "users": "Usuarios",
@@ -143,6 +145,17 @@
         "statuses": "Estados",
         "places": "Lugares",
         "resources": "Recursos"
+      },
+      "project": "Proyecto: {value}",
+      "ganttSort": "Orden: {value}",
+      "ganttSorts": {
+        "date": "Por fecha de inicio",
+        "alpha": "Alfabético"
+      },
+      "ganttScale": "Escala: {value}",
+      "ganttScales": {
+        "days": "Días",
+        "weeks": "Semanas"
       }
     },
     "footer": {
@@ -151,6 +164,12 @@
     },
     "calendar": {
       "allDay": "Todo el día"
+    },
+    "projectGantt": {
+      "corner": "Tarea",
+      "milestone": "Hito",
+      "today": "Hoy",
+      "noStatus": "Sin estado"
     }
   },
   "ical": {

@@ -64,13 +64,20 @@
     }
   },
   "categories": {
-    "pages": "Acceso a las páginas",
+    "pages": "Páginas principales",
+    "pages_team": "Equipo",
+    "pages_worksites": "Obras",
+    "pages_logistics": "Logística",
+    "pages_analysis": "Análisis",
+    "pages_admin": "Administración",
     "projects": "Proyectos — acciones",
     "users_teams": "Usuarios y equipos — acciones",
     "logistics": "Logística — acciones",
-    "referentials": "Datos de referencia — acciones",
-    "audit_export": "Auditoría, archivos y exportaciones — acciones",
+    "analysis": "Análisis — acciones",
     "admin": "Administración y seguridad — acciones",
+    "referentials": "Datos de referencia — acciones",
+    "files": "Archivos — acciones",
+    "history": "Auditoría, asistente de IA y estado del sistema — acciones",
     "integrations": "Integraciones de IA (MCP) — acciones",
     "ai_chat": "Asistente de IA (chat integrado) — acciones",
     "mobile_app": "Aplicación móvil",
@@ -149,7 +156,7 @@
       },
       "audit": {
         "label": "Auditoría e historiales",
-        "description": "Acceder al registro de auditoría, a los registros del sistema y al historial de las tareas."
+        "description": "Acceder al registro de auditoría y al historial de las tareas."
       },
       "stats_users": {
         "label": "Estadísticas de usuarios",
@@ -174,6 +181,14 @@
       "backups": {
         "label": "Copias de seguridad",
         "description": "Acceder al historial de copias de seguridad en la configuración."
+      },
+      "ai_history": {
+        "label": "Uso de la IA",
+        "description": "Acceder a las conversaciones del asistente de IA de todos los usuarios, a su coste y al consumo de las cuotas."
+      },
+      "system_health": {
+        "label": "Estado del sistema",
+        "description": "Acceder a la página Estado del sistema: estado de los servicios, alertas de configuración, tareas programadas, incidencias y envíos fallidos."
       }
     },
     "projects": {
@@ -340,6 +355,18 @@
         "description": "Eliminar definitivamente las entradas del registro de auditoría anteriores a una fecha."
       }
     },
+    "ai_history": {
+      "purge": {
+        "label": "Purgar el historial del asistente de IA",
+        "description": "Eliminar definitivamente las conversaciones del asistente de IA sin actividad desde una fecha (se conserva el registro de cuota del periodo en curso)."
+      }
+    },
+    "system_health": {
+      "purge": {
+        "label": "Purgar las incidencias del sistema",
+        "description": "Eliminar definitivamente las incidencias cuya última aparición es anterior a una fecha."
+      }
+    },
     "export": {
       "use": {
         "label": "Usar las exportaciones",
@@ -486,12 +513,8 @@
     },
     "planning": {
       "view_calendar": {
-        "label": "Calendario personal",
-        "description": "Permite acceder a la vista «Mi calendario», que muestra las tareas del usuario conectado en formato de calendario diario."
-      },
-      "view_team_day": {
-        "label": "Vista equipo / día",
-        "description": "Permite acceder a la vista «Equipo/día», que muestra las tareas del equipo hora por hora a lo largo de una jornada."
+        "label": "Vista calendario",
+        "description": "Permite acceder a la vista «Calendario», que muestra las tareas de una persona por día, semana o mes."
       },
       "view_vehicles": {
         "label": "Vista de vehículos",

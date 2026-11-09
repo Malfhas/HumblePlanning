@@ -1,7 +1,7 @@
 "use client";
 "use no memo";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -34,13 +34,7 @@ import { ReplyDots } from "./reply-indicator";
 import { EditableTitle } from "./editable-title";
 import { isReplyInProgress, useRepliesStore } from "./replies-store";
 
-export function ChatView({
-  projectId,
-  initialConversation,
-}: {
-  projectId?: string;
-  initialConversation?: string;
-}) {
+export function ChatView({ initialConversation }: { initialConversation?: string }) {
   const t = useTranslations('aiChat');
   const tActions = useTranslations('common.actions');
   const formatDate = useChatDate();
@@ -183,12 +177,10 @@ export function ChatView({
     const words = normalizeText(search).split(/\s+/).filter(Boolean);
     if (!words.length) return conversations ?? [];
     return (conversations ?? []).filter((conversation) => {
-      const text = normalizeText(
-        `${conversation.title} ${conversation.project?.number ?? t('scope.global.name')}`,
-      );
+      const text = normalizeText(conversation.title);
       return words.every((word) => text.includes(word));
     });
-  }, [conversations, search, t]);
+  }, [conversations, search]);
 
   // Pinned ones first, the most recently pinned first; the rest keeps the exchange order
   const listed = visibleConversations;
@@ -201,6 +193,7 @@ export function ChatView({
     <div
       key={conversation.id}
       className={cn(
+        // Smaller than the messages (14 px): a list reads at a glance
         'group flex items-center gap-1 rounded-ai-md px-2 py-2 text-[13px] transition-colors hover:bg-ai-surface-hover max-md:min-h-10',
         conversation.id === conversationId && 'bg-ai-selected',
       )}
@@ -219,7 +212,6 @@ export function ChatView({
           }}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <ScopeLabel conversation={conversation} />
           {editingId === conversation.id ? (
             <EditableTitle
               value={conversation.title}
@@ -399,7 +391,6 @@ export function ChatView({
       <ChatThread
         key={threadKey}
         conversation={active}
-        initialProjectId={projectId ?? null}
         access={access}
         onOpenList={isPhone ? () => setListOpen(true) : undefined}
         onCreated={(id) => {
@@ -439,9 +430,53 @@ const normalizeText = (text: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
+/** Width of the conversations column on desktop: the default, and how far it can be dragged. */
+export const LIST_WIDTH = { default: 300, min: 240, max: 440 } as const;
+const LIST_WIDTH_KEY = 'hp-ai-chat-list-width';
+const LIST_WIDTH_EVENT = 'hp-ai-chat-list-width';
+const clampListWidth = (width: number) => Math.round(Math.min(LIST_WIDTH.max, Math.max(LIST_WIDTH.min, width)));
+
 /**
- * The conversations column: a fixed pane left of the thread on desktop, a
- * drawer on phone, where the thread needs the full width.
+ * The width chosen in this browser, kept across visits. Read through an
+ * external store: the server render (and the first client one) use the
+ * default, with no hydration mismatch; storage can be unavailable (private mode).
+ */
+function useListWidth(): [number, (width: number | null) => void] {
+  const width = useSyncExternalStore(
+    (notify) => {
+      window.addEventListener(LIST_WIDTH_EVENT, notify);
+      window.addEventListener('storage', notify);
+      return () => {
+        window.removeEventListener(LIST_WIDTH_EVENT, notify);
+        window.removeEventListener('storage', notify);
+      };
+    },
+    () => {
+      try {
+        const saved = Number(window.localStorage.getItem(LIST_WIDTH_KEY));
+        return saved ? clampListWidth(saved) : LIST_WIDTH.default;
+      } catch {
+        return LIST_WIDTH.default;
+      }
+    },
+    () => LIST_WIDTH.default,
+  );
+  const save = (next: number | null) => {
+    try {
+      if (next === null) window.localStorage.removeItem(LIST_WIDTH_KEY);
+      else window.localStorage.setItem(LIST_WIDTH_KEY, String(clampListWidth(next)));
+    } catch {
+      // Storage unavailable: the width lasts for this page only
+    }
+    window.dispatchEvent(new Event(LIST_WIDTH_EVENT));
+  };
+  return [width, save];
+}
+
+/**
+ * The conversations column: a pane left of the thread on desktop, which can be
+ * widened or narrowed by dragging its edge (within limits, double click: back to
+ * the default width), a drawer on phone, where the thread needs the full width.
  */
 function ConversationsColumn({
   isPhone,
@@ -455,10 +490,63 @@ function ConversationsColumn({
   children: ReactNode;
 }) {
   const t = useTranslations('aiChat.list');
+  const [savedWidth, saveWidth] = useListWidth();
+  /** Width while dragging: shown live, saved once released. */
+  const [dragWidth, setDragWidth] = useState<number | null>(null);
+  const width = dragWidth ?? savedWidth;
   if (!isPhone) {
     return (
-      <aside className="flex w-[300px] shrink-0 flex-col border-r border-ai-border-subtle">
+      <aside style={{ width }} className="relative flex shrink-0 flex-col border-r border-ai-border-subtle">
         {children}
+        {/* The edge of the column: drag it, or use the arrow keys once focused */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t('resize')}
+          aria-valuemin={LIST_WIDTH.min}
+          aria-valuemax={LIST_WIDTH.max}
+          aria-valuenow={width}
+          tabIndex={0}
+          data-tooltip={t('resizeTooltip')}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            const start = event.clientX;
+            const from = width;
+            const handle = event.currentTarget;
+            handle.setPointerCapture(event.pointerId);
+            let last = from;
+            const move = (moveEvent: PointerEvent) => {
+              last = clampListWidth(from + moveEvent.clientX - start);
+              setDragWidth(last);
+            };
+            const release = () => {
+              handle.removeEventListener('pointermove', move);
+              handle.removeEventListener('pointerup', release);
+              handle.removeEventListener('pointercancel', release);
+              saveWidth(last);
+              setDragWidth(null);
+            };
+            handle.addEventListener('pointermove', move);
+            handle.addEventListener('pointerup', release);
+            handle.addEventListener('pointercancel', release);
+          }}
+          onDoubleClick={() => saveWidth(null)}
+          onKeyDown={(event) => {
+            const step = event.shiftKey ? 40 : 10;
+            if (event.key === 'ArrowLeft') saveWidth(width - step);
+            else if (event.key === 'ArrowRight') saveWidth(width + step);
+            else if (event.key === 'Home') saveWidth(LIST_WIDTH.min);
+            else if (event.key === 'End') saveWidth(LIST_WIDTH.max);
+            else return;
+            event.preventDefault();
+          }}
+          className={cn(
+            'absolute inset-y-0 -right-1 z-10 w-2 cursor-col-resize touch-none outline-none',
+            // A purple line on hover, while dragging and with the keyboard focus
+            'after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 after:-translate-x-1/2 after:bg-[#7c4dff] after:opacity-0 after:transition-opacity hover:after:opacity-60 focus-visible:after:opacity-100',
+            dragWidth !== null && 'after:opacity-100',
+          )}
+        />
       </aside>
     );
   }
@@ -466,26 +554,5 @@ function ConversationsColumn({
     <Drawer open={open} onOpenChange={onOpenChange} side="left" title={t('title')}>
       <div className="flex h-full flex-col">{children}</div>
     </Drawer>
-  );
-}
-
-/**
- * The scope of a conversation, as a label before its title: the project
- * number in blue, "Whole planning" in neutral grey, so one can tell
- * at a glance what is about a project from what is about the whole schedule.
- */
-function ScopeLabel({ conversation }: { conversation: Conversation }) {
-  const t = useTranslations('aiChat.scope');
-  const project = conversation.project?.number || conversation.project?.name || null;
-  const label = project ?? t('global.name');
-  return (
-    <span
-      className={cn(
-        'max-w-[96px] shrink-0 truncate rounded-ai-sm px-1.5 py-0.5 text-[10px] font-semibold leading-4',
-        project ? 'bg-ai-accent-soft text-ai-accent' : 'bg-ai-sunken text-ai-secondary',
-      )}
-    >
-      {label}
-    </span>
   );
 }
