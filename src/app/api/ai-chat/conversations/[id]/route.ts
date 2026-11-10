@@ -30,6 +30,8 @@ export async function GET(_: Request, { params }: Params) {
         model: aiChatMessages.model,
         status: aiChatMessages.status,
         error: aiChatMessages.error,
+        // Steps of the reply (reasoning, tools, text) to draw it again as it was seen
+        parts: aiChatMessages.parts,
       })
       .from(aiChatMessages)
       .where(eq(aiChatMessages.conversationId, id))

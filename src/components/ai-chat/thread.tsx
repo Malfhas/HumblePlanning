@@ -56,6 +56,8 @@ import type { ReplyEvent, ReplyPhase, ReplyStatus } from "./replies-store";
 import { useReplyNotification } from "./use-reply-notification";
 import { tDyn } from "@/i18n/dynamic";
 import { copyText } from "@/lib/utils/clipboard";
+import { forModel, mergeContinuations, restoredParts, type StoredMeta } from "./lib/stored-messages";
+import { toolSummary } from "./lib/tool-summary";
 
 /**
  * The AI chat thread, shared between the Assistant page (full
@@ -89,6 +91,8 @@ interface StoredMessage {
   /** Outcome of the reply: running, done, failed, stopped or interrupted. */
   status: ReplyStatus;
   error: string | null;
+  /** Steps of the reply as they were drawn (reasoning, tools, text); null: question, or reply from before. */
+  parts?: UIMessage['parts'] | null;
 }
 
 /**
@@ -187,6 +191,9 @@ export interface ChatAccess {
 }
 
 // i18n-dynamic: aiChat.thread.suggestions.*
+
+/** The column of the thread (messages, composer, welcome), centred: the same width on every screen, 832 px. */
+const COLUMN = 'mx-auto max-w-[52rem]';
 
 /** Starter prompts offered on opening (`thread.suggestions.global.<id>`): they show what the assistant can do. */
 const SUGGESTIONS = ['availableNextWeek', 'summaryByTeam', 'overBudget', 'unassigned'];
@@ -291,7 +298,8 @@ export function ChatThread({
           api: `/api/ai-chat/conversations/${idRef.current}/messages`,
           body: {
             ...body,
-            messages: outgoing,
+            // The re-read messages go back as their text: their steps are for display
+            messages: forModel(outgoing),
             model: modelRef.current,
             reasoning: reasoningRef.current,
             /**
@@ -492,18 +500,20 @@ export function ChatThread({
       }
     }
     setMessages(
-      detail.messages
-        // A row without content is an error trace: it has nothing to say here.
-        // The reply in progress, however, is shown separately, with its indicator.
-        .filter(
-          (message) =>
-            message.content.trim() && message.role !== 'TOOL' && message.status !== 'RUNNING',
-        )
-        .map((message) => ({
-          id: message.id,
-          role: message.role === 'USER' ? ('user' as const) : ('assistant' as const),
-          parts: [{ type: 'text' as const, text: message.content }],
-        })),
+      mergeContinuations(
+        detail.messages
+          // The reply in progress is shown separately, with its indicator
+          .filter((message) => message.role !== 'TOOL' && message.status !== 'RUNNING')
+          .map((message) => ({
+            id: message.id,
+            role: message.role === 'USER' ? ('user' as const) : ('assistant' as const),
+            // Its steps as they were seen (reasoning, tools, text), else its text
+            parts: restoredParts(message.parts, message.content),
+            metadata: { stored: true, text: message.content } satisfies StoredMeta,
+          }))
+          // A row with nothing to draw is an error trace: it has nothing to say here
+          .filter((message) => message.parts.length > 0),
+      ),
     );
     const running = detail.messages.find((message) => message.status === 'RUNNING');
     const previous = trackedReplyRef.current;
@@ -819,7 +829,7 @@ export function ChatThread({
           <div
             className={cn(
               'flex min-h-full w-full flex-col',
-              compact ? 'py-4' : 'mx-auto max-w-3xl py-6 max-md:py-4',
+              compact ? 'py-4' : cn(COLUMN, 'py-6 max-md:py-4'),
             )}
           >
             <div
@@ -911,7 +921,7 @@ export function ChatThread({
           compact ? 'px-3 py-3' : 'px-4 py-4 max-md:px-3',
         )}
       >
-        <div className="mx-auto max-w-3xl space-y-4">
+        <div className={cn(COLUMN, 'space-y-4')}>
           {displayed.map(({ message, status: messageStatus, date, model: author }) => (
             <article
               key={message.id}
@@ -926,12 +936,13 @@ export function ChatThread({
                   'rounded-ai-xl px-5 py-3 text-ai-md',
                   message.role === 'user'
                     ? 'max-w-[80%] bg-ai-selected text-ai-primary max-md:max-w-[90%]'
-                    : 'w-full bg-transparent text-ai-primary',
+                    : // A reply has no bubble: no room above it, under the question (nor above its first block)
+                      'w-full bg-transparent pt-1 text-ai-primary [&>:first-child]:mt-0',
                 )}
               >
                 {groupParts(message.parts).map((item) => {
-                  // Lookups in a row: one line that unfolds, not one frame each
-                  if (item.kind === 'tools') return <ToolGroup key={item.index} parts={item.parts} />;
+                  // Reasonings and lookups in a row: one line that unfolds, not one line each
+                  if (item.kind === 'steps') return <Steps key={item.index} parts={item.parts} />;
                   const { part, index } = item;
                   if (part.type === 'text') {
                     if (message.role !== 'user') return <ReplyMarkdown key={index} text={part.text} />;
@@ -955,15 +966,6 @@ export function ChatThread({
                           />
                         ))}
                       </div>
-                    );
-                  }
-                  if (part.type === 'reasoning') {
-                    return (
-                      <Reasoning
-                        key={index}
-                        text={part.text}
-                        inProgress={part.state === 'streaming'}
-                      />
                     );
                   }
                   if (part.type === 'file') {
@@ -1059,7 +1061,7 @@ export function ChatThread({
             : 'px-4 pb-4 max-md:px-2 max-md:pb-[max(0.5rem,env(safe-area-inset-bottom))]'
         }
       >
-        <div className="mx-auto max-w-3xl">{composer}</div>
+        <div className={COLUMN}>{composer}</div>
       </footer>
     </div>
   );
@@ -1307,25 +1309,43 @@ function Reasoning({ text, inProgress }: { text: string; inProgress: boolean }) 
 }
 
 /**
- * The parts of a reply as they are drawn: the lookups of tools that follow one another (the model often
- * calls several in a row) are gathered in one group; a write waiting for approval stays alone, it is a
- * decision; the step markers draw nothing.
+ * The parts of a reply as they are drawn: the reasonings and the lookups of tools that follow one another (a
+ * model that searches alternates them, often many times) are gathered in one group; a write waiting for
+ * approval stays alone, it is a decision; the step markers draw nothing.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyPart = any;
-type DrawnPart = { kind: 'part'; part: AnyPart; index: number } | { kind: 'tools'; parts: AnyPart[]; index: number };
+type DrawnPart = { kind: 'part'; part: AnyPart; index: number } | { kind: 'steps'; parts: AnyPart[]; index: number };
+
+const isLookup = (part: AnyPart) => String(part.type).startsWith('tool-') && part.state !== 'approval-requested';
+const isReasoning = (part: AnyPart) => part.type === 'reasoning';
+const toolNameOf = (part: AnyPart) => String(part.type).replace(/^tool-/, '');
 
 function groupParts(parts: AnyPart[]): DrawnPart[] {
   const drawn: DrawnPart[] = [];
   parts.forEach((part, index) => {
     if (part.type === 'step-start') return;
-    const lookup = String(part.type).startsWith('tool-') && part.state !== 'approval-requested';
+    // A reasoning left empty (some models open one without writing in it): nothing to show
+    if (isReasoning(part) && !String(part.text ?? '').trim() && part.state !== 'streaming') return;
+    const step = isLookup(part) || isReasoning(part);
     const last = drawn.at(-1);
-    if (lookup && last?.kind === 'tools') last.parts.push(part);
-    else if (lookup) drawn.push({ kind: 'tools', parts: [part], index });
+    if (step && last?.kind === 'steps') last.parts.push(part);
+    else if (step) drawn.push({ kind: 'steps', parts: [part], index });
     else drawn.push({ kind: 'part', part, index });
   });
   return drawn;
+}
+
+/**
+ * A group of steps: a reasoning alone, lookups alone, or both mixed - then one line for all of them, so that a
+ * model that searches long does not push its answer down.
+ */
+function Steps({ parts }: { parts: AnyPart[] }) {
+  if (parts.length === 1 && isReasoning(parts[0])) {
+    return <Reasoning text={parts[0].text} inProgress={parts[0].state === 'streaming'} />;
+  }
+  if (!parts.some(isReasoning)) return <ToolGroup parts={parts} />;
+  return <StepsGroup parts={parts} />;
 }
 
 /** A write waiting for the user's approval: the decision card. */
@@ -1349,7 +1369,7 @@ function ToolCall({
 function ToolGroup({ parts }: { parts: AnyPart[] }) {
   const t = useTranslations('aiChat.toolGroup');
   const [open, setOpen] = useState(false);
-  const names = parts.map((part) => String(part.type).replace(/^tool-/, ''));
+  const names = parts.map(toolNameOf);
   const running = parts.some((part) => part.state === 'input-streaming' || part.state === 'input-available');
 
   return (
@@ -1362,7 +1382,7 @@ function ToolGroup({ parts }: { parts: AnyPart[] }) {
       >
         <Wrench className={cn('size-3.5 shrink-0', running && 'animate-pulse text-[#9c6bff]')} />
         <span className="shrink-0">{running ? t('running') : t('used', { count: parts.length })}</span>
-        <span className="min-w-0 truncate font-ai-mono text-[12px]">· {names.join(', ')}</span>
+        <span className="min-w-0 truncate font-ai-mono text-[12px]">· {toolSummary(names)}</span>
         <ChevronDown className={cn('size-3.5 shrink-0 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
       </button>
       {open ? (
@@ -1371,6 +1391,83 @@ function ToolGroup({ parts }: { parts: AnyPart[] }) {
             <ToolDetail key={part.toolCallId ?? index} name={names[index]} part={part} />
           ))}
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Reasonings and lookups mixed, in one line: « 6 réflexions et 6 outils utilisés · list-users ×4, … ». Unfolded,
+ * they come back in their order, each one unfolding in turn. While the model works, the line says what it does.
+ */
+function StepsGroup({ parts }: { parts: AnyPart[] }) {
+  const t = useTranslations('aiChat.toolGroup');
+  const tReasoning = useTranslations('aiChat.reasoning');
+  const [open, setOpen] = useState(false);
+  const tools = parts.filter(isLookup);
+  const reasonings = parts.filter(isReasoning);
+  const thinking = reasonings.some((part) => part.state === 'streaming');
+  const searching = tools.some((part) => part.state === 'input-streaming' || part.state === 'input-available');
+  const label = thinking
+    ? tReasoning('inProgress')
+    : searching
+      ? t('running')
+      : t('withReasoning', { reasoning: reasonings.length, count: tools.length });
+
+  return (
+    <div className="my-2">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        className="inline-flex max-w-full items-center gap-1.5 text-left text-ai-sm text-ai-muted transition-colors hover:text-ai-secondary max-md:min-h-10"
+      >
+        {thinking ? (
+          <Brain className="size-3.5 shrink-0 animate-pulse text-[#9c6bff]" />
+        ) : (
+          <Wrench className={cn('size-3.5 shrink-0', searching && 'animate-pulse text-[#9c6bff]')} />
+        )}
+        <span className={cn('shrink-0', thinking && 'ai-reflexion font-medium')}>{label}</span>
+        {tools.length ? (
+          <span className="min-w-0 truncate font-ai-mono text-[12px]">· {toolSummary(tools.map(toolNameOf))}</span>
+        ) : null}
+        <ChevronDown className={cn('size-3.5 shrink-0 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
+      </button>
+      {open ? (
+        <div className="mt-1 space-y-1 pl-5">
+          {parts.map((part, index) =>
+            isReasoning(part) ? (
+              <ReasoningDetail key={index} text={String(part.text ?? '')} />
+            ) : (
+              <ToolDetail key={part.toolCallId ?? index} name={toolNameOf(part)} part={part} />
+            ),
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** One reasoning of a group: its title, then its text. */
+function ReasoningDetail({ text }: { text: string }) {
+  const t = useTranslations('aiChat.reasoning');
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        className="inline-flex items-center gap-1 text-[12px] text-ai-muted transition-colors hover:text-ai-secondary max-md:min-h-10"
+      >
+        <Brain className="size-3 shrink-0" />
+        {t('title')}
+        <ChevronDown className={cn('size-3 shrink-0 transition-transform', open ? 'rotate-0' : '-rotate-90')} />
+      </button>
+      {open ? (
+        <p className="mt-1 whitespace-pre-wrap border-l border-ai-border-subtle pl-3 text-ai-sm leading-relaxed text-ai-muted">
+          {text}
+        </p>
       ) : null}
     </div>
   );

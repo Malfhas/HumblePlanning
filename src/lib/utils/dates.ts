@@ -13,7 +13,7 @@ import {
   formatDistanceToNow,
 } from "date-fns";
 import type { Locale } from "date-fns";
-import { INTL_TAG, type AppLocale } from "@/i18n/config";
+import { type AppLocale } from "@/i18n/config";
 import { getDateFnsLocale, localizeDatePattern, TIME_STYLE } from "@/i18n/date-locale";
 
 /*
@@ -200,28 +200,56 @@ export function toDateString(date: Date): string {
 }
 
 /**
- * Date + time in the given language, according to the settings (pattern, TIME_FORMAT,
- * TIMEZONE). "auto" time zone: configured pattern, local time zone (fr « 31/12/2026
- * à 14h30 », en "31/12/2026, 14:30"). Fixed time zone: `Intl.DateTimeFormat`.
+ * Default time zone of the instance, for what the server writes or plans (e-mails, exports, schedules) when the
+ * TIMEZONE setting is « auto »: there is no browser there. The TIMEZONE of the environment, set by the installer from
+ * the server's, else Europe/Paris.
+ */
+export function serverTimezone(): string {
+  const tz = typeof process !== "undefined" ? process.env.TIMEZONE : undefined;
+  if (tz && tz !== "auto") {
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: tz });
+      return tz;
+    } catch {
+      /* unknown time zone: the default */
+    }
+  }
+  return "Europe/Paris";
+}
+
+/**
+ * Time zone in which instants are shown: the configured one; with « auto », the browser's in the browser (null)
+ * and the instance one on the server.
+ */
+export function effectiveTimezone(timezone: string | null | undefined): string | null {
+  if (timezone && timezone !== "auto") return timezone;
+  return typeof window === "undefined" ? serverTimezone() : null;
+}
+
+/**
+ * The wall-clock date and time of an instant in a time zone, as a local Date with the same fields: what date-fns
+ * formats. Only for display, never stored.
+ */
+function wallClockDate(instant: Date, timeZone: string): Date {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(instant).map((part) => [part.type, part.value]),
+  );
+  return new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+}
+
+/**
+ * Date + time of an instant (stored in UTC) in the given language, with the configured date and time formats, in
+ * the time zone of the settings (`effectiveTimezone`): fr « 31/12/2026 à 14h30 », en "31/12/2026, 14:30".
  */
 export function formatDateTime(isoString: string | Date | null | undefined, locale: AppLocale, settings: DateSettings): string {
   if (!isoString) return "";
   const d = typeof isoString === "string" ? parseISO(isoString) : isoString;
-  if (!settings.timezone || settings.timezone === "auto") {
-    // "auto" — use local timezone (date-fns default behavior)
-    return format(d, buildDateTimeFormat(settings.dateFormat, settings.timeFormat, locale), { locale: getDateFnsLocale(locale) });
-  }
-  // Fixed timezone — use Intl.DateTimeFormat for correct conversion
-  const use12h = settings.timeFormat === "12h";
-  return new Intl.DateTimeFormat(INTL_TAG[locale], {
-    timeZone: settings.timezone,
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: use12h,
-  }).format(d);
+  const timeZone = effectiveTimezone(settings.timezone);
+  const shown = timeZone ? wallClockDate(d, timeZone) : d;
+  return format(shown, buildDateTimeFormat(settings.dateFormat, settings.timeFormat, locale), { locale: getDateFnsLocale(locale) });
 }
 
 /**
@@ -229,8 +257,8 @@ export function formatDateTime(isoString: string | Date | null | undefined, loca
  * For server-side use — reads TIMEZONE from config.
  */
 export function getTodayInTimezone(timezone = "auto"): string {
-  // Server-side: "auto" falls back to UTC (no browser available)
-  const tz = (!timezone || timezone === "auto") ? "UTC" : timezone;
+  // « auto »: the instance time zone on the server, the browser's in the browser
+  const tz = effectiveTimezone(timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   const now = new Date();
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, CheckCircle2, Database, HardDrive, Package, Radio, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Database, HardDrive, Package, Radio, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { SystemOverview } from "@/hooks/use-system-health";
@@ -11,6 +11,7 @@ import { useDateFormat } from "@/hooks/use-date-format";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useApiErrorMessage } from "@/hooks/use-api-error-message";
 import { tDyn } from "@/i18n/dynamic";
+import { formatDate, formatTime, getClientDateSettings } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 
 // i18n-dynamic: admin.systemHealth.alerts.*
@@ -51,7 +52,61 @@ const VERSION_TONE: Record<string, Tone> = {
   no_release: "muted",
 };
 
-export function LiveStatus({ data }: { data: SystemOverview }) {
+/** UTC offset of a time zone at an instant: "UTC+01:00", "UTC" at zero. */
+function utcOffset(at: Date, timeZone: string): string {
+  const name = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "longOffset" })
+    .formatToParts(at)
+    .find((part) => part.type === "timeZoneName")?.value;
+  return (name ?? "GMT").replace("GMT", "UTC");
+}
+
+/** Wall-clock date ("YYYY-MM-DD") and time ("HH:mm") of an instant in a time zone. */
+function wallClock(at: Date, timeZone: string): { date: string; time: string } {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .formatToParts(at)
+      .map((part) => [part.type, part.value]),
+  );
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+}
+
+/** Beyond this gap with the clock of the device, the one of the server is likely off (no NTP). */
+const CLOCK_DRIFT_MS = 60_000;
+
+/**
+ * The clock of the server, in the time zone of the instance (the one of the e-mails, exports and schedules). It
+ * ticks with the clock of the device, shifted by the gap measured when the answer arrived.
+ */
+function ServerClock({ clock, receivedAt }: { clock: SystemOverview["clock"]; receivedAt: number }) {
+  const t = useTranslations("admin.systemHealth.live.clock");
+  const { locale } = useDateFormat();
+  const gapMs = Date.parse(clock.now) - receivedAt;
+  const [deviceNow, setDeviceNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setDeviceNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const serverNow = new Date(deviceNow + gapMs);
+  const drift = Math.abs(gapMs) >= CLOCK_DRIFT_MS;
+  const { date, time } = wallClock(serverNow, clock.timeZone);
+  const settings = getClientDateSettings();
+  return (
+    <StatusCard
+      icon={<Clock className="h-5 w-5" />}
+      title={t("title")}
+      tone={drift ? "warn" : "ok"}
+      value={[formatDate(date, locale, settings.dateFormat), formatTime(time, locale, settings.timeFormat)].join(" ")}
+      detail={
+        <>
+          {t("detail", { zone: clock.timeZone, offset: utcOffset(serverNow, clock.timeZone) })}
+          {drift && <>{" · "}{t("drift", { minutes: Math.round(Math.abs(gapMs) / 60_000) })}</>}
+        </>
+      }
+    />
+  );
+}
+
+export function LiveStatus({ data, receivedAt }: { data: SystemOverview; receivedAt: number }) {
   const t = useTranslations("admin.systemHealth.live");
   const { formatDateTime, formatNumber } = useDateFormat();
   const { can } = usePermissions();
@@ -61,7 +116,7 @@ export function LiveStatus({ data }: { data: SystemOverview }) {
   const megabytes = (bytes: number) => formatNumber(bytes / 1_048_576, { maximumFractionDigits: 1 });
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
       <StatusCard
         icon={<Database className="h-5 w-5" />}
         title={t("database.title")}
@@ -106,6 +161,7 @@ export function LiveStatus({ data }: { data: SystemOverview }) {
             : undefined
         }
       />
+      <ServerClock clock={data.clock} receivedAt={receivedAt} />
     </div>
   );
 }

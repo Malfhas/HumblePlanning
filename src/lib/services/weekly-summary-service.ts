@@ -1,24 +1,28 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { addDays, format, nextMonday, startOfDay } from "date-fns";
-import { getConfigValues, getConfigValue } from "./config-service";
+import { addDays, format, nextMonday } from "date-fns";
+import { getConfigValues, getConfigValue, getInstanceTimezone } from "./config-service";
 import { getTasks } from "./task-service";
 import { sendEmail } from "./email-service";
 import { weeklySummaryTemplate } from "./email-templates";
 import { logger } from "@/lib/logger";
-import { dateSettingsFromConfig, formatWithLocale } from "@/lib/utils/dates";
+import { formatWithLocale, getTodayInTimezone } from "@/lib/utils/dates";
+import { getEmailRenderOptions } from "./email-options";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
 import type { AppLocale } from "@/i18n/config";
 
 /**
- * Compute the next week window: Monday → Sunday of the upcoming week.
+ * Compute the next week window: Monday → Sunday of the upcoming week, from `today` ("YYYY-MM-DD", the day of the
+ * instance time zone: the server one may already be another day).
  * If today is Monday, returns next Monday → Sunday (not the current week).
  */
-export function getNextWeekRange(): { start: Date; end: Date } {
-  const today = startOfDay(new Date());
+export function getNextWeekRange(today: string): { start: Date; end: Date } {
+  const [year, month, day] = today.split("-").map(Number);
+  // Midnight of the process, as the dates of the window are then read with the local getters of date-fns
+  const todayDate = new Date(year, month - 1, day);
   // nextMonday returns the next Monday strictly after the given date
-  const start = nextMonday(today);
+  const start = nextMonday(todayDate);
   const end = addDays(start, 6);
   return { start, end };
 }
@@ -33,7 +37,7 @@ export async function sendWeeklySummaryForUser(userId: string): Promise<boolean>
   });
   if (!user || !user.email) return false;
 
-  const { start, end } = getNextWeekRange();
+  const { start, end } = getNextWeekRange(getTodayInTimezone(await getInstanceTimezone()));
   const startStr = format(start, "yyyy-MM-dd");
   const endStr = format(end, "yyyy-MM-dd");
 
@@ -77,7 +81,7 @@ export async function sendWeeklySummaryForUser(userId: string): Promise<boolean>
 
   // One language per user: their last known language, otherwise the instance one.
   const locale = await resolveRecipientLocale(user.locale);
-  const { subject, html } = weeklySummaryTemplate(userName, tasksByDay, start, end, appTitle, baseUrl, locale, { dates: dateSettingsFromConfig(config) });
+  const { subject, html } = weeklySummaryTemplate(userName, tasksByDay, start, end, appTitle, baseUrl, locale, await getEmailRenderOptions());
 
   await sendEmail({ to: user.email, subject, html });
   logger.info("email", "Weekly summary sent", { userId, taskCount: result.data.length });

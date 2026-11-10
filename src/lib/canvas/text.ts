@@ -127,3 +127,39 @@ export function clearTextCaches(): void {
   fitTextCache.clear();
   avgCharWidthCache.clear();
 }
+
+/**
+ * Initials on a coloured disc of `diameter` centred on (cx, cy), in the current font, the box of their glyphs at the
+ * centre of the disc.
+ *
+ * The "middle" baseline and "center" alignment use the metrics of the font, which put initials a little off-centre,
+ * differently on each system: the glyphs themselves are measured. And the text rasterisers put the baseline on a
+ * whole device pixel (Windows at density 1 in particular): drawn at a fractional height, the letters fell up to a
+ * pixel low in a 20 px disc. So the baseline is placed on a whole device pixel and the disc follows it vertically -
+ * a shift of less than half a pixel, invisible in its row. Not horizontally: the discs of a column must stay
+ * aligned from one row to the next (a disc moved by half a pixel according to the width of its letters showed).
+ */
+export function fillInitialsDisc(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  cy: number,
+  diameter: number,
+  discColor: string,
+  textColor: string,
+): void {
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  const m = ctx.measureText(text);
+  const dx = (m.actualBoundingBoxLeft - m.actualBoundingBoxRight) / 2;
+  const dy = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+  // Baseline on a whole device pixel, through the current transform (density, scroll)
+  const t = ctx.getTransform();
+  const y = (Math.round(t.d * (cy + dy) + t.f) - t.f) / t.d;
+  ctx.fillStyle = discColor;
+  ctx.beginPath();
+  ctx.arc(cx, y - dy, diameter / 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = textColor;
+  ctx.fillText(text, cx + dx, y);
+}

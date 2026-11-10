@@ -57,10 +57,13 @@ LABEL org.opencontainers.image.title="Humble Planning" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
       org.opencontainers.image.source="https://github.com/Malfhas/HumblePlanning"
 
+# Debian security updates: the Bun image is published once per Bun release and
+# not rebuilt after, so its packages are those of that day (apt, zlib, tzdata…).
 # PostgreSQL 18 client from the PGDG repository: the app runs pg_dump and
 # pg_restore for its backups and imports (an 18 client also handles 16/17 servers).
 RUN set -eux; \
     apt-get update; \
+    apt-get upgrade -y; \
     apt-get install -y --no-install-recommends ca-certificates curl; \
     install -d -m 0755 /etc/apt/keyrings; \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /etc/apt/keyrings/postgresql.asc; \

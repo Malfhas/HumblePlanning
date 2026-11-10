@@ -6,7 +6,7 @@ import { aiHistoryFiltersSchema, parseQuery } from "@/lib/validators/system-heal
 import { periodSince } from "@/lib/system-health/retention";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
-import { dateSettingsFromConfig, formatDateTime } from "@/lib/utils/dates";
+import { dateSettingsFromConfig, formatDateTime, getTodayInTimezone } from "@/lib/utils/dates";
 import { escapeCsvCell } from "@/lib/utils/csv";
 import { tDyn } from "@/i18n/dynamic";
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     ].join(";"));
 
     const csv = "﻿" + [headers.join(";"), ...lines].join("\r\n");
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const today = getTodayInTimezone(dates.timezone).replace(/-/g, "");
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

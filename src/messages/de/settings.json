@@ -1206,6 +1206,10 @@
     },
     "MOBILE_PUSH_RELAY_KEY": {
       "label": "Schlüssel des Push-Relays"
+    },
+    "THEME_COLOR": {
+      "label": "Designfarbe",
+      "description": "Akzentfarbe der E-Mails sowie der PDF- und Excel-Exporte."
     }
   },
   "timezones": {

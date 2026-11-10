@@ -14,6 +14,7 @@ import { AppError, handleApiError } from "@/lib/utils/api";
 import { getClientIp } from "@/lib/utils/rate-limit";
 import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
 import { crossOriginRejection } from "@/lib/utils/csrf";
+import { getEmailRenderOptions } from "@/lib/services/email-options";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
@@ -143,7 +144,8 @@ export async function POST(request: Request) {
       RESET_TOKEN_EXPIRY_MINUTES,
       config.APP_TITLE ?? "HumblePlanning",
       baseUrl,
-      isLocale(user.locale) ? user.locale : await resolveRequestLocale()
+      isLocale(user.locale) ? user.locale : await resolveRequestLocale(),
+      await getEmailRenderOptions(),
     );
 
     await sendEmail({ to: user.email!, ...template });

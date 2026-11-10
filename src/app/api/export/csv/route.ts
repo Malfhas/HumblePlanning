@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { requireAuth, requirePermission, handleApiError } from "@/lib/utils/api";
 import { getExportData, getVehicleExportData, buildExportI18n } from "@/lib/services/export-service";
 import { parseExportFilters } from "@/lib/utils/export-params";
-import { formatTime, formatDate, dateSettingsFromConfig } from "@/lib/utils/dates";
+import { formatTime, formatDate, dateSettingsFromConfig, getTodayInTimezone } from "@/lib/utils/dates";
 import { getConfigValues } from "@/lib/services/config-service";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         ]);
 
     const csv = "\uFEFF" + [headers.join(";"), ...rows.map(r => r.join(";"))].join("\r\n");
-    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+    const today = getTodayInTimezone(dates.timezone).replace(/-/g, "");
     const prefix = isVehicleMode ? "vehicules" : "planning";
 
     return new Response(csv, {

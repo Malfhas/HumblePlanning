@@ -344,6 +344,11 @@
           "failed": "Fallida",
           "in_progress": "En curso"
         }
+      },
+      "clock": {
+        "title": "Fecha y hora del servidor",
+        "detail": "{zone} ({offset})",
+        "drift": "Diferencia de {minutes} min con este dispositivo"
       }
     },
     "alerts": {

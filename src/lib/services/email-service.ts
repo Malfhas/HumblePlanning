@@ -6,7 +6,6 @@ import { db } from "@/db";
 import { emailLogs } from "@/db/schema";
 import { AppError } from "@/lib/errors";
 import { isDemoMode } from "@/lib/demo";
-import { dateSettingsFromConfig } from "@/lib/utils/dates";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 
 interface EmailPayload {
@@ -235,12 +234,16 @@ export async function testEmailConnection(to?: string) {
   const recipient = to || config.smtpFrom;
 
   const { getConfigValues } = await import("./config-service");
-  const appConfig = await getConfigValues(["APP_TITLE", "PLANNING_DATE_FORMAT", "TIME_FORMAT", "TIMEZONE"]);
+  const appConfig = await getConfigValues(["APP_TITLE", "APP_BASE_URL"]);
   const { testEmailTemplate } = await import("./email-templates");
+  const { getEmailRenderOptions } = await import("./email-options");
   // Test started from Settings: request language (the admin's).
-  const { subject, html } = testEmailTemplate(appConfig.APP_TITLE || "HumblePlanning", await resolveRequestLocale(), {
-    dates: dateSettingsFromConfig(appConfig),
-  });
+  const { subject, html } = testEmailTemplate(
+    appConfig.APP_TITLE || "HumblePlanning",
+    await resolveRequestLocale(),
+    await getEmailRenderOptions(),
+    appConfig.APP_BASE_URL || "",
+  );
   const payload: EmailPayload = { to: recipient, subject, html };
 
   try {

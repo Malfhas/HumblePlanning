@@ -1206,6 +1206,10 @@
     },
     "MOBILE_PUSH_RELAY_KEY": {
       "label": "Push relay key"
+    },
+    "THEME_COLOR": {
+      "label": "Theme colour",
+      "description": "Accent colour of the e-mails and of the PDF and Excel exports."
     }
   },
   "timezones": {

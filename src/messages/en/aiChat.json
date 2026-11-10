@@ -256,7 +256,8 @@
     "used": "{count, plural, one {Tool used} other {# tools used}}",
     "running": "Looking up the data…",
     "input": "Parameters",
-    "output": "Result"
+    "output": "Result",
+    "withReasoning": "{reasoning, plural, one {Reasoning} other {# reasoning steps}} and {count, plural, one {# tool used} other {# tools used}}"
   },
   "approval": {
     "title": "Your approval is required",

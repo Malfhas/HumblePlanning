@@ -42,7 +42,8 @@ import {
   vibrantizeColor,
 } from "./theme";
 import { setupHiDPI, type HiDPISetup } from "./dpr";
-import { fitText } from "./text";
+import { fillInitialsDisc, fitText } from "./text";
+import { personInitials } from "@/lib/utils/initials";
 import {
   CANVAS_ICONS,
   drawCanvasIcon,
@@ -140,13 +141,6 @@ export function headerIconFor(
   if (id.startsWith("header-team-")) return "usersRound";
   if (id.startsWith("header-group-")) return "layers";
   return null;
-}
-
-function computeInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 /** Initial language, before the first `setData` (which carries `data.i18n`):
@@ -1578,16 +1572,8 @@ export class CanvasRenderer {
           ctx.restore();
         } else {
           // Initials fallback on a colored disc.
-          ctx.fillStyle = userColor;
-          ctx.beginPath();
-          ctx.arc(avatarCx, avatarCy, avatarSize / 2, 0, Math.PI * 2);
-          ctx.fill();
-          const initials = computeInitials(row.name ?? "");
-          ctx.fillStyle = getContrastColor(userColor);
           ctx.font = "600 10px ui-sans-serif, system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(initials, avatarCx, avatarCy + 0.5);
+          fillInitialsDisc(ctx, personInitials(row.name), avatarCx, avatarCy, avatarSize, userColor, getContrastColor(userColor));
         }
         textX = 8 + avatarSize + 8;
       }

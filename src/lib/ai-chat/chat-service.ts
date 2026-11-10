@@ -9,7 +9,7 @@ import {
   type ToolSet,
   type UIMessage,
 } from "ai";
-import { and, asc, count, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { db } from "@/db";
 import {
   aiChatConversations,
@@ -44,6 +44,7 @@ import {
   type ReplyStep,
 } from "./reply-logic";
 import { runningReplies } from "./running";
+import { readReply, resumedToolsSettled, settledTools, storableParts, turnParts } from "./reply-parts";
 import { buildChatTools } from "./tools";
 
 /**
@@ -443,6 +444,61 @@ async function generateTitle(params: {
 
 // ─── Log ───
 
+const TOOL_CALL_STATUS = { "output-available": "EXECUTED", "output-error": "FAILED", "output-denied": "REJECTED" } as const;
+
+/**
+ * The steps of a reply (reasoning, tools with their parameters and results, text), read from a copy of the
+ * stream like the screen builds them, kept with the message: a conversation reopened later shows them again.
+ * A continuation after an approval also gives its outcome to the write the previous reply proposed: its call
+ * stayed « proposed » in the trace although it was carried out.
+ */
+async function saveReplySteps(entry: {
+  stream: Parameters<typeof readReply>[0];
+  resumed?: UIMessage;
+  messageId: string;
+  conversationId: string;
+  userId: string;
+}) {
+  const reply = await readReply(entry.stream, entry.resumed);
+  if (!reply) return;
+  try {
+    const parts = turnParts(reply.parts, entry.resumed?.parts);
+    if (parts.length) {
+      await db.update(aiChatMessages).set({ parts: storableParts(parts) }).where(eq(aiChatMessages.id, entry.messageId));
+    }
+    for (const call of settledTools(resumedToolsSettled(reply.parts, entry.resumed?.parts))) {
+      const status = TOOL_CALL_STATUS[call.state as keyof typeof TOOL_CALL_STATUS];
+      if (!status) continue;
+      // The latest proposal of this tool in the conversation: the one the user has just answered
+      const [proposed] = await db
+        .select({ id: aiChatToolCalls.id })
+        .from(aiChatToolCalls)
+        .innerJoin(aiChatMessages, eq(aiChatMessages.id, aiChatToolCalls.messageId))
+        .where(
+          and(
+            eq(aiChatMessages.conversationId, entry.conversationId),
+            eq(aiChatToolCalls.tool, call.tool),
+            eq(aiChatToolCalls.status, "PROPOSED"),
+          ),
+        )
+        .orderBy(desc(aiChatToolCalls.createdAt))
+        .limit(1);
+      if (!proposed) continue;
+      await db
+        .update(aiChatToolCalls)
+        .set({
+          status,
+          result: call.output === undefined ? null : (JSON.parse(JSON.stringify(call.output)) as unknown),
+          error: call.error?.slice(0, 2000) ?? null,
+          ...(status === "REJECTED" ? {} : { approvedById: entry.userId, approvedAt: new Date() }),
+        })
+        .where(eq(aiChatToolCalls.id, proposed.id));
+    }
+  } catch (error) {
+    logger.warn("ai_chat", `Reply steps not saved: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 /**
  * Closes the row created at the start: content, outcome, tokens and actual cost.
  * Then, if the provider returned a cost, the quota ledger row.
@@ -624,6 +680,8 @@ export async function respond(params: {
   let content = "";
   let step: ReplyStep = { phase: "thinking" };
   let concluded = false;
+  /** Writing of the steps of the reply, from a copy of the stream (set once the stream exists). */
+  let stepsSaved: Promise<void> = Promise.resolve();
   // Partial content is written at most once per second, never on every token
   const writeCadence = new Cadence(1000);
   // And is broadcast at most every 500 ms, as a full snapshot of the text
@@ -678,7 +736,13 @@ export async function respond(params: {
       .from(aiChatConversations)
       .where(eq(aiChatConversations.id, conversation.id))
       .limit(1);
-    void broadcast(status, { title: conversationRow?.title, error: outcome.error });
+    /**
+     * The steps are written from the copy of the stream, which ends just after this callback: the final signal,
+     * on which the screen re-reads the conversation, waits for them (not beyond a few seconds).
+     */
+    void Promise.race([stepsSaved, new Promise((resolve) => setTimeout(resolve, 5000))]).then(() =>
+      broadcast(status, { title: conversationRow?.title, error: outcome.error }),
+    );
     // Left before the end: we tell them in the app. Not for a stop they requested.
     if (conversationRow && !conversationRow.deletedAt && params.clientLeft?.aborted && status !== "CANCELLED") {
       await notifyReplyEnd({
@@ -797,6 +861,16 @@ export async function respond(params: {
       logger.error("ai_chat", `Chat failed: ${message}`);
       await conclude("FAILED", { error: explainModelError(message, model, t) });
     },
+  });
+
+  // Resuming after an approval: the client sends back the reply it continues, last of the thread
+  const resumed = params.messages.at(-1)?.role === "assistant" ? params.messages.at(-1) : undefined;
+  stepsSaved = saveReplySteps({
+    stream: result.toUIMessageStream({ sendReasoning: true }),
+    resumed,
+    messageId: replyRow.id,
+    conversationId: conversation.id,
+    userId: params.userId,
   });
 
   /**

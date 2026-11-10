@@ -51,7 +51,16 @@ function offsetMs(instant: Date, timeZone: string): number {
  * a DST change.
  */
 export function localMidnight(year: number, month: number, day: number, timeZone = DEFAULT_TIMEZONE): Date {
-  const approximation = Date.UTC(year, month - 1, day);
+  return localTime(year, month, day, 0, 0, timeZone);
+}
+
+/**
+ * A wall-clock time of a given day in the time zone, as a UTC instant, with the offset of that time (not of
+ * midnight): right on the days of a DST change. A time skipped by the change (02:30 when 02:00 becomes 03:00)
+ * comes out one hour later; a time that happens twice gives its first occurrence.
+ */
+export function localTime(year: number, month: number, day: number, hour: number, minute: number, timeZone = DEFAULT_TIMEZONE): Date {
+  const approximation = Date.UTC(year, month - 1, day, hour, minute);
   const firstPass = approximation - offsetMs(new Date(approximation), timeZone);
   return new Date(approximation - offsetMs(new Date(firstPass), timeZone));
 }

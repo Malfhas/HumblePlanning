@@ -55,6 +55,8 @@ import { getTaskLabel } from "@/lib/utils/task-label";
 import type { ViewMode } from "@/stores/planning-store";
 import { CANVAS_ICONS, drawCanvasIcon, ICON_SIZE_DEFAULT, ICON_SIZE_MEDIUM, getIconLayoutWidth, endIconsOf, layoutEndIcons } from "@/lib/canvas/icons";
 import { headerIconFor } from "@/lib/canvas/renderer";
+import { fillInitialsDisc } from "@/lib/canvas/text";
+import { personInitials } from "@/lib/utils/initials";
 import { drawSkeletonCell } from "@/lib/canvas/skeleton";
 import { CONTRACT_TYPES, getContractSuffix, type ContractTypeKey } from "@/lib/constants/contract-types";
 import { tDyn } from "@/i18n/dynamic";
@@ -1500,6 +1502,19 @@ export function PlanningCanvasHours() {
     showH: showHScrollbar,
     showV: showVScrollbar,
   } = gridScrollBounds(totalGridWidth, totalContentHeight, viewportContentW, viewportContentH, !isTouchDevice);
+  // Other rows (users ↔ projects…): the list starts again from its top; the dates keep their place
+  const [scrolledView, setScrolledView] = useState(viewMode);
+  if (scrolledView !== viewMode) {
+    setScrolledView(viewMode);
+    setScrollY(0);
+  }
+  // The content can become shorter than the scroll position (a filter, a folded group…): the position comes back
+  // within the new bounds at once. Otherwise the top stayed hidden, with white below, until the next turn of the
+  // wheel. Adjusted during the render: no effect, no frame drawn shifted.
+  else if (size.width > 0 && size.height > 0 && (scrollY > maxScrollY || scrollX > maxScrollX)) {
+    setScrollY(Math.min(scrollY, maxScrollY));
+    setScrollX(Math.min(scrollX, maxScrollX));
+  }
   // Horizontal track across the full grid width (names column
   // included), like the vertical track that covers the header.
   const hTrackW = Math.max(0, size.width - (showVScrollbar ? SCROLLBAR_SIZE : 0));
@@ -2198,15 +2213,8 @@ function drawStatic(ctx: CanvasRenderingContext2D, p: DrawCtx) {
     if (showAvatar) {
       const avatarSize = 20;
       const avatarCx = 8 + avatarSize / 2;
-      ctx.fillStyle = userColor;
-      ctx.beginPath();
-      ctx.arc(avatarCx, yMid, avatarSize / 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = getContrastColor(userColor);
       ctx.font = "600 10px ui-sans-serif, system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(initials(ar.row.name ?? ""), avatarCx, yMid + 0.5);
+      fillInitialsDisc(ctx, personInitials(ar.row.name), avatarCx, yMid, avatarSize, userColor, getContrastColor(userColor));
       textX = 8 + avatarSize + 8;
     }
     ctx.fillStyle = fgColor;
@@ -2665,9 +2673,3 @@ function brightenColor(hex: string, factor: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}

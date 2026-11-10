@@ -14,10 +14,10 @@ import {
 import { logAudit } from "./audit-service";
 import { getActiveTriggers, isTriggerActive } from "./notification-triggers";
 import { logger } from "@/lib/logger";
-import { dateSettingsFromConfig } from "@/lib/utils/dates";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
 import { getServerTranslatorSync } from "@/i18n/server-translator";
 import type { AppLocale } from "@/i18n/config";
+import { getEmailRenderOptions } from "./email-options";
 
 // Fields that trigger a notification when changed
 const SIGNIFICANT_FIELDS = [
@@ -97,7 +97,7 @@ async function getNotificationContext(userIds: string[], excludeUserId?: string)
 
   // Date settings passed explicitly to the templates (no global state on the
   // server: concurrent requests and languages); TIME_FORMAT included.
-  const options: EmailRenderOptions = { dates: dateSettingsFromConfig(config) };
+  const options: EmailRenderOptions = await getEmailRenderOptions();
 
   return {
     recipients,

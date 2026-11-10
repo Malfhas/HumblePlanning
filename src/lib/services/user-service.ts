@@ -19,6 +19,7 @@ import { AppError, type FieldErrorSpec } from "@/lib/errors";
 import { assertNotDemoAccount } from "@/lib/demo";
 import { resolveRecipientLocale, resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator, translateKey } from "@/i18n/server-translator";
+import { getEmailRenderOptions } from "./email-options";
 
 type UserSafeColumns = Omit<ReturnType<typeof getTableColumns<typeof users>>, keyof typeof USER_SECRET_COLUMNS_EXCLUDED>;
 
@@ -237,7 +238,8 @@ export async function createUser(data: CreateUser & { qualificationIds?: string[
       clearPwd,
       appConfig.APP_TITLE ?? "HumblePlanning",
       appConfig.APP_BASE_URL || "http://localhost:3000",
-      await resolveRecipientLocale(null)
+      await resolveRecipientLocale(null),
+      await getEmailRenderOptions(),
     );
     await sendEmail({ to: userData.email, ...template });
   } else if (password) {
@@ -348,7 +350,8 @@ export async function updateUser(id: string, data: UpdateUser & { qualificationI
         clearPwd,
         appConfig.APP_TITLE ?? "HumblePlanning",
         appConfig.APP_BASE_URL || "http://localhost:3000",
-        await resolveRecipientLocale(currentUser.locale)
+        await resolveRecipientLocale(currentUser.locale),
+        await getEmailRenderOptions(),
       );
       await sendEmail({ to: currentUser.email, ...template });
     }

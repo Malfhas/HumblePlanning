@@ -43,7 +43,7 @@ export default function SystemHealthPage() {
       <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       <Section title={t("sections.live")}>
-        {overview.data ? <LiveStatus data={overview.data} /> : loading}
+        {overview.data ? <LiveStatus data={overview.data} receivedAt={overview.dataUpdatedAt} /> : loading}
       </Section>
 
       <Section title={t("sections.alerts")}>

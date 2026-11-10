@@ -39,7 +39,8 @@ import { getPlaces } from "@/lib/services/place-service";
 import { getVehicles, getVehicleById } from "@/lib/services/vehicle-service";
 import { getVehicleAssignments, checkConflicts } from "@/lib/services/vehicle-assignment-service";
 import { getEquipmentScope, isEquipmentVisible, assertTaskResourceWritable } from "@/lib/services/equipment-scope";
-import { getConfigValues } from "@/lib/services/config-service";
+import { getConfigValues, getInstanceTimezone } from "@/lib/services/config-service";
+import { getTodayInTimezone } from "@/lib/utils/dates";
 import { getProjectLaborBudgetsWithHours } from "@/lib/services/project-labor-budget-service";
 import { getStatsUsers, getStatsProjects, getStatsRoi } from "@/lib/services/stats-service";
 import { loadUserPermissions } from "@/lib/services/permission-service";
@@ -811,7 +812,7 @@ export function registerAllTools(
     async ({ projectIds, includeArchived }) => {
       requirePerm(perms, "pages:projects");
       const dailyH = await getDailyHours();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayInTimezone(await getInstanceTimezone());
 
       // Load projects (readable ones only, like list-projects)
       const readScope = await getProjectReadScope(perms);
@@ -1477,6 +1478,8 @@ export function registerAllTools(
       const [h, m] = dur.split(":").map(Number);
       const enriched = {
         ...config,
+        // The zone of the instance: "auto" (the browser one) means nothing to a client of the API
+        TIMEZONE: await getInstanceTimezone(),
         dailyHoursDecimal: h + (m || 0) / 60,
         hoursCalculationRule: "For each task: realDuration (if set) > startTime/endTime - break > duration > number of days × hours per day (DURATION_DAY). Tasks with neither times nor duration use DURATION_DAY per working day.",
       };

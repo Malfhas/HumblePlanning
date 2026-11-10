@@ -1,7 +1,8 @@
 import { db } from "@/db";
 import { backupHistory } from "@/db/schema";
 import { eq, desc, lt, and, ne, sql, count } from "drizzle-orm";
-import { getConfigValue } from "@/lib/services/config-service";
+import { getConfigValue, getInstanceTimezone } from "@/lib/services/config-service";
+import { nextBackupRun, parseClockTime } from "@/lib/utils/schedule-time";
 import { logAudit } from "@/lib/services/audit-service";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -293,25 +294,6 @@ export async function applyRetentionPolicy() {
 
 let schedulerTimer: ReturnType<typeof setTimeout> | null = null;
 
-function getNextRunTime(schedule: string, targetTime: string): number {
-  const [hours, minutes] = targetTime.split(":").map(Number);
-  const now = new Date();
-  const next = new Date();
-  next.setHours(hours, minutes, 0, 0);
-
-  // If target time already passed today, schedule for next interval
-  if (next.getTime() <= now.getTime()) {
-    switch (schedule) {
-      case "6h": next.setTime(next.getTime() + 6 * 60 * 60 * 1000); break;
-      case "12h": next.setTime(next.getTime() + 12 * 60 * 60 * 1000); break;
-      case "weekly": next.setDate(next.getDate() + 7); break;
-      default: next.setDate(next.getDate() + 1); break; // daily
-    }
-  }
-
-  return next.getTime() - now.getTime();
-}
-
 async function schedulerTick() {
   try {
     const enabled = await getConfigValue("BACKUP_ENABLED");
@@ -338,11 +320,12 @@ async function scheduleNext() {
     }
 
     const schedule = await getConfigValue("BACKUP_SCHEDULE") ?? "daily";
-    const targetTime = await getConfigValue("BACKUP_TIME") ?? "02:00";
-    const delay = getNextRunTime(schedule, targetTime);
+    const targetTime = parseClockTime(await getConfigValue("BACKUP_TIME"), { hour: 2, minute: 0 });
+    // BACKUP_TIME is a time of the instance time zone, not of UTC
+    const next = nextBackupRun(new Date(), schedule, targetTime, await getInstanceTimezone());
 
-    schedulerTimer = setTimeout(schedulerTick, delay);
-    setNextRun("backup", new Date(Date.now() + delay));
+    schedulerTimer = setTimeout(schedulerTick, Math.max(0, next.getTime() - Date.now()));
+    setNextRun("backup", next);
   } catch {
     // Retry in 5 minutes on config read error
     schedulerTimer = setTimeout(scheduleNext, 5 * 60 * 1000);
