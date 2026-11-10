@@ -4,7 +4,7 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2026-11-10
+## [1.4.0] - 2026-11-10
 
 ### Added
 
@@ -333,7 +333,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
-[1.3.1]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.3.1
+[1.4.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.4.0
 [1.3.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.3.0
 [1.2.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.3
 [1.2.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.2
