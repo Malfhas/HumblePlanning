@@ -14,6 +14,7 @@ import { assertCanManageUser } from "@/lib/services/user-access";
 import { resolveRecipientLocale } from "@/i18n/resolve-locale";
 import { claimCooldown, clearCounters } from "@/lib/services/security-counter-service";
 import { crossOriginRejection } from "@/lib/utils/csrf";
+import { getEmailRenderOptions } from "@/lib/services/email-options";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
@@ -80,7 +81,8 @@ export async function POST(request: Request) {
       appConfig.APP_TITLE ?? "HumblePlanning",
       baseUrl,
       // Sent by an admin: the recipient's language, not the admin's.
-      await resolveRecipientLocale(user.locale)
+      await resolveRecipientLocale(user.locale),
+      await getEmailRenderOptions(),
     );
 
     await sendEmail({ to: user.email, ...template });

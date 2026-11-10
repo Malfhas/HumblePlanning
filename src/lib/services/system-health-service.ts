@@ -7,7 +7,7 @@ import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { backupHistory, emailLogs, smsLogs, webhookLogs } from "@/db/schema";
 import { isAltchaConfigured } from "@/lib/altcha";
-import { getConfigEncryptionStatus, getConfigValues } from "./config-service";
+import { getConfigEncryptionStatus, getConfigValues, getInstanceTimezone } from "./config-service";
 import { getEmailConfig } from "./email-service";
 import { readServiceAccount } from "./fcm-service";
 import { fetchSocketHealth } from "./socket-health";
@@ -108,15 +108,18 @@ async function getTasks() {
 }
 
 export async function getSystemOverview() {
-  const [database, realtime, version, backup, alerts, tasks] = await Promise.all([
+  const [database, realtime, version, backup, alerts, tasks, timeZone] = await Promise.all([
     checkDatabase(),
     checkRealtime(),
     checkVersion(),
     lastBackup(),
     getConfigAlerts(),
     getTasks(),
+    getInstanceTimezone(),
   ]);
-  return { database, realtime, version, backup, alerts, tasks };
+  // The clock of the server, read last (the closest to the answer), and the zone in which it writes the times
+  const clock = { now: new Date().toISOString(), timeZone };
+  return { database, realtime, version, backup, alerts, tasks, clock };
 }
 
 /** E-mails, SMS and webhooks in failure over the period, most recent first. */

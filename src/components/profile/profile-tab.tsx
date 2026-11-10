@@ -165,7 +165,8 @@ export function ProfileTab() {
             onClick={() => fileInputRef.current?.click()}
           >
             <UserAvatar
-              user={{ name: profile?.name ?? "", image: profile?.image, color: profile?.color }}
+              // First name and last name, like everywhere else: the last name alone gave « RO » for Anthony ROYER
+              user={{ name: [profile?.firstName, profile?.name].filter(Boolean).join(" "), image: profile?.image, color: profile?.color }}
               className="size-24 text-2xl"
               fallbackClassName="text-2xl"
             />

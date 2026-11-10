@@ -1,6 +1,7 @@
 {
   "layout": {
-    "viewPlanning": "View the schedule"
+    "viewPlanning": "View the schedule",
+    "automatic": "Automatic e-mail sent by {appTitle} on {date}. Please do not reply to it."
   },
   "common": {
     "greeting": "Hello <b>{name}</b>,"
@@ -16,19 +17,22 @@
   },
   "taskCreated": {
     "subject": "[{appTitle}] New task: {title}",
-    "heading": "New task",
-    "intro": "<b>{actor}</b> assigned you to the task <b>{title}</b>."
+    "heading": "A task has been assigned to you",
+    "intro": "<b>{actor}</b> assigned you to the task <b>{title}</b>.",
+    "badge": "New task"
   },
   "taskUpdated": {
     "subject": "[{appTitle}] Task updated: {title}",
-    "heading": "Task updated",
+    "heading": "One of your tasks has changed",
     "intro": "<b>{actor}</b> updated the task <b>{title}</b>.",
-    "changesLabel": "Changes:"
+    "changesLabel": "Changes",
+    "badge": "Task updated"
   },
   "taskDeleted": {
     "subject": "[{appTitle}] Task deleted: {title}",
-    "heading": "Task deleted",
-    "intro": "<b>{actor}</b> deleted the task <b>{title}</b>."
+    "heading": "One of your tasks has been deleted",
+    "intro": "<b>{actor}</b> deleted the task <b>{title}</b>.",
+    "badge": "Task deleted"
   },
   "changes": {
     "field": "{label}: {before} → {after}",
@@ -54,7 +58,9 @@
     "intro": "Here are your sign-in details:",
     "username": "Username",
     "password": "Password",
-    "changeNotice": "You will be asked to change your password the next time you sign in."
+    "changeNotice": "You will be asked to change your password the next time you sign in.",
+    "badge": "Access",
+    "button": "Sign in"
   },
   "passwordReset": {
     "subject": "[{appTitle}] Password change",
@@ -63,7 +69,8 @@
     "button": "Change my password",
     "linkFallback": "If the button does not work, copy and paste this link into your browser:",
     "expiry": "This link expires in <b>{minutes, plural, one {# minute} other {# minutes}}</b>. After that, you will need to make a new request.",
-    "ignore": "If you did not make this request, you can ignore this email."
+    "ignore": "If you did not make this request, you can ignore this email.",
+    "badge": "Security"
   },
   "weeklySummary": {
     "subject": "[{appTitle}] Your week from {start} to {end}",
@@ -71,12 +78,13 @@
     "greeting": "Hello {name},",
     "intro": "Here is your schedule from <b>{start}</b> to <b>{end}</b>.",
     "noTasks": "No tasks",
-    "attachments": "{count, plural, one {# attachment} other {# attachments}}"
+    "attachments": "{count, plural, one {# attachment} other {# attachments}}",
+    "badge": "Week ahead"
   },
   "test": {
     "subject": "[{appTitle}] Email connection test",
     "heading": "Email connection test",
     "body": "If you are reading this email, the email configuration of <b>{appTitle}</b> is working correctly.",
-    "sentAt": "Sent on {date}"
+    "badge": "Test"
   }
 }

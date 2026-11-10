@@ -1,6 +1,7 @@
 {
   "layout": {
-    "viewPlanning": "Planung ansehen"
+    "viewPlanning": "Planung ansehen",
+    "automatic": "Automatische E-Mail von {appTitle}, gesendet am {date}. Bitte antworten Sie nicht auf diese Nachricht."
   },
   "common": {
     "greeting": "Guten Tag <b>{name}</b>,"
@@ -16,19 +17,22 @@
   },
   "taskCreated": {
     "subject": "[{appTitle}] Neue Aufgabe: {title}",
-    "heading": "Neue Aufgabe",
-    "intro": "<b>{actor}</b> hat Sie der Aufgabe <b>{title}</b> zugewiesen."
+    "heading": "Ihnen wurde eine Aufgabe zugewiesen",
+    "intro": "<b>{actor}</b> hat Sie der Aufgabe <b>{title}</b> zugewiesen.",
+    "badge": "Neue Aufgabe"
   },
   "taskUpdated": {
     "subject": "[{appTitle}] Aufgabe geändert: {title}",
-    "heading": "Aufgabe geändert",
+    "heading": "Eine Ihrer Aufgaben hat sich geändert",
     "intro": "<b>{actor}</b> hat die Aufgabe <b>{title}</b> geändert.",
-    "changesLabel": "Änderungen:"
+    "changesLabel": "Änderungen",
+    "badge": "Aufgabe geändert"
   },
   "taskDeleted": {
     "subject": "[{appTitle}] Aufgabe gelöscht: {title}",
-    "heading": "Aufgabe gelöscht",
-    "intro": "<b>{actor}</b> hat die Aufgabe <b>{title}</b> gelöscht."
+    "heading": "Eine Ihrer Aufgaben wurde gelöscht",
+    "intro": "<b>{actor}</b> hat die Aufgabe <b>{title}</b> gelöscht.",
+    "badge": "Aufgabe gelöscht"
   },
   "changes": {
     "field": "{label}: {before} → {after}",
@@ -54,7 +58,9 @@
     "intro": "Ihre Anmeldedaten lauten:",
     "username": "Benutzername",
     "password": "Passwort",
-    "changeNotice": "Sie werden bei Ihrer nächsten Anmeldung aufgefordert, Ihr Passwort zu ändern."
+    "changeNotice": "Sie werden bei Ihrer nächsten Anmeldung aufgefordert, Ihr Passwort zu ändern.",
+    "badge": "Zugang",
+    "button": "Anmelden"
   },
   "passwordReset": {
     "subject": "[{appTitle}] Passwortänderung",
@@ -63,7 +69,8 @@
     "button": "Mein Passwort ändern",
     "linkFallback": "Falls die Schaltfläche nicht funktioniert, kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
     "expiry": "Dieser Link läuft in <b>{minutes, plural, one {# Minute} other {# Minuten}}</b> ab. Danach müssen Sie eine neue Anfrage stellen.",
-    "ignore": "Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren."
+    "ignore": "Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren.",
+    "badge": "Sicherheit"
   },
   "weeklySummary": {
     "subject": "[{appTitle}] Ihre Wochenübersicht vom {start} bis {end}",
@@ -71,12 +78,13 @@
     "greeting": "Guten Tag {name},",
     "intro": "Ihr Programm vom <b>{start}</b> bis <b>{end}</b> im Überblick.",
     "noTasks": "Keine Aufgaben",
-    "attachments": "{count, plural, one {# Anhang} other {# Anhänge}}"
+    "attachments": "{count, plural, one {# Anhang} other {# Anhänge}}",
+    "badge": "Kommende Woche"
   },
   "test": {
     "subject": "[{appTitle}] Test der E-Mail-Verbindung",
     "heading": "Test der E-Mail-Verbindung",
     "body": "Wenn Sie diese E-Mail erhalten, funktioniert die E-Mail-Konfiguration von <b>{appTitle}</b> korrekt.",
-    "sentAt": "Gesendet am {date}"
+    "badge": "Test"
   }
 }

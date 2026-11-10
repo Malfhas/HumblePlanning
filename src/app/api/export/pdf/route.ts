@@ -1,19 +1,21 @@
 import { NextRequest } from "next/server";
+import { personInitials } from "@/lib/utils/initials";
 import PDFDocument from "pdfkit";
 import { requireAuth, requirePermission, handleApiError } from "@/lib/utils/api";
-import { formatDate, formatDateTime, formatTime, formatHourLabel, formatWithLocale, parseISO, dateSettingsFromConfig, type DateSettings } from "@/lib/utils/dates";
+import { formatDate, formatDateTime, formatTime, formatHourLabel, formatWithLocale, parseISO, dateSettingsFromConfig, getTodayInTimezone, type DateSettings } from "@/lib/utils/dates";
 import { getConfigValues } from "@/lib/services/config-service";
 import { getExportData, getVehicleExportData, getProjectStatsForExport, getTasksForRow, buildExportI18n, shortDayName, longDayLabel, type ExportData, type ExportRow, type ExportTask, type ExportStatsData } from "@/lib/services/export-service";
 import { parseExportFilters, type CellContent } from "@/lib/utils/export-params";
 import { getProjectGantt, parseProjectGanttScale, parseProjectGanttSort, toWeekScale, weekOf } from "@/lib/services/project-gantt";
-import { getConfigValue } from "@/lib/services/config-service";
+import { getConfigValue, getThemeColor } from "@/lib/services/config-service";
+import { imageToPng, lightLogoFile } from "@/lib/branding/logo";
+import { hexToRgb, readableOnWhite, tint } from "@/lib/utils/theme-color";
 import { vibrantizeColor } from "@/lib/canvas/theme";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator, translateKey, type ServerTranslator } from "@/i18n/server-translator";
 import { INTL_TAG, type AppLocale } from "@/i18n/config";
 import { readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import sharp from "sharp";
+import { join } from "node:path";
 
 // i18n-dynamic: exportFiles.pdf.cover.formats.*
 // i18n-dynamic: exportFiles.pdf.cover.views.*
@@ -63,10 +65,19 @@ function pdfBuffer(doc: PDFKit.PDFDocument): Promise<Buffer> {
 
 type RGB = [number, number, number];
 
-/** Brand violet (#7c3aed), the accent of the app and of the Excel export. */
-const ACCENT: RGB = [124, 58, 237];
-/** Accent tint behind the total rows. */
-const ACCENT_TINT: RGB = [243, 238, 255];
+/** Theme colour of the instance (THEME_COLOR, the HumblePlanning violet by default) and its shades: the accent. */
+interface Accent {
+  /** Bars and rules. */
+  color: RGB;
+  /** Text in the accent colour, readable on white whatever the colour chosen. */
+  text: RGB;
+  /** Tint behind the total rows. */
+  tint: RGB;
+}
+
+function accentOf(hex: string): Accent {
+  return { color: hexToRgb(hex), text: hexToRgb(readableOnWhite(hex)), tint: hexToRgb(tint(hex, 0.08)) };
+}
 const INK: RGB = [24, 24, 27];
 const INK_SOFT: RGB = [63, 63, 70];
 const MUTED: RGB = [113, 113, 122];
@@ -325,6 +336,7 @@ interface PageContext {
   /** Export language (request language) and associated translator. */
   locale: AppLocale;
   t: ServerTranslator;
+  accent: Accent;
   /** Instance date settings (pattern, 24 h / 12 h, time zone). */
   dates: DateSettings;
 }
@@ -345,6 +357,7 @@ interface PageChrome {
   exportedOn: string;
   footerText: string;
   logo: Logo | null;
+  accent: Accent;
 }
 
 /** Content pages: the header and footer are drawn at the end (they need the page count). */
@@ -383,12 +396,12 @@ function drawPageHeader(doc: PDFKit.PDFDocument, w: number, c: PageChrome) {
   font(doc, "Regular", 7.5, MUTED);
   textLine(doc, c.subtitle, textX, top + 16, { width: leftW });
   const rightX = w - MARGIN - rightW;
-  font(doc, "Bold", 8, ACCENT);
+  font(doc, "Bold", 8, c.accent.text);
   textLine(doc, c.formatLabel, rightX, top + 1, { width: rightW, align: "right", spacing: 0.8 });
   font(doc, "Regular", 6.5, MUTED);
   textLine(doc, c.exportedOn, rightX, top + 16.5, { width: rightW, align: "right" });
   doc.moveTo(MARGIN, ruleY).lineTo(w - MARGIN, ruleY).lineWidth(0.5).strokeColor(LINE_SOFT).stroke();
-  doc.rect(MARGIN, ruleY - 0.75, accentWidth, 1.5).fill(ACCENT);
+  doc.rect(MARGIN, ruleY - 0.75, accentWidth, 1.5).fill(c.accent.color);
 }
 
 /** Height of the legend of the project Gantt, under the page header. */
@@ -396,8 +409,7 @@ const LEGEND_H = 14;
 
 /** Today (YYYY-MM-DD) in the time zone of the instance. */
 function todayIn(dates: DateSettings): string {
-  const timeZone = dates.timezone && dates.timezone !== "auto" ? dates.timezone : undefined;
-  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return getTodayInTimezone(dates.timezone);
 }
 
 /**
@@ -441,46 +453,20 @@ function drawPageFooter(doc: PDFKit.PDFDocument, w: number, h: number, c: PageCh
 // ── Load logo as PNG buffer (pdfkit only supports PNG/JPEG) ──
 
 /**
- * The logo fits a 120 pt box on the cover: 4 px per point stays sharp in print.
- * Rasterising an SVG at a fixed 300 dpi instead followed its declared size: the
- * default logo (4393 x 2125 px) became an 18304 x 8854 image, 4 MB in every PDF
- * and most of its generation time.
+ * The logo fits a 120 pt box on the cover: 4 px per point stays sharp in print (an SVG is drawn straight at that
+ * size, not at its declared one: see `imageToPng`).
  */
 const LOGO_MAX_PX = 480;
 
-async function logoToPng(buf: Buffer): Promise<Buffer> {
-  const meta = await sharp(buf).metadata();
-  const vector = meta.format === "svg";
-  const longest = Math.max(meta.width ?? 0, meta.height ?? 0) || LOGO_MAX_PX;
-  // A vector is drawn straight at the target size (sharp at any size); a bitmap is only reduced
-  const density = vector ? Math.min(2400, Math.max(1, (72 * LOGO_MAX_PX) / longest)) : undefined;
-  return sharp(buf, density ? { density } : {})
-    .resize({ width: LOGO_MAX_PX, height: LOGO_MAX_PX, fit: "inside", withoutEnlargement: !vector })
-    .png()
-    .toBuffer();
-}
-
 async function loadLogoPng(): Promise<Buffer | null> {
-  // The PDF has a light background: prefer the light variant of the logo.
-  const logoPath = (await getConfigValue("APP_LOGO_LIGHT")) || (await getConfigValue("APP_LOGO"));
-  if (!logoPath?.startsWith("branding/")) return null;
-  // Same resolution as /api/branding: file uploaded by the admin, otherwise
-  // default asset shipped with the code (public/branding-defaults/).
-  const fileName = basename(logoPath);
-  const candidates = [
-    join(process.cwd(), "uploads", "branding", fileName),
-    join(process.cwd(), "public", "branding-defaults", fileName),
-  ];
-  for (const fullPath of candidates) {
-    try {
-      const buf = await readFile(fullPath);
-      // Convert to PNG (pdfkit doesn't support AVIF/WebP/SVG)
-      return await logoToPng(buf);
-    } catch {
-      // try next candidate
-    }
+  // The PDF has a light background: the light variant of the logo. pdfkit reads neither AVIF, WebP nor SVG.
+  const file = await lightLogoFile();
+  if (!file) return null;
+  try {
+    return await imageToPng(await readFile(file), LOGO_MAX_PX, LOGO_MAX_PX);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /** PNG size from its IHDR header (bytes 16-23). */
@@ -658,7 +644,7 @@ export async function GET(request: NextRequest) {
     } else {
       titleText = t("exportFiles.pdf.titles.default", range);
     }
-    const ctx: PageContext = { doc, w, h, pageNum: 0, locale, t, dates };
+    const ctx: PageContext = { doc, w, h, pageNum: 0, locale, t, dates, accent: accentOf(await getThemeColor()) };
 
     // ── Cover page ──
     const [logoPng, appTitle] = await Promise.all([
@@ -746,6 +732,7 @@ export async function GET(request: NextRequest) {
       exportedOn: t("exportFiles.pdf.footer.exportedOn", { date: coverInfo.exportDate }),
       footerText: `${appTitle}  ·  ${titleText}`,
       logo,
+      accent: ctx.accent,
     };
 
     for (let i = 0; i < pageRange.count; i++) {
@@ -759,7 +746,7 @@ export async function GET(request: NextRequest) {
     }
 
     const buffer = await pdfBuffer(doc);
-    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+    const today = getTodayInTimezone(dates.timezone).replace(/-/g, "");
 
     return new Response(new Uint8Array(buffer), {
       headers: {
@@ -1363,8 +1350,8 @@ function calendarLabel(task: ExportTask): string {
   return task.title || task.project?.name || "";
 }
 
-/** Initials of a person, as on their avatar: the first letter of the first two words of the name. */
-const initialsOf = (name: string) => name.split(" ").filter(Boolean).map(word => word[0]).join("").toUpperCase().slice(0, 2);
+/** Initials of a person, as on their avatar (brackets and signs left out). */
+const initialsOf = (name: string) => personInitials(name);
 
 /** Avatar colour of a person without one, as in the app. */
 const AVATAR_FALLBACK: RGB = [107, 114, 128];
@@ -1768,8 +1755,8 @@ function fmtHoursPdf(n: number, locale: AppLocale): string {
 const sum = (values: number[]) => values.reduce((s, v) => s + v, 0);
 
 /** Section title: bold, after a short accent bar. */
-function drawStatsSectionHeader(doc: PDFKit.PDFDocument, text: string, x: number, y: number, width: number): number {
-  doc.roundedRect(x, y, 3, 12, 1).fill(ACCENT);
+function drawStatsSectionHeader(doc: PDFKit.PDFDocument, text: string, x: number, y: number, width: number, accent: Accent): number {
+  doc.roundedRect(x, y, 3, 12, 1).fill(accent.color);
   font(doc, "Bold", 9.5, INK);
   textLine(doc, text, x + 9, y + (12 - 9.5 * CAP) / 2, { width: width - 9 });
   return y + 19;
@@ -1817,16 +1804,17 @@ function drawStatsTableRow(
   y: number,
   rowH: number,
   style: StatsRowStyle,
+  accent: Accent,
 ): number {
   const width = sum(widths);
   const variant = style.variant ?? "row";
-  if (variant === "total") doc.rect(x, y, width, rowH).fill(ACCENT_TINT);
+  if (variant === "total") doc.rect(x, y, width, rowH).fill(accent.tint);
   else if (variant === "subtotal") doc.rect(x, y, width, rowH).fill(SURFACE);
   else if (style.alternate) doc.rect(x, y, width, rowH).fill(ZEBRA);
   if (style.redCellIdx !== undefined) {
     doc.rect(x + sum(widths.slice(0, style.redCellIdx)), y, widths[style.redCellIdx], rowH).fill(DANGER_TINT);
   }
-  if (variant === "total") doc.moveTo(x, y).lineTo(x + width, y).lineWidth(0.8).strokeColor(ACCENT).stroke();
+  if (variant === "total") doc.moveTo(x, y).lineTo(x + width, y).lineWidth(0.8).strokeColor(accent.color).stroke();
   doc.moveTo(x, y + rowH).lineTo(x + width, y + rowH).lineWidth(0.4).strokeColor(LINE_SOFT).stroke();
 
   const size = 7.5;
@@ -1898,7 +1886,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
   }
 
   // ── Section 1: Hours per project (period) ──
-  y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.periodHours"), margin, y, usableWidth);
+  y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.periodHours"), margin, y, usableWidth, ctx.accent);
   const headers1 = [
     tr("exportFiles.stats.columns.project"), tr("exportFiles.stats.columns.group"), tr("exportFiles.stats.columns.total"),
     tr("exportFiles.stats.columns.consumedHours"), tr("exportFiles.stats.columns.upcoming"), tr("exportFiles.stats.columns.tasks"),
@@ -1917,6 +1905,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
       y,
       rowH,
       { leftCols: 2, alternate: idx % 2 === 1, color0: p.projectColor },
+      ctx.accent,
     );
   });
   // Section 1 total
@@ -1929,13 +1918,14 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
     y,
     rowH,
     { leftCols: 2, variant: "total" },
+    ctx.accent,
   );
   y += 18;
 
   // ── Section 2: Users × project (period) ──
   if (stats.usersByProject.length > 0) {
     y = ensureSpace(ctx, y, rowH * 3, [], [], margin, rowH, false);
-    y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.usersByProject"), margin, y, usableWidth);
+    y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.usersByProject"), margin, y, usableWidth, ctx.accent);
 
     const headers2 = [
       tr("exportFiles.stats.columns.project"), tr("exportFiles.stats.columns.user"), tr("exportFiles.stats.columns.laborType"),
@@ -1965,6 +1955,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
           y,
           rowH,
           { leftCols: 3, alternate: idx % 2 === 1, color0: u.projectColor },
+          ctx.accent,
         );
         idx++;
       }
@@ -1979,6 +1970,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
         y,
         rowH,
         { leftCols: 3, variant: "subtotal" },
+        ctx.accent,
       );
     }
 
@@ -1993,6 +1985,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
       y,
       rowH,
       { leftCols: 3, variant: "total" },
+      ctx.accent,
     );
     y += 18;
   }
@@ -2001,7 +1994,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
   const projectsWithBudgets = stats.projects.filter((p) => p.budgets.length > 0);
   if (projectsWithBudgets.length > 0) {
     y = ensureSpace(ctx, y, rowH * 3, [], [], margin, rowH, false);
-    y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.budgets"), margin, y, usableWidth);
+    y = drawStatsSectionHeader(doc, tr("exportFiles.stats.sections.budgets"), margin, y, usableWidth, ctx.accent);
 
     const headers3 = [
       tr("exportFiles.stats.columns.project"), tr("exportFiles.stats.columns.laborType"), tr("exportFiles.stats.columns.budget"),
@@ -2033,6 +2026,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
           y,
           rowH,
           { leftCols: 2, alternate: idx % 2 === 1, color0: p.projectColor, redCellIdx: b.remaining < 0 ? 5 : undefined },
+          ctx.accent,
         );
         idx++;
       }
@@ -2059,6 +2053,7 @@ function drawStatsPages(ctx: PageContext, stats: ExportStatsData) {
       y,
       rowH,
       { leftCols: 2, variant: "total", redCellIdx: bt.remaining < 0 ? 5 : undefined },
+      ctx.accent,
     );
   }
 }

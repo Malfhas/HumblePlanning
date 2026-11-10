@@ -256,7 +256,8 @@
     "used": "{count, plural, one {Outil utilisé} other {# outils utilisés}}",
     "running": "Consultation des données…",
     "input": "Paramètres",
-    "output": "Résultat"
+    "output": "Résultat",
+    "withReasoning": "{reasoning, plural, one {Réflexion} other {# réflexions}} et {count, plural, one {# outil utilisé} other {# outils utilisés}}"
   },
   "approval": {
     "title": "Votre accord est nécessaire",

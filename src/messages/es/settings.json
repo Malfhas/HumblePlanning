@@ -1206,6 +1206,10 @@
     },
     "MOBILE_PUSH_RELAY_KEY": {
       "label": "Clave del relé de push"
+    },
+    "THEME_COLOR": {
+      "label": "Color del tema",
+      "description": "Color de acento de los correos y de las exportaciones PDF y Excel."
     }
   },
   "timezones": {

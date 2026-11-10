@@ -50,6 +50,13 @@
       "when": 1794240258534,
       "tag": "0006_system_health",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794333172767,
+      "tag": "0007_ai_chat_reply_parts",
+      "breakpoints": true
     }
   ]
 }

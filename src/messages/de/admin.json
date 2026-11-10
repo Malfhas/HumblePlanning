@@ -344,6 +344,11 @@
           "failed": "Fehlgeschlagen",
           "in_progress": "Läuft"
         }
+      },
+      "clock": {
+        "title": "Datum und Uhrzeit des Servers",
+        "detail": "{zone} ({offset})",
+        "drift": "{minutes} Min. Abweichung von diesem Gerät"
       }
     },
     "alerts": {

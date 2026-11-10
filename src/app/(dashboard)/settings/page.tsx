@@ -296,6 +296,8 @@ const CONFIG_CATEGORIES: { id: string; fields: ConfigField[] }[] = [
       { key: "APP_LOGO", type: "themed-image", section: "appearance", accept: "image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml", uploadType: "logo", lightKey: "APP_LOGO_LIGHT", darkKey: "APP_LOGO_DARK" },
       { key: "APP_FAVICON", type: "themed-image", accept: "image/png,image/jpeg,image/webp,image/gif,image/avif", uploadType: "favicon", lightKey: "APP_FAVICON_LIGHT", darkKey: "APP_FAVICON_DARK" },
       { key: "LOGIN_BACKGROUND", type: "themed-image", accept: "image/png,image/jpeg,image/webp,image/gif,image/avif", uploadType: "login-bg", lightKey: "LOGIN_BACKGROUND_LIGHT", darkKey: "LOGIN_BACKGROUND_DARK" },
+      // Accent of the e-mails and of the PDF and Excel exports (DEFAULT_THEME_COLOR)
+      { key: "THEME_COLOR", type: "color", defaultValue: "#7c3aed" },
       // ── Planning display ──
       { key: "PLANNING_MIN_CELL_WIDTH", type: "number", defaultValue: "55", section: "planningDisplay" },
       { key: "PLANNING_MAX_CELL_WIDTH", type: "number", defaultValue: "170" },

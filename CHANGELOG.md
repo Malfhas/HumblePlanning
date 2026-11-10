@@ -4,6 +4,32 @@ All notable changes to Humble Planning are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-11-10
+
+### Added
+
+- Redesigned emails: the logo of the instance and a label at the top, a rule in the theme colour, the task details in a box, a button to open the schedule, and a footer saying the email is automatic and not to reply to it; the layout adapts to phones. The logo (the one uploaded in *Settings > Appearance*, or the default one) is served by the instance as a small PNG (`/api/branding/email-logo`, a few kilobytes): it needs `APP_BASE_URL` to be reachable by the mail clients, otherwise the name of the application is shown instead.
+- *Settings > Appearance > Theme colour*: the accent colour of the emails and of the PDF and Excel exports, the Humble Planning violet by default. Text drawn on it or with it stays readable whatever the colour chosen.
+- *System health*: the date and time of the server, in the time zone of the instance with its UTC offset; the card turns orange when the server clock is more than a minute away from the one of the device.
+- AI assistant: a conversation reopened later shows again the reasoning of the model, the tools it used with their parameters and results, and its intermediate texts, as they were seen live (replies from before this version show their text only).
+
+### Changed
+
+- AI assistant:
+  - reasoning steps and tool calls that follow one another are grouped on a single line that unfolds ("6 reasoning steps and 6 tools used · list-users ×4, get-user-schedule…"); a tool called several times is listed once with its count;
+  - the reply after an approved write is shown in the same message as the request for approval, also when the conversation is reopened;
+  - a slightly wider column (832 px) and less space between a question and its answer.
+- *AI usage*: an approved write is now recorded as executed (or rejected, or failed) with its result, instead of staying "proposed".
+- Caddy 2.11.9 (security fixes in the reverse proxy). The application image installs the Debian security updates at each build. Next.js 16.4.6, Better Auth 1.7.20, AI SDK 7.0.168, next-intl 4.14.10 and other patch updates.
+
+### Fixed
+
+- Times written by the server were in UTC instead of the time zone of the instance (for example "sent at 16:21" for an email sent at 17:21 in Paris): emails, export file names, "today" in the statistics, exports and assistant tools, the week of the weekly summary, and the times of the scheduled backups and of the weekly summary now follow the *Time zone* setting (with "Automatic", the time zone of the server).
+- iCal export: with the "Automatic" time zone, the calendar was given an invalid time zone; all-day events no longer shift by a day.
+- Initials in the avatars: a name followed by a qualifier in brackets, such as "(Alternant)" or "[Intérimaire]", showed "(" instead of the initials; the letters were slightly off-centre in the circles of the schedule; *My account* showed the first letters of the last name only ("RO" instead of "AR").
+- Schedule: the tooltip of a user, project or vehicle near the bottom of the screen was cut; it now rises to stay visible.
+- Schedule: switching from users to projects after scrolling down left the top of the list hidden; the list now starts again from its top, and a shorter content (filter, folded group) never leaves a blank area.
+
 ## [1.3.0] - 2026-11-09
 
 ### Added
@@ -307,6 +333,7 @@ First open-source release of Humble Planning, under the GNU Affero General Publi
 - Updates with an automatic database backup and automatic rollback on failure, and optional nightly patch updates.
 - Multi-architecture Docker images published on the GitHub Container Registry.
 
+[1.4.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.4.0
 [1.3.0]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.3.0
 [1.2.3]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.3
 [1.2.2]: https://github.com/Malfhas/HumblePlanning/releases/tag/v1.2.2

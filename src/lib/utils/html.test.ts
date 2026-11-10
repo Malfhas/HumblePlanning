@@ -53,18 +53,51 @@ describe("email templates: user data escaped", () => {
     expect(html).toContain("Titre : &lt;vide&gt; → A");
   });
   test("password reset: URL escaped in the attribute", () => {
-    const { html } = passwordResetTemplate("Jean", `https://x/reset?token=a"b`, 10, "App", "", "fr");
+    const { html } = passwordResetTemplate("Jean", `https://x/reset?token=a"b`, 10, "App", "", "fr", OPTIONS);
     expect(html).toContain(`href="https://x/reset?token=a&quot;b"`);
-    expect(html).toContain(`<html lang="fr">`);
+    expect(html).toContain(`<html lang="fr" `);
   });
   test("recipient language: <html lang>", () => {
-    const { html } = passwordResetTemplate("Jean", "https://x/r", 10, "App", "", "en");
-    expect(html).toContain(`<html lang="en">`);
+    const { html } = passwordResetTemplate("Jean", "https://x/r", 10, "App", "", "en", OPTIONS);
+    expect(html).toContain(`<html lang="en" `);
   });
   test("weekly summary", () => {
     const tasks = new Map([["2026-11-02", [{ title: evil, project: { name: evil, color: "javascript:1" }, placeText: evil }]]]);
     const { html } = weeklySummaryTemplate(evil, tasks, new Date(2026, 10, 2), new Date(2026, 10, 8), "App", "", "fr", OPTIONS);
     expect(html).not.toContain("<script>");
     expect(html).not.toContain("javascript:1");
+  });
+});
+
+describe("email layout", () => {
+  const task = { title: "T", startDate: "2026-11-03" };
+  test("theme colour, logo, button and automatic notice", () => {
+    const brand = { color: "#0d9488", logo: { url: "https://planning.example.com/api/branding/email-logo?v=1", width: 99, height: 48 } };
+    const { html } = taskCreatedTemplate(task, null, "Jean", "App", "https://planning.example.com/", "fr", { ...OPTIONS, brand });
+    expect(html).toContain(`src="https://planning.example.com/api/branding/email-logo?v=1" width="99" height="48" alt="App"`);
+    expect(html).toContain("background:#0d9488");
+    expect(html).toContain(`href="https://planning.example.com/planning"`);
+    expect(html).toContain("Merci de ne pas y répondre");
+    expect(html).not.toContain("#7c3aed");
+  });
+  test("without the address of the instance: the name instead of the logo, no button; violet by default", () => {
+    const { html } = taskCreatedTemplate(task, null, "Jean", "App", "", "en", OPTIONS);
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("/planning\"");
+    expect(html).toContain("background:#7c3aed");
+    expect(html).toContain("Please do not reply to it.");
+  });
+  test("a light theme colour: dark text on the button, darker accent text", () => {
+    const { html } = passwordResetTemplate("Jean", "https://x/r", 10, "App", "", "fr", { ...OPTIONS, brand: { color: "#facc15", logo: null } });
+    expect(html).toContain("color:#18181b;text-decoration:none;border-radius:999px;");
+    expect(html).not.toContain("color:#facc15");
+  });
+});
+
+describe("email preview line", () => {
+  test("the same sentence without markup, user data escaped", () => {
+    const { html } = taskCreatedTemplate({ title: `<script>x</script>`, startDate: "2026-11-03" }, null, "Jean", "App", "", "fr", OPTIONS);
+    const preheader = html.match(/<div style="display:none;[^"]*">([^]*?)<\/div>/)?.[1] ?? "";
+    expect(preheader).toBe("Jean vous a assigné à la tâche &lt;script&gt;x&lt;/script&gt;.");
   });
 });

@@ -256,7 +256,8 @@
     "used": "{count, plural, one {Herramienta usada} other {# herramientas usadas}}",
     "running": "Consultando los datos…",
     "input": "Parámetros",
-    "output": "Resultado"
+    "output": "Resultado",
+    "withReasoning": "{reasoning, plural, one {Razonamiento} other {# razonamientos}} y {count, plural, one {# herramienta usada} other {# herramientas usadas}}"
   },
   "approval": {
     "title": "Se necesita su aprobación",

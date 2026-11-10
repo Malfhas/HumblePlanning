@@ -1,6 +1,7 @@
 {
   "layout": {
-    "viewPlanning": "Voir le planning"
+    "viewPlanning": "Voir le planning",
+    "automatic": "E-mail automatique envoyé par {appTitle} le {date}. Merci de ne pas y répondre."
   },
   "common": {
     "greeting": "Bonjour <b>{name}</b>,"
@@ -16,19 +17,22 @@
   },
   "taskCreated": {
     "subject": "[{appTitle}] Nouvelle tâche : {title}",
-    "heading": "Nouvelle tâche",
-    "intro": "<b>{actor}</b> vous a assigné à la tâche <b>{title}</b>."
+    "heading": "Une tâche vous a été assignée",
+    "intro": "<b>{actor}</b> vous a assigné à la tâche <b>{title}</b>.",
+    "badge": "Nouvelle tâche"
   },
   "taskUpdated": {
     "subject": "[{appTitle}] Tâche modifiée : {title}",
-    "heading": "Tâche modifiée",
+    "heading": "Une de vos tâches a changé",
     "intro": "<b>{actor}</b> a modifié la tâche <b>{title}</b>.",
-    "changesLabel": "Modifications :"
+    "changesLabel": "Modifications",
+    "badge": "Tâche modifiée"
   },
   "taskDeleted": {
     "subject": "[{appTitle}] Tâche supprimée : {title}",
-    "heading": "Tâche supprimée",
-    "intro": "<b>{actor}</b> a supprimé la tâche <b>{title}</b>."
+    "heading": "Une de vos tâches a été supprimée",
+    "intro": "<b>{actor}</b> a supprimé la tâche <b>{title}</b>.",
+    "badge": "Tâche supprimée"
   },
   "changes": {
     "field": "{label} : {before} → {after}",
@@ -54,7 +58,9 @@
     "intro": "Voici vos identifiants de connexion :",
     "username": "Identifiant",
     "password": "Mot de passe",
-    "changeNotice": "Vous serez invité(e) à changer votre mot de passe lors de votre prochaine connexion."
+    "changeNotice": "Vous serez invité(e) à changer votre mot de passe lors de votre prochaine connexion.",
+    "badge": "Accès",
+    "button": "Se connecter"
   },
   "passwordReset": {
     "subject": "[{appTitle}] Changement de mot de passe",
@@ -63,7 +69,8 @@
     "button": "Changer mon mot de passe",
     "linkFallback": "Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :",
     "expiry": "Ce lien expire dans <b>{minutes, plural, one {# minute} other {# minutes}}</b>. Passé ce délai, vous devrez effectuer une nouvelle demande.",
-    "ignore": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email."
+    "ignore": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.",
+    "badge": "Sécurité"
   },
   "weeklySummary": {
     "subject": "[{appTitle}] Synthèse de votre semaine du {start} au {end}",
@@ -71,12 +78,13 @@
     "greeting": "Bonjour {name},",
     "intro": "Voici votre programme du <b>{start}</b> au <b>{end}</b>.",
     "noTasks": "Aucune tâche",
-    "attachments": "{count, plural, one {# pièce jointe} other {# pièces jointes}}"
+    "attachments": "{count, plural, one {# pièce jointe} other {# pièces jointes}}",
+    "badge": "Semaine à venir"
   },
   "test": {
     "subject": "[{appTitle}] Test de connexion email",
     "heading": "Test de connexion email",
     "body": "Si vous recevez cet email, la configuration email de <b>{appTitle}</b> fonctionne correctement.",
-    "sentAt": "Envoyé le {date}"
+    "badge": "Test"
   }
 }

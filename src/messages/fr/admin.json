@@ -344,6 +344,11 @@
           "failed": "En échec",
           "in_progress": "En cours"
         }
+      },
+      "clock": {
+        "title": "Date et heure du serveur",
+        "detail": "{zone} ({offset})",
+        "drift": "Écart de {minutes} min avec cet appareil"
       }
     },
     "alerts": {

@@ -1,39 +1,11 @@
-import { getConfigValue } from "./config-service";
+import { getConfigValue, getInstanceTimezone } from "./config-service";
+import { nextWeeklyRun, parseClockTime } from "@/lib/utils/schedule-time";
 import { runWeeklySummary } from "./weekly-summary-service";
 import { logger } from "@/lib/logger";
 import { recordTaskRun } from "./system-task-service";
 import { setNextRun } from "@/lib/system-health/next-runs";
 
 let schedulerTimer: ReturnType<typeof setTimeout> | null = null;
-
-/**
- * Compute milliseconds until next run.
- * dayOfWeek: 1 = Monday, 7 = Sunday
- * targetTime: "HH:MM"
- */
-function getNextRunDelay(dayOfWeek: number, targetTime: string): number {
-  const [hours, minutes] = targetTime.split(":").map(Number);
-  const now = new Date();
-
-  // JS getDay(): 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  // We want: 1 = Monday, ..., 7 = Sunday
-  const todayIso = now.getDay() === 0 ? 7 : now.getDay();
-
-  let daysUntil = dayOfWeek - todayIso;
-  if (daysUntil < 0) daysUntil += 7;
-
-  const next = new Date(now);
-  next.setDate(now.getDate() + daysUntil);
-  next.setHours(hours, minutes, 0, 0);
-
-  // If the target time today has already passed and daysUntil is 0,
-  // schedule for next week
-  if (next.getTime() <= now.getTime()) {
-    next.setDate(next.getDate() + 7);
-  }
-
-  return next.getTime() - now.getTime();
-}
 
 async function schedulerTick() {
   try {
@@ -65,9 +37,11 @@ async function scheduleNext() {
     const time = (await getConfigValue("WEEKLY_SUMMARY_TIME")) ?? "08:00";
     const day = parseInt(dayStr, 10) || 1;
 
-    const delay = getNextRunDelay(day, time);
+    // Day and time of the instance time zone, not of UTC
+    const next = nextWeeklyRun(new Date(), day, parseClockTime(time, { hour: 8, minute: 0 }), await getInstanceTimezone());
+    const delay = Math.max(0, next.getTime() - Date.now());
     schedulerTimer = setTimeout(schedulerTick, delay);
-    setNextRun("weekly_summary", new Date(Date.now() + delay));
+    setNextRun("weekly_summary", next);
     logger.info("email", "Weekly summary scheduled", { day, time, delayMinutes: Math.round(delay / 60000) });
   } catch {
     // Retry in 5 minutes on error

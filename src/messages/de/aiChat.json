@@ -256,7 +256,8 @@
     "used": "{count, plural, one {Werkzeug verwendet} other {# Werkzeuge verwendet}}",
     "running": "Daten werden abgefragt…",
     "input": "Parameter",
-    "output": "Ergebnis"
+    "output": "Ergebnis",
+    "withReasoning": "{reasoning, plural, one {Überlegung} other {# Überlegungen}} und {count, plural, one {# Werkzeug verwendet} other {# Werkzeuge verwendet}}"
   },
   "approval": {
     "title": "Ihre Zustimmung ist erforderlich",

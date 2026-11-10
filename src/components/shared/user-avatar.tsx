@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, contrastColor } from "@/lib/utils";
+import { personInitials } from "@/lib/utils/initials";
 
 interface UserAvatarProps {
   user: {
@@ -14,12 +15,7 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ user, className, fallbackClassName }: UserAvatarProps) {
-  const initials = (user.name ?? "?")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = personInitials(user.name);
 
   const bgColor = user.color || "#6b7280";
   const textColor = contrastColor(bgColor);

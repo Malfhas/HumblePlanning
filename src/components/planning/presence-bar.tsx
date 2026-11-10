@@ -3,16 +3,9 @@
 import { useState, useCallback, cloneElement, isValidElement } from "react";
 import { createPortal } from "react-dom";
 import { usePresence, type PresenceUser } from "@/hooks/use-presence";
+import { personInitials } from "@/lib/utils/initials";
 
 const MAX_VISIBLE = 3;
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function isLightColor(hex: string): boolean {
   const c = hex.replace("#", "");
@@ -59,7 +52,7 @@ function PresenceTooltip({ children, content }: { children: React.ReactNode; con
 }
 
 function PresenceAvatar({ user, index }: { user: PresenceUser; index: number }) {
-  const initials = getInitials(user.name);
+  const initials = personInitials(user.name);
   const textColor = isLightColor(user.color) ? "#1a1a1a" : "#ffffff";
 
   return (
@@ -115,7 +108,7 @@ export function PresenceBar() {
                     {u.image ? (
                       <img src={u.image} alt="" className="h-full w-full rounded-full object-cover" />
                     ) : (
-                      getInitials(u.name)
+                      personInitials(u.name)
                     )}
                   </div>
                   <span>{u.name}</span>

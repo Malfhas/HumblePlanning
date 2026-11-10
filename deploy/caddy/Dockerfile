@@ -11,7 +11,7 @@
 #     /etc/caddy/humble-maintenance.caddy, imported by each site.
 # Check: docker run --rm <image> caddy list-modules | grep dns.providers.cloudflare
 
-ARG CADDY_VERSION=2.11.7
+ARG CADDY_VERSION=2.11.9
 
 # Cross-compiles on the build platform (Go needs no emulation for multi-arch).
 FROM --platform=$BUILDPLATFORM caddy:${CADDY_VERSION}-builder AS builder

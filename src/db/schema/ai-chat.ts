@@ -51,6 +51,11 @@ export const aiChatMessages = pgTable("ai_chat_messages", {
   /** Scope trace of the message, without a foreign key: it outlives the project. */
   projectId: uuid("project_id"),
   status: varchar("status", { length: 16 }).$type<AiChatMessageStatus>().notNull().default("DONE"),
+  /**
+   * Steps of a reply as the screen draws them (AI SDK UI parts: reasoning, tools with their parameters and
+   * results, text), shown again when the conversation is reopened. Null: question, or reply from before.
+   */
+  parts: jsonb("parts"),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

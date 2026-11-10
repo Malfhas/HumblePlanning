@@ -344,6 +344,11 @@
           "failed": "Failed",
           "in_progress": "In progress"
         }
+      },
+      "clock": {
+        "title": "Server date and time",
+        "detail": "{zone} ({offset})",
+        "drift": "{minutes} min off from this device"
       }
     },
     "alerts": {

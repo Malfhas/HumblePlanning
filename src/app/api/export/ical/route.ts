@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { users, tasks, taskUsers } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { requireAuth, handleApiError, AppError } from "@/lib/utils/api";
-import { getConfigValue } from "@/lib/services/config-service";
+import { getConfigValue, getInstanceTimezone } from "@/lib/services/config-service";
 import { resolveRecipientLocale, resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator } from "@/i18n/server-translator";
 import type { AppLocale } from "@/i18n/config";
@@ -59,7 +59,8 @@ export async function GET(request: NextRequest) {
         })
       : [];
 
-    const timezone = await getConfigValue("TIMEZONE") || "Europe/Paris";
+    // A real zone for the TZID ("auto" is a setting of the browsers, not a zone)
+    const timezone = await getInstanceTimezone();
     const appTitle = await getConfigValue("APP_TITLE") || "HumblePlanning";
 
     const calendar = icalGenerator({
@@ -73,8 +74,9 @@ export async function GET(request: NextRequest) {
 
       if (isAllDay) {
         // All-day event
-        const start = new Date(task.startDate);
-        const end = task.endDate ? new Date(task.endDate) : new Date(task.startDate);
+        // Local midnight: with a time zone, ical-generator reads the dates with the local getters
+        const start = new Date(`${task.startDate}T00:00`);
+        const end = new Date(`${task.endDate || task.startDate}T00:00`);
         // iCal all-day end date is exclusive, so add 1 day
         end.setDate(end.getDate() + 1);
 

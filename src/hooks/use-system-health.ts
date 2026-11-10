@@ -18,6 +18,8 @@ export interface SystemOverview {
   };
   backup: { createdAt: string; status: string; triggerType: string; sizeBytes: number; errorMessage: string | null } | null;
   alerts: ConfigAlert[];
+  /** Instant of the server when it answered, and the time zone of the instance (e-mails, exports, schedules). */
+  clock: { now: string; timeZone: string };
   tasks: {
     task: SystemTask;
     enabled: boolean;

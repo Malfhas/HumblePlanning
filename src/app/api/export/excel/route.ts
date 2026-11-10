@@ -4,8 +4,9 @@ import { requireAuth, requirePermission, handleApiError } from "@/lib/utils/api"
 import { getExportData, getVehicleExportData, getProjectStatsForExport, getTasksForRowAndDay, buildExportI18n, shortDayName, type ExportRow, type ExportTask, type ExportStatsData } from "@/lib/services/export-service";
 import { parseExportFilters, type CellContent } from "@/lib/utils/export-params";
 import { getProjectGantt, parseProjectGanttScale, parseProjectGanttSort, toWeekScale, weekOf } from "@/lib/services/project-gantt";
-import { getConfigValue, getConfigValues } from "@/lib/services/config-service";
-import { formatTime, formatDate, dateSettingsFromConfig, type DateSettings } from "@/lib/utils/dates";
+import { getConfigValue, getConfigValues, getThemeColor } from "@/lib/services/config-service";
+import { textOn, tint } from "@/lib/utils/theme-color";
+import { formatTime, formatDate, dateSettingsFromConfig, getTodayInTimezone, type DateSettings } from "@/lib/utils/dates";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { getServerTranslator, type ServerTranslator } from "@/i18n/server-translator";
 import { INTL_TAG, type AppLocale } from "@/i18n/config";
@@ -83,8 +84,11 @@ function buildStatsWorksheet(
   tr: ServerTranslator,
   locale: AppLocale,
   dates: DateSettings,
+  // Theme colour of the instance (THEME_COLOR): title band, and its tint behind the totals
+  theme: string,
 ): void {
   const ws = workbook.addWorksheet(tr("exportFiles.excel.sheets.stats"));
+  const totalFill: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: hexToArgb(tint(theme, 0.25)) } };
   const hrs = (n: number) => fmtHours(n, locale);
 
   // Title row
@@ -92,8 +96,8 @@ function buildStatsWorksheet(
   const titleCell = ws.getCell(1, 1);
   titleCell.value = tr("exportFiles.stats.title", { start: formatDate(startDate, locale, dates.dateFormat), end: formatDate(endDate, locale, dates.dateFormat) });
   titleCell.alignment = { horizontal: "center", vertical: "middle" };
-  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF7C3AED" } };
-  titleCell.font = { size: 14, bold: true, color: { argb: "FFFFFFFF" } };
+  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: hexToArgb(theme) } };
+  titleCell.font = { size: 14, bold: true, color: { argb: hexToArgb(textOn(theme)) } };
   ws.getRow(1).height = 22;
 
   // Summary row — period totals (big picture)
@@ -168,7 +172,7 @@ function buildStatsWorksheet(
       const cell = ws.getCell(row, i + 1);
       cell.value = v;
       cell.border = THIN_BORDER;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDDD6FE" } };
+      cell.fill = totalFill;
       cell.font = { bold: true, size: 10 };
       cell.alignment = { horizontal: i === 0 || i === 1 ? "left" : "right", vertical: "middle" };
     });
@@ -244,7 +248,7 @@ function buildStatsWorksheet(
       const cell = ws.getCell(row, i + 1);
       cell.value = v;
       cell.border = THIN_BORDER;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDDD6FE" } };
+      cell.fill = totalFill;
       cell.font = { bold: true, size: 10 };
       cell.alignment = { horizontal: i < 3 ? "left" : "right", vertical: "middle" };
     });
@@ -326,7 +330,7 @@ function buildStatsWorksheet(
       const cell = ws.getCell(row, i + 1);
       cell.value = v;
       cell.border = THIN_BORDER;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDDD6FE" } };
+      cell.fill = totalFill;
       cell.font = { bold: true, size: 10 };
       cell.alignment = { horizontal: i < 2 ? "left" : "right", vertical: "middle" };
     });
@@ -353,6 +357,7 @@ export async function GET(request: NextRequest) {
     // Load date/time format config for server-side formatting
     // (passed explicitly: no global state on the server)
     const dates = dateSettingsFromConfig(await getConfigValues(["PLANNING_DATE_FORMAT", "TIME_FORMAT", "TIMEZONE"]));
+    const theme = await getThemeColor();
 
     const locale = await resolveRequestLocale();
     const t = await getServerTranslator(locale);
@@ -373,7 +378,7 @@ export async function GET(request: NextRequest) {
     const byWeek = parseProjectGanttScale(params.get("ganttScale")) === "weeks";
     const projectGantt = ganttByDay && byWeek ? toWeekScale(ganttByDay) : ganttByDay;
     // Today, on demand: its column header in red
-    const todayIso = new Intl.DateTimeFormat("en-CA", { timeZone: dates.timezone && dates.timezone !== "auto" ? dates.timezone : undefined, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const todayIso = getTodayInTimezone(dates.timezone);
     const todayColumn = projectGantt && params.get("ganttToday") === "1" ? (byWeek ? weekOf(todayIso) : todayIso) : null;
     const ganttTasks = new Map(projectGantt?.rows.map(row => [row.id, row.tasks]) ?? []);
 
@@ -587,8 +592,8 @@ export async function GET(request: NextRequest) {
 
     const headerRow = wsList.addRow(listHeaders);
     headerRow.eachCell((cell) => {
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF7C3AED" } };
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: hexToArgb(theme) } };
+      cell.font = { bold: true, color: { argb: hexToArgb(textOn(theme)) }, size: 10 };
       cell.alignment = { horizontal: "center" };
       cell.border = THIN_BORDER;
     });
@@ -668,11 +673,11 @@ export async function GET(request: NextRequest) {
     // === Sheet 3 (optional): Project / user stats ===
     if (filters.includeStats && !isVehicleMode && !projectGantt) {
       const stats = await getProjectStatsForExport(filters, i18n, perms);
-      buildStatsWorksheet(workbook, stats, filters.startDate, filters.endDate, t, locale, dates);
+      buildStatsWorksheet(workbook, stats, filters.startDate, filters.endDate, t, locale, dates, theme);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+    const today = getTodayInTimezone(dates.timezone).replace(/-/g, "");
 
     return new Response(buffer, {
       headers: {

@@ -347,4 +347,4 @@ Owning the database lets the migrations create the tables and the restores (`hum
 
 ## Docker images
 
-The release workflow publishes multi-arch images (amd64, arm64) for every `v*` tag: `ghcr.io/malfhas/humble-planning` (Bun 1.4.4, PostgreSQL 18 client) and `ghcr.io/malfhas/humble-planning-caddy` (Caddy 2.11.7 with the [Cloudflare DNS module](https://github.com/caddy-dns/cloudflare) and the list of Cloudflare's IP ranges, `/etc/caddy/cloudflare-ips.caddy`). To build them yourself: `docker build -t humble-planning .` and `docker build -t humble-planning-caddy deploy/caddy`.
+The release workflow publishes multi-arch images (amd64, arm64) for every `v*` tag: `ghcr.io/malfhas/humble-planning` (Bun 1.4.4, PostgreSQL 18 client) and `ghcr.io/malfhas/humble-planning-caddy` (Caddy 2.11.9 with the [Cloudflare DNS module](https://github.com/caddy-dns/cloudflare) and the list of Cloudflare's IP ranges, `/etc/caddy/cloudflare-ips.caddy`). To build them yourself: `docker build -t humble-planning .` and `docker build -t humble-planning-caddy deploy/caddy`.

@@ -1,3 +1,5 @@
+import { serverTimezone } from "@/lib/utils/dates";
+import { themeColor } from "@/lib/utils/theme-color";
 import { db } from "@/db";
 import { appConfig } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -64,20 +66,24 @@ export async function getConfigValue(key: string): Promise<string | null> {
   });
 }
 
-/** Instance time zone: TIMEZONE setting (« auto » = the server's), otherwise Europe/Paris. */
+/** Instance time zone: TIMEZONE setting, or with « auto » the server's (`serverTimezone`: TIMEZONE of .env, else Europe/Paris). */
 export async function getInstanceTimezone(): Promise<string> {
   const { TIMEZONE } = await getConfigValues(["TIMEZONE"]);
-  const candidates = [TIMEZONE, process.env.TIMEZONE, "Europe/Paris"];
-  for (const tz of candidates) {
-    if (!tz || tz === "auto") continue;
+  if (TIMEZONE && TIMEZONE !== "auto") {
     try {
-      new Intl.DateTimeFormat("en-US", { timeZone: tz });
-      return tz;
+      new Intl.DateTimeFormat("en-US", { timeZone: TIMEZONE });
+      return TIMEZONE;
     } catch {
-      /* unknown time zone: next */
+      /* unknown time zone: the server's */
     }
   }
-  return "Europe/Paris";
+  return serverTimezone();
+}
+
+/** Theme colour of the instance (THEME_COLOR, Settings → Appearance), "#rrggbb": the HumblePlanning violet by default. */
+export async function getThemeColor(): Promise<string> {
+  const { THEME_COLOR } = await getConfigValues(["THEME_COLOR"]);
+  return themeColor(THEME_COLOR);
 }
 
 export async function getConfigValues(keys: string[]): Promise<Record<string, string | null>> {

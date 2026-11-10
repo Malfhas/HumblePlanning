@@ -1375,6 +1375,19 @@ export function PlanningCanvas() {
     showH: showHScrollbar,
     showV: showVScrollbar,
   } = gridScrollBounds(totalContentW, totalContentH, viewportContentW, viewportContentH, !isTouchDevice);
+  // Other rows (users ↔ projects…): the list starts again from its top; the dates keep their place
+  const [scrolledView, setScrolledView] = useState(viewMode);
+  if (scrolledView !== viewMode) {
+    setScrolledView(viewMode);
+    setScrollY(0);
+  }
+  // The content can become shorter than the scroll position (a filter, a folded group…): the position comes back
+  // within the new bounds at once. Otherwise the top stayed hidden, with white below, until the next turn of the
+  // wheel. Adjusted during the render: no effect, no frame drawn shifted.
+  else if (size.width > 0 && size.height > 0 && (scrollY > maxScrollY || scrollX > maxScrollX)) {
+    setScrollY(Math.min(scrollY, maxScrollY));
+    setScrollX(Math.min(scrollX, maxScrollX));
+  }
   // Horizontal track over the full grid width (names column
   // included), like the vertical track that covers the header.
   const hTrackW = Math.max(0, size.width - (showVScrollbar ? SCROLLBAR_SIZE : 0));
