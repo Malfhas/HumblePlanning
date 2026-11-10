@@ -100,8 +100,11 @@ function themeOf(options: EmailRenderOptions): Theme {
 /** `<b>` tag of messages → `<strong>` (parameters are already escaped). */
 const strong = (chunks: string) => `<strong style="color:${C.text};font-weight:600;">${chunks}</strong>`;
 
-/** Text of a translated HTML fragment for the preview line: tags removed, entities kept (it stays in the HTML). */
-const plain = (html: string) => html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+/**
+ * `<b>` tag of messages left as plain text: the preview line (preheader) is the same translated sentence without
+ * markup. Parameters are already escaped, the sentence stays safe in the HTML; no tag is ever stripped by a pattern.
+ */
+const plain = (chunks: string) => chunks;
 
 /** Small upper-case label. */
 const labelStyle = (color: string) =>
@@ -329,14 +332,15 @@ export function taskCreatedTemplate(
   options: EmailRenderOptions,
 ) {
   const t = getServerTranslatorSync(locale);
-  const intro = t.markup("emails.taskCreated.intro", { actor: escapeHtml(creatorName), title: escapeHtml(task.title), b: strong });
+  const params = { actor: escapeHtml(creatorName), title: escapeHtml(task.title) };
+  const intro = t.markup("emails.taskCreated.intro", { ...params, b: strong });
   return {
     subject: t("emails.taskCreated.subject", { appTitle, title: task.title }),
     html: layout({
       t, locale, options, appTitle, baseUrl,
       badge: t("emails.taskCreated.badge"),
       heading: t("emails.taskCreated.heading"),
-      preheader: plain(intro),
+      preheader: t.markup("emails.taskCreated.intro", { ...params, b: plain }),
       body: para(intro, "0") + taskDetails(t, task, project, locale, options.dates, themeOf(options)),
       button: planningButton(t, baseUrl),
     }),
@@ -357,7 +361,8 @@ export function taskUpdatedTemplate(
 ) {
   const t = getServerTranslatorSync(locale);
   const theme = themeOf(options);
-  const intro = t.markup("emails.taskUpdated.intro", { actor: escapeHtml(modifierName), title: escapeHtml(task.title), b: strong });
+  const params = { actor: escapeHtml(modifierName), title: escapeHtml(task.title) };
+  const intro = t.markup("emails.taskUpdated.intro", { ...params, b: strong });
   // Numbered, like the steps of a list
   const changeRows = changes
     .map(
@@ -378,7 +383,7 @@ export function taskUpdatedTemplate(
       t, locale, options, appTitle, baseUrl,
       badge: t("emails.taskUpdated.badge"),
       heading: t("emails.taskUpdated.heading"),
-      preheader: plain(intro),
+      preheader: t.markup("emails.taskUpdated.intro", { ...params, b: plain }),
       body: para(intro, "0") + changeList + taskDetails(t, task, project, locale, options.dates, theme),
       button: planningButton(t, baseUrl),
     }),
@@ -396,7 +401,8 @@ export function taskDeletedTemplate(
   options: EmailRenderOptions,
 ) {
   const t = getServerTranslatorSync(locale);
-  const intro = t.markup("emails.taskDeleted.intro", { actor: escapeHtml(deleterName), title: escapeHtml(task.title), b: strong });
+  const params = { actor: escapeHtml(deleterName), title: escapeHtml(task.title) };
+  const intro = t.markup("emails.taskDeleted.intro", { ...params, b: strong });
   return {
     subject: t("emails.taskDeleted.subject", { appTitle, title: task.title }),
     html: layout({
@@ -404,7 +410,7 @@ export function taskDeletedTemplate(
       badge: t("emails.taskDeleted.badge"),
       danger: true,
       heading: t("emails.taskDeleted.heading"),
-      preheader: plain(intro),
+      preheader: t.markup("emails.taskDeleted.intro", { ...params, b: plain }),
       body: para(intro, "0") + taskDetails(t, task, project, locale, options.dates, themeOf(options)),
       button: planningButton(t, baseUrl),
     }),
@@ -549,7 +555,8 @@ export function weeklySummaryTemplate(
       ${tasksHtml}`;
   }
 
-  const intro = t.markup("emails.weeklySummary.intro", { start: escapeHtml(startLabel), end: escapeHtml(endLabel), b: strong });
+  const params = { start: escapeHtml(startLabel), end: escapeHtml(endLabel) };
+  const intro = t.markup("emails.weeklySummary.intro", { ...params, b: strong });
   return {
     subject: t("emails.weeklySummary.subject", { appTitle, start: startLabel, end: endLabel }),
     html: layout({
@@ -557,7 +564,7 @@ export function weeklySummaryTemplate(
       badge: t("emails.weeklySummary.badge"),
       greeting: escapeHtml(t("emails.weeklySummary.greeting", { name: userName })),
       heading: t("emails.weeklySummary.heading"),
-      preheader: plain(intro),
+      preheader: t.markup("emails.weeklySummary.intro", { ...params, b: plain }),
       body: para(intro, "0") + dayBlocks,
       button: planningButton(t, baseUrl),
     }),
@@ -566,14 +573,15 @@ export function weeklySummaryTemplate(
 
 export function testEmailTemplate(appTitle: string, locale: AppLocale, options: EmailRenderOptions, baseUrl = "") {
   const t = getServerTranslatorSync(locale);
-  const body = t.markup("emails.test.body", { appTitle: escapeHtml(appTitle), b: strong });
+  const params = { appTitle: escapeHtml(appTitle) };
+  const body = t.markup("emails.test.body", { ...params, b: strong });
   return {
     subject: t("emails.test.subject", { appTitle }),
     html: layout({
       t, locale, options, appTitle, baseUrl,
       badge: t("emails.test.badge"),
       heading: t("emails.test.heading"),
-      preheader: plain(body),
+      preheader: t.markup("emails.test.body", { ...params, b: plain }),
       body: para(body, "0"),
     }),
   };

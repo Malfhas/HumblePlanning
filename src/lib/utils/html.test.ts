@@ -93,3 +93,11 @@ describe("email layout", () => {
     expect(html).not.toContain("color:#facc15");
   });
 });
+
+describe("email preview line", () => {
+  test("the same sentence without markup, user data escaped", () => {
+    const { html } = taskCreatedTemplate({ title: `<script>x</script>`, startDate: "2026-11-03" }, null, "Jean", "App", "", "fr", OPTIONS);
+    const preheader = html.match(/<div style="display:none;[^"]*">([^]*?)<\/div>/)?.[1] ?? "";
+    expect(preheader).toBe("Jean vous a assigné à la tâche &lt;script&gt;x&lt;/script&gt;.");
+  });
+});
