@@ -1,4 +1,5 @@
 import type { ViewMode } from "@/stores/planning-store";
+import type { TaskLabelMode } from "@/lib/types/task-label";
 
 /**
  * Computes the label shown on a task bar for the active view
@@ -20,15 +21,25 @@ export function getTaskLabel(
     project?: { name?: string | null } | null;
   },
   viewMode: ViewMode | undefined,
-  untitled: string
+  untitled: string,
+  taskLabelMode: TaskLabelMode = "project"
 ): string {
   const title = task.title || untitled;
   const userName = task.users?.length
     ? task.users.map((u) => u.name).filter(Boolean).join(", ")
     : task.user?.name;
   switch (viewMode) {
-    case "users":
-      return task.project?.name || title;
+    case "users": {
+      const taskName = task.title?.trim();
+      const projectName = task.project?.name?.trim();
+      if (taskLabelMode === "title") return taskName || projectName || untitled;
+      if (taskLabelMode === "both") {
+        return taskName && projectName
+          ? `${taskName} · ${projectName}`
+          : taskName || projectName || untitled;
+      }
+      return projectName || taskName || untitled;
+    }
     case "projects":
       return userName || title;
     case "places":

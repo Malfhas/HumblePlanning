@@ -141,8 +141,8 @@ export default function PlanningPage() {
   const prefsApplied = useRef(false);
   useEffect(() => {
     if (prefsApplied.current || !profile?.preferences) return;
-    const prefs = profile.preferences as { defaultView?: string; columnView?: string };
-    applyUserDefaults({ viewMode: prefs.defaultView, columnMode: prefs.columnView });
+    const prefs = profile.preferences as { defaultView?: string; columnView?: string; taskLabelMode?: string };
+    applyUserDefaults({ viewMode: prefs.defaultView, columnMode: prefs.columnView, taskLabelMode: prefs.taskLabelMode });
     prefsApplied.current = true;
   }, [profile, applyUserDefaults]);
 

@@ -2388,7 +2388,7 @@ export class CanvasRenderer {
   private computeTaskLabel(task: TaskWithUsers): string {
     const untitled = this.i18n.labels.untitled;
     if (!this.data) return task.title || untitled;
-    return getTaskLabel(task, this.data.viewMode, untitled);
+    return getTaskLabel(task, this.data.viewMode, untitled, this.data.taskLabelMode);
   }
 
   /** `roundRect` helpers (Path2D RoundedRect supports iOS Safari 16+). */

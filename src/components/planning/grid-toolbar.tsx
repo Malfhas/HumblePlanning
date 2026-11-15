@@ -22,9 +22,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePlanningStore, type ViewMode, type SortMode } from "@/stores/planning-store";
+import { isTaskLabelMode } from "@/lib/types/task-label";
+import { useUpdatePreferences } from "@/hooks/use-profile";
+import { toast } from "sonner";
 import { useFilterStore } from "@/stores/filter-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useConfig } from "@/hooks/use-config";
@@ -261,10 +265,13 @@ function PlanningViewTab({
 export function GridToolbar({ onCreateTask }: GridToolbarProps) {
   const t = useTranslations("planning.toolbar");
   const tCommon = useTranslations("common");
+  const updatePreferences = useUpdatePreferences();
   const { format: formatLocalized, intlTag } = useDateFormat();
   const {
     viewMode,
     setViewMode,
+    taskLabelMode,
+    setTaskLabelMode,
     startDate,
     endDate,
     cellWidth,
@@ -295,6 +302,17 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
 
   const { userId: currentUserId, can, canCreateAnyTask } = usePermissions();
   const { data: config } = useConfig();
+  const saveTaskLabelMode = (value: string) => {
+    if (!isTaskLabelMode(value) || updatePreferences.isPending || value === taskLabelMode) return;
+    const previous = taskLabelMode;
+    setTaskLabelMode(value);
+    updatePreferences.mutate({ taskLabelMode: value }, {
+      onError: () => {
+        setTaskLabelMode(previous);
+        toast.error(t("display.labelSaveError"));
+      },
+    });
+  };
   const vehiclesEnabled = config?.MODULE_VEHICLES !== "false";
   const resourcesEnabled = config?.MODULE_RESOURCES !== "false";
 
@@ -797,6 +815,19 @@ export function GridToolbar({ onCreateTask }: GridToolbarProps) {
               >
                 {t("display.rowAvatar")}
               </DropdownMenuCheckboxItem>
+              {viewMode === "users" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="rounded-sm bg-muted/60 px-2 py-2 text-xs font-semibold text-foreground">
+                    {t("display.taskLabelMode")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={taskLabelMode} onValueChange={saveTaskLabelMode}>
+                    <DropdownMenuRadioItem value="title" disabled={updatePreferences.isPending}>{t("display.taskLabelModes.title")}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="project" disabled={updatePreferences.isPending}>{t("display.taskLabelModes.project")}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="both" disabled={updatePreferences.isPending}>{t("display.taskLabelModes.both")}</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

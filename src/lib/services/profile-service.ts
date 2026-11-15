@@ -232,6 +232,7 @@ export async function updatePreferences(userId: string, prefs: UpdatePreferences
   const currentPrefs = (user?.preferences ?? {}) as Record<string, unknown>;
   const merged = { ...currentPrefs };
 
+  if (prefs.taskLabelMode !== undefined) merged.taskLabelMode = prefs.taskLabelMode;
   if (prefs.defaultView !== undefined) merged.defaultView = prefs.defaultView;
   if (prefs.columnView !== undefined) merged.columnView = prefs.columnView;
   if (prefs.defaultHomePage !== undefined) merged.defaultHomePage = prefs.defaultHomePage;

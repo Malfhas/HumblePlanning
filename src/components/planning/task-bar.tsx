@@ -66,7 +66,7 @@ export function getTaskLabel(task: { title?: string | null; user?: { name?: stri
 
 export const TaskBar = forwardRef<HTMLDivElement, TaskBarProps>(
   function TaskBar({ task, status, project, viewMode, showUserCount, showFileIcon, slot, onClick, onContextMenu, onResize, rowId, className, style: styleProp, ...rest }, ref) {
-    const { startDate: gridStart, endDate: gridEnd, cellWidth } = usePlanningStore();
+    const { startDate: gridStart, endDate: gridEnd, cellWidth, taskLabelMode } = usePlanningStore();
     const { taskBarHeight, cellFontSize } = usePlanningConfig();
     const t = useTranslations("planning");
     const resizingRef = useRef(false);
@@ -321,7 +321,7 @@ export const TaskBar = forwardRef<HTMLDivElement, TaskBarProps>(
     }
 
     const userCount = task.users?.length ?? 0;
-    const label = getTaskLabel(task, viewMode, t("canvas.untitled"));
+    const label = getTaskLabelBase(task, viewMode, t("canvas.untitled"), taskLabelMode);
 
     // Apply live resize delta to position/width
     let renderLeft = computed.left;
