@@ -231,7 +231,14 @@
       "showSummary": "Show the total at the bottom of the schedule",
       "userCountIcon": "Multiple users icon",
       "fileIcon": "Attachment icon",
-      "rowAvatar": "Profile picture"
+      "rowAvatar": "Profile picture",
+      "taskLabelMode": "Schedule cell text",
+      "taskLabelModes": {
+        "title": "Task title",
+        "project": "Project name",
+        "both": "Task + project"
+      },
+      "labelSaveError": "Could not save the display preference."
     }
   }
 }

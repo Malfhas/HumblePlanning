@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { colorSchema } from "./common";
+import { TASK_LABEL_MODES } from "@/lib/types/task-label";
 
 export const updateProfileSchema = z.object({
   name: z.string().min(1).max(100),
@@ -12,6 +13,7 @@ export const updateProfileSchema = z.object({
 });
 
 export const updatePreferencesSchema = z.object({
+  taskLabelMode: z.enum(TASK_LABEL_MODES).optional(),
   defaultView: z.enum(["users", "projects", "places", "resources", "vehicles"]).optional(),
   columnView: z.enum(["days", "hours"]).optional(),
   defaultHomePage: z.string().max(100).optional(),

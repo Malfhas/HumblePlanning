@@ -98,6 +98,7 @@ export function PlanningCanvas() {
   // ──────────────────────────────────────────────────────────────────
   const {
     viewMode,
+    taskLabelMode,
     startDate,
     endDate,
     cellWidth,
@@ -108,6 +109,7 @@ export function PlanningCanvas() {
   } = usePlanningStore(
     useShallow((s) => ({
       viewMode: s.viewMode,
+      taskLabelMode: s.taskLabelMode,
       startDate: s.startDate,
       endDate: s.endDate,
       cellWidth: s.cellWidth,
@@ -249,6 +251,7 @@ export function PlanningCanvas() {
       showFileIcon,
       showRowAvatar,
       viewMode,
+      taskLabelMode,
       fontFamily,
       cellFontSize,
       fontBold,
@@ -256,7 +259,7 @@ export function PlanningCanvas() {
       isFetching,
       i18n: canvasI18n,
     };
-  }, [tasks, sortedRows, slotData, holidays, statusMap, showUserCount, showFileIcon, showRowAvatar, viewMode, fontFamily, cellFontSize, fontBold, taskBarHeight, isFetching, canvasI18n]);
+  }, [tasks, sortedRows, slotData, holidays, statusMap, showUserCount, showFileIcon, showRowAvatar, viewMode, taskLabelMode, fontFamily, cellFontSize, fontBold, taskBarHeight, isFetching, canvasI18n]);
 
   // ──────────────────────────────────────────────────────────────────
   // 7. Container measurement via REF CALLBACK

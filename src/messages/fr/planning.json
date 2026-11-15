@@ -231,7 +231,14 @@
       "showSummary": "Afficher le total en bas du planning",
       "userCountIcon": "Icône plusieurs utilisateurs",
       "fileIcon": "Icône pièce jointe",
-      "rowAvatar": "Photo de profil"
+      "rowAvatar": "Photo de profil",
+      "taskLabelMode": "Texte des cellules du planning",
+      "taskLabelModes": {
+        "title": "Titre de la tâche",
+        "project": "Nom du projet",
+        "both": "Tâche + projet"
+      },
+      "labelSaveError": "Impossible d'enregistrer la préférence d'affichage."
     }
   }
 }

@@ -1,10 +1,12 @@
 import { pgTable, uuid, varchar, text, boolean, decimal, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
+import type { TaskLabelMode } from "@/lib/types/task-label";
 import { teams } from "./teams";
 import { roles } from "./roles";
 import { businessUnits } from "./business-units";
 import { laborTypes } from "./labor-types";
 
 export type UserPreferences = {
+  taskLabelMode?: TaskLabelMode;
   defaultView?: "users" | "projects" | "places" | "resources";
   columnView?: "days" | "hours";
   cellSize?: "compact" | "normal" | "large";

@@ -45,6 +45,7 @@ const HOME_PAGES: { value: string; id: HomePageId }[] = [
 export function PreferencesTab() {
   const t = useTranslations("profile");
   const tc = useTranslations("common");
+  const tLabels = useTranslations("planning.toolbar.display");
   const { data: profile, isLoading } = useProfile();
   const { can } = usePermissions();
   const updatePreferences = useUpdatePreferences();
@@ -52,6 +53,7 @@ export function PreferencesTab() {
 
   const [form, setForm] = useState({
     defaultView: "users" as string,
+    taskLabelMode: "project" as string,
     columnView: "days" as string,
     defaultHomePage: "/planning" as string,
     notifications: false,
@@ -77,6 +79,7 @@ export function PreferencesTab() {
       const userSms = (profile as any).smsNotificationsUser ?? true;
       const loaded = {
         defaultView: prefs.defaultView ?? "users",
+        taskLabelMode: prefs.taskLabelMode ?? "project",
         columnView: prefs.columnView ?? "days",
         defaultHomePage: prefs.defaultHomePage ?? "/planning",
         notifications: adminEmail && userEmail,
@@ -179,6 +182,17 @@ export function PreferencesTab() {
             </Select>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>{tLabels("taskLabelMode")}</Label>
+            <Select value={form.taskLabelMode} onValueChange={(v) => setForm({ ...form, taskLabelMode: v })}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="title">{tLabels("taskLabelModes.title")}</SelectItem>
+                <SelectItem value="project">{tLabels("taskLabelModes.project")}</SelectItem>
+                <SelectItem value="both">{tLabels("taskLabelModes.both")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1.5">
             <Label>{t("preferences.columnView")}</Label>
             <Select value={form.columnView} onValueChange={(v) => setForm({ ...form, columnView: v })}>

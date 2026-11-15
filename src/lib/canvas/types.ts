@@ -13,6 +13,7 @@ import type { GridRow as PlanningGridRow } from "@/lib/utils/sort-rows";
 import type { AllocatedTask } from "@/lib/utils/slot-allocator";
 import type { HolidayMap } from "@/components/planning/grid-header";
 import type { ViewMode } from "@/stores/planning-store";
+import type { TaskLabelMode } from "@/lib/types/task-label";
 import type { ContractTypeKey } from "@/lib/constants/contract-types";
 
 /** Current geometry of the planning grid. Recomputed when the scroll, the zoom
@@ -100,6 +101,7 @@ export interface CanvasRenderData {
   /** View mode (users / projects / places / resources / vehicles) — sets
    *  the label shown on the bar (e.g. project name in the users view). */
   viewMode: ViewMode;
+  taskLabelMode: TaskLabelMode;
   /** Bar font family (configurable via /settings). */
   fontFamily?: string;
   /** Bar font size (configurable via /settings, default 11 px). */

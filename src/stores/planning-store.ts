@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { addDays, addMonths } from "date-fns";
 
 import type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode, CalendarSpan } from "@/lib/types/planning";
+import { isTaskLabelMode, type TaskLabelMode } from "@/lib/types/task-label";
 import { anchorFor, parseCalendarSpan, rangeLength, shiftCalendarAnchor } from "@/lib/utils/calendar-view";
 export type { ViewMode, ZoomLevel, ColumnMode, SortMode, CalendarMode, CalendarSpan } from "@/lib/types/planning";
 
@@ -33,6 +34,7 @@ interface PlanningState {
   calendarPersonalView: "hours" | "days";
 
   // Display options
+  taskLabelMode: TaskLabelMode;
   showSummary: boolean;
   showUserCount: boolean;
   showFileIcon: boolean;
@@ -111,6 +113,7 @@ interface PlanningState {
   toggleUserCount: () => void;
   toggleFileIcon: () => void;
   toggleRowAvatar: () => void;
+  setTaskLabelMode: (mode: TaskLabelMode) => void;
   navigateForward: () => void;
   navigateBackward: () => void;
   goToToday: () => void;
@@ -123,7 +126,7 @@ interface PlanningState {
     months: number,
     cellWidthConfig?: { min?: number; max?: number; defaultW?: number; mobileMax?: number },
   ) => void;
-  applyUserDefaults: (defaults: { viewMode?: string; columnMode?: string }) => void;
+  applyUserDefaults: (defaults: { viewMode?: string; columnMode?: string; taskLabelMode?: string }) => void;
   setCalendarMode: (mode: CalendarMode) => void;
   setCalendarDays: (days: CalendarSpan) => void;
   /** Calendar view: previous / next period (days or month). The planning
@@ -347,6 +350,7 @@ export const usePlanningStore = create<PlanningState>((set, get) => {
     showUserCount: typeof window !== "undefined" ? localStorage.getItem(USER_COUNT_KEY) !== "false" : true,
     showFileIcon: typeof window !== "undefined" ? localStorage.getItem(FILE_ICON_KEY) !== "false" : true,
     showRowAvatar: typeof window !== "undefined" ? localStorage.getItem(ROW_AVATAR_KEY) !== "false" : true,
+    taskLabelMode: "project",
     selectedTaskId: null,
     selectedRowId: null,
     isDragging: false,
@@ -457,6 +461,8 @@ export const usePlanningStore = create<PlanningState>((set, get) => {
       localStorage.setItem(ROW_AVATAR_KEY, String(next));
       return { showRowAvatar: next };
     }),
+
+    setTaskLabelMode: (mode) => set({ taskLabelMode: mode }),
 
     navigateForward: () => {
       const { startDate, endDate } = get();
@@ -601,6 +607,7 @@ export const usePlanningStore = create<PlanningState>((set, get) => {
     },
 
     applyUserDefaults: (defaults) => {
+      set({ taskLabelMode: isTaskLabelMode(defaults.taskLabelMode) ? defaults.taskLabelMode : "project" });
       // Apply user preferences from DB only if localStorage has no saved value
       if (defaults.viewMode && !localStorage.getItem(VIEW_MODE_KEY)) {
         const vm = defaults.viewMode as ViewMode;
