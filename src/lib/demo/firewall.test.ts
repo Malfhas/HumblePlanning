@@ -7,7 +7,11 @@ import {
 
 const ENV = { ...process.env };
 afterEach(() => {
-  process.env = { ...ENV };
+  // Restore in place: replacing `process.env` with a plain object detaches it
+  // from the runtime, so a later `process.env.TZ = …` (quota-gauge.test.ts)
+  // no longer changes the time zone of the test process.
+  for (const key of Object.keys(process.env)) if (!(key in ENV)) delete process.env[key];
+  Object.assign(process.env, ENV);
 });
 
 describe("demo firewall", () => {
