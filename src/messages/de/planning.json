@@ -232,13 +232,13 @@
       "userCountIcon": "Symbol für mehrere Benutzer",
       "fileIcon": "Anhangsymbol",
       "rowAvatar": "Profilbild",
-    "taskLabelMode": "Text auf Planungsbalken",
-    "taskLabelModes": {
-      "title": "Aufgabentitel",
-      "project": "Projektname",
-      "both": "Aufgabe + Projekt"
-    },
-    "labelSaveError": "Anzeigeneinstellung konnte nicht gespeichert werden."
+      "taskLabelMode": "Text der Planungszellen",
+      "taskLabelModes": {
+        "title": "Aufgabentitel",
+        "project": "Projektname",
+        "both": "Aufgabe + Projekt"
+      },
+      "labelSaveError": "Anzeigeneinstellung konnte nicht gespeichert werden."
     }
   }
 }

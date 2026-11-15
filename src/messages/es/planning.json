@@ -232,13 +232,13 @@
       "userCountIcon": "Icono de varios usuarios",
       "fileIcon": "Icono de archivo adjunto",
       "rowAvatar": "Foto de perfil",
-    "taskLabelMode": "Texto en las barras de planificación",
-    "taskLabelModes": {
-      "title": "Título de la tarea",
-      "project": "Nombre del proyecto",
-      "both": "Tarea + proyecto"
-    },
-    "labelSaveError": "No se pudo guardar la preferencia de visualización."
+      "taskLabelMode": "Texto de las celdas de la planificación",
+      "taskLabelModes": {
+        "title": "Título de la tarea",
+        "project": "Nombre del proyecto",
+        "both": "Tarea + proyecto"
+      },
+      "labelSaveError": "No se pudo guardar la preferencia de visualización."
     }
   }
 }

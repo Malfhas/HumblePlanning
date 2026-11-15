@@ -232,13 +232,13 @@
       "userCountIcon": "Icône plusieurs utilisateurs",
       "fileIcon": "Icône pièce jointe",
       "rowAvatar": "Photo de profil",
-    "taskLabelMode": "Texte sur les barres du planning",
-    "taskLabelModes": {
-      "title": "Titre de la tâche",
-      "project": "Nom du projet",
-      "both": "Tâche + projet"
-    },
-    "labelSaveError": "Impossible d’enregistrer la préférence d’affichage."
+      "taskLabelMode": "Texte des cellules du planning",
+      "taskLabelModes": {
+        "title": "Titre de la tâche",
+        "project": "Nom du projet",
+        "both": "Tâche + projet"
+      },
+      "labelSaveError": "Impossible d'enregistrer la préférence d'affichage."
     }
   }
 }
